@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Axis 2: Sales Opportunity Intelligence | hood</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#636262",
+                        "inverse-surface": "#303031",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#e2bfb0",
+                        "surface-container-high": "#e9e8e7",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#ff6b00",
+                        "primary-fixed": "#ffdbcc",
+                        "primary": "#a04100",
+                        "on-background": "#1b1c1c",
+                        "surface-container-highest": "#e4e2e2",
+                        "surface-bright": "#fbf9f9",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#410003",
+                        "primary-fixed-dim": "#ffb693",
+                        "tertiary-fixed-dim": "#ffb4ac",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "inverse-primary": "#ffb693",
+                        "secondary": "#5f5e5e",
+                        "on-primary": "#ffffff",
+                        "surface": "#fbf9f9",
+                        "on-secondary-fixed-variant": "#474746",
+                        "surface-container-low": "#f5f3f3",
+                        "background": "#fbf9f9",
+                        "on-primary-fixed": "#351000",
+                        "tertiary": "#b52424",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "secondary-container": "#e2dfde",
+                        "on-surface": "#1b1c1c",
+                        "tertiary-container": "#ff675d",
+                        "inverse-on-surface": "#f2f0f0",
+                        "on-surface-variant": "#5a4136",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffdad6",
+                        "surface-variant": "#e4e2e2",
+                        "on-primary-container": "#572000",
+                        "secondary-fixed": "#e5e2e1",
+                        "surface-dim": "#dbdad9",
+                        "on-tertiary-container": "#6a0007",
+                        "surface-container": "#efeded",
+                        "surface-tint": "#a04100",
+                        "outline": "#8e7164",
+                        "on-tertiary-fixed-variant": "#92030f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "lg": "24px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "margin": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "h2": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "data-mono": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h3": ["18px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<header class="bg-white dark:bg-zinc-950 docked full-width top-0 border-b border-zinc-200 dark:border-zinc-800 flat no shadows z-50">
+<div class="flex justify-between items-center h-16 px-8 w-full mx-auto max-w-screen-2xl">
+<div class="text-2xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-500" style="font-variation-settings: 'FILL' 1;">precision_manufacturing</span>
+                hood
+            </div>
+<nav class="hidden md:flex gap-8">
+<a class="font-inter text-sm font-bold uppercase tracking-widest text-orange-600 border-b-2 border-orange-600 pb-1 active:scale-95 duration-75" href="#">Solutions</a>
+<a class="font-inter text-sm font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors active:scale-95 duration-75" href="#">Compliance</a>
+<a class="font-inter text-sm font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors active:scale-95 duration-75" href="#">Inventory</a>
+<a class="font-inter text-sm font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors active:scale-95 duration-75" href="#">Pricing</a>
+</nav>
+<div class="hidden md:flex items-center gap-4">
+<button class="font-inter text-sm font-bold uppercase tracking-widest text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors active:scale-95 duration-75 px-4 py-2 border border-zinc-200 dark:border-zinc-800">Request Audit</button>
+<button class="font-inter text-sm font-bold uppercase tracking-widest bg-orange-600 text-white px-4 py-2 hover:bg-orange-700 transition-colors active:scale-95 duration-75">Client Portal</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="w-full">
+<!-- Hero Section -->
+<section class="max-w-screen-2xl mx-auto px-8 py-xl grid grid-cols-1 lg:grid-cols-2 gap-xl items-center border-b border-surface-variant">
+<div class="flex flex-col items-start space-y-md pr-lg">
+<div class="flex items-center gap-2 border border-surface-variant bg-surface px-3 py-1 rounded DEFAULT">
+<span class="material-symbols-outlined text-primary text-[16px]">target</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Module: Axis 2</span>
+</div>
+<h1 class="font-h1 text-h1 text-on-background">Revenue Intelligence,<br/>Not Just Leads.</h1>
+<p class="font-body-lg text-body-lg text-secondary max-w-xl">
+                    Stop wasting field hours on unqualified prospects. Axis 2 deploys curated opportunity lists based on local territory intelligence, equipping your team with ready-to-deploy outbound sales packets.
+                </p>
+<div class="pt-sm flex gap-4">
+<button class="bg-primary text-on-primary font-label-caps text-label-caps px-lg py-3 rounded DEFAULT uppercase tracking-widest hover:bg-surface-tint transition-colors border border-primary">
+                        Start Axis 2
+                    </button>
+<button class="bg-surface-container-lowest text-on-surface font-label-caps text-label-caps px-lg py-3 rounded DEFAULT uppercase tracking-widest hover:bg-surface transition-colors border border-surface-variant">
+                        View Demo Packet
+                    </button>
+</div>
+</div>
+<!-- Abstract Interface Preview -->
+<div class="relative w-full aspect-video bg-surface-container-highest border border-surface-variant rounded-lg overflow-hidden flex items-center justify-center p-md">
+<!-- Decorative map overlay representing data overlay -->
+<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, #1b1c1c 1px, transparent 0); background-size: 24px 24px;"></div>
+<div class="relative z-10 w-full max-w-md bg-surface-container-lowest border border-surface-variant shadow-sm rounded DEFAULT flex flex-col">
+<div class="border-b border-surface-variant px-md py-sm flex justify-between items-center bg-surface">
+<span class="font-label-caps text-label-caps text-on-surface uppercase tracking-widest">Active Territory Scan</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">radar</span>
+</div>
+<div class="p-md space-y-sm">
+<div class="flex justify-between items-center border-b border-surface-container pb-sm">
+<span class="font-data-mono text-data-mono text-on-background">Sector 4A - Commercial</span>
+<span class="font-label-caps text-label-caps text-primary bg-primary-fixed px-2 py-0.5 rounded DEFAULT">82% Probability</span>
+</div>
+<div class="flex justify-between items-center border-b border-surface-container pb-sm">
+<span class="font-data-mono text-data-mono text-on-background">Sector 2B - Industrial</span>
+<span class="font-label-caps text-label-caps text-secondary bg-surface-variant px-2 py-0.5 rounded DEFAULT">45% Probability</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-data-mono text-data-mono text-on-background">Sector 7C - Hospitality</span>
+<span class="font-label-caps text-label-caps text-primary bg-primary-fixed px-2 py-0.5 rounded DEFAULT">91% Probability</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Features & Intelligence -->
+<section class="max-w-screen-2xl mx-auto px-8 py-xl bg-surface-container-low">
+<div class="mb-lg">
+<h2 class="font-h2 text-h2 text-on-background">Operational Superiority</h2>
+<p class="font-body-lg text-body-lg text-secondary">Data-driven targeting for commercial kitchen environments.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Map UI Component -->
+<div class="md:col-span-2 border border-surface-variant bg-surface-container-lowest rounded-lg flex flex-col overflow-hidden">
+<div class="px-md py-sm border-b border-surface-variant bg-surface flex justify-between items-center">
+<h3 class="font-h3 text-h3 text-on-background">Territory Mapping</h3>
+<div class="flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span class="font-label-caps text-label-caps uppercase">Live View</span>
+</div>
+</div>
+<div class="relative h-64 bg-surface-container-high w-full">
+<img alt="Map Data Layer" class="w-full h-full object-cover opacity-50 mix-blend-multiply" data-alt="High-contrast grayscale urban map with stark orange data points indicating target locations" data-location="Chicago" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5DHm5b78lP_mhPfk88XSGY8AgDhQl2Csrk3MpxHjgsm67jzb_KAlrjrj6f2U3_rKgLOHxGgzZ1FSbFkq7rwNxwq6MeA8YWS1fWSvxJxpl6HNPo9wvyjBIEwzclB2h0jeXA24FSqqptHQ4BrC0n1b4e3SnuBavia-k352XmDT83OfevXbz_ovAyqUZnTJNOpE80xmz-zvc8Oaz3_iiC54nylAsRqju31dFUDjCfMtYBDO7rzGb8ZjIB1EfYWTP0B22J-iKOKIstg"/>
+<!-- Overlay UI elements on map -->
+<div class="absolute top-4 left-4 bg-surface-container-lowest border border-surface-variant p-sm rounded DEFAULT shadow-sm">
+<div class="font-label-caps text-label-caps text-on-surface uppercase mb-xs">Zones</div>
+<div class="flex flex-col gap-1">
+<label class="flex items-center gap-2 font-data-mono text-data-mono text-sm text-secondary">
+<input checked="" class="form-checkbox text-primary rounded-sm border-surface-variant focus:ring-primary h-3 w-3" type="checkbox"/>
+                                    High Density
+                                </label>
+<label class="flex items-center gap-2 font-data-mono text-data-mono text-sm text-secondary">
+<input class="form-checkbox text-primary rounded-sm border-surface-variant focus:ring-primary h-3 w-3" type="checkbox"/>
+                                    Recent Citations
+                                </label>
+</div>
+</div>
+</div>
+</div>
+<!-- Outbound Packet Sample Component -->
+<div class="border border-surface-variant bg-surface-container-lowest rounded-lg flex flex-col">
+<div class="px-md py-sm border-b border-surface-variant bg-surface flex justify-between items-center">
+<h3 class="font-h3 text-h3 text-on-background">Outbound Packet</h3>
+<span class="material-symbols-outlined text-primary text-[18px]">description</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-between space-y-md">
+<p class="font-body-sm text-body-sm text-secondary">Automatically generate site-specific dossiers prior to field contact.</p>
+<div class="border border-surface-variant bg-surface p-sm rounded DEFAULT">
+<div class="flex justify-between items-center mb-sm pb-xs border-b border-surface-variant">
+<span class="font-label-caps text-label-caps text-on-background uppercase">Target: Metro Grill</span>
+<span class="font-label-caps text-label-caps text-error uppercase bg-error-container px-1 rounded DEFAULT">High Risk</span>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-secondary">Last Insp:</span>
+<span class="font-data-mono text-data-mono text-on-background">2021-04</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-secondary">Est. Volume:</span>
+<span class="font-data-mono text-data-mono text-on-background">Tier 2</span>
+</div>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 border border-surface-variant bg-surface-container-lowest text-on-surface font-label-caps text-label-caps py-sm rounded DEFAULT uppercase hover:bg-surface transition-colors">
+<span class="material-symbols-outlined text-[16px]">download</span>
+                            Export PDF
+                        </button>
+</div>
+</div>
+<!-- Target Accounts Data Table -->
+<div class="md:col-span-3 border border-surface-variant bg-surface-container-lowest rounded-lg mt-sm overflow-hidden">
+<div class="px-md py-sm border-b border-surface-variant bg-surface flex justify-between items-center">
+<h3 class="font-h3 text-h3 text-on-background">Curated Opportunity List</h3>
+<div class="flex gap-2">
+<button class="p-xs border border-surface-variant rounded DEFAULT hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined text-secondary text-[16px]">filter_list</span></button>
+<button class="p-xs border border-surface-variant rounded DEFAULT hover:bg-surface-variant transition-colors"><span class="material-symbols-outlined text-secondary text-[16px]">more_horiz</span></button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[600px]">
+<thead>
+<tr class="bg-surface-container-low border-b border-surface-variant">
+<th class="py-sm px-md font-label-caps text-label-caps text-secondary uppercase tracking-wider w-1/4">Entity Name</th>
+<th class="py-sm px-md font-label-caps text-label-caps text-secondary uppercase tracking-wider w-1/4">Sector</th>
+<th class="py-sm px-md font-label-caps text-label-caps text-secondary uppercase tracking-wider w-1/4">Signal Strength</th>
+<th class="py-sm px-md font-label-caps text-label-caps text-secondary uppercase tracking-wider w-1/4 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-variant bg-surface-container-lowest">
+<tr class="hover:bg-surface transition-colors">
+<td class="py-md px-md font-data-mono text-data-mono text-on-background">Atlas Food Group</td>
+<td class="py-md px-md font-body-sm text-body-sm text-secondary">Hospitality - Multi</td>
+<td class="py-md px-md">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="font-data-mono text-data-mono text-on-background">Strong</span>
+</div>
+</td>
+<td class="py-md px-md text-right">
+<button class="font-label-caps text-label-caps text-primary uppercase hover:underline">View Intel</button>
+</td>
+</tr>
+<tr class="hover:bg-surface transition-colors">
+<td class="py-md px-md font-data-mono text-data-mono text-on-background">Northside Diner</td>
+<td class="py-md px-md font-body-sm text-body-sm text-secondary">Independent</td>
+<td class="py-md px-md">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-surface-variant"></div>
+<span class="font-data-mono text-data-mono text-secondary">Moderate</span>
+</div>
+</td>
+<td class="py-md px-md text-right">
+<button class="font-label-caps text-label-caps text-primary uppercase hover:underline">View Intel</button>
+</td>
+</tr>
+<tr class="hover:bg-surface transition-colors">
+<td class="py-md px-md font-data-mono text-data-mono text-on-background">Summit Corporate Park Cafeteria</td>
+<td class="py-md px-md font-body-sm text-body-sm text-secondary">Institutional</td>
+<td class="py-md px-md">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="font-data-mono text-data-mono text-on-background">Strong</span>
+</div>
+</td>
+<td class="py-md px-md text-right">
+<button class="font-label-caps text-label-caps text-primary uppercase hover:underline">View Intel</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-zinc-50 dark:bg-zinc-900 full-width border-t border-zinc-200 dark:border-zinc-800 flat no shadows mt-xl">
+<div class="flex flex-col md:flex-row justify-between items-center py-12 px-8 w-full max-w-screen-2xl mx-auto gap-6">
+<div class="text-xl font-bold text-zinc-400 dark:text-zinc-600 uppercase flex items-center gap-2 opacity-100 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-500" style="font-variation-settings: 'FILL' 1;">precision_manufacturing</span>
+                hood
+            </div>
+<div class="flex flex-wrap justify-center gap-6 md:gap-8">
+<a class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:text-orange-600 transition-colors opacity-100 hover:opacity-80" href="#">Service Standards</a>
+<a class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:text-orange-600 transition-colors opacity-100 hover:opacity-80" href="#">Compliance Registry</a>
+<a class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:text-orange-600 transition-colors opacity-100 hover:opacity-80" href="#">Privacy Protocol</a>
+<a class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:text-orange-600 transition-colors opacity-100 hover:opacity-80" href="#">Terms of Service</a>
+</div>
+<div class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                © 2024 hood Operational Systems. Industrial Grade Maintenance.
+            </div>
+</div>
+</footer>
+</body></html>

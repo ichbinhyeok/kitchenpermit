@@ -1,0 +1,86 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'gg.jte.gradle' version '3.2.3'
+}
+
+def npmCommand = org.gradle.internal.os.OperatingSystem.current().isWindows() ? 'npm.cmd' : 'npm'
+def jteVersion = '3.2.3'
+
+group = 'owner.hood'
+version = '0.0.1-SNAPSHOT'
+description = 'Hood packet-led growth system for kitchen exhaust vendors'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation "gg.jte:jte-spring-boot-starter-4:${jteVersion}"
+    implementation "gg.jte:jte:${jteVersion}"
+    implementation 'io.github.wimdeblauwe:htmx-spring-boot:5.0.0'
+    implementation 'org.apache.pdfbox:pdfbox:3.0.2'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+jte {
+    generate()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir layout.buildDirectory.dir('generated-sources/jte')
+        }
+    }
+}
+
+tasks.named('compileJava') {
+    dependsOn tasks.named('generateJte')
+}
+
+tasks.register('installNodeDeps', Exec) {
+    group = 'build'
+    description = 'Installs Node dependencies required for Tailwind asset compilation.'
+    onlyIf { !file('node_modules').exists() }
+    workingDir = projectDir
+    commandLine npmCommand, 'install'
+    inputs.file('package.json')
+    outputs.dir('node_modules')
+}
+
+tasks.register('buildTailwind', Exec) {
+    group = 'build'
+    description = 'Builds Tailwind CSS assets for the hood frontend.'
+    dependsOn tasks.named('installNodeDeps')
+    workingDir = projectDir
+    commandLine npmCommand, 'run', 'build:tailwind'
+    inputs.files(fileTree('src/main/jte'), fileTree('src/main/tailwind'), file('package.json'))
+    outputs.file('src/main/resources/static/app.css')
+}
+
+tasks.named('processResources') {
+    dependsOn tasks.named('buildTailwind')
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HOOD - Pricing &amp; Plans</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f5f3f3",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dbdad9",
+                        "primary": "#000000",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#fe6b00",
+                        "on-tertiary-fixed": "#410003",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#444748",
+                        "primary-fixed": "#e5e2e1",
+                        "inverse-on-surface": "#f2f0f0",
+                        "surface-tint": "#5f5e5e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1b1c1c",
+                        "on-primary-fixed": "#1c1b1b",
+                        "surface-container-highest": "#e4e2e2",
+                        "secondary-fixed-dim": "#ffb693",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#fbf9f9",
+                        "outline-variant": "#c4c7c7",
+                        "surface-container": "#efeded",
+                        "secondary-fixed": "#ffdbcc",
+                        "background": "#fbf9f9",
+                        "secondary": "#a04100",
+                        "on-secondary-fixed": "#351000",
+                        "inverse-primary": "#c8c6c5",
+                        "on-primary-fixed-variant": "#474746",
+                        "inverse-surface": "#303031",
+                        "tertiary-fixed": "#ffdad6",
+                        "on-secondary-container": "#572000",
+                        "on-primary-container": "#858383",
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "surface-variant": "#e4e2e2",
+                        "outline": "#747878",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1b1c1c",
+                        "tertiary-container": "#410003",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-fixed-variant": "#93000f",
+                        "surface": "#fbf9f9",
+                        "on-error": "#ffffff",
+                        "primary-container": "#1c1b1b",
+                        "on-tertiary-container": "#fb3134",
+                        "surface-container-high": "#e9e8e7",
+                        "on-secondary-fixed-variant": "#7a3000",
+                        "tertiary": "#000000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "40px",
+                        "md": "16px",
+                        "margin": "24px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "h1": ["Inter"],
+                        "h2": ["Inter"],
+                        "body-base": ["Inter"],
+                        "mono-data": ["monospace"],
+                        "h3": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h1": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "h2": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-base": ["14px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "mono-data": ["13px", { "lineHeight": "1", "letterSpacing": "0", "fontWeight": "500" }],
+                        "h3": ["18px", { "lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-base text-body-base min-h-screen flex flex-col selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- TopNavBar -->
+<header class="bg-white dark:bg-zinc-950 docked full-width top-0 border-b border-zinc-400 dark:border-zinc-800 flat no shadows flex justify-between items-center px-6 py-4 w-full sticky z-50">
+<div class="text-2xl font-black tracking-tighter text-zinc-900 dark:text-white">
+            HOOD
+        </div>
+<nav class="hidden md:flex items-center gap-gutter font-['Inter'] uppercase tracking-wider text-sm font-semibold">
+<a class="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1" href="#">Axis 1</a>
+<a class="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1" href="#">Axis 2</a>
+<a class="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1" href="#">Samples</a>
+<a class="text-zinc-900 dark:text-white border-b-2 border-orange-500 pb-1 px-2 py-1 Active: opacity-80 duration-100" href="#">Pricing</a>
+</nav>
+<div class="flex items-center gap-sm">
+<button class="bg-secondary-container text-on-secondary-container font-label-caps text-label-caps px-4 py-2 rounded-DEFAULT hover:bg-secondary transition-colors uppercase tracking-widest font-bold">
+                GET STARTED
+            </button>
+</div>
+</header>
+<main class="flex-grow w-full max-w-7xl mx-auto px-margin py-xl flex flex-col gap-xl">
+<!-- Hero Section -->
+<section class="flex flex-col gap-sm border-b border-outline-variant pb-md">
+<h1 class="font-h1 text-h1 text-on-surface uppercase tracking-tight">Commercial Offerings</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                Transparent, deterministic pricing parameters for field operations. Select the hardware and software tier required for your deployment scale.
+            </p>
+</section>
+<!-- Pricing Cards (Bento Layout) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Plan: Axis 1 -->
+<div class="bg-surface border border-outline-variant rounded-DEFAULT flex flex-col">
+<div class="p-md border-b border-outline-variant bg-surface-container-lowest">
+<h2 class="font-h3 text-h3 text-on-surface mb-xs">Axis 1</h2>
+<p class="font-mono-data text-mono-data text-on-surface-variant">Standard Utility Specification</p>
+</div>
+<div class="p-md flex-grow flex flex-col gap-md">
+<div class="flex items-baseline gap-xs">
+<span class="font-h1 text-h1 text-on-surface">$240</span>
+<span class="font-mono-data text-mono-data text-on-surface-variant">/mo per unit</span>
+</div>
+<ul class="flex flex-col gap-sm font-body-base text-body-base text-on-surface">
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Base Telemetry Access
+                        </li>
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Standard Reporting
+                        </li>
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            5 User Seats
+                        </li>
+</ul>
+</div>
+<div class="p-md border-t border-outline-variant bg-surface-container-low">
+<button class="w-full border border-outline text-on-surface font-label-caps text-label-caps py-sm rounded-DEFAULT hover:bg-surface-variant transition-colors">
+                        SELECT AXIS 1
+                    </button>
+</div>
+</div>
+<!-- Plan: Axis 2 -->
+<div class="bg-surface border border-outline-variant rounded-DEFAULT flex flex-col relative">
+<div class="absolute top-0 right-0 bg-surface-variant px-sm py-xs border-b border-l border-outline-variant font-label-caps text-label-caps text-on-surface-variant rounded-bl-DEFAULT">
+                    RECOMMENDED
+                </div>
+<div class="p-md border-b border-outline-variant bg-surface-container-lowest">
+<h2 class="font-h3 text-h3 text-on-surface mb-xs">Axis 2</h2>
+<p class="font-mono-data text-mono-data text-on-surface-variant">Advanced Diagnostic Tier</p>
+</div>
+<div class="p-md flex-grow flex flex-col gap-md">
+<div class="flex items-baseline gap-xs">
+<span class="font-h1 text-h1 text-on-surface">$480</span>
+<span class="font-mono-data text-mono-data text-on-surface-variant">/mo per unit</span>
+</div>
+<ul class="flex flex-col gap-sm font-body-base text-body-base text-on-surface">
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Real-time Telemetry
+                        </li>
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Predictive Maintenance Alarms
+                        </li>
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Unlimited User Seats
+                        </li>
+</ul>
+</div>
+<div class="p-md border-t border-outline-variant bg-surface-container-low">
+<button class="w-full border border-outline text-on-surface font-label-caps text-label-caps py-sm rounded-DEFAULT hover:bg-surface-variant transition-colors">
+                        SELECT AXIS 2
+                    </button>
+</div>
+</div>
+<!-- Plan: The Bundle -->
+<div class="bg-inverse-surface border border-outline rounded-DEFAULT flex flex-col">
+<div class="p-md border-b border-outline-variant bg-on-surface">
+<h2 class="font-h3 text-h3 text-inverse-on-surface mb-xs">The Bundle</h2>
+<p class="font-mono-data text-mono-data text-surface-variant">Comprehensive Operational Suite</p>
+</div>
+<div class="p-md flex-grow flex flex-col gap-md">
+<div class="flex items-baseline gap-xs">
+<span class="font-h1 text-h1 text-inverse-on-surface">CUSTOM</span>
+</div>
+<ul class="flex flex-col gap-sm font-body-base text-body-base text-inverse-on-surface">
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            All Axis 2 Features
+                        </li>
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Dedicated Hardware Procurement
+                        </li>
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            On-site Integration Support
+                        </li>
+<li class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Custom API Architecture
+                        </li>
+</ul>
+</div>
+<div class="p-md border-t border-outline-variant bg-on-surface">
+<button class="w-full bg-secondary-container text-on-secondary-container font-label-caps text-label-caps py-sm rounded-DEFAULT hover:bg-secondary transition-colors font-bold">
+                        CONTACT SALES
+                    </button>
+</div>
+</div>
+</section>
+<!-- Technical Specification Matrix -->
+<section class="flex flex-col gap-md mt-lg">
+<h3 class="font-h2 text-h2 text-on-surface uppercase border-b border-outline-variant pb-xs">Feature Matrix</h3>
+<div class="overflow-x-auto border border-outline-variant rounded-DEFAULT bg-surface">
+<table class="w-full border-collapse text-left">
+<thead>
+<tr class="bg-inverse-surface text-inverse-on-surface font-label-caps text-label-caps uppercase tracking-wider">
+<th class="p-md border-r border-outline-variant font-semibold">Parameter</th>
+<th class="p-md border-r border-outline-variant font-semibold text-center">Axis 1</th>
+<th class="p-md border-r border-outline-variant font-semibold text-center">Axis 2</th>
+<th class="p-md font-semibold text-center text-secondary-container">The Bundle</th>
+</tr>
+</thead>
+<tbody class="font-mono-data text-mono-data text-on-surface">
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="p-md border-r border-outline-variant font-body-base text-body-base text-on-surface-variant">Data Retention</td>
+<td class="p-md border-r border-outline-variant text-center">30 Days</td>
+<td class="p-md border-r border-outline-variant text-center">365 Days</td>
+<td class="p-md text-center font-bold">Indefinite</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+<td class="p-md border-r border-outline-variant font-body-base text-body-base text-on-surface-variant">API Rate Limit</td>
+<td class="p-md border-r border-outline-variant text-center">100 req/min</td>
+<td class="p-md border-r border-outline-variant text-center">1000 req/min</td>
+<td class="p-md text-center font-bold">Custom</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<td class="p-md border-r border-outline-variant font-body-base text-body-base text-on-surface-variant">SLA Uptime</td>
+<td class="p-md border-r border-outline-variant text-center text-outline">N/A</td>
+<td class="p-md border-r border-outline-variant text-center">99.9%</td>
+<td class="p-md text-center font-bold">99.99%</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-container-lowest">
+<td class="p-md border-r border-outline-variant font-body-base text-body-base text-on-surface-variant">Field Support</td>
+<td class="p-md border-r border-outline-variant text-center text-outline">Email Only</td>
+<td class="p-md border-r border-outline-variant text-center">Standard Hours</td>
+<td class="p-md text-center font-bold">24/7 Dedicated</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-zinc-900 dark:bg-black full-width border-t-4 border-orange-600 border-t border-zinc-700 flat no shadows w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center mt-auto font-['Inter'] text-xs uppercase tracking-widest text-zinc-400">
+<div class="text-lg font-bold text-white mb-6 md:mb-0">
+            HOOD
+        </div>
+<nav class="flex flex-col md:flex-row gap-6 mb-6 md:mb-0 text-center md:text-left">
+<a class="hover:text-orange-400 transition-colors" href="#">Documentation</a>
+<a class="hover:text-orange-400 transition-colors" href="#">Safety Standards</a>
+<a class="hover:text-orange-400 transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-orange-400 transition-colors" href="#">Contact Support</a>
+</nav>
+<div class="text-zinc-500">
+            © 2024 HOOD INDUSTRIAL OPERATIONS. ALL RIGHTS RESERVED.
+        </div>
+</footer>
+</body></html>

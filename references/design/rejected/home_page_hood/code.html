@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ExhaustPro B2B - Professional Service Packets</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#000103",
+                        "on-primary-fixed-variant": "#454749",
+                        "on-primary-fixed": "#1a1c1e",
+                        "on-tertiary-container": "#7e858d",
+                        "primary-fixed-dim": "#c6c6c9",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-container-low": "#f6f3f2",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#e2e2e5",
+                        "on-secondary-container": "#606366",
+                        "inverse-primary": "#c6c6c9",
+                        "tertiary-fixed-dim": "#c0c7d0",
+                        "secondary-container": "#dee0e3",
+                        "inverse-on-surface": "#f4f0ef",
+                        "surface-container-high": "#ebe7e7",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#191c1f",
+                        "surface-dim": "#ddd9d9",
+                        "inverse-surface": "#313030",
+                        "on-tertiary-fixed-variant": "#41474f",
+                        "secondary": "#5c5f62",
+                        "outline": "#75777a",
+                        "secondary-fixed": "#e1e2e6",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "surface-bright": "#fcf8f8",
+                        "on-surface": "#1c1b1b",
+                        "secondary-fixed-dim": "#c5c6ca",
+                        "background": "#fcf8f8",
+                        "on-background": "#1c1b1b",
+                        "outline-variant": "#c5c6ca",
+                        "tertiary-fixed": "#dce3ec",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#44474a",
+                        "tertiary-container": "#161d23",
+                        "on-primary-container": "#838486",
+                        "primary": "#000101",
+                        "surface-tint": "#5d5e61",
+                        "surface": "#fcf8f8",
+                        "primary-container": "#1a1c1e",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container": "#f1eded",
+                        "on-tertiary-fixed": "#151c23"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "margin": "24px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "xl": "48px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "code": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h2": ["Inter"]
+                    },
+                    "fontSize": {
+                        "code": ["13px", { "lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "h3": ["18px", { "lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "h2": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-zinc-950 w-full top-0 border-b border-zinc-300 dark:border-zinc-800 z-50 sticky">
+<div class="flex justify-between items-center w-full px-6 py-3 max-w-full mx-auto">
+<div class="flex items-center gap-6">
+<span class="text-xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50">ExhaustPro B2B</span>
+<nav class="hidden md:flex items-center gap-4">
+<a class="font-sans text-sm font-semibold tracking-tight uppercase text-orange-600 dark:text-orange-500 border-b-2 border-orange-600 pb-1 opacity-80 transition-all" href="#">Dashboard</a>
+<a class="font-sans text-sm font-semibold tracking-tight uppercase text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1 rounded" href="#">Inspections</a>
+<a class="font-sans text-sm font-semibold tracking-tight uppercase text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1 rounded" href="#">Documents</a>
+<a class="font-sans text-sm font-semibold tracking-tight uppercase text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1 rounded" href="#">Analytics</a>
+<a class="font-sans text-sm font-semibold tracking-tight uppercase text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1 rounded" href="#">Billing</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:block font-sans text-sm font-semibold tracking-tight uppercase text-orange-600 dark:text-orange-500 px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 rounded">New Inspection</button>
+<button class="hidden lg:block font-sans text-sm font-semibold tracking-tight uppercase text-zinc-600 dark:text-zinc-400 px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 rounded">Support</button>
+<div class="flex items-center gap-2 border-l border-zinc-300 dark:border-zinc-800 pl-4">
+<button class="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors duration-150"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors duration-150"><span class="material-symbols-outlined">settings</span></button>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full ml-2 border border-zinc-300 dark:border-zinc-800" data-alt="close up of a professional man in a dark grey suit against a neutral studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQwiE18sukBAoiGKyUQXMQAZG3uYCH9t0mQ5J5OafSiF52invP7IBzq4OUvllMky6IEfD8EzqjHDnO8ZwbU1E-ipXAlQhdbfvvUxBDWbUecqVHZfidfjSI8vYYuRn0-i9SSEM7hWGyqOXxkvQzgb7loCbo3auemQOjW2gnZ2UqgzN1fWkZEMMd5e-sfWy_FlLwSUHid6840-HvqPoaheuUrw3mFD1otNJ0chl5h7wpDta1uV8EPOXeT5fmuaGxH4P4lUhcVaWF8w"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow flex flex-col items-center w-full">
+<!-- Hero Section -->
+<section class="w-full max-w-7xl mx-auto px-margin py-xl lg:py-[72px] grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<div class="flex flex-col gap-margin">
+<div class="inline-flex items-center gap-2 bg-surface-container border border-outline px-3 py-1 rounded-sm self-start">
+<span class="material-symbols-outlined text-primary text-[16px]">bolt</span>
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Hood Operations Suite</span>
+</div>
+<h1 class="font-h1 text-h1 text-on-surface">Professionalize Your Service.<br/><span class="text-secondary">Dominate Your Territory.</span></h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg">
+                    Deploy industrial-grade documentation and intelligence to secure your client base. Stop losing contracts to poorly formatted reports.
+                </p>
+<div class="flex flex-wrap items-center gap-md mt-sm">
+<button class="bg-primary text-on-primary font-label-caps text-label-caps px-6 py-3 rounded uppercase tracking-widest hover:bg-tertiary-container transition-colors border border-primary">Get Started</button>
+<button class="bg-surface-container-lowest text-on-surface font-label-caps text-label-caps px-6 py-3 rounded uppercase tracking-widest hover:bg-surface-container transition-colors border border-outline flex items-center gap-2">
+                        View Sample Packet
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Teaser Document Preview -->
+<div class="relative bg-surface-container-lowest border border-outline shadow-sm p-md aspect-[4/3] flex flex-col gap-sm overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent z-10 pointer-events-none"></div>
+<!-- Mock Header -->
+<div class="flex justify-between items-end border-b border-outline pb-sm">
+<div>
+<div class="font-label-caps text-label-caps text-secondary uppercase">Inspection Report</div>
+<div class="font-h3 text-h3 text-on-surface mt-1">SYS-492-ALPHA</div>
+</div>
+<img alt="Company Logo" class="h-8 grayscale opacity-80" data-alt="minimalist geometric black and white corporate logo mark" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaioCATecNxaLGGY-fl6LaOXGW0eqXqMRWg97YpBAVIepowt90uausTAlKfYnbKxxxpuH7i4ugEEO6dxpnHDUDZmWgVZeJOhHLVWBpKEukggjFdVN8LzWhfMmNlIbAH4CGR2aQWeZGz-NhK4emi928y-nxIEDdRGu4NNFcxw5znyzF3dKn0INZYdq7DSEjS-7Q7eKQcPTAu3z44c2_HUwXvEjsG0mLKchIU7ZGwmuVe_rZf9oKQirmai9iJJgccayTsnd0G698hw"/>
+</div>
+<!-- Mock Data Grid -->
+<div class="grid grid-cols-2 gap-sm mt-sm">
+<div class="border border-outline p-2 bg-surface-container">
+<div class="font-label-caps text-label-caps text-secondary mb-1">Status</div>
+<div class="font-code text-code text-on-surface font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary block"></span> Compliant
+                        </div>
+</div>
+<div class="border border-outline p-2 bg-surface-container">
+<div class="font-label-caps text-label-caps text-secondary mb-1">Flow Rate</div>
+<div class="font-code text-code text-on-surface">4,250 CFM</div>
+</div>
+</div>
+<!-- Mock Findings -->
+<div class="mt-sm flex-grow">
+<div class="font-label-caps text-label-caps text-secondary mb-2 border-b border-outline-variant pb-1">Critical Findings</div>
+<div class="border-l-[4px] border-error bg-error-container/20 p-2 mb-2 flex items-start gap-2">
+<span class="material-symbols-outlined text-error text-[16px] mt-0.5">warning</span>
+<div class="font-code text-code text-on-surface text-xs">Particulate buildup exceeds 0.125" threshold in vertical duct section B.</div>
+</div>
+<div class="border-l-[4px] border-outline bg-surface-container p-2 flex items-start gap-2">
+<span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">check_circle</span>
+<div class="font-code text-code text-on-surface text-xs">Access panels sealed and secured per NFPA 96 standards.</div>
+</div>
+</div>
+<!-- Hover Overlay -->
+<div class="absolute inset-0 bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
+<button class="bg-surface-container-lowest text-on-surface font-label-caps text-label-caps px-6 py-3 rounded uppercase tracking-widest border border-outline">Expand Packet</button>
+</div>
+</div>
+</section>
+<!-- Value Proposition Axes (Bento Layout) -->
+<section class="w-full bg-surface-container border-y border-outline py-xl">
+<div class="max-w-7xl mx-auto px-margin">
+<div class="mb-lg">
+<h2 class="font-h2 text-h2 text-on-surface">The Intelligence Matrix</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mt-2">Deploy targeted information structures to solidify existing accounts and systematically acquire new territory.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Axis 1 -->
+<div class="bg-surface-container-lowest border border-outline p-lg flex flex-col h-full hover:bg-surface transition-colors">
+<div class="w-12 h-12 bg-surface-container border border-outline flex items-center justify-center mb-md rounded-sm">
+<span class="material-symbols-outlined text-primary">description</span>
+</div>
+<h3 class="font-h3 text-h3 text-on-surface mb-2">Axis 1: Customer Service Packets</h3>
+<div class="font-label-caps text-label-caps text-secondary uppercase mb-4 tracking-widest border-b border-outline-variant pb-2 inline-block self-start">For Retention</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 flex-grow">
+                            Automate the generation of high-fidelity, compliance-ready reports. Replace messy handwritten notes with structured, indisputable proof of service that facility managers cannot ignore.
+                        </p>
+<ul class="flex flex-col gap-2 border-t border-outline-variant pt-4">
+<li class="flex items-center gap-2 font-code text-code text-on-surface"><span class="material-symbols-outlined text-[16px] text-secondary">check</span> Before/After Photographic Evidence</li>
+<li class="flex items-center gap-2 font-code text-code text-on-surface"><span class="material-symbols-outlined text-[16px] text-secondary">check</span> NFPA Compliance Certificates</li>
+<li class="flex items-center gap-2 font-code text-code text-on-surface"><span class="material-symbols-outlined text-[16px] text-secondary">check</span> Deficiency Action Plans</li>
+</ul>
+</div>
+<!-- Axis 2 -->
+<div class="bg-surface-container-lowest border border-outline p-lg flex flex-col h-full hover:bg-surface transition-colors">
+<div class="w-12 h-12 bg-primary border border-primary flex items-center justify-center mb-md rounded-sm">
+<span class="material-symbols-outlined text-on-primary">monitoring</span>
+</div>
+<h3 class="font-h3 text-h3 text-on-surface mb-2">Axis 2: Revenue Intelligence</h3>
+<div class="font-label-caps text-label-caps text-secondary uppercase mb-4 tracking-widest border-b border-outline-variant pb-2 inline-block self-start">For Growth</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 flex-grow">
+                            Transform routine maintenance data into actionable sales collateral. Identify systemic failures in competitor territories and present mathematically sound replacement proposals.
+                        </p>
+<ul class="flex flex-col gap-2 border-t border-outline-variant pt-4">
+<li class="flex items-center gap-2 font-code text-code text-on-surface"><span class="material-symbols-outlined text-[16px] text-secondary">check</span> Competitor Vulnerability Scoring</li>
+<li class="flex items-center gap-2 font-code text-code text-on-surface"><span class="material-symbols-outlined text-[16px] text-secondary">check</span> Automated Quote Generation</li>
+<li class="flex items-center gap-2 font-code text-code text-on-surface"><span class="material-symbols-outlined text-[16px] text-secondary">check</span> Predictive Maintenance Scheduling</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<!-- Why It Matters -->
+<section class="w-full max-w-7xl mx-auto px-margin py-xl">
+<h2 class="font-h2 text-h2 text-on-surface text-center mb-xl border-b border-outline pb-4 max-w-3xl mx-auto">The Operational Advantage</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter border border-outline bg-surface-container-lowest divide-y md:divide-y-0 md:divide-x divide-outline">
+<div class="p-lg">
+<span class="material-symbols-outlined text-[32px] text-primary mb-4 block">shield_lock</span>
+<h3 class="font-h3 text-h3 text-on-surface mb-2 uppercase tracking-tight">Establish Trust</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Corporate entities require rigorous documentation. Delivering industrial-grade packets positions your firm as the de facto authority, eliminating localized competition.
+                    </p>
+</div>
+<div class="p-lg">
+<span class="material-symbols-outlined text-[32px] text-primary mb-4 block">payments</span>
+<h3 class="font-h3 text-h3 text-on-surface mb-2 uppercase tracking-tight">Accelerate Revenue</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Clear, irrefutable evidence of deficiencies directly translates to up-sell opportunities. Remove friction from the approval process with standardized quoting.
+                    </p>
+</div>
+<div class="p-lg">
+<span class="material-symbols-outlined text-[32px] text-primary mb-4 block">gavel</span>
+<h3 class="font-h3 text-h3 text-on-surface mb-2 uppercase tracking-tight">Ensure Compliance</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Mitigate liability. Systematized packets ensure every technician adheres to strict procedural reporting, shielding your operation from regulatory blowback.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Pricing Snapshot -->
+<section class="w-full bg-surface-container-low border-t border-outline py-xl">
+<div class="max-w-4xl mx-auto px-margin text-center">
+<h2 class="font-h2 text-h2 text-on-surface mb-2">Transparent Infrastructure Costs</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-lg">No variable fees. Flat rate deployment for your entire fleet.</p>
+<div class="bg-surface-container-lowest border border-outline p-lg md:p-xl flex flex-col md:flex-row items-center justify-between gap-lg text-left shadow-sm">
+<div>
+<div class="font-label-caps text-label-caps text-secondary uppercase tracking-widest mb-2">Enterprise License</div>
+<div class="flex items-baseline gap-2">
+<span class="font-h1 text-h1 text-on-surface">$499</span>
+<span class="font-body-md text-body-md text-secondary">/ month</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2 max-w-sm">Includes unlimited document generation, full revenue intelligence suite, and up to 50 active technician seats.</p>
+</div>
+<div class="w-full md:w-auto">
+<button class="w-full md:w-auto bg-primary text-on-primary font-label-caps text-label-caps px-8 py-4 rounded uppercase tracking-widest hover:bg-tertiary-container transition-colors border border-primary text-center">Deploy Now</button>
+</div>
+</div>
+</div>
+</section>
+<!-- FAQ -->
+<section class="w-full max-w-3xl mx-auto px-margin py-xl">
+<h2 class="font-h2 text-h2 text-on-surface mb-lg border-b border-outline pb-4">System Specifications (FAQ)</h2>
+<div class="flex flex-col gap-sm">
+<!-- FAQ Item -->
+<div class="border border-outline bg-surface-container-lowest p-md">
+<h3 class="font-h3 text-h3 text-on-surface mb-2 flex items-center justify-between">
+                        How quickly can we deploy the packets to the field?
+                        <span class="material-symbols-outlined text-secondary text-[20px]">add</span>
+</h3>
+<p class="font-body-md text-body-md text-on-surface-variant border-t border-outline-variant pt-2 mt-2">
+                        Standard deployment takes 48 hours. This includes mapping your existing workflows to our standardized intelligence packets and issuing credentials to your field units.
+                    </p>
+</div>
+<!-- FAQ Item -->
+<div class="border border-outline bg-surface-container-lowest p-md">
+<h3 class="font-h3 text-h3 text-on-surface mb-2 flex items-center justify-between">
+                        Does this integrate with our current scheduling software?
+                        <span class="material-symbols-outlined text-secondary text-[20px]">add</span>
+</h3>
+<p class="font-body-md text-body-md text-on-surface-variant border-t border-outline-variant pt-2 mt-2">
+                        Yes. We support flat-file export (CSV/JSON) and provide a REST API for automated synchronization with major dispatch and CRM platforms.
+                    </p>
+</div>
+<!-- FAQ Item -->
+<div class="border border-outline bg-surface-container-lowest p-md">
+<h3 class="font-h3 text-h3 text-on-surface mb-2 flex items-center justify-between">
+                        Are the compliance reports legally defensible?
+                        <span class="material-symbols-outlined text-secondary text-[20px]">add</span>
+</h3>
+<p class="font-body-md text-body-md text-on-surface-variant border-t border-outline-variant pt-2 mt-2">
+                        All generated documentation adheres strictly to current NFPA standards and includes required timestamping, geofencing data, and digital signature capture protocols.
+                    </p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-zinc-100 dark:bg-zinc-900 full-width border-t border-zinc-300 dark:border-zinc-800">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full px-8 py-12 max-w-7xl mx-auto">
+<div class="flex flex-col gap-4">
+<span class="text-lg font-bold text-zinc-800 dark:text-zinc-200">ExhaustPro B2B</span>
+<p class="font-sans text-xs font-medium uppercase tracking-widest text-zinc-900 dark:text-zinc-50">© 2024 ExhaustPro Systems. All rights reserved. Industrial Grade Compliance.</p>
+</div>
+<div class="flex flex-col md:items-end gap-2">
+<nav class="flex flex-col md:flex-row gap-4 md:gap-6">
+<a class="font-sans text-xs font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-500 underline transition-all" href="#">Privacy Policy</a>
+<a class="font-sans text-xs font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-500 underline transition-all" href="#">Terms of Service</a>
+<a class="font-sans text-xs font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-500 underline transition-all" href="#">Safety Standards</a>
+<a class="font-sans text-xs font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-500 underline transition-all" href="#">Vendor Portal</a>
+<a class="font-sans text-xs font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-500 underline transition-all" href="#">Contact Support</a>
+</nav>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vendor Intake Form - hood</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#636262",
+                        "inverse-surface": "#303031",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#e2bfb0",
+                        "surface-container-high": "#e9e8e7",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#ff6b00",
+                        "primary-fixed": "#ffdbcc",
+                        "primary": "#a04100",
+                        "on-background": "#1b1c1c",
+                        "surface-container-highest": "#e4e2e2",
+                        "surface-bright": "#fbf9f9",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#410003",
+                        "primary-fixed-dim": "#ffb693",
+                        "tertiary-fixed-dim": "#ffb4ac",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "inverse-primary": "#ffb693",
+                        "secondary": "#5f5e5e",
+                        "on-primary": "#ffffff",
+                        "surface": "#fbf9f9",
+                        "on-secondary-fixed-variant": "#474746",
+                        "surface-container-low": "#f5f3f3",
+                        "background": "#fbf9f9",
+                        "on-primary-fixed": "#351000",
+                        "tertiary": "#b52424",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "secondary-container": "#e2dfde",
+                        "on-surface": "#1b1c1c",
+                        "tertiary-container": "#ff675d",
+                        "inverse-on-surface": "#f2f0f0",
+                        "on-surface-variant": "#5a4136",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffdad6",
+                        "surface-variant": "#e4e2e2",
+                        "on-primary-container": "#572000",
+                        "secondary-fixed": "#e5e2e1",
+                        "surface-dim": "#dbdad9",
+                        "on-tertiary-container": "#6a0007",
+                        "surface-container": "#efeded",
+                        "surface-tint": "#a04100",
+                        "outline": "#8e7164",
+                        "on-tertiary-fixed-variant": "#92030f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "lg": "24px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "margin": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "h2": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "data-mono": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h3": ["18px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface-container-low text-on-surface min-h-screen flex flex-col">
+<!-- TopNavBar: Suppressed. Intent is Linear/Transactional Intake Form -->
+<main class="flex-grow flex items-center justify-center p-md">
+<div class="w-full max-w-[800px] bg-surface-container-lowest border border-outline-variant shadow-[0_4px_10px_rgba(0,0,0,0.1)] p-xl flex flex-col gap-lg">
+<header class="flex flex-col gap-sm border-b border-surface-variant pb-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="factory">factory</span>
+<h1 class="font-h1 text-h1 text-on-surface uppercase tracking-tighter">Vendor Intake</h1>
+</div>
+<p class="font-body-lg text-body-lg text-secondary">Establish operational parameters and initiate commercial onboarding.</p>
+</header>
+<div class="flex items-center gap-xs">
+<div class="h-unit flex-1 bg-primary"></div>
+<div class="h-unit flex-1 bg-surface-variant"></div>
+<div class="h-unit flex-1 bg-surface-variant"></div>
+</div>
+<form class="flex flex-col gap-lg mt-md">
+<section class="flex flex-col gap-md">
+<h2 class="font-h3 text-h3 text-on-surface border-b border-surface-variant pb-xs">Entity Details</h2>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="company_name">Company Legal Name</label>
+<input class="w-full h-[48px] border border-secondary px-sm font-data-mono text-data-mono text-on-surface focus:border-[2px] focus:border-primary focus:ring-0 rounded" id="company_name" name="company_name" placeholder="e.g., Apex Maintenance Solutions LLC" type="text"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="principal_contact">Principal Contact (Authorized Signatory)</label>
+<input class="w-full h-[48px] border border-secondary px-sm font-data-mono text-data-mono text-on-surface focus:border-[2px] focus:border-primary focus:ring-0 rounded" id="principal_contact" name="principal_contact" placeholder="Full Name" type="text"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="service_zip">Primary Service ZIP Code</label>
+<input class="w-full h-[48px] border border-secondary px-sm font-data-mono text-data-mono text-on-surface focus:border-[2px] focus:border-primary focus:ring-0 rounded" id="service_zip" name="service_zip" placeholder="e.g., 90210" type="text"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="service_state">State of Operation</label>
+<select class="w-full h-[48px] border border-secondary px-sm font-data-mono text-data-mono text-on-surface focus:border-[2px] focus:border-primary focus:ring-0 rounded bg-surface-container-lowest" id="service_state" name="service_state">
+<option disabled="" selected="" value="">Select State</option>
+<option value="CA">California</option>
+<option value="TX">Texas</option>
+<option value="NY">New York</option>
+</select>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-md">
+<h2 class="font-h3 text-h3 text-on-surface border-b border-surface-variant pb-xs">Operational Scope</h2>
+<p class="font-body-sm text-body-sm text-secondary">Select all service lines applicable to your capability matrix.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-sm">
+<label class="flex items-center gap-sm p-sm border border-surface-variant rounded hover:bg-surface-container transition-colors cursor-pointer">
+<input class="w-4 h-4 text-primary border-secondary focus:ring-primary" name="products" type="checkbox" value="exhaust_cleaning"/>
+<span class="font-data-mono text-data-mono text-on-surface">Exhaust System Cleaning</span>
+</label>
+<label class="flex items-center gap-sm p-sm border border-surface-variant rounded hover:bg-surface-container transition-colors cursor-pointer">
+<input class="w-4 h-4 text-primary border-secondary focus:ring-primary" name="products" type="checkbox" value="filter_exchange"/>
+<span class="font-data-mono text-data-mono text-on-surface">Filter Exchange Program</span>
+</label>
+<label class="flex items-center gap-sm p-sm border border-surface-variant rounded hover:bg-surface-container transition-colors cursor-pointer">
+<input class="w-4 h-4 text-primary border-secondary focus:ring-primary" name="products" type="checkbox" value="fire_suppression"/>
+<span class="font-data-mono text-data-mono text-on-surface">Fire Suppression Systems</span>
+</label>
+<label class="flex items-center gap-sm p-sm border border-surface-variant rounded hover:bg-surface-container transition-colors cursor-pointer">
+<input class="w-4 h-4 text-primary border-secondary focus:ring-primary" name="products" type="checkbox" value="compliance_audits"/>
+<span class="font-data-mono text-data-mono text-on-surface">Compliance Auditing</span>
+</label>
+</div>
+</section>
+<section class="flex flex-col gap-md">
+<h2 class="font-h3 text-h3 text-on-surface border-b border-surface-variant pb-xs">Asset Submission</h2>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant">Corporate Identity (Logo) / Certifications</label>
+<div class="border-2 border-dashed border-secondary p-lg flex flex-col items-center justify-center gap-sm bg-surface-container-low cursor-pointer hover:bg-surface-container transition-colors rounded">
+<span class="material-symbols-outlined text-secondary text-3xl" data-icon="upload_file">upload_file</span>
+<span class="font-data-mono text-data-mono text-secondary">Drag &amp; drop files or click to browse</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant text-center">Supported formats: PDF, PNG, JPG (Max 5MB)</span>
+</div>
+</div>
+</section>
+<div class="flex justify-end mt-md gap-sm border-t border-surface-variant pt-lg">
+<button class="px-md py-sm border border-on-surface-variant text-on-surface-variant font-label-caps text-label-caps rounded hover:bg-surface-container transition-colors" type="button">Cancel</button>
+<button class="px-md py-sm bg-primary text-on-primary font-label-caps text-label-caps rounded flex items-center gap-xs hover:bg-on-primary-fixed-variant transition-colors" type="submit">
+                        Proceed to Verification
+                        <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</form>
+</div>
+</main>
+<!-- Footer: Suppressed on transactional views. -->
+</body></html>

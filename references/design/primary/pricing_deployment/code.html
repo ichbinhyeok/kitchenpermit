@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pricing &amp; Operations Licensing - hood</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#636262",
+                        "inverse-surface": "#303031",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#e2bfb0",
+                        "surface-container-high": "#e9e8e7",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#ff6b00",
+                        "primary-fixed": "#ffdbcc",
+                        "primary": "#a04100",
+                        "on-background": "#1b1c1c",
+                        "surface-container-highest": "#e4e2e2",
+                        "surface-bright": "#fbf9f9",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#410003",
+                        "primary-fixed-dim": "#ffb693",
+                        "tertiary-fixed-dim": "#ffb4ac",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "inverse-primary": "#ffb693",
+                        "secondary": "#5f5e5e",
+                        "on-primary": "#ffffff",
+                        "surface": "#fbf9f9",
+                        "on-secondary-fixed-variant": "#474746",
+                        "surface-container-low": "#f5f3f3",
+                        "background": "#fbf9f9",
+                        "on-primary-fixed": "#351000",
+                        "tertiary": "#b52424",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "secondary-container": "#e2dfde",
+                        "on-surface": "#1b1c1c",
+                        "tertiary-container": "#ff675d",
+                        "inverse-on-surface": "#f2f0f0",
+                        "on-surface-variant": "#5a4136",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffdad6",
+                        "surface-variant": "#e4e2e2",
+                        "on-primary-container": "#572000",
+                        "secondary-fixed": "#e5e2e1",
+                        "surface-dim": "#dbdad9",
+                        "on-tertiary-container": "#6a0007",
+                        "surface-container": "#efeded",
+                        "surface-tint": "#a04100",
+                        "outline": "#8e7164",
+                        "on-tertiary-fixed-variant": "#92030f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "lg": "24px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "margin": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "h2": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "data-mono": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h3": ["18px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-lg antialiased">
+<!-- TopNavBar -->
+<nav class="bg-white border-b border-surface-variant flex justify-between items-center h-16 px-8 w-full mx-auto max-w-screen-2xl">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tighter text-zinc-900 uppercase">hood</span>
+<div class="hidden md:flex gap-6">
+<a class="font-label-caps text-label-caps uppercase tracking-widest text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors px-2 py-1" href="#">Solutions</a>
+<a class="font-label-caps text-label-caps uppercase tracking-widest text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors px-2 py-1" href="#">Compliance</a>
+<a class="font-label-caps text-label-caps uppercase tracking-widest text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors px-2 py-1" href="#">Inventory</a>
+<a class="font-label-caps text-label-caps uppercase tracking-widest text-primary-container border-b-2 border-primary-container pb-1 hover:bg-surface-container-low transition-colors px-2 py-1" href="#">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:block font-label-caps text-label-caps uppercase text-secondary hover:text-on-surface px-4 py-2 border border-outline rounded-DEFAULT">Request Audit</button>
+<button class="font-label-caps text-label-caps uppercase bg-primary-container text-on-primary px-4 py-2 rounded-DEFAULT active:scale-95 duration-75">Client Portal</button>
+</div>
+</nav>
+<main class="max-w-screen-xl mx-auto px-margin py-xl flex flex-col gap-xl">
+<!-- Header Section -->
+<section class="flex flex-col gap-sm border-b border-surface-variant pb-lg">
+<h1 class="font-h1 text-h1 text-on-surface uppercase tracking-tight">Licensing &amp; Operations Deployment</h1>
+<p class="font-body-lg text-body-lg text-secondary max-w-3xl">
+                Transparent, scalable pricing models designed for commercial exhaust maintenance operators. Select the framework that aligns with your operational velocity and territory footprint.
+            </p>
+</section>
+<!-- Pricing Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Tier 1: Axis 1 -->
+<div class="bg-surface-container-lowest border border-outline rounded-DEFAULT flex flex-col h-full relative group hover:border-primary-container transition-colors">
+<div class="p-lg border-b border-surface-variant flex flex-col gap-xs">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Axis 1</span>
+<h2 class="font-h2 text-h2 text-on-surface">Per-Packet / Monthly</h2>
+<div class="mt-sm flex items-end gap-1">
+<span class="font-h1 text-h1 text-on-surface">$240</span>
+<span class="font-data-mono text-data-mono text-secondary mb-1">/mo base</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-2">+ $5 per service packet generated.</p>
+</div>
+<div class="p-lg flex-1 flex flex-col gap-md">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Optimal for emerging operations requiring flexible scaling without heavy upfront commitments.</p>
+<ul class="flex flex-col gap-sm mt-auto">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">Core Compliance Registry</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">Standard Reporting</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">Up to 5 Tech Seats</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-outline" style="font-size: 18px;">remove</span>
+<span class="font-data-mono text-data-mono text-secondary">No Advanced Inventory API</span>
+</li>
+</ul>
+</div>
+<div class="p-lg border-t border-surface-variant mt-auto">
+<button class="w-full font-label-caps text-label-caps uppercase border border-outline text-on-surface hover:bg-surface-container-low py-3 rounded-DEFAULT transition-colors">Deploy Axis 1</button>
+</div>
+</div>
+<!-- Tier 2: Bundle (Highlighted) -->
+<div class="bg-surface-container-lowest border-2 border-primary-container rounded-DEFAULT flex flex-col h-full relative shadow-[0_4px_12px_rgba(0,0,0,0.1)] z-10">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary-container text-on-primary font-label-caps text-label-caps px-4 py-1 rounded-DEFAULT uppercase tracking-wider">
+                    Operational Standard
+                </div>
+<div class="p-lg border-b border-surface-variant flex flex-col gap-xs mt-2">
+<span class="font-label-caps text-label-caps text-primary-container uppercase">Full Suite</span>
+<h2 class="font-h2 text-h2 text-on-surface">Operational Bundle</h2>
+<div class="mt-sm flex items-end gap-1">
+<span class="font-h1 text-h1 text-on-surface">$850</span>
+<span class="font-data-mono text-data-mono text-secondary mb-1">/mo flat</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-2">Unlimited packets. Fixed overhead.</p>
+</div>
+<div class="p-lg flex-1 flex flex-col gap-md">
+<p class="font-body-sm text-body-sm text-on-surface-variant">The definitive framework for established contractors demanding full operational control and predictability.</p>
+<ul class="flex flex-col gap-sm mt-auto">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">Unlimited Service Packets</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">Advanced Inventory API</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">Unlimited Tech Seats</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">Priority Dispatch Support</span>
+</li>
+</ul>
+</div>
+<div class="p-lg border-t border-surface-variant bg-surface-container-low mt-auto">
+<button class="w-full font-label-caps text-label-caps uppercase bg-primary-container text-on-primary hover:bg-primary py-3 rounded-DEFAULT transition-colors">Initiate Deployment</button>
+</div>
+</div>
+<!-- Tier 3: Axis 2 -->
+<div class="bg-surface-container-lowest border border-outline rounded-DEFAULT flex flex-col h-full relative group hover:border-primary-container transition-colors">
+<div class="p-lg border-b border-surface-variant flex flex-col gap-xs">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Axis 2</span>
+<h2 class="font-h2 text-h2 text-on-surface">Territory License</h2>
+<div class="mt-sm flex items-end gap-1">
+<span class="font-h1 text-h1 text-on-surface">Custom</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-2">Annual contract. Multi-region scale.</p>
+</div>
+<div class="p-lg flex-1 flex flex-col gap-md">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Enterprise-grade architecture for multi-state or franchised service networks requiring dedicated infrastructure.</p>
+<ul class="flex flex-col gap-sm mt-auto">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">Dedicated Database Instances</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">Custom SLA Agreements</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">White-label Client Portal</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 18px;">check_circle</span>
+<span class="font-data-mono text-data-mono text-on-surface">On-Premise Deployment Ops</span>
+</li>
+</ul>
+</div>
+<div class="p-lg border-t border-surface-variant mt-auto">
+<button class="w-full font-label-caps text-label-caps uppercase border border-outline text-on-surface hover:bg-surface-container-low py-3 rounded-DEFAULT transition-colors">Contact Engineering</button>
+</div>
+</div>
+</section>
+<!-- ROI Data Section -->
+<section class="mt-xl border-t border-surface-variant pt-xl flex flex-col md:flex-row gap-xl items-start">
+<div class="flex-1 flex flex-col gap-md">
+<h3 class="font-h3 text-h3 text-on-surface uppercase border-b border-surface-variant pb-2">Operational ROI Metrics</h3>
+<p class="font-body-lg text-body-lg text-secondary">
+                    Deployment of the hood Operational Suite consistently yields measurable improvements in technician efficiency and compliance audit pass rates.
+                </p>
+<div class="grid grid-cols-2 gap-sm mt-4">
+<div class="bg-surface-container-lowest border border-surface-variant p-4 flex flex-col gap-1">
+<span class="font-h1 text-h1 text-primary-container">32%</span>
+<span class="font-label-caps text-label-caps text-secondary uppercase">Reduction in admin time</span>
+</div>
+<div class="bg-surface-container-lowest border border-surface-variant p-4 flex flex-col gap-1">
+<span class="font-h1 text-h1 text-primary-container">99.8%</span>
+<span class="font-label-caps text-label-caps text-secondary uppercase">Compliance API Uptime</span>
+</div>
+</div>
+</div>
+<div class="flex-1 w-full bg-surface-container-low border border-surface-variant p-lg rounded-DEFAULT flex flex-col gap-sm">
+<h3 class="font-h3 text-h3 text-on-surface uppercase">Need an Architectural Review?</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Our solutions engineers can evaluate your current dispatch and compliance stack to recommend the optimal deployment tier.</p>
+<button class="mt-4 font-label-caps text-label-caps uppercase border-2 border-on-surface text-on-surface hover:bg-on-surface hover:text-surface-container-lowest py-3 px-6 rounded-DEFAULT transition-colors w-fit">Request Technical Audit</button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-surface-variant flex flex-col md:flex-row justify-between items-center py-12 px-8 w-full max-w-screen-2xl mx-auto gap-6 mt-xl">
+<span class="text-xl font-bold text-secondary uppercase tracking-tighter">hood</span>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="font-label-caps text-label-caps text-secondary hover:text-primary-container transition-colors uppercase tracking-wider" href="#">Service Standards</a>
+<a class="font-label-caps text-label-caps text-secondary hover:text-primary-container transition-colors uppercase tracking-wider" href="#">Compliance Registry</a>
+<a class="font-label-caps text-label-caps text-secondary hover:text-primary-container transition-colors uppercase tracking-wider" href="#">Privacy Protocol</a>
+<a class="font-label-caps text-label-caps text-secondary hover:text-primary-container transition-colors uppercase tracking-wider" href="#">Terms of Service</a>
+</div>
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">© 2024 hood Operational Systems. Industrial Grade Maintenance.</span>
+</footer>
+</body></html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sample Packet Preview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#000103",
+                        "on-primary-fixed-variant": "#454749",
+                        "on-primary-fixed": "#1a1c1e",
+                        "on-tertiary-container": "#7e858d",
+                        "primary-fixed-dim": "#c6c6c9",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-container-low": "#f6f3f2",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#e2e2e5",
+                        "on-secondary-container": "#606366",
+                        "inverse-primary": "#c6c6c9",
+                        "tertiary-fixed-dim": "#c0c7d0",
+                        "secondary-container": "#dee0e3",
+                        "inverse-on-surface": "#f4f0ef",
+                        "surface-container-high": "#ebe7e7",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#191c1f",
+                        "surface-dim": "#ddd9d9",
+                        "inverse-surface": "#313030",
+                        "on-tertiary-fixed-variant": "#41474f",
+                        "secondary": "#5c5f62",
+                        "outline": "#75777a",
+                        "secondary-fixed": "#e1e2e6",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "surface-bright": "#fcf8f8",
+                        "on-surface": "#1c1b1b",
+                        "secondary-fixed-dim": "#c5c6ca",
+                        "background": "#fcf8f8",
+                        "on-background": "#1c1b1b",
+                        "outline-variant": "#c5c6ca",
+                        "tertiary-fixed": "#dce3ec",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#44474a",
+                        "tertiary-container": "#161d23",
+                        "on-primary-container": "#838486",
+                        "primary": "#000101",
+                        "surface-tint": "#5d5e61",
+                        "surface": "#fcf8f8",
+                        "primary-container": "#1a1c1e",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container": "#f1eded",
+                        "on-tertiary-fixed": "#151c23"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "margin": "24px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "xl": "48px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "code": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h2": ["Inter"]
+                    },
+                    "fontSize": {
+                        "code": ["13px", {"lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "h3": ["18px", {"lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "600"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .border-steel { border-color: #70777f; }
+            .bg-offwhite { background-color: #f8f9fa; }
+            .bg-purewhite { background-color: #ffffff; }
+            .text-charcoal { color: #333639; }
+            .text-graphite { color: #333639; }
+            .bg-safety-orange { background-color: #ff5722; } /* Approximation for Industrial Safety Orange */
+            .text-safety-orange { color: #ff5722; }
+            .border-safety-orange { border-color: #ff5722; }
+            .bg-alert-red { background-color: #d32f2f; } /* Approximation for Alert Red */
+            .border-alert-red { border-color: #d32f2f; }
+            
+            .material-symbols-outlined {
+                font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-zinc-950 font-sans text-sm font-semibold tracking-tight uppercase docked full-width top-0 border-b border-b border-zinc-300 dark:border-zinc-800 flat no shadows flex justify-between items-center w-full px-6 py-3 max-w-full sticky z-50 hidden md:flex">
+<div class="flex items-center gap-8">
+<div class="text-xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50">ExhaustPro B2B</div>
+<nav class="flex gap-6">
+<a class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 py-2 px-1" href="#">Dashboard</a>
+<a class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 py-2 px-1" href="#">Inspections</a>
+<a class="text-orange-600 dark:text-orange-500 border-b-2 border-orange-600 pb-1 Active: opacity-80 transition-all py-2 px-1" href="#">Documents</a>
+<a class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 py-2 px-1" href="#">Analytics</a>
+<a class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 py-2 px-1" href="#">Billing</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 text-zinc-600 hover:text-zinc-900 transition-colors">
+<span class="material-symbols-outlined text-lg">settings</span>
+</button>
+<button class="flex items-center gap-2 text-zinc-600 hover:text-zinc-900 transition-colors">
+<span class="material-symbols-outlined text-lg">notifications</span>
+</button>
+<button class="font-label-caps text-label-caps uppercase border border-steel text-charcoal px-4 py-2 rounded bg-purewhite hover:bg-surface-container-highest transition-colors">Support</button>
+<button class="font-label-caps text-label-caps uppercase bg-safety-orange text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors">New Inspection</button>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full border border-steel object-cover" data-alt="close up of a professional male avatar with short hair in a neutral studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAw4z9EtDVESQV9WB7XRdobD9WRwE58A2AdE-HPuvKU1xTO3PlcugmclO80sHvaTuJR_T7GuHyctn1gHwlYlDvRlQAhpF5slzF9dUJI3TIoxNXpsGgMjiRcVqSsxmat9-a6rZspVcsNpPrzSweGO4Bk6-bFELVvbCWjKCvui9TnQK4-BangyxuU6DtU_wjv6bf8SpE50MEFfyFidyoNJIkXF7wkFgIPVUE5NalWS1A4gAxIgMtE_CCbVFsxZ-0XuE_wY8N3pwAgRQ"/>
+</div>
+</header>
+<!-- Main Content Area - Document Preview Context -->
+<main class="flex-grow bg-surface-container-low py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-12 relative">
+<!-- Document Toolbar (Sticky within main area) -->
+<div class="w-full max-w-4xl bg-purewhite border border-steel p-4 flex justify-between items-center rounded sticky top-[72px] z-40 shadow-sm">
+<div class="flex items-center gap-4">
+<h2 class="font-h3 text-h3 text-on-surface">Packet Preview: INS-2023-1104</h2>
+<span class="bg-surface-container text-on-surface font-label-caps text-label-caps px-2 py-1 rounded">DRAFT</span>
+</div>
+<div class="flex gap-4">
+<button class="flex items-center gap-2 font-label-caps text-label-caps border border-steel text-charcoal px-4 py-2 rounded hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm">print</span>
+                    Print
+                </button>
+<button class="flex items-center gap-2 font-label-caps text-label-caps border border-steel text-charcoal px-4 py-2 rounded hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                    Export PDF
+                </button>
+<button class="flex items-center gap-2 font-label-caps text-label-caps bg-safety-orange text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors">
+<span class="material-symbols-outlined text-sm">send</span>
+                    Send to Client
+                </button>
+</div>
+</div>
+<!-- Document Canvas -->
+<div class="w-full max-w-4xl flex flex-col gap-8 pb-12">
+<!-- Page 1: Inspection Summary -->
+<div class="bg-purewhite border border-steel shadow-sm w-full min-h-[1056px] p-12 flex flex-col relative aspect-[8.5/11]">
+<!-- Document Header -->
+<div class="flex justify-between items-start border-b border-steel border-opacity-30 pb-6 mb-8">
+<div>
+<h1 class="font-h1 text-h1 text-on-surface mb-2 uppercase tracking-tight">Inspection Summary</h1>
+<p class="font-body-md text-body-md text-secondary">Document Ref: INS-2023-1104-A</p>
+<p class="font-body-md text-body-md text-secondary">Service Date: October 24, 2023</p>
+</div>
+<div class="text-right">
+<div class="text-xl font-black tracking-tighter text-zinc-900 uppercase mb-2">ExhaustPro</div>
+<p class="font-code text-code text-secondary">Industrial Compliance Services</p>
+<p class="font-code text-code text-secondary">800-555-0199</p>
+</div>
+</div>
+<!-- Client Info -->
+<div class="grid grid-cols-2 gap-8 mb-12">
+<div>
+<h3 class="font-label-caps text-label-caps text-secondary mb-2 border-b border-steel border-opacity-30 pb-1">Property Info</h3>
+<p class="font-h3 text-h3 text-on-surface mb-1">Starlight Manufacturing Corp.</p>
+<p class="font-body-md text-body-md text-on-surface">Facility Unit #4 - Primary Exhaust</p>
+<p class="font-body-md text-body-md text-secondary">1244 Industrial Parkway</p>
+<p class="font-body-md text-body-md text-secondary">Seattle, WA 98101</p>
+</div>
+<div>
+<h3 class="font-label-caps text-label-caps text-secondary mb-2 border-b border-steel border-opacity-30 pb-1">Inspector</h3>
+<p class="font-body-lg text-body-lg text-on-surface mb-1">Tech ID: J-442 (Michael Vance)</p>
+<p class="font-body-md text-body-md text-on-surface">Certification: C-Class Industrial</p>
+</div>
+</div>
+<!-- Status Banner -->
+<div class="border border-steel bg-surface-container-lowest p-6 mb-12 flex items-center gap-6">
+<div class="w-16 h-16 rounded bg-alert-red bg-opacity-10 flex items-center justify-center border border-alert-red">
+<span class="material-symbols-outlined text-alert-red text-3xl">warning</span>
+</div>
+<div>
+<h2 class="font-h2 text-h2 text-on-surface mb-1">Compliance Status: Action Required</h2>
+<p class="font-body-md text-body-md text-secondary">System is operational but critical deficiencies were noted requiring immediate maintenance within 14 days.</p>
+</div>
+</div>
+<!-- Scope Table -->
+<h3 class="font-label-caps text-label-caps text-secondary mb-4 border-b border-steel border-opacity-30 pb-2">Inspection Scope</h3>
+<div class="border border-steel rounded overflow-hidden">
+<table class="w-full text-left font-body-md text-body-md border-collapse">
+<thead>
+<tr class="bg-surface-container-highest border-b border-steel">
+<th class="py-3 px-4 font-label-caps text-label-caps text-graphite uppercase">Component</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-graphite uppercase">Status</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-graphite uppercase">Condition Score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-steel border-opacity-30 bg-offwhite">
+<td class="py-3 px-4 font-code text-code">Main Exhaust Blower</td>
+<td class="py-3 px-4"><span class="bg-surface-container border border-steel px-2 py-1 rounded font-label-caps text-label-caps text-xs">PASS</span></td>
+<td class="py-3 px-4">8/10</td>
+</tr>
+<tr class="border-b border-steel border-opacity-30">
+<td class="py-3 px-4 font-code text-code">Filtration Unit A</td>
+<td class="py-3 px-4"><span class="bg-alert-red bg-opacity-10 border border-alert-red text-alert-red px-2 py-1 rounded font-label-caps text-label-caps text-xs">FAIL</span></td>
+<td class="py-3 px-4 text-alert-red font-bold">3/10</td>
+</tr>
+<tr class="border-b border-steel border-opacity-30 bg-offwhite">
+<td class="py-3 px-4 font-code text-code">Ducting (Primary Line)</td>
+<td class="py-3 px-4"><span class="bg-safety-orange bg-opacity-10 border border-safety-orange text-safety-orange px-2 py-1 rounded font-label-caps text-label-caps text-xs">WARN</span></td>
+<td class="py-3 px-4">5/10</td>
+</tr>
+<tr>
+<td class="py-3 px-4 font-code text-code">Control Panel Integration</td>
+<td class="py-3 px-4"><span class="bg-surface-container border border-steel px-2 py-1 rounded font-label-caps text-label-caps text-xs">PASS</span></td>
+<td class="py-3 px-4">9/10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer Page 1 -->
+<div class="mt-auto pt-8 flex justify-between items-center text-secondary font-code text-code border-t border-steel border-opacity-30">
+<span>CONFIDENTIAL - INTERNAL USE</span>
+<span>Page 1 of 3</span>
+</div>
+</div>
+<!-- Page 2: Deficiencies -->
+<div class="bg-purewhite border border-steel shadow-sm w-full min-h-[1056px] p-12 flex flex-col relative aspect-[8.5/11]">
+<div class="flex justify-between items-start border-b border-steel border-opacity-30 pb-4 mb-8">
+<h2 class="font-h2 text-h2 text-on-surface uppercase tracking-tight">Deficiencies &amp; Findings</h2>
+<span class="font-code text-code text-secondary">INS-2023-1104-A</span>
+</div>
+<div class="flex flex-col gap-6">
+<!-- Finding 1 -->
+<div class="bg-purewhite border border-steel border-l-4 border-l-alert-red p-6 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<span class="bg-alert-red text-white px-2 py-1 font-label-caps text-label-caps rounded">CRITICAL</span>
+<h3 class="font-h3 text-h3 text-on-surface">Filtration Unit A Clogging</h3>
+</div>
+<span class="font-code text-code text-secondary">ID: FND-001</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">Primary particulate filters in Unit A are operating at 15% efficiency. Severe buildup detected on electrostatic plates, indicating failure of pre-filter stage. Risk of back-pressure damage to main blower.</p>
+<div class="bg-surface-container-lowest border border-steel p-3 mt-2">
+<span class="font-label-caps text-label-caps text-secondary block mb-1">Required Action</span>
+<p class="font-body-md text-body-md text-on-surface">Immediate replacement of pre-filters and chemical bath cleaning of electrostatic plates. Inspect pressure differential sensors for recalibration.</p>
+</div>
+</div>
+<!-- Finding 2 -->
+<div class="bg-purewhite border border-steel border-l-4 border-l-safety-orange p-6 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<span class="bg-safety-orange text-white px-2 py-1 font-label-caps text-label-caps rounded">WARNING</span>
+<h3 class="font-h3 text-h3 text-on-surface">Ducting Vibration (Section 3)</h3>
+</div>
+<span class="font-code text-code text-secondary">ID: FND-002</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">Excessive vibration noted in primary ducting line, specifically at junction points near the roof exit. Mounting brackets show signs of metal fatigue.</p>
+<div class="bg-surface-container-lowest border border-steel p-3 mt-2">
+<span class="font-label-caps text-label-caps text-secondary block mb-1">Recommended Action</span>
+<p class="font-body-md text-body-md text-on-surface">Schedule reinforcement of mounting brackets within next 30 days. Consider installing dampening collars at junction points.</p>
+</div>
+</div>
+<!-- Finding 3 -->
+<div class="bg-purewhite border border-steel border-l-4 border-l-steel p-6 flex flex-col gap-4 opacity-80">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<span class="bg-surface-container-highest text-on-surface border border-steel px-2 py-1 font-label-caps text-label-caps rounded">NOTE</span>
+<h3 class="font-h3 text-h3 text-on-surface">Access Panel Seal Degradation</h3>
+</div>
+<span class="font-code text-code text-secondary">ID: FND-003</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">Rubber gaskets on secondary access panels are beginning to show signs of drying/cracking. No leakage detected currently, but preventative maintenance suggested.</p>
+</div>
+</div>
+<!-- Footer Page 2 -->
+<div class="mt-auto pt-8 flex justify-between items-center text-secondary font-code text-code border-t border-steel border-opacity-30">
+<span>CONFIDENTIAL - INTERNAL USE</span>
+<span>Page 2 of 3</span>
+</div>
+</div>
+<!-- Page 3: Photographic Evidence -->
+<div class="bg-purewhite border border-steel shadow-sm w-full min-h-[1056px] p-12 flex flex-col relative aspect-[8.5/11]">
+<div class="flex justify-between items-start border-b border-steel border-opacity-30 pb-4 mb-8">
+<h2 class="font-h2 text-h2 text-on-surface uppercase tracking-tight">Photographic Evidence</h2>
+<span class="font-code text-code text-secondary">INS-2023-1104-A</span>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<!-- Photo 1 -->
+<div class="flex flex-col gap-2">
+<div class="aspect-video bg-surface-container border border-steel relative">
+<img alt="Industrial filtration unit showing severe buildup" class="w-full h-full object-cover" data-alt="close up of dirty industrial air filter covered in dark grime in a factory setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADvdZMOU8joaGUWJ_EnCOaFOLkuFO99fzHqXP8G9H2vAavjLv6XoGHl9LfA5s5YsKoYkQvrJiPH_OTgl6-9r8iMfRtThdpce4VPB4kYwlDm5CuHfUGespl7KIHXC0Vp9o5UDMPUJhdjY8pSWiAH8Mk1KDOTkdLh3Jb0dkfdVT6qUM_ecMonv1p5dGIr5y_obtsW0pVH9J920vyqqbWoGjcnq5ZKfPeZmd0T-91xNqgoa2510T2IXmWTohP7Ryf23P4upg9koLueA"/>
+<div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white font-code text-code px-2 py-1">IMG-001</div>
+</div>
+<div class="border border-steel p-3 bg-offwhite">
+<span class="font-label-caps text-label-caps block mb-1">Ref: FND-001</span>
+<p class="font-body-md text-body-md text-on-surface">Filtration Unit A - Electrostatic plates showing heavy particulate accumulation.</p>
+</div>
+</div>
+<!-- Photo 2 -->
+<div class="flex flex-col gap-2">
+<div class="aspect-video bg-surface-container border border-steel relative">
+<img alt="Industrial ducting joints" class="w-full h-full object-cover" data-alt="industrial metal ventilation ducts connecting at the ceiling of a warehouse with bright artificial lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAn7tzcJGKpF6wgVKduHCYT_Ly-1MgkvXLGJSceGRNqceVFLl6DKnrns18ifYXOc93UE1VNGyCVSVRrlpi0zEHXhyeTHK7iJwmm48Z9GfMfXwDOIw0CFIrANcBQo0pig4FPAv_vQiiK_lq6iwa_e4xbm7Ih10x_zccYfTEORy4JrMJJlplMwfuVjt0Mg_YOZowhfQoPYAR0Gx349YE42aXGeMtMFn0p--0XxP5dDy3fS2qLR1DUQwFxKglqtdktsDgM2JozkO_BsQ"/>
+<div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white font-code text-code px-2 py-1">IMG-002</div>
+</div>
+<div class="border border-steel p-3 bg-offwhite">
+<span class="font-label-caps text-label-caps block mb-1">Ref: FND-002</span>
+<p class="font-body-md text-body-md text-on-surface">Section 3 Ducting - Junction point showing stressed bracket mounting.</p>
+</div>
+</div>
+<!-- Photo 3 -->
+<div class="flex flex-col gap-2">
+<div class="aspect-video bg-surface-container border border-steel relative">
+<img alt="Clean control panel" class="w-full h-full object-cover" data-alt="clean modern industrial control panel with green and red buttons and digital displays in focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTLS69tIArPgQ9h7ZrEqyco_4XQ5Adp68dcCqiRR56P8WkD1ZQ7p7syArDcno6nlAeaJaMlt9X_rIl39wVpEWz92Fi1poJNVyBFJv8F-5rDjlxRmA4iKWhCU4bSjQnaFQF3Oi-TZH98_YiKEbRYRuBbHTft_fBJFldqnTuE0zASFKCECZdOxmvNOqaTz_kGqTXzSjqHZnn2axjxmNBCvZuY13rx4-YbjIRk7YJAoqu7L96KQCAH8OFWT0ee1oDIMSxE1KA00YFMw"/>
+<div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white font-code text-code px-2 py-1">IMG-003</div>
+</div>
+<div class="border border-steel p-3 bg-offwhite">
+<span class="font-label-caps text-label-caps block mb-1">Ref: General</span>
+<p class="font-body-md text-body-md text-on-surface">Main Control Panel - Integration systems verified operational.</p>
+</div>
+</div>
+<!-- Photo 4 -->
+<div class="flex flex-col gap-2">
+<div class="aspect-video bg-surface-container border border-steel relative flex items-center justify-center bg-surface-container-highest text-secondary">
+<span class="material-symbols-outlined text-4xl mb-2">no_photography</span>
+<span class="font-code text-code block text-center mt-2 w-full absolute bottom-4">No Image Captured</span>
+</div>
+<div class="border border-steel p-3 bg-offwhite">
+<span class="font-label-caps text-label-caps block mb-1">Ref: FND-003</span>
+<p class="font-body-md text-body-md text-on-surface">Access Panel Seals - Location not accessible for clear photography.</p>
+</div>
+</div>
+</div>
+<!-- Footer Page 3 -->
+<div class="mt-auto pt-8 flex justify-between items-center text-secondary font-code text-code border-t border-steel border-opacity-30">
+<span>CONFIDENTIAL - INTERNAL USE</span>
+<span>Page 3 of 3</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-zinc-100 dark:bg-zinc-900 font-sans text-xs font-medium uppercase tracking-widest full-width border-t border-t border-zinc-300 dark:border-zinc-800 flat no shadows hidden md:block">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full px-8 py-12 max-w-7xl mx-auto">
+<div class="flex flex-col gap-4">
+<div class="text-lg font-bold text-zinc-800 dark:text-zinc-200">ExhaustPro B2B</div>
+<p class="text-zinc-900 dark:text-zinc-50 font-bold">© 2024 ExhaustPro Systems. All rights reserved. Industrial Grade Compliance.</p>
+</div>
+<div class="flex flex-col md:items-end gap-2 text-zinc-500 dark:text-zinc-400">
+<a class="hover:text-orange-600 dark:hover:text-orange-500 underline Standard link hover transitions" href="#">Privacy Policy</a>
+<a class="hover:text-orange-600 dark:hover:text-orange-500 underline Standard link hover transitions" href="#">Terms of Service</a>
+<a class="hover:text-orange-600 dark:hover:text-orange-500 underline Standard link hover transitions" href="#">Safety Standards</a>
+<a class="hover:text-orange-600 dark:hover:text-orange-500 underline Standard link hover transitions" href="#">Vendor Portal</a>
+<a class="hover:text-orange-600 dark:hover:text-orange-500 underline Standard link hover transitions" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+</body></html>

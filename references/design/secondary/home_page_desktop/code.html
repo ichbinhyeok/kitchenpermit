@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>hood - Industrial Kitchen Exhaust Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f5f3f3",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dbdad9",
+                        "primary": "#000000",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#fe6b00",
+                        "on-tertiary-fixed": "#410003",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#444748",
+                        "primary-fixed": "#e5e2e1",
+                        "inverse-on-surface": "#f2f0f0",
+                        "surface-tint": "#5f5e5e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1b1c1c",
+                        "on-primary-fixed": "#1c1b1b",
+                        "surface-container-highest": "#e4e2e2",
+                        "secondary-fixed-dim": "#ffb693",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#fbf9f9",
+                        "outline-variant": "#c4c7c7",
+                        "surface-container": "#efeded",
+                        "secondary-fixed": "#ffdbcc",
+                        "background": "#fbf9f9",
+                        "secondary": "#a04100",
+                        "on-secondary-fixed": "#351000",
+                        "inverse-primary": "#c8c6c5",
+                        "on-primary-fixed-variant": "#474746",
+                        "inverse-surface": "#303031",
+                        "tertiary-fixed": "#ffdad6",
+                        "on-secondary-container": "#572000",
+                        "on-primary-container": "#858383",
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "surface-variant": "#e4e2e2",
+                        "outline": "#747878",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1b1c1c",
+                        "tertiary-container": "#410003",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-fixed-variant": "#93000f",
+                        "surface": "#fbf9f9",
+                        "on-error": "#ffffff",
+                        "primary-container": "#1c1b1b",
+                        "on-tertiary-container": "#fb3134",
+                        "surface-container-high": "#e9e8e7",
+                        "on-secondary-fixed-variant": "#7a3000",
+                        "tertiary": "#000000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "40px",
+                        "md": "16px",
+                        "margin": "24px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "h1": ["Inter"],
+                        "h2": ["Inter"],
+                        "body-base": ["Inter"],
+                        "mono-data": ["monospace"],
+                        "h3": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h1": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "h2": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-base": ["14px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "mono-data": ["13px", { "lineHeight": "1", "letterSpacing": "0", "fontWeight": "500" }],
+                        "h3": ["18px", { "lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Grid background pattern for industrial feel */
+        .bg-grid-pattern {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(116, 120, 120, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(116, 120, 120, 0.1) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased font-body-base bg-grid-pattern">
+<!-- TopNavBar Shared Component -->
+<nav class="bg-white dark:bg-zinc-950 flex justify-between items-center px-6 py-4 w-full sticky top-0 z-50 border-b border-zinc-400 dark:border-zinc-800 docked full-width top-0 border-b-2">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tighter text-zinc-900 dark:text-white">HOOD</span>
+<div class="hidden md:flex gap-6 items-center">
+<a class="font-['Inter'] uppercase tracking-wider text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1" href="#axis1">Axis 1</a>
+<a class="font-['Inter'] uppercase tracking-wider text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1" href="#axis2">Axis 2</a>
+<a class="font-['Inter'] uppercase tracking-wider text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1" href="#samples">Samples</a>
+<a class="font-['Inter'] uppercase tracking-wider text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-2 py-1" href="#pricing">Pricing</a>
+</div>
+</div>
+<button class="font-['Inter'] uppercase tracking-wider text-sm font-semibold text-orange-600 dark:text-orange-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors duration-150 px-4 py-2 border border-orange-500 rounded-sm">
+            GET STARTED
+        </button>
+</nav>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-7xl mx-auto px-margin py-xl flex flex-col gap-xl">
+<!-- Hero Section -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center min-h-[614px]">
+<div class="md:col-span-5 flex flex-col gap-md pr-lg">
+<div class="border border-outline w-fit px-2 py-1 bg-surface-container-low mb-sm">
+<span class="font-mono-data text-mono-data text-on-surface-variant uppercase tracking-widest">SYS.REQ.01 // FIELD OPS</span>
+</div>
+<h1 class="font-h1 text-h1 text-primary">Professionalize Your Service.<br/>Win More Business.</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md border-l-2 border-outline pl-sm py-xs">
+                    The authoritative operating system for kitchen exhaust vendors. Transform raw field data into compliant, high-retention service documentation.
+                </p>
+<div class="flex gap-md mt-sm items-center">
+<button class="bg-secondary-container text-on-secondary-container font-label-caps text-label-caps px-lg py-md border border-primary flex items-center gap-xs rounded-DEFAULT hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">build</span>
+                        DEPLOY SYSTEM
+                    </button>
+<button class="bg-surface-container-lowest text-on-surface font-label-caps text-label-caps px-lg py-md border border-outline flex items-center gap-xs rounded-DEFAULT hover:bg-surface-container transition-colors">
+                        VIEW SCHEMATICS
+                    </button>
+</div>
+</div>
+<div class="md:col-span-7 h-full min-h-[400px] border border-outline bg-surface-container-lowest p-sm flex relative">
+<!-- Decorative target markers -->
+<div class="absolute top-0 left-0 w-2 h-2 border-t border-l border-primary -translate-x-[1px] -translate-y-[1px]"></div>
+<div class="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary translate-x-[1px] -translate-y-[1px]"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary -translate-x-[1px] translate-y-[1px]"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-primary translate-x-[1px] translate-y-[1px]"></div>
+<img class="w-full h-full object-cover filter grayscale opacity-90" data-alt="Close-up of industrial ventilation blueprints with drafting tools on a metal workbench under stark fluorescent lighting, monochrome technical aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDb6VxPz23ru4JGWAOVNdXeSRWeTQxP-D1e3E4v3gXszdg5yt2WJV43Vlm0s9mzPKg28uVeF-OKs7E0Gx35VtH_rJRgYv2cuz6D0W-usaDyv6wVA6zI_lTQt8QBmXuanVZhvxSr0iqWrL-o-mliGYs2YvRVT4qGmcBsf0NJ_P1mgTCYnqyGphoDm6R5t98fwRP_Bt5h2vISKcZdcVWvMgo1GPu8eu_L1LSYo00grprR7Y0Z9gEWwKPaofTuoFiM2uapbGuQHPJrDTU"/>
+<!-- Overlay Data Box -->
+<div class="absolute bottom-lg left-lg bg-surface-container-lowest border border-outline p-md shadow-sm hidden sm:flex flex-col gap-xs">
+<div class="flex justify-between items-center border-b border-outline pb-xs mb-xs">
+<span class="font-label-caps text-label-caps text-on-surface">SYS.STAT</span>
+<span class="material-symbols-outlined text-[16px] text-secondary-container icon-fill">circle</span>
+</div>
+<span class="font-mono-data text-mono-data text-on-surface">VENDORS ONLINE: 1,402</span>
+<span class="font-mono-data text-mono-data text-on-surface">REPORTS GENERATED: 84.2K</span>
+</div>
+</div>
+</section>
+<!-- Product Core Split (Axis 1 vs Axis 2) -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-gutter mt-xl">
+<!-- Axis 1 -->
+<div class="flex flex-col border border-outline bg-surface-container-lowest rounded-DEFAULT">
+<div class="bg-primary px-md py-sm border-b border-outline flex justify-between items-center">
+<h3 class="font-label-caps text-label-caps text-on-primary">AXIS 1: SERVICE PACKETS</h3>
+<span class="material-symbols-outlined text-on-primary text-[16px]">description</span>
+</div>
+<div class="p-lg flex flex-col gap-md">
+<h2 class="font-h2 text-h2 text-on-surface">Definitive Documentation.</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Standardize field notes into universally compliant NFPA 96 service records. Reduce liability and enforce structural consistency across all technician outputs.</p>
+<div class="flex flex-col mt-sm border border-outline">
+<div class="flex items-center gap-sm p-sm border-b border-outline bg-surface-container-low">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">check_box</span>
+<span class="font-mono-data text-mono-data text-on-surface">Photo-Evidence Anchoring</span>
+</div>
+<div class="flex items-center gap-sm p-sm border-b border-outline">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">check_box</span>
+<span class="font-mono-data text-mono-data text-on-surface">Deficiency Tracking Matrix</span>
+</div>
+<div class="flex items-center gap-sm p-sm bg-surface-container-low">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">check_box</span>
+<span class="font-mono-data text-mono-data text-on-surface">Automated AHJ Routing</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Axis 2 -->
+<div class="flex flex-col border border-outline bg-surface-container-lowest rounded-DEFAULT">
+<div class="bg-surface-variant px-md py-sm border-b border-outline flex justify-between items-center">
+<h3 class="font-label-caps text-label-caps text-on-surface">AXIS 2: SALES INTELLIGENCE</h3>
+<span class="material-symbols-outlined text-on-surface text-[16px]">radar</span>
+</div>
+<div class="p-lg flex flex-col gap-md">
+<h2 class="font-h2 text-h2 text-on-surface">Predictive Acquisition.</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Leverage aggregated facility data to identify high-probability service targets. Deploy targeted compliance alerts directly to facility managers.</p>
+<!-- Abstract Data Visual -->
+<div class="mt-sm border border-outline p-md flex flex-col gap-sm bg-surface-container h-full">
+<div class="flex justify-between items-end border-b border-outline pb-xs">
+<span class="font-mono-data text-mono-data text-on-surface-variant">TARGET PROBABILITY</span>
+<span class="font-h3 text-h3 text-primary">87.4%</span>
+</div>
+<div class="w-full h-2 bg-surface-dim mt-xs">
+<div class="w-[87%] h-full bg-primary"></div>
+</div>
+<div class="grid grid-cols-2 gap-xs mt-sm">
+<div class="border border-outline p-xs bg-surface-container-lowest flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">RISK INDEX</span>
+<span class="font-mono-data text-mono-data text-secondary-container">CRITICAL</span>
+</div>
+<div class="border border-outline p-xs bg-surface-container-lowest flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">LAST SVC</span>
+<span class="font-mono-data text-mono-data text-on-surface">14 MO AGO</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing Snapshot -->
+<section class="mt-xl flex flex-col gap-md" id="pricing">
+<div class="flex items-end justify-between border-b-2 border-primary pb-sm">
+<h2 class="font-h2 text-h2 text-primary">Deployment Logistics</h2>
+<span class="font-mono-data text-mono-data text-on-surface-variant hidden sm:inline-block">FEE_SCHEDULE_V2</span>
+</div>
+<div class="w-full overflow-x-auto border border-outline bg-surface-container-lowest rounded-DEFAULT">
+<table class="w-full text-left border-collapse min-w-[600px]">
+<thead>
+<tr class="bg-surface-variant border-b border-outline">
+<th class="p-md font-label-caps text-label-caps text-on-surface w-1/3">TIER / LICENSE</th>
+<th class="p-md font-label-caps text-label-caps text-on-surface w-1/3 border-l border-outline">OPERATIONAL SCOPE</th>
+<th class="p-md font-label-caps text-label-caps text-on-surface w-1/3 border-l border-outline">CAPITAL REQ.</th>
+</tr>
+</thead>
+<tbody class="font-body-base text-body-base">
+<tr class="border-b border-outline hover:bg-surface-container transition-colors">
+<td class="p-md font-mono-data text-mono-data text-primary">FIELD_OPS (STANDARD)</td>
+<td class="p-md text-on-surface-variant border-l border-outline">Core documentation, single crew.</td>
+<td class="p-md font-mono-data text-mono-data text-primary border-l border-outline">$199 / MO</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="p-md font-mono-data text-mono-data text-primary flex items-center gap-xs">
+                                FLEET_CMD (ENTERPRISE)
+                                <span class="material-symbols-outlined text-[14px] text-secondary-container">star</span>
+</td>
+<td class="p-md text-on-surface-variant border-l border-outline">Full routing, multi-crew analytics, API.</td>
+<td class="p-md font-mono-data text-mono-data text-primary border-l border-outline">CUSTOM BD</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- Footer Shared Component -->
+<footer class="bg-zinc-900 dark:bg-black full-width border-t-4 border-orange-600 border-t border-zinc-700 w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center mt-xl">
+<div class="flex flex-col gap-sm">
+<span class="text-lg font-bold text-white">HOOD</span>
+<span class="font-['Inter'] text-xs uppercase tracking-widest text-zinc-400">© 2024 HOOD INDUSTRIAL OPERATIONS. ALL RIGHTS RESERVED.</span>
+</div>
+<div class="flex gap-6 mt-6 md:mt-0">
+<a class="font-['Inter'] text-xs uppercase tracking-widest text-zinc-400 hover:text-orange-400 transition-colors" href="#">Documentation</a>
+<a class="font-['Inter'] text-xs uppercase tracking-widest text-zinc-400 hover:text-orange-400 transition-colors" href="#">Safety Standards</a>
+<a class="font-['Inter'] text-xs uppercase tracking-widest text-zinc-400 hover:text-orange-400 transition-colors" href="#">Privacy Policy</a>
+<a class="font-['Inter'] text-xs uppercase tracking-widest text-zinc-400 hover:text-orange-400 transition-colors" href="#">Contact Support</a>
+</div>
+</footer>
+</body></html>

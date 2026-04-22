@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sample Packet Preview | hood</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#636262",
+                        "inverse-surface": "#303031",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#e2bfb0",
+                        "surface-container-high": "#e9e8e7",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#ff6b00",
+                        "primary-fixed": "#ffdbcc",
+                        "primary": "#a04100",
+                        "on-background": "#1b1c1c",
+                        "surface-container-highest": "#e4e2e2",
+                        "surface-bright": "#fbf9f9",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#410003",
+                        "primary-fixed-dim": "#ffb693",
+                        "tertiary-fixed-dim": "#ffb4ac",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "inverse-primary": "#ffb693",
+                        "secondary": "#5f5e5e",
+                        "on-primary": "#ffffff",
+                        "surface": "#fbf9f9",
+                        "on-secondary-fixed-variant": "#474746",
+                        "surface-container-low": "#f5f3f3",
+                        "background": "#fbf9f9",
+                        "on-primary-fixed": "#351000",
+                        "tertiary": "#b52424",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "secondary-container": "#e2dfde",
+                        "on-surface": "#1b1c1c",
+                        "tertiary-container": "#ff675d",
+                        "inverse-on-surface": "#f2f0f0",
+                        "on-surface-variant": "#5a4136",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffdad6",
+                        "surface-variant": "#e4e2e2",
+                        "on-primary-container": "#572000",
+                        "secondary-fixed": "#e5e2e1",
+                        "surface-dim": "#dbdad9",
+                        "on-tertiary-container": "#6a0007",
+                        "surface-container": "#efeded",
+                        "surface-tint": "#a04100",
+                        "outline": "#8e7164",
+                        "on-tertiary-fixed-variant": "#92030f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "lg": "24px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "margin": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "h2": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "data-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "h3": ["18px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600"}],
+                        "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-inverse-surface min-h-screen font-body-lg text-body-lg text-on-background">
+<!-- TopNavBar -->
+<nav class="bg-white border-b border-zinc-200 flat no shadows flex justify-between items-center h-16 px-8 w-full mx-auto max-w-screen-2xl docked full-width top-0 sticky z-50">
+<div class="flex items-center gap-8">
+<a class="text-2xl font-black tracking-tighter text-zinc-900 uppercase" href="#">hood</a>
+<div class="hidden md:flex gap-6">
+<a class="font-inter text-sm font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 transition-colors active:scale-95 duration-75" href="#">Solutions</a>
+<a class="font-inter text-sm font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 transition-colors active:scale-95 duration-75" href="#">Compliance</a>
+<a class="font-inter text-sm font-bold uppercase tracking-widest text-orange-600 border-b-2 border-orange-600 pb-1" href="#">Inventory</a>
+<a class="font-inter text-sm font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 transition-colors active:scale-95 duration-75" href="#">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="font-inter text-sm font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 transition-colors active:scale-95 duration-75 border border-zinc-200 px-4 py-2 rounded">Request Audit</button>
+<button class="font-inter text-sm font-bold uppercase tracking-widest bg-primary-container text-on-primary border border-primary-container px-4 py-2 rounded hover:opacity-90 transition-colors active:scale-95 duration-75">Client Portal</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="max-w-screen-2xl mx-auto px-4 md:px-8 py-12">
+<header class="mb-12 text-center md:text-left flex flex-col md:flex-row justify-between items-end gap-6">
+<div>
+<h1 class="font-h1 text-h1 text-on-secondary mb-2">Sample Packet Preview</h1>
+<p class="font-body-lg text-body-lg text-secondary-fixed-dim max-w-2xl">Examine the industrial-grade deliverables generated by hood Operational Systems. High-contrast, revenue-critical data formatted for immediate action.</p>
+</div>
+<div class="flex gap-4">
+<button class="bg-surface-container-lowest border border-outline text-on-surface font-label-caps text-label-caps px-6 py-3 rounded uppercase flex items-center gap-2 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+                    Download PDF
+                </button>
+</div>
+</header>
+<!-- Preview Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Axis 1: Existing Customer -->
+<div class="bg-surface-container-lowest border border-secondary-fixed rounded shadow-[0_4px_10px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col">
+<div class="bg-surface px-6 py-4 border-b border-surface-variant flex justify-between items-center">
+<div>
+<p class="font-label-caps text-label-caps text-secondary uppercase mb-1">Axis 1 Protocol</p>
+<h2 class="font-h2 text-h2 text-on-surface">Compliance Registry</h2>
+</div>
+<div class="bg-surface-variant text-on-surface px-3 py-1 rounded font-data-mono text-data-mono flex items-center gap-2 border border-surface-dim">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                        Active
+                    </div>
+</div>
+<div class="p-8 flex-grow">
+<!-- Document Header -->
+<div class="flex justify-between items-start mb-8 border-b-2 border-on-surface pb-6">
+<div>
+<h3 class="font-h1 text-h1 tracking-tighter text-on-surface uppercase leading-none mb-2">hood</h3>
+<p class="font-data-mono text-data-mono text-secondary">ID: 884-AX1-2024</p>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-on-surface uppercase">Facility Data</p>
+<p class="font-data-mono text-data-mono text-secondary">Unit 42, North Sector</p>
+<p class="font-data-mono text-data-mono text-secondary">Generated: Oct 24, 2024</p>
+</div>
+</div>
+<!-- Status Banner -->
+<div class="bg-surface border-l-4 border-primary-container p-4 mb-8 flex justify-between items-center">
+<div>
+<p class="font-label-caps text-label-caps text-primary uppercase mb-1">System Status</p>
+<p class="font-h3 text-h3 text-on-surface">Operational - Maintenance Required</p>
+</div>
+<span class="material-symbols-outlined text-primary-container text-4xl" data-icon="warning">warning</span>
+</div>
+<!-- Data Grid -->
+<div class="grid grid-cols-2 gap-x-8 gap-y-4 mb-8">
+<div class="border-b border-surface-variant pb-2">
+<p class="font-label-caps text-label-caps text-secondary uppercase mb-1">Exhaust Flow</p>
+<p class="font-data-mono text-data-mono text-on-surface">4,200 CFM</p>
+</div>
+<div class="border-b border-surface-variant pb-2">
+<p class="font-label-caps text-label-caps text-secondary uppercase mb-1">Grease Accumulation</p>
+<p class="font-data-mono text-data-mono text-error font-bold">2.4mm (Critical)</p>
+</div>
+<div class="border-b border-surface-variant pb-2">
+<p class="font-label-caps text-label-caps text-secondary uppercase mb-1">Filter Type</p>
+<p class="font-data-mono text-data-mono text-on-surface">Baffle, Stainless 304</p>
+</div>
+<div class="border-b border-surface-variant pb-2">
+<p class="font-label-caps text-label-caps text-secondary uppercase mb-1">Last Service</p>
+<p class="font-data-mono text-data-mono text-on-surface">Aug 12, 2024</p>
+</div>
+</div>
+<!-- Inspection Photos -->
+<div class="mb-8">
+<p class="font-label-caps text-label-caps text-on-surface uppercase mb-3 border-b border-on-surface pb-1">Visual Evidence</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="aspect-video bg-surface-variant border border-surface-dim rounded relative overflow-hidden">
+<img alt="Industrial kitchen exhaust hood interior showing heavy grease buildup before cleaning, harsh lighting" class="object-cover w-full h-full grayscale opacity-80 mix-blend-multiply" data-alt="Industrial kitchen exhaust hood interior showing heavy grease buildup before cleaning, harsh lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3mAyWEO7MYHMhb2nMj9aSrkk7tsNuWKTEaCrAys1wuWWxN1RuuFipYRafWSp224EqIWpcKMiQ-Ff4JpzcVcjemlLQg47GISNrif7OYBZfOwmBjUiUfKZsGT89612jc5FXiC4Gq6Oxw6YE6iwX8GxDq22HdP2xCk6L-5gbZArOMmEcKnrcl4y0lTXxdemOIpYa44-UIHz0D3ltOSi7CwdokdMEctLKDW4IYby6hD4Z9N4Uu73J1KgPXynIq9jdCeJ__SubQ_SH6A"/>
+<div class="absolute bottom-2 left-2 bg-on-surface text-surface px-2 py-1 font-data-mono text-xs rounded">PRE-INSPECT</div>
+</div>
+<div class="aspect-video bg-surface-variant border border-surface-dim rounded relative overflow-hidden">
+<img alt="Clean stainless steel industrial ductwork interior, bright flash lighting reflecting off clean metal" class="object-cover w-full h-full grayscale opacity-80 mix-blend-multiply" data-alt="Clean stainless steel industrial ductwork interior, bright flash lighting reflecting off clean metal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfLwU1T-1NdlPf-pp55ZO1L9mqTJjOn2FqEUX2KDcgF55HV8auZUa0xM6GqRUW2hjerE5D7ruvU3TLDLUJ4qJiAwsQ4XNJLasq3t82HLjlqzbbLGnsSzy6Ys9rbZMnA8lDPkNpDWTfFgEO0nd4AKTcMV2jBzqD0OempyaKLyiiHfA1_DboW5wSa0ApHLoxSjJHIUn6JdkrjL56Zz0HNvKSUqjYukrJw_cYF_Iq_KFYprhvdDjGU6-sM2FRlUEMvjuXU3c2B06h1w"/>
+<div class="absolute bottom-2 left-2 bg-on-surface text-surface px-2 py-1 font-data-mono text-xs rounded">TARGET STATE</div>
+</div>
+</div>
+</div>
+<!-- Compliance Stamp -->
+<div class="flex justify-end mt-12">
+<div class="border-2 border-primary-container p-4 w-48 text-center rotate-[-5deg] opacity-80">
+<p class="font-h2 text-h2 text-primary-container uppercase font-black tracking-widest leading-none mb-1">AUDITED</p>
+<p class="font-label-caps text-label-caps text-primary-container">SYS-REQ-24A</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Axis 2: Prospect -->
+<div class="bg-surface-container-lowest border border-secondary-fixed rounded shadow-[0_4px_10px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col">
+<div class="bg-surface px-6 py-4 border-b border-surface-variant flex justify-between items-center">
+<div>
+<p class="font-label-caps text-label-caps text-secondary uppercase mb-1">Axis 2 Protocol</p>
+<h2 class="font-h2 text-h2 text-on-surface">Opportunity Analysis</h2>
+</div>
+<div class="bg-surface-variant text-on-surface px-3 py-1 rounded font-data-mono text-data-mono flex items-center gap-2 border border-surface-dim">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+                        Prospect
+                    </div>
+</div>
+<div class="p-8 flex-grow">
+<!-- Document Header -->
+<div class="flex justify-between items-start mb-8 border-b-2 border-on-surface pb-6">
+<div>
+<h3 class="font-h1 text-h1 tracking-tighter text-on-surface uppercase leading-none mb-2">hood</h3>
+<p class="font-data-mono text-data-mono text-secondary">ID: 992-AX2-PROS</p>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-on-surface uppercase">Target Asset</p>
+<p class="font-data-mono text-data-mono text-secondary">Metro Central Hub</p>
+<p class="font-data-mono text-data-mono text-secondary">Evaluated: Oct 25, 2024</p>
+</div>
+</div>
+<!-- Opportunity Heat -->
+<div class="mb-8">
+<p class="font-label-caps text-label-caps text-on-surface uppercase mb-3 border-b border-on-surface pb-1">Opportunity Heat</p>
+<div class="bg-surface border border-surface-variant p-4">
+<div class="flex justify-between items-end mb-2">
+<p class="font-data-mono text-data-mono text-on-surface">Revenue Potential Index</p>
+<p class="font-h2 text-h2 text-primary-container leading-none">84%</p>
+</div>
+<div class="w-full bg-surface-variant h-4 flex border border-surface-dim">
+<div class="bg-on-surface w-1/4 h-full border-r border-surface-lowest"></div>
+<div class="bg-secondary w-1/4 h-full border-r border-surface-lowest"></div>
+<div class="bg-primary-container w-[34%] h-full"></div>
+</div>
+<div class="flex justify-between mt-2">
+<span class="font-label-caps text-label-caps text-secondary">LOW YIELD</span>
+<span class="font-label-caps text-label-caps text-primary-container font-bold">HIGH TARGET</span>
+</div>
+</div>
+</div>
+<!-- Remediation Plan -->
+<div class="mb-8">
+<p class="font-label-caps text-label-caps text-on-surface uppercase mb-3 border-b border-on-surface pb-1">Proposed Protocol</p>
+<table class="w-full text-left border-collapse">
+<thead>
+<tr>
+<th class="font-label-caps text-label-caps text-secondary uppercase py-2 border-b border-surface-dim">Phase</th>
+<th class="font-label-caps text-label-caps text-secondary uppercase py-2 border-b border-surface-dim">Action</th>
+<th class="font-label-caps text-label-caps text-secondary uppercase py-2 border-b border-surface-dim text-right">Est. Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-surface-dim hover:bg-surface transition-colors">
+<td class="font-data-mono text-data-mono text-on-surface py-3">01.</td>
+<td class="font-body-sm text-body-sm text-on-surface py-3">Initial Extraction &amp; Degreasing</td>
+<td class="font-data-mono text-data-mono text-on-surface py-3 text-right">High</td>
+</tr>
+<tr class="border-b border-surface-dim hover:bg-surface transition-colors">
+<td class="font-data-mono text-data-mono text-on-surface py-3">02.</td>
+<td class="font-body-sm text-body-sm text-on-surface py-3">Filter System Upgrade (Baffle)</td>
+<td class="font-data-mono text-data-mono text-on-surface py-3 text-right">Med</td>
+</tr>
+<tr class="hover:bg-surface transition-colors">
+<td class="font-data-mono text-data-mono text-on-surface py-3">03.</td>
+<td class="font-body-sm text-body-sm text-on-surface py-3">Compliance Certification</td>
+<td class="font-data-mono text-data-mono text-on-surface py-3 text-right">Critical</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Authorization Block -->
+<div class="mt-12 border border-on-surface p-4 bg-surface">
+<p class="font-label-caps text-label-caps text-on-surface uppercase mb-4 text-center">Authorization for Deployment</p>
+<div class="flex justify-between items-end gap-8">
+<div class="flex-1 border-b border-secondary pb-1">
+<p class="font-data-mono text-data-mono text-surface-dim text-xs">Signature</p>
+</div>
+<div class="w-32 border-b border-secondary pb-1">
+<p class="font-data-mono text-data-mono text-surface-dim text-xs">Date</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-zinc-50 border-t border-zinc-200 flat no shadows flex flex-col md:flex-row justify-between items-center py-12 px-8 w-full max-w-screen-2xl mx-auto gap-6 mt-12">
+<div class="text-xl font-bold text-zinc-400 uppercase tracking-tighter">hood</div>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 hover:text-orange-600 transition-colors opacity-100 hover:opacity-80" href="#">Service Standards</a>
+<a class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 hover:text-orange-600 transition-colors opacity-100 hover:opacity-80" href="#">Compliance Registry</a>
+<a class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 hover:text-orange-600 transition-colors opacity-100 hover:opacity-80" href="#">Privacy Protocol</a>
+<a class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 hover:text-orange-600 transition-colors opacity-100 hover:opacity-80" href="#">Terms of Service</a>
+</div>
+<div class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500">
+            © 2024 hood Operational Systems. Industrial Grade Maintenance.
+        </div>
+</footer>
+</body></html>

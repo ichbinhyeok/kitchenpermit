@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>hood | Industrial Grade Maintenance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#636262",
+                        "inverse-surface": "#303031",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#e2bfb0",
+                        "surface-container-high": "#e9e8e7",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#ff6b00",
+                        "primary-fixed": "#ffdbcc",
+                        "primary": "#a04100",
+                        "on-background": "#1b1c1c",
+                        "surface-container-highest": "#e4e2e2",
+                        "surface-bright": "#fbf9f9",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#410003",
+                        "primary-fixed-dim": "#ffb693",
+                        "tertiary-fixed-dim": "#ffb4ac",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "inverse-primary": "#ffb693",
+                        "secondary": "#5f5e5e",
+                        "on-primary": "#ffffff",
+                        "surface": "#fbf9f9",
+                        "on-secondary-fixed-variant": "#474746",
+                        "surface-container-low": "#f5f3f3",
+                        "background": "#fbf9f9",
+                        "on-primary-fixed": "#351000",
+                        "tertiary": "#b52424",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "secondary-container": "#e2dfde",
+                        "on-surface": "#1b1c1c",
+                        "tertiary-container": "#ff675d",
+                        "inverse-on-surface": "#f2f0f0",
+                        "on-surface-variant": "#5a4136",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffdad6",
+                        "surface-variant": "#e4e2e2",
+                        "on-primary-container": "#572000",
+                        "secondary-fixed": "#e5e2e1",
+                        "surface-dim": "#dbdad9",
+                        "on-tertiary-container": "#6a0007",
+                        "surface-container": "#efeded",
+                        "surface-tint": "#a04100",
+                        "outline": "#8e7164",
+                        "on-tertiary-fixed-variant": "#92030f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "lg": "24px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "margin": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "h2": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "data-mono": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+                        "h2": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "h3": ["18px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+                        "h1": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-lg antialiased">
+<!-- TopNavBar -->
+<nav class="bg-white dark:bg-zinc-950 docked full-width top-0 border-b border-zinc-200 dark:border-zinc-800 flat no shadows sticky z-50">
+<div class="flex justify-between items-center h-16 px-8 w-full mx-auto max-w-screen-2xl">
+<div class="text-2xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-orange-600" data-weight="fill" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                hood
+            </div>
+<div class="hidden md:flex items-center gap-8 font-inter text-sm font-bold uppercase tracking-widest">
+<a class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors px-2 py-1" href="#">Solutions</a>
+<a class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors px-2 py-1" href="#">Compliance</a>
+<a class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors px-2 py-1" href="#">Inventory</a>
+<a class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors px-2 py-1" href="#">Pricing</a>
+</div>
+<div class="flex items-center gap-4">
+<a class="hidden md:block font-label-caps text-label-caps text-secondary hover:text-on-surface transition-colors" href="#">Client Portal</a>
+<a class="bg-primary-container text-white px-4 py-2 font-label-caps text-label-caps hover:bg-primary transition-colors active:scale-95 duration-75" href="#">Request Audit</a>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="relative pt-32 pb-24 px-8 overflow-hidden bg-white border-b border-outline-variant">
+<div class="max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div class="z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container border border-outline-variant mb-6">
+<span class="material-symbols-outlined text-primary text-[16px]">military_tech</span>
+<span class="font-label-caps text-label-caps text-on-surface">Industrial Grade Operations</span>
+</div>
+<h1 class="font-h1 text-[48px] leading-[1.1] text-on-surface tracking-tighter mb-6 uppercase">
+                    Command the Kitchen. <br/>
+<span class="text-primary">Dominate the Market.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-secondary mb-10 max-w-xl">
+                    Stop delivering handwritten grease reports. Hood equips commercial exhaust vendors with a two-axis operational platform: professionalize your client deliverables and weaponize your field data to win new accounts.
+                </p>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="bg-primary-container text-white px-8 py-4 font-label-caps text-label-caps hover:bg-primary transition-colors flex items-center justify-center gap-2">
+                        Get Started <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<button class="border border-secondary text-secondary px-8 py-4 font-label-caps text-label-caps hover:text-on-surface hover:border-on-surface transition-colors">
+                        View Sample Packet
+                    </button>
+</div>
+</div>
+<div class="relative h-[500px] w-full bg-surface-container border border-outline-variant flex items-center justify-center overflow-hidden">
+<img alt="Commercial Kitchen Exhaust" class="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-multiply grayscale" data-alt="Modern commercial kitchen exhaust hood with stainless steel finishing, dramatic lighting emphasizing cleanliness and professional maintenance standards" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoJLG47zEWHA34lq382pb9AGlhXI8REEMj_NTa8Po_Y9QfvJD_fyxSwIon9xuQ9WXWVH0qDIndLUmn7Tz1MerKjdouPoGIHcDzD8n1yoKN0HVEXjOpCKVOAHEbMY3m9-KcZ_zj-mbaicdszUXyPKOxisjhz221VwSOvv2Hm1bDIEg_4irAtkCAP4lgLu6nKZ-s5mYoDMBXeN78YPZ0oejGdI4foiH9RKKlMB3xeawvTYbjn90EbGtK_ea22o0mnzHOzTJl2HaS1w"/>
+<!-- Floating UI Element to show "Professionalism" -->
+<div class="absolute bottom-8 right-8 bg-white border border-outline-variant p-6 shadow-sm max-w-sm z-20">
+<div class="flex justify-between items-start mb-4 border-b border-surface-container-highest pb-4">
+<div>
+<p class="font-label-caps text-label-caps text-secondary mb-1">Status Report</p>
+<p class="font-h3 text-h3 text-on-surface">System Clear</p>
+</div>
+<span class="material-symbols-outlined text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between">
+<span class="font-data-mono text-data-mono text-secondary">CFM Airflow</span>
+<span class="font-data-mono text-data-mono text-on-surface">3200</span>
+</div>
+<div class="flex justify-between">
+<span class="font-data-mono text-data-mono text-secondary">Grease Deposition</span>
+<span class="font-data-mono text-data-mono text-on-surface">&lt; 0.05"</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- The Problem / Solution Grid -->
+<section class="py-24 px-8 bg-surface">
+<div class="max-w-screen-2xl mx-auto">
+<div class="mb-16">
+<h2 class="font-h2 text-h2 text-on-surface uppercase mb-4">The Professional Gap</h2>
+<p class="font-body-lg text-body-lg text-secondary max-w-2xl">
+                    The industry standard is broken. Scrawled notes on carbon paper don't justify premium maintenance contracts. Facility managers demand rigorous documentation to satisfy fire marshals and insurance auditors.
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-container-highest border border-surface-container-highest">
+<!-- Problem -->
+<div class="bg-surface p-12">
+<div class="mb-8">
+<span class="material-symbols-outlined text-error text-4xl mb-4">cancel</span>
+<h3 class="font-h3 text-h3 text-on-surface uppercase">The Old Way</h3>
+</div>
+<ul class="space-y-4">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary text-[20px] mt-1">receipt_long</span>
+<span class="font-body-lg text-body-lg text-secondary">Illegible handwritten service tickets.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary text-[20px] mt-1">image_not_supported</span>
+<span class="font-body-lg text-body-lg text-secondary">No photographic proof of bare metal clean.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary text-[20px] mt-1">timeline</span>
+<span class="font-body-lg text-body-lg text-secondary">Reactive scheduling leading to compliance lapses.</span>
+</li>
+</ul>
+</div>
+<!-- Solution -->
+<div class="bg-white p-12 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-2 h-full bg-primary-container"></div>
+<div class="mb-8">
+<span class="material-symbols-outlined text-primary text-4xl mb-4" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+<h3 class="font-h3 text-h3 text-on-surface uppercase">The Hood Standard</h3>
+</div>
+<ul class="space-y-4">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px] mt-1">description</span>
+<span class="font-body-lg text-body-lg text-on-surface">Digital, auditable compliance reports.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px] mt-1">camera_alt</span>
+<span class="font-body-lg text-body-lg text-on-surface">Time-stamped before/after visual evidence.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px] mt-1">monitoring</span>
+<span class="font-body-lg text-body-lg text-on-surface">Predictive maintenance forecasting.</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-zinc-50 dark:bg-zinc-900 full-width border-t border-zinc-200 dark:border-zinc-800 flat no shadows opacity-100 hover:opacity-80 mt-24">
+<div class="flex flex-col md:flex-row justify-between items-center py-12 px-8 w-full max-w-screen-2xl mx-auto gap-6">
+<div class="text-xl font-bold text-zinc-400 dark:text-zinc-600 uppercase flex items-center gap-2">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                hood
+            </div>
+<div class="flex flex-wrap justify-center gap-6 font-inter text-xs font-medium uppercase tracking-wider">
+<a class="text-zinc-500 dark:text-zinc-400 hover:text-orange-600 transition-colors" href="#">Service Standards</a>
+<a class="text-zinc-500 dark:text-zinc-400 hover:text-orange-600 transition-colors" href="#">Compliance Registry</a>
+<a class="text-zinc-500 dark:text-zinc-400 hover:text-orange-600 transition-colors" href="#">Privacy Protocol</a>
+<a class="text-zinc-500 dark:text-zinc-400 hover:text-orange-600 transition-colors" href="#">Terms of Service</a>
+</div>
+<div class="font-inter text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 text-center md:text-right">
+                © 2024 hood Operational Systems. Industrial Grade Maintenance.
+            </div>
+</div>
+</footer>
+</body></html>

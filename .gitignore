@@ -1,0 +1,7 @@
+.gradle/
+build/
+node_modules/
+jte-classes/
+storage/
+*.log
+src/main/resources/static/app.css
