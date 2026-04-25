@@ -255,28 +255,31 @@ export function getAxis1PacketPreviewData(options: {
     },
     summaryCards: [
       {
-        label: "Today's result",
+        label: "Completed today",
         title: exceptionOpen
-          ? "Accessible sections cleaned. One access item remains."
-          : "Accessible sections cleaned and ready for records",
+          ? "Accessible sections were cleaned and documented."
+          : "Accessible sections were cleaned and closed.",
         copy: exceptionOpen
-          ? "Hood body, filter bank, plenum, and reachable duct path were cleaned and documented. The blocked section stays visible instead of being represented as finished."
+          ? "Hood body, filter bank, plenum, and reachable duct path were finished with proof photos tied to the record."
           : "Hood body, filter bank, plenum, duct path, and visible fan area were documented with no open access item at close-out.",
         icon: "status",
       },
       {
-        label: "Checklist coverage",
-        title: "6 components and 8 proof items logged",
-        copy:
-          "Hood, filters, plenum, access, fan, containment, label, and archive coverage are organized in the report instead of scattered across texts and photos.",
+        label: exceptionOpen ? "Still open" : "Nothing open",
+        title: exceptionOpen
+          ? "Rear duct access stayed open because it was blocked."
+          : "No blocked access item remained at close-out.",
+        copy: exceptionOpen
+          ? "Stored items blocked the rear duct access panel. This section stays visible here so it is not mistaken as complete."
+          : "The visit closed without an open access exception, so the customer can keep this with service records.",
         icon: "action",
       },
       {
-        label: "What you need to do",
-        title: exceptionOpen ? "Clear rear duct access and reply" : "Confirm next service window",
+        label: "Next step",
+        title: exceptionOpen ? "Clear access, then reply." : "Confirm the next service window.",
         copy: exceptionOpen
-          ? "Stored items blocked rear duct access at departure. Clear the path and reply so the vendor can close the open item cleanly."
-          : "No open access item remains. Confirm the next scheduled service window or ask dispatch to shift timing.",
+          ? "Move stored items away from the access panel and reply so the vendor can schedule the revisit or close the open item cleanly."
+          : "Confirm the next scheduled service window, or ask dispatch to adjust the week while the record is fresh.",
         icon: "next",
       },
     ],

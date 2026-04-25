@@ -534,7 +534,7 @@ function buildActionTitle(
   );
 
   if (hasAccessException) {
-    return "Clear access and confirm revisit";
+    return "Access stayed open because it was blocked";
   }
 
   if (hasConditionFollowUp || followUpMode === "quote") {
@@ -794,19 +794,22 @@ export function buildAxis1NeutralPacketData(
     },
     summaryCards: [
       {
-        label: "Today's result",
-        title: serviceResultTitle,
+        label: "Completed today",
+        title:
+          scenario === "clean"
+            ? "Accessible sections were cleaned and closed."
+            : "Accessible sections were cleaned and documented.",
         copy: summaryCopy,
         icon: "status",
       },
       {
-        label: "What you need to do",
+        label: scenario === "clean" ? "Nothing open" : "Still open",
         title: actionTitle,
         copy: customerAction,
         icon: "action",
       },
       {
-        label: "Next planned visit",
+        label: "Next step",
         title: `Recommended window: ${nextServiceWindow}`,
         copy: `${intervalBasis} The report keeps that timing visible so the customer knows the expected next step instead of needing another explanation.`,
         icon: "next",

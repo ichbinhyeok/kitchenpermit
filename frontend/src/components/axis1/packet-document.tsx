@@ -320,7 +320,11 @@ function SummaryBand({
   data: Axis1PacketPreviewData;
   transform?: (value: string) => string;
 }) {
-  const icons = [CheckCircle2, AlertTriangle, Clock3];
+  const icons = [
+    CheckCircle2,
+    data.scenario === "exception" ? AlertTriangle : ShieldCheck,
+    Clock3,
+  ];
 
   return (
     <section className="pdf-document-section bg-[#111315] text-white">
