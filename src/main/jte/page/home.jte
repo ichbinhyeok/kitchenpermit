@@ -3,74 +3,55 @@
 @param String siteName
 
 @template.layout.site(page = page, content = @`
-<section class="shell grid gap-14 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">
-    <div class="space-y-8">
-        <div class="space-y-4">
-            <p class="inline-flex rounded-full border border-[var(--color-hood-border-strong)] bg-[var(--color-hood-surface)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-hood-accent-strong)]">
-                Industrial packets. Real revenue.
+<section class="border-b border-black/8 bg-white">
+    <div class="shell grid min-h-[40rem] gap-14 py-24 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+        <div class="max-w-[31rem]">
+            <p class="inline-flex border border-black/12 bg-[#fffdfa] px-4 py-2 font-mono text-xs uppercase tracking-[0.22em] text-[var(--color-hood-accent-strong)]">
+                Industrial-grade vendor system
             </p>
-            <h1 class="max-w-4xl text-5xl font-black uppercase leading-[0.95] tracking-[-0.04em] text-[var(--color-hood-text)] md:text-7xl">
-                Sharpen Service Delivery.
-                <span class="text-[var(--color-hood-accent-strong)]">Win More Accounts.</span>
+            <h1 class="mt-10 text-[3.85rem] font-[800] uppercase leading-[0.98] tracking-[-0.055em] text-[var(--color-hood-text)] md:text-[4.65rem]">
+                Proof the service.
+                <span class="block text-[var(--color-hood-accent-strong)]">Win the next account.</span>
             </h1>
-            <p class="max-w-2xl text-lg leading-8 text-[var(--color-hood-text-muted)]">
-                hood gives commercial kitchen exhaust vendors two independent revenue tools:
-                customer-facing service completion packets and trigger-led sales lists with first-touch packet support.
+            <p class="mt-7 max-w-[29rem] text-[1.08rem] leading-8 text-[var(--color-hood-text-muted)]">
+                Replace handwritten grease reports. hood gives kitchen exhaust vendors
+                customer-ready packet proof and local outbound dossiers built to open new accounts.
             </p>
-        </div>
-        <div class="flex flex-wrap gap-4">
-            <a class="rounded-md border border-[var(--color-hood-accent)] bg-[var(--color-hood-accent)] px-6 py-4 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[var(--color-hood-accent-strong)]" href="/start">Start a Project</a>
-            <a class="rounded-md border border-[var(--color-hood-border-strong)] bg-[var(--color-hood-surface)] px-6 py-4 text-sm font-semibold uppercase tracking-[0.08em] text-[var(--color-hood-text)]" href="/samples">View Sample Packets</a>
-        </div>
-    </div>
-    <div class="grid gap-5">
-        <div class="rounded-2xl border border-[var(--color-hood-border-strong)] bg-[#111518] p-6 text-white">
-            <div class="flex items-center justify-between">
-                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[#f7b68d]">Axis 1 / packet surface</p>
-                @template.component.status-chip(label = "send-ready", tone = "success")
+            <div class="mt-10 flex flex-wrap gap-4">
+                <a class="border border-[var(--color-hood-accent)] bg-[var(--color-hood-accent)] px-8 py-[0.95rem] text-sm font-bold text-white transition hover:bg-[var(--color-hood-accent-strong)]" href="/start">Get Started</a>
+                <a class="border border-black/14 bg-white px-8 py-[0.95rem] text-sm font-medium text-[var(--color-hood-text)] transition hover:border-black/28" href="/samples">View Sample Packet</a>
             </div>
-            <div class="mt-6 rounded-xl border border-white/10 bg-white/5 p-5">
-                <p class="text-sm uppercase tracking-[0.12em] text-[#d0c7bb]">Service Completion Brief</p>
-                <p class="mt-3 text-3xl font-bold">Proof of work, findings, and next service guidance.</p>
-                <div class="mt-6 grid gap-3 text-sm text-[#d0c7bb]">
-                    <div class="rounded-lg border border-white/10 px-4 py-3">Before / after evidence</div>
-                    <div class="rounded-lg border border-white/10 px-4 py-3">Customer-visible findings</div>
-                    <div class="rounded-lg border border-white/10 px-4 py-3">Rebook and follow-up CTA</div>
+        </div>
+        <div class="relative h-[31rem] overflow-hidden border border-black/10 bg-[#f1ece4]">
+            <img alt="Commercial kitchen exhaust hood" class="absolute inset-0 h-full w-full object-cover grayscale" src="/images/home-hero-kitchen.jpg">
+            <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02))]"></div>
+            <div class="absolute bottom-7 right-7 w-[15.5rem] border border-[#e5c4b5] bg-white p-5 shadow-[0_10px_22px_rgba(17,21,24,0.04)]">
+                <div class="flex items-start justify-between gap-4 border-b border-black/7 pb-4">
+                    <div>
+                        <p class="text-sm text-black/60">Status Report</p>
+                        <p class="mt-1 text-[1.2rem] font-semibold tracking-[-0.03em]">System Clear</p>
+                    </div>
+                    <span class="inline-flex h-5 w-5 items-center justify-center text-[var(--color-hood-accent-strong)]">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="10" cy="10" fill="currentColor" r="8"></circle>
+                            <path d="M6.6 10.1 8.8 12.2 13.4 7.7" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"></path>
+                        </svg>
+                    </span>
                 </div>
-            </div>
-        </div>
-        <div class="rounded-2xl border border-[var(--color-hood-border-strong)] bg-[var(--color-hood-surface)] p-6">
-            <div class="flex items-center justify-between">
-                <p class="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-hood-accent-strong)]">Axis 2 / list surface</p>
-                @template.component.status-chip(label = "Austin live", tone = "default")
-            </div>
-            <div class="mt-6 overflow-hidden rounded-xl border border-[var(--color-hood-border)]">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-[var(--color-hood-surface-muted)] font-semibold uppercase tracking-[0.12em] text-[var(--color-hood-text-muted)]">
-                    <tr>
-                        <th class="px-4 py-3">Trigger</th>
-                        <th class="px-4 py-3">Metro</th>
-                        <th class="px-4 py-3">Fit</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="border-t border-[var(--color-hood-border)] bg-[var(--color-hood-surface)]">
-                        <td class="px-4 py-3">Restaurant remodel</td>
-                        <td class="px-4 py-3">Austin</td>
-                        <td class="px-4 py-3 text-[var(--color-hood-accent-strong)]">High</td>
-                    </tr>
-                    <tr class="border-t border-[var(--color-hood-border)] bg-[var(--color-hood-surface)]">
-                        <td class="px-4 py-3">Finish-out</td>
-                        <td class="px-4 py-3">Austin</td>
-                        <td class="px-4 py-3">Medium</td>
-                    </tr>
-                    <tr class="border-t border-[var(--color-hood-border)] bg-[var(--color-hood-surface)]">
-                        <td class="px-4 py-3">Change of use</td>
-                        <td class="px-4 py-3">Austin</td>
-                        <td class="px-4 py-3">High</td>
-                    </tr>
-                    </tbody>
-                </table>
+                <div class="mt-4 grid gap-3 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-black/58">Axis 1</span>
+                        <span class="font-medium text-[var(--color-hood-text)]">send-ready packet</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-black/58">Axis 2</span>
+                        <span class="font-medium text-[var(--color-hood-text)]">10 live prospects</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-black/58">Surface</span>
+                        <span class="font-medium text-[var(--color-hood-text)]">masked sample</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

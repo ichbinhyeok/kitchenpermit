@@ -1,0 +1,4132 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  pointerWithin,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { CSS as DndCss } from "@dnd-kit/utilities";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  IconArrowRight,
+  IconCameraPlus,
+  IconCircleCheck,
+  IconCircleDashed,
+  IconPhotoScan,
+} from "@tabler/icons-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  GripVertical,
+  RotateCcw,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
+import {
+  Axis1PacketDocument,
+  type Axis1PacketDocumentSectionVisibility,
+} from "@/components/axis1/packet-document";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Panel } from "@/components/ui/panel";
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from "@/components/ui/segmented-control";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  axis1BuilderDefaults,
+  axis1BuilderSchema,
+  axis1CadenceOptions,
+  axis1ExceptionGroups,
+  axis1ExceptionOptions,
+  axis1FollowUpOptions,
+  buildAxis1NeutralPacketData,
+  type Axis1BuilderExceptionKind,
+  type Axis1BuilderFormValues,
+} from "@/lib/axis1-packet-builder";
+
+const fieldPhotoSlots = [
+  {
+    id: "hood-before",
+    proofId: "P-01",
+    systemRef: "HD-01",
+    label: "Before hood interior",
+    shortLabel: "Before",
+    title: "Hood interior before clean",
+    caption: "Field photo captured before work began.",
+    proofRole: "Before clean reference",
+    tone: "before",
+    keywords: ["before", "pre", "dirty", "start", "hood"],
+    required: true,
+  },
+  {
+    id: "hood-after",
+    proofId: "P-02",
+    systemRef: "HD-01",
+    label: "After hood interior",
+    shortLabel: "After",
+    title: "Hood interior after clean",
+    caption: "Field photo captured after reachable surfaces were cleaned.",
+    proofRole: "After clean confirmation",
+    tone: "after",
+    keywords: ["after", "clean", "final", "done", "complete"],
+    required: true,
+  },
+  {
+    id: "filter-bank",
+    proofId: "P-03",
+    systemRef: "FL-01",
+    label: "Filter bank reset",
+    shortLabel: "Filters",
+    title: "Baffle filter reset",
+    caption: "Filters shown removed, cleaned, inspected, or returned to service.",
+    proofRole: "Section reset proof",
+    tone: "after",
+    keywords: ["filter", "baffle", "filters", "fl"],
+    required: true,
+  },
+  {
+    id: "access-condition",
+    proofId: "P-04",
+    systemRef: "DK-02",
+    label: "Access / exception condition",
+    shortLabel: "Access",
+    title: "Duct access condition",
+    caption: "Access, blocked section, or exception condition tied to the report.",
+    proofRole: "Access-path record",
+    tone: "issue",
+    keywords: ["access", "duct", "panel", "block", "blocked", "exception", "dk"],
+    required: true,
+  },
+  {
+    id: "rooftop-fan",
+    proofId: "P-05",
+    systemRef: "RF-01",
+    label: "Rooftop fan / hinge line",
+    shortLabel: "Fan",
+    title: "Rooftop fan line",
+    caption: "Visible fan, hinge, curb, or rooftop condition tied to the report.",
+    proofRole: "Rooftop condition record",
+    tone: "record",
+    keywords: ["roof", "rooftop", "fan", "hinge", "curb", "rf"],
+    required: true,
+  },
+  {
+    id: "grease-containment",
+    proofId: "P-06",
+    systemRef: "GC-01",
+    label: "Grease removed / containment",
+    shortLabel: "Grease",
+    title: "Grease removed / containment",
+    caption: "Removed buildup, containment, or drip-path condition recorded.",
+    proofRole: "Residue removal proof",
+    tone: "record",
+    keywords: ["grease", "contain", "drip", "scrape", "residue", "gc"],
+    required: true,
+  },
+  {
+    id: "service-label",
+    proofId: "P-07",
+    systemRef: "LBL-01",
+    label: "Service label / notice",
+    shortLabel: "Label",
+    title: "Service label / notice posted",
+    caption: "Close-out label, exception notice, or next-due sticker captured.",
+    proofRole: "Close-out label proof",
+    tone: "record",
+    keywords: ["label", "sticker", "notice", "tag", "next", "due", "lbl"],
+    required: false,
+  },
+] as const;
+
+const jobPatternPresets = [
+  {
+    id: "clean-close",
+    label: "Everything was completed",
+    title: "No open item",
+    copy: "Use when the cleaning was completed and the customer just needs proof plus the next visit window.",
+    scenario: "clean",
+    exceptionKinds: [],
+    followUpMode: "none",
+  },
+  {
+    id: "blocked-access",
+    label: "Something was blocked",
+    title: "Cleaned reachable areas",
+    copy: "Use when storage, access, or a site condition kept the crew from reaching one area.",
+    scenario: "exception",
+    exceptionKinds: ["blocked-storage"],
+    followUpMode: "monitor",
+  },
+  {
+    id: "condition-review",
+    label: "Something needs review",
+    title: "Completed, but flag it",
+    copy: "Use when the job is done but a fan, curb, belt, or containment condition should stay visible.",
+    scenario: "exception",
+    exceptionKinds: ["rooftop-hinge-curb"],
+    followUpMode: "quote",
+  },
+] as const satisfies ReadonlyArray<{
+  id: string;
+  label: string;
+  title: string;
+  copy: string;
+  scenario: Axis1BuilderFormValues["scenario"];
+  exceptionKinds: Axis1BuilderExceptionKind[];
+  followUpMode: Axis1BuilderFormValues["followUpMode"];
+}>;
+
+type FieldPhotoSlotId = (typeof fieldPhotoSlots)[number]["id"];
+type FieldPhotoConfidence = "keyword" | "order" | "manual";
+type BuilderStep = "job" | "photos" | "report";
+type MobileSheetView = "photo-review" | "report-actions";
+type PhotoSlotResolution = "open" | "not-captured" | "not-applicable";
+type PacketPresentationMode = "standard" | "short";
+type ReportOutputMode = "link" | "pdf";
+type UploadedFieldPhoto = {
+  src: string;
+  name: string;
+  source: "bulk" | "manual";
+  confidence: FieldPhotoConfidence;
+  matchLabel: string;
+};
+type UnplacedFieldPhoto = UploadedFieldPhoto & {
+  id: string;
+  suggestedSlotId: FieldPhotoSlotId | null;
+  reason: "duplicate" | "overflow";
+};
+type FieldPhotoSlot = (typeof fieldPhotoSlots)[number];
+type UploadedFieldPhotoState = Record<FieldPhotoSlotId, UploadedFieldPhoto | null>;
+type PhotoImportNotice = {
+  tone: "success" | "warning" | "error";
+  message: string;
+};
+type PreparedPhotoPreview =
+  | {
+      ok: true;
+      src: string;
+      wasNormalized: boolean;
+    }
+  | {
+      ok: false;
+      reason: string;
+    };
+
+const photoDragPrefix = "photo:";
+const extraPhotoDragPrefix = "extra-photo:";
+const photoTargetPrefix = "photo-target:";
+const maxPhotoPreviewDimension = 1600;
+const maxPhotoImportBytes = 40 * 1024 * 1024;
+const maxBulkPhotoImportCount = 16;
+const smallPhotoFallbackBytes = 5 * 1024 * 1024;
+
+function makePhotoDragId(slotId: FieldPhotoSlotId) {
+  return `${photoDragPrefix}${slotId}`;
+}
+
+function makeExtraPhotoDragId(photoId: string) {
+  return `${extraPhotoDragPrefix}${photoId}`;
+}
+
+function makePhotoTargetId(slotId: FieldPhotoSlotId) {
+  return `${photoTargetPrefix}${slotId}`;
+}
+
+function isFieldPhotoSlotId(value: string): value is FieldPhotoSlotId {
+  return fieldPhotoSlots.some((slot) => slot.id === value);
+}
+
+function slotIdFromDndId(id: string | number, prefix: string) {
+  const value = String(id);
+
+  if (!value.startsWith(prefix)) {
+    return null;
+  }
+
+  const slotId = value.slice(prefix.length);
+  return isFieldPhotoSlotId(slotId) ? slotId : null;
+}
+
+function extraPhotoIdFromDndId(id: string | number) {
+  const value = String(id);
+  return value.startsWith(extraPhotoDragPrefix)
+    ? value.slice(extraPhotoDragPrefix.length)
+    : null;
+}
+
+function isMobileViewport() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 767px)").matches
+  );
+}
+
+function createLocalPhotoId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function PhotoPlacementTarget({
+  slot,
+  occupied,
+  activeSlotId,
+  mobileSheetMode = false,
+}: {
+  slot: FieldPhotoSlot;
+  occupied: boolean;
+  activeSlotId: FieldPhotoSlotId | null;
+  mobileSheetMode?: boolean;
+}) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: makePhotoTargetId(slot.id),
+    data: { slotId: slot.id },
+  });
+  const isCurrent = activeSlotId === slot.id;
+
+  return (
+    <div
+      ref={setNodeRef}
+      aria-label={
+        mobileSheetMode
+          ? `${slot.shortLabel} photo role`
+          : `Drop photo on ${slot.shortLabel}`
+      }
+      className={`min-w-0 rounded-[16px] border px-3 py-2 transition ${
+        isOver
+          ? "border-[#ff6b1a] bg-[#fff0e4] shadow-[0_10px_26px_rgba(255,107,26,0.14)]"
+          : occupied
+            ? "border-black/10 bg-[#f6f1e8]"
+            : "border-dashed border-black/12 bg-white"
+      }`}
+    >
+      <p className="truncate text-xs font-bold text-foreground">{slot.shortLabel}</p>
+      <p className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {mobileSheetMode
+          ? occupied ? "Has photo" : "Open"
+          : isOver ? "Drop here" : isCurrent ? "Current" : occupied ? "Filled" : "Empty"}
+      </p>
+    </div>
+  );
+}
+
+function PhotoPlacementRow({
+  slot,
+  uploaded,
+  onMove,
+  mobilePickerMode = false,
+}: {
+  slot: FieldPhotoSlot;
+  uploaded: UploadedFieldPhoto;
+  onMove: (fromSlotId: FieldPhotoSlotId, toSlotId: FieldPhotoSlotId) => void;
+  mobilePickerMode?: boolean;
+}) {
+  const { attributes, isDragging, listeners, setNodeRef, transform } = useDraggable({
+    id: makePhotoDragId(slot.id),
+    data: { slotId: slot.id },
+  });
+  const style = {
+    transform: transform ? DndCss.Transform.toString(transform) : undefined,
+    transition: isDragging ? undefined : "transform 180ms cubic-bezier(0.22, 1, 0.36, 1)",
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      data-photo-placement-row={slot.id}
+      data-photo-confidence={uploaded.confidence}
+      className={`grid gap-3 transition hover:bg-[#fffaf5] ${
+        mobilePickerMode
+          ? "grid-cols-[56px_minmax(0,1fr)] items-center px-3 py-2.5"
+          : "px-4 py-3 sm:grid-cols-[52px_minmax(0,1fr)_160px] sm:items-center"
+      } ${
+        isDragging ? "opacity-35" : "opacity-100"
+      }`}
+    >
+      {mobilePickerMode ? (
+        <div
+          className="h-14 w-14 overflow-hidden rounded-[14px] border border-black/10 bg-cover bg-center"
+          style={{ backgroundImage: `url(${uploaded.src})` }}
+          aria-label={`${slot.shortLabel} photo preview`}
+        />
+      ) : (
+        <button
+          type="button"
+          {...listeners}
+          {...attributes}
+          className="group h-12 touch-none overflow-hidden rounded-[14px] border border-black/10 bg-cover bg-center text-left outline-none ring-[#ff6b1a]/30 transition focus-visible:ring-4 active:cursor-grabbing sm:cursor-grab"
+          style={{ backgroundImage: `url(${uploaded.src})` }}
+          aria-label={`Drag ${slot.shortLabel} photo`}
+        >
+          <span className="grid h-full w-full place-items-center bg-black/22 text-[10px] font-bold uppercase tracking-[0.14em] text-white opacity-100 transition group-hover:bg-black/34 group-focus-visible:bg-black/34">
+            <span className="rounded-full bg-white/92 px-2 py-1 text-[9px] text-[#111315] shadow-sm motion-safe:animate-pulse">
+              Drag
+            </span>
+          </span>
+        </button>
+      )}
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-semibold text-foreground">{slot.shortLabel}</p>
+          <span
+            className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+              uploaded.confidence === "order"
+                ? "border-[#ff6b1a]/24 bg-[#fff0e4] text-[#b94d11]"
+                : "border-black/10 bg-[#f6f1e8] text-muted-foreground"
+            }`}
+          >
+            {uploaded.confidence === "keyword"
+              ? "Filename match"
+              : uploaded.confidence === "order"
+                ? "Review order"
+                : "Manual"}
+          </span>
+        </div>
+        <p className="mt-1 truncate text-xs leading-5 text-muted-foreground">
+          {uploaded.name}
+        </p>
+        {mobilePickerMode ? (
+          <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-[#ff6b1a]">
+            Change role below
+          </p>
+        ) : (
+          <p className="mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#ff6b1a]">
+            <GripVertical className="h-3.5 w-3.5" />
+            Drag to another role
+          </p>
+        )}
+      </div>
+      <select
+        value={slot.id}
+        onChange={(event) => onMove(slot.id, event.target.value as FieldPhotoSlotId)}
+        className={`h-10 w-full rounded-full border px-3 text-xs font-semibold outline-none ${
+          mobilePickerMode
+            ? "col-span-2 border-[#ff6b1a]/22 bg-[#fff0e4] text-[#111315]"
+            : "border-black/10 bg-[#111315] text-white"
+        }`}
+      >
+        {fieldPhotoSlots.map((targetSlot) => (
+          <option key={targetSlot.id} value={targetSlot.id}>
+            {mobilePickerMode ? "Role: " : "Move to "}
+            {targetSlot.shortLabel}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function ExtraPhotoRow({
+  photo,
+  onPlaceExtra,
+  mobilePickerMode = false,
+}: {
+  photo: UnplacedFieldPhoto;
+  onPlaceExtra?: (photoId: string, toSlotId: FieldPhotoSlotId) => void;
+  mobilePickerMode?: boolean;
+}) {
+  const { attributes, isDragging, listeners, setNodeRef, transform } = useDraggable({
+    id: makeExtraPhotoDragId(photo.id),
+    data: { photoId: photo.id },
+  });
+  const style = {
+    transform: transform ? DndCss.Transform.toString(transform) : undefined,
+    transition: isDragging ? undefined : "transform 180ms cubic-bezier(0.22, 1, 0.36, 1)",
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`grid gap-3 rounded-[16px] border border-dashed border-black/12 bg-[#fffaf5] transition hover:border-[#ff6b1a]/35 ${
+        mobilePickerMode
+          ? "grid-cols-[56px_minmax(0,1fr)] items-center px-3 py-2.5"
+          : "px-3 py-3 sm:grid-cols-[52px_minmax(0,1fr)] sm:items-center"
+      } ${
+        isDragging ? "opacity-35" : "opacity-100"
+      }`}
+    >
+      {mobilePickerMode ? (
+        <div
+          className="h-14 w-14 overflow-hidden rounded-[14px] border border-black/10 bg-cover bg-center"
+          style={{ backgroundImage: `url(${photo.src})` }}
+          aria-label={`Extra photo ${photo.name} preview`}
+        />
+      ) : (
+        <button
+          type="button"
+          {...listeners}
+          {...attributes}
+          className="group h-12 touch-none overflow-hidden rounded-[14px] border border-black/10 bg-cover bg-center text-left outline-none ring-[#ff6b1a]/30 transition focus-visible:ring-4 active:cursor-grabbing sm:cursor-grab"
+          style={{ backgroundImage: `url(${photo.src})` }}
+          aria-label={`Drag extra photo ${photo.name}`}
+        >
+          <span className="grid h-full w-full place-items-center bg-black/24 text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+            <span className="rounded-full bg-white/92 px-2 py-1 text-[9px] text-[#111315] shadow-sm motion-safe:animate-pulse">
+              Drag
+            </span>
+          </span>
+        </button>
+      )}
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate text-sm font-semibold text-foreground">{photo.name}</p>
+          <span className="rounded-full border border-[#ff6b1a]/20 bg-[#fff0e4] px-2 py-0.5 text-[10px] font-semibold text-[#b94d11]">
+            {photo.reason === "duplicate" ? "Same-label extra" : "Overflow"}
+          </span>
+        </div>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          {photo.suggestedSlotId
+            ? `Looks like ${
+                fieldPhotoSlots.find((slot) => slot.id === photo.suggestedSlotId)
+                  ?.shortLabel
+              }, but that role already has a representative photo.`
+            : mobilePickerMode
+              ? "No clear role was detected. Choose the correct role if needed."
+              : "No clear role was detected. Drag it onto the correct role if needed."}
+        </p>
+        {mobilePickerMode ? (
+          <select
+            defaultValue=""
+            onChange={(event) => {
+              const targetSlotId = event.target.value as FieldPhotoSlotId | "";
+              if (targetSlotId && onPlaceExtra) {
+                onPlaceExtra(photo.id, targetSlotId);
+              }
+              event.currentTarget.value = "";
+            }}
+            className="mt-3 h-10 w-full rounded-full border border-[#ff6b1a]/22 bg-[#fff0e4] px-3 text-xs font-semibold text-[#111315] outline-none"
+          >
+            <option value="">Assign this photo</option>
+            {fieldPhotoSlots.map((targetSlot) => (
+              <option key={targetSlot.id} value={targetSlot.id}>
+                Role: {targetSlot.shortLabel}
+              </option>
+            ))}
+          </select>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function PhotoDragOverlayCard({
+  label,
+  uploaded,
+}: {
+  label: string;
+  uploaded: UploadedFieldPhoto;
+}) {
+  return (
+    <div className="grid w-[360px] max-w-[80vw] grid-cols-[52px_minmax(0,1fr)] items-center gap-3 rounded-[18px] border border-black/10 bg-white px-4 py-3 shadow-[0_26px_70px_rgba(17,19,21,0.22)]">
+      <div
+        className="h-12 rounded-[14px] border border-black/10 bg-cover bg-center"
+        style={{ backgroundImage: `url(${uploaded.src})` }}
+      />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-foreground">{label}</p>
+        <p className="mt-1 truncate text-xs text-muted-foreground">{uploaded.name}</p>
+      </div>
+    </div>
+  );
+}
+
+function PhotoPlacementReview({
+  uploadedPhotoSlots,
+  uploadedFieldPhotos,
+  unplacedPhotos,
+  onMove,
+  onPlaceExtra,
+  mobileSheetMode = false,
+}: {
+  uploadedPhotoSlots: FieldPhotoSlot[];
+  uploadedFieldPhotos: UploadedFieldPhotoState;
+  unplacedPhotos: UnplacedFieldPhoto[];
+  onMove: (fromSlotId: FieldPhotoSlotId, toSlotId: FieldPhotoSlotId) => void;
+  onPlaceExtra: (photoId: string, toSlotId: FieldPhotoSlotId) => void;
+  mobileSheetMode?: boolean;
+}) {
+  const [activeDrag, setActiveDrag] = useState<
+    | { kind: "slot"; slotId: FieldPhotoSlotId }
+    | { kind: "extra"; photoId: string }
+    | null
+  >(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 },
+    }),
+    useSensor(KeyboardSensor),
+  );
+  const activeSlot = activeDrag?.kind === "slot"
+    ? fieldPhotoSlots.find((slot) => slot.id === activeDrag.slotId)
+    : null;
+  const activeExtra = activeDrag?.kind === "extra"
+    ? unplacedPhotos.find((photo) => photo.id === activeDrag.photoId)
+    : null;
+  const activePhoto = activeDrag?.kind === "slot"
+    ? uploadedFieldPhotos[activeDrag.slotId]
+    : activeExtra ?? null;
+  const hasAnyPhoto = uploadedPhotoSlots.length > 0 || unplacedPhotos.length > 0;
+  const orderMatchedCount = uploadedPhotoSlots.filter(
+    (slot) => uploadedFieldPhotos[slot.id]?.confidence === "order",
+  ).length;
+
+  function handleDragStart(event: DragStartEvent) {
+    const slotId = slotIdFromDndId(event.active.id, photoDragPrefix);
+
+    if (slotId) {
+      setActiveDrag({ kind: "slot", slotId });
+      return;
+    }
+
+    const photoId = extraPhotoIdFromDndId(event.active.id);
+
+    if (photoId) {
+      setActiveDrag({ kind: "extra", photoId });
+    }
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const fromSlotId = slotIdFromDndId(event.active.id, photoDragPrefix);
+    const fromExtraId = extraPhotoIdFromDndId(event.active.id);
+    const toSlotId = event.over
+      ? slotIdFromDndId(event.over.id, photoTargetPrefix)
+      : null;
+
+    if (fromSlotId && toSlotId) {
+      onMove(fromSlotId, toSlotId);
+    } else if (fromExtraId && toSlotId) {
+      onPlaceExtra(fromExtraId, toSlotId);
+    }
+
+    setActiveDrag(null);
+  }
+
+  if (!hasAnyPhoto) {
+    return (
+      <div className="px-4 py-4">
+        <p className="text-sm font-semibold text-foreground">No photos attached yet.</p>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          Add a before/after photo or the rest of the phone batch, then correct
+          mismatches here without starting over.
+        </p>
+      </div>
+    );
+  }
+
+  const roleTargetSection = (
+    <div
+      className={`px-4 py-4 ${
+        mobileSheetMode
+          ? "border-t border-black/8 bg-[#fffdf9]"
+          : "border-b border-black/8"
+      }`}
+    >
+      <div className={mobileSheetMode ? "flex items-start justify-between gap-4" : ""}>
+        <div>
+          {mobileSheetMode ? (
+            <>
+              <p className={labelClassName()}>Role reference</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Use the role picker on each photo if the auto-sort is wrong.
+              </p>
+            </>
+          ) : null}
+        </div>
+        {mobileSheetMode ? (
+          <span className="shrink-0 rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Optional
+          </span>
+        ) : null}
+      </div>
+      <div
+        className={`grid gap-2 ${
+          mobileSheetMode ? "mt-3 grid-cols-2" : "sm:grid-cols-4 xl:grid-cols-7"
+        }`}
+      >
+        {fieldPhotoSlots.map((slot) => (
+          <PhotoPlacementTarget
+            key={slot.id}
+            slot={slot}
+            occupied={Boolean(uploadedFieldPhotos[slot.id])}
+            activeSlotId={activeDrag?.kind === "slot" ? activeDrag.slotId : null}
+            mobileSheetMode={mobileSheetMode}
+          />
+        ))}
+      </div>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">
+        {mobileSheetMode
+          ? "Same-label extras stay below until you assign them. The role picker is the mobile-safe control."
+          : "Drag a photo onto a role. Same-label extras stay below until you choose the representative photo; the menu stays as a precise fallback."}
+      </p>
+      {orderMatchedCount > 0 ? (
+        <div className="mt-3 rounded-[16px] border border-[#ff6b1a]/18 bg-[#fff0e4] px-3 py-2">
+          <p className="text-xs font-semibold leading-5 text-[#b94d11]">
+            {orderMatchedCount} phone-style photo(s) were placed by upload order.
+            Review the role before sending the customer report.
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const placedPhotoSection = uploadedPhotoSlots.length > 0 ? (
+    <div className="divide-y divide-black/8">
+      {mobileSheetMode ? (
+        <div className="bg-[#fffdf9] px-4 py-3">
+          <p className={labelClassName()}>Uploaded photos</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Start here. Confirm filenames and roles before changing anything.
+          </p>
+        </div>
+      ) : null}
+      {uploadedPhotoSlots.map((slot) => {
+        const uploaded = uploadedFieldPhotos[slot.id];
+
+        if (!uploaded) {
+          return null;
+        }
+
+        return (
+          <PhotoPlacementRow
+            key={slot.id}
+            slot={slot}
+            uploaded={uploaded}
+            onMove={onMove}
+            mobilePickerMode={mobileSheetMode}
+          />
+        );
+      })}
+    </div>
+  ) : null;
+
+  const extraPhotoSection = unplacedPhotos.length > 0 ? (
+    <div className="border-t border-black/8 bg-[#fffdf9] px-4 py-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className={labelClassName()}>Extra photos</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Duplicates and overflow are kept here instead of being auto-filed
+            into the wrong role.
+          </p>
+        </div>
+        <span className="rounded-full border border-[#ff6b1a]/18 bg-[#fff0e4] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#b94d11]">
+          {unplacedPhotos.length} waiting
+        </span>
+      </div>
+      <div className="mt-3 grid gap-2">
+        {unplacedPhotos.map((photo) => (
+          <ExtraPhotoRow
+            key={photo.id}
+            photo={photo}
+            onPlaceExtra={onPlaceExtra}
+            mobilePickerMode={mobileSheetMode}
+          />
+        ))}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={pointerWithin}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveDrag(null)}
+    >
+      {mobileSheetMode ? placedPhotoSection : roleTargetSection}
+      {mobileSheetMode ? extraPhotoSection : placedPhotoSection}
+      {mobileSheetMode ? roleTargetSection : extraPhotoSection}
+      <DragOverlay
+        dropAnimation={{
+          duration: 180,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
+      >
+        {activePhoto ? (
+          <PhotoDragOverlayCard
+            label={activeSlot?.shortLabel ?? "Extra photo"}
+            uploaded={activePhoto}
+          />
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+const builderSteps = [
+  {
+    value: "job",
+    label: "Job",
+    title: "Pick result",
+    copy: "Situation, customer, and next interval.",
+  },
+  {
+    value: "photos",
+    label: "Photos",
+    title: "Add photos",
+    copy: "Upload what the crew captured.",
+  },
+  {
+    value: "report",
+    label: "Report",
+    title: "Review",
+    copy: "Tune wording only if needed.",
+  },
+] as const satisfies ReadonlyArray<{
+  value: BuilderStep;
+  label: string;
+  title: string;
+  copy: string;
+}>;
+
+const standardPacketSections: Axis1PacketDocumentSectionVisibility = {
+  photos: true,
+  checklist: true,
+  routeDetail: true,
+  nextService: true,
+};
+
+const shortPacketSections: Axis1PacketDocumentSectionVisibility = {
+  photos: true,
+  checklist: false,
+  routeDetail: false,
+  nextService: true,
+};
+
+const packetSectionControls = [
+  {
+    key: "photos",
+    label: "Photo section",
+    copy: "Customer-visible photo proof.",
+  },
+  {
+    key: "checklist",
+    label: "Proof checklist",
+    copy: "What was documented and closed.",
+  },
+  {
+    key: "routeDetail",
+    label: "Work details",
+    copy: "Hood, filters, fan, and access rows.",
+  },
+  {
+    key: "nextService",
+    label: "Next visit reminder",
+    copy: "Rebook window and reply instruction.",
+  },
+] as const satisfies ReadonlyArray<{
+  key: keyof Axis1PacketDocumentSectionVisibility;
+  label: string;
+  copy: string;
+}>;
+
+function fieldClassName() {
+  return "mt-2 w-full rounded-[18px] border border-black/10 bg-white px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-accent/60 focus:ring-2 focus:ring-accent/15";
+}
+
+function labelClassName() {
+  return "text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground";
+}
+
+const textFieldLimits = {
+  propertyName: 60,
+  siteCity: 60,
+  authorizedBy: 40,
+  serviceWindow: 40,
+  systemName: 72,
+  exceptionNote: 220,
+  followUpNote: 220,
+  summaryOverride: 260,
+  customerActionOverride: 220,
+  followUpOverride: 220,
+} as const;
+
+function CharacterCount({
+  value,
+  max,
+}: {
+  value?: string;
+  max: number;
+}) {
+  const length = value?.length ?? 0;
+  const isNearLimit = length >= max * 0.86;
+
+  return (
+    <p
+      className={`mt-1 text-right text-[10px] font-semibold uppercase tracking-[0.12em] ${
+        isNearLimit ? "text-[#b94d11]" : "text-muted-foreground/70"
+      }`}
+    >
+      {length}/{max}
+    </p>
+  );
+}
+
+function toggleExceptionKind(
+  current: Axis1BuilderExceptionKind[],
+  value: Axis1BuilderExceptionKind,
+) {
+  if (current.includes(value)) {
+    return current.length === 1
+      ? current
+      : current.filter((item) => item !== value);
+  }
+
+  return [...current, value];
+}
+
+function emptyFieldPhotoState(): Record<FieldPhotoSlotId, UploadedFieldPhoto | null> {
+  return {
+    "hood-before": null,
+    "hood-after": null,
+    "filter-bank": null,
+    "access-condition": null,
+    "rooftop-fan": null,
+    "grease-containment": null,
+    "service-label": null,
+  };
+}
+
+function emptyPhotoSlotResolutions(): Record<FieldPhotoSlotId, PhotoSlotResolution> {
+  return {
+    "hood-before": "open",
+    "hood-after": "open",
+    "filter-bank": "open",
+    "access-condition": "open",
+    "rooftop-fan": "open",
+    "grease-containment": "open",
+    "service-label": "open",
+  };
+}
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string | null>((resolve) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      resolve(typeof reader.result === "string" ? reader.result : null);
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
+function isLikelyImageFile(file: File) {
+  return (
+    file.type.startsWith("image/") ||
+    /\.(avif|heic|heif|jpe?g|png|webp)$/i.test(file.name)
+  );
+}
+
+function loadImageElement(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Image decode failed"));
+    image.decoding = "async";
+    image.src = src;
+  });
+}
+
+async function preparePhotoForPreview(file: File): Promise<PreparedPhotoPreview> {
+  if (!isLikelyImageFile(file)) {
+    return {
+      ok: false,
+      reason: "Only image files can be used in the customer report.",
+    };
+  }
+
+  if (file.size > maxPhotoImportBytes) {
+    return {
+      ok: false,
+      reason: "One photo was over 40MB. Use a smaller JPEG/PNG export.",
+    };
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await loadImageElement(objectUrl);
+    const sourceWidth = image.naturalWidth;
+    const sourceHeight = image.naturalHeight;
+
+    if (!sourceWidth || !sourceHeight) {
+      throw new Error("Image dimensions unavailable");
+    }
+
+    const scale = Math.min(
+      1,
+      maxPhotoPreviewDimension / Math.max(sourceWidth, sourceHeight),
+    );
+    const targetWidth = Math.max(1, Math.round(sourceWidth * scale));
+    const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d", { alpha: false });
+
+    if (!context) {
+      throw new Error("Canvas unavailable");
+    }
+
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, targetWidth, targetHeight);
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    return {
+      ok: true,
+      src: canvas.toDataURL("image/jpeg", 0.84),
+      wasNormalized:
+        scale < 1 ||
+        file.type !== "image/jpeg" ||
+        file.size > smallPhotoFallbackBytes,
+    };
+  } catch {
+    const canFallback =
+      file.size <= smallPhotoFallbackBytes &&
+      !/\.(heic|heif)$/i.test(file.name) &&
+      !/heic|heif/i.test(file.type);
+    const fallback = canFallback ? await readFileAsDataUrl(file) : null;
+
+    if (fallback) {
+      return {
+        ok: true,
+        src: fallback,
+        wasNormalized: false,
+      };
+    }
+
+    return {
+      ok: false,
+      reason:
+        "One photo could not be read in this browser. Try JPEG or PNG before saving the PDF.",
+    };
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+const genericPhotoKeywords = new Set([
+  "hood",
+  "before",
+  "pre",
+  "dirty",
+  "start",
+  "after",
+  "clean",
+  "final",
+  "done",
+  "complete",
+]);
+
+const genericPhonePhotoNamePatterns = [
+  /(^|[-_\s])(img|image|photo|pic|snap|screenshot)[-_\s]?\d{2,}/,
+  /(^|[-_\s])(pxl|dsc|dscn)[-_\s]?\d{2,}/,
+  /^img_\d{2,}/,
+  /^pxl_\d{6,}/,
+  /^dsc\d{2,}/,
+  /^dscn\d{2,}/,
+  /^whatsapp image \d{4}/,
+];
+
+function isGenericPhonePhotoName(fileName: string) {
+  const normalized = fileName
+    .toLowerCase()
+    .replace(/\.[^.]+$/, "")
+    .replace(/[()[\]]/g, " ");
+
+  return genericPhonePhotoNamePatterns.some((pattern) => pattern.test(normalized));
+}
+
+function photoKeywordScore(slot: FieldPhotoSlot, normalizedFileName: string) {
+  return slot.keywords.reduce((score, keyword) => {
+    if (!normalizedFileName.includes(keyword)) {
+      return score;
+    }
+
+    const specificity = genericPhotoKeywords.has(keyword) ? 1 : 4;
+    const lengthBonus = keyword.length >= 5 ? 1 : 0;
+
+    return score + specificity + lengthBonus;
+  }, 0);
+}
+
+function findKeywordPhotoSlot(fileName: string) {
+  const normalized = fileName.toLowerCase();
+  const [bestMatch] = fieldPhotoSlots
+    .map((slot, index) => ({
+      slot,
+      index,
+      score: photoKeywordScore(slot, normalized),
+    }))
+    .filter((match) => match.score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+
+  return bestMatch?.slot ?? null;
+}
+
+function suggestPhotoSlot(
+  fileName: string,
+  usedSlotIds: Set<FieldPhotoSlotId>,
+): {
+  slotId: FieldPhotoSlotId;
+  confidence: FieldPhotoConfidence;
+  matchLabel: string;
+} | null {
+  const keywordMatch = findKeywordPhotoSlot(fileName);
+
+  if (keywordMatch && !usedSlotIds.has(keywordMatch.id)) {
+    return {
+      slotId: keywordMatch.id,
+      confidence: "keyword",
+      matchLabel: "Matched by filename",
+    };
+  }
+
+  const orderMatch = fieldPhotoSlots.find((slot) => !usedSlotIds.has(slot.id));
+
+  return orderMatch
+    ? {
+        slotId: orderMatch.id,
+        confidence: "order",
+        matchLabel: isGenericPhonePhotoName(fileName)
+          ? "Phone filename - review order"
+          : "Placed by upload order - review",
+      }
+    : null;
+}
+
+export function PacketBuilder() {
+  const form = useForm<Axis1BuilderFormValues>({
+    resolver: zodResolver(axis1BuilderSchema),
+    defaultValues: axis1BuilderDefaults,
+    mode: "onChange",
+  });
+  const watched = useWatch({
+    control: form.control,
+  });
+  const values = {
+    ...axis1BuilderDefaults,
+    ...watched,
+  } as Axis1BuilderFormValues;
+  const selectedAccessCount = values.exceptionKinds.filter((kind) =>
+    axis1ExceptionOptions.find((option) => option.value === kind)?.group === "access",
+  ).length;
+  const selectedConditionCount = values.exceptionKinds.filter((kind) =>
+    axis1ExceptionOptions.find((option) => option.value === kind)?.group === "condition",
+  ).length;
+  const [uploadedFieldPhotos, setUploadedFieldPhotos] =
+    useState<Record<FieldPhotoSlotId, UploadedFieldPhoto | null>>(
+      emptyFieldPhotoState,
+    );
+  const [unplacedFieldPhotos, setUnplacedFieldPhotos] = useState<UnplacedFieldPhoto[]>(
+    [],
+  );
+  const [photoSlotResolutions, setPhotoSlotResolutions] =
+    useState<Record<FieldPhotoSlotId, PhotoSlotResolution>>(
+      emptyPhotoSlotResolutions,
+    );
+  const [builderStep, setBuilderStep] = useState<BuilderStep>("job");
+  const [packetPresentationMode, setPacketPresentationMode] =
+    useState<PacketPresentationMode>("short");
+  const [reportOutputMode, setReportOutputMode] =
+    useState<ReportOutputMode>("link");
+  const [packetSections, setPacketSections] =
+    useState<Axis1PacketDocumentSectionVisibility>(shortPacketSections);
+  const [showPacketDetails, setShowPacketDetails] = useState(false);
+  const [showAllPhotoSlots, setShowAllPhotoSlots] = useState(false);
+  const [showProofDetails, setShowProofDetails] = useState(false);
+  const [photoImportNotice, setPhotoImportNotice] =
+    useState<PhotoImportNotice | null>(null);
+  const [mobileSheet, setMobileSheet] = useState<MobileSheetView | null>(null);
+
+  useEffect(() => {
+    const requestedStep = new URLSearchParams(window.location.search).get("step");
+
+    if (
+      requestedStep === "job" ||
+      requestedStep === "photos" ||
+      requestedStep === "report"
+    ) {
+      const frame = window.requestAnimationFrame(() => {
+        setBuilderStep(requestedStep);
+        if (window.matchMedia("(max-width: 767px)").matches) {
+          document
+            .getElementById("packet-builder-workspace")
+            ?.scrollIntoView({ block: "start", behavior: "smooth" });
+        }
+      });
+
+      return () => window.cancelAnimationFrame(frame);
+    }
+  }, []);
+
+  const previewData = buildAxis1NeutralPacketData(values);
+  const uploadedProofCount = fieldPhotoSlots.filter(
+    (slot) => uploadedFieldPhotos[slot.id],
+  ).length;
+  const totalFieldPhotoCount = uploadedProofCount + unplacedFieldPhotos.length;
+  const skippedPhotoSlotCount = fieldPhotoSlots.filter(
+    (slot) =>
+      !uploadedFieldPhotos[slot.id] &&
+      photoSlotResolutions[slot.id] !== "open",
+  ).length;
+  const requiredProofCount = fieldPhotoSlots.filter((slot) => slot.required).length;
+  const requiredProofReadyCount = fieldPhotoSlots.filter(
+    (slot) =>
+      slot.required &&
+      (uploadedFieldPhotos[slot.id] || photoSlotResolutions[slot.id] !== "open"),
+  ).length;
+  const missingRequiredSlots = fieldPhotoSlots.filter(
+    (slot) =>
+      slot.required &&
+      !uploadedFieldPhotos[slot.id] &&
+      photoSlotResolutions[slot.id] === "open",
+  );
+  const uploadedPhotoSlots = fieldPhotoSlots.filter(
+    (slot) => uploadedFieldPhotos[slot.id],
+  );
+  const orderMatchedPhotoCount = uploadedPhotoSlots.filter(
+    (slot) => uploadedFieldPhotos[slot.id]?.confidence === "order",
+  ).length;
+  const hasOrderMatchedPhotos = orderMatchedPhotoCount > 0;
+  const hasProofWorkStarted = totalFieldPhotoCount > 0 || skippedPhotoSlotCount > 0;
+  const shouldShowProofDetails = showProofDetails || showAllPhotoSlots;
+  const openPhotoSlots = showAllPhotoSlots
+    ? fieldPhotoSlots
+    : fieldPhotoSlots.filter(
+        (slot) =>
+          !uploadedFieldPhotos[slot.id] &&
+          photoSlotResolutions[slot.id] === "open" &&
+          (slot.required || slot.id === "service-label"),
+      );
+  const firstMissingSlots = missingRequiredSlots.slice(0, 4);
+  const proofReadinessTitle =
+    hasOrderMatchedPhotos
+      ? `${orderMatchedPhotoCount} photo match(es) need review`
+      : missingRequiredSlots.length === 0
+      ? "Required proof complete"
+      : totalFieldPhotoCount === 0
+        ? "Have photos? Choose them here"
+        : `${missingRequiredSlots.length} proof slot(s) still missing`;
+  const proofReadinessCopy =
+    hasOrderMatchedPhotos
+      ? "Phone-style filenames were placed by upload order. Confirm the roles before sending."
+      : missingRequiredSlots.length === 0
+      ? "Required proof is either uploaded or intentionally marked for this visit."
+      : totalFieldPhotoCount === 0
+        ? "No photos? You can continue anyway. Have photos? Choose them from the phone and fix any wrong match in preview."
+        : unplacedFieldPhotos.length > 0
+          ? `${unplacedFieldPhotos.length} extra photo(s) waiting for a role.`
+        : `Missing: ${firstMissingSlots.map((slot) => slot.shortLabel).join(", ")}.`;
+  const proofProgressPercent = Math.max(
+    4,
+    (requiredProofReadyCount / requiredProofCount) * 100,
+  );
+  const serviceLabelUpload = uploadedFieldPhotos["service-label"];
+  const selectedCadenceOption =
+    axis1CadenceOptions.find((option) => option.value === values.cadence) ??
+    axis1CadenceOptions[2];
+  const selectedFollowUpOption =
+    axis1FollowUpOptions.find((option) => option.value === values.followUpMode) ??
+    axis1FollowUpOptions[1];
+  const activeJobPatternId =
+    values.scenario === "clean"
+      ? "clean-close"
+      : selectedAccessCount > 0
+        ? "blocked-access"
+        : selectedConditionCount > 0
+          ? "condition-review"
+          : "blocked-access";
+  const activeJobPattern =
+    jobPatternPresets.find((pattern) => pattern.id === activeJobPatternId) ??
+    jobPatternPresets[1];
+  const reportNeedsPhotoReview = hasOrderMatchedPhotos || unplacedFieldPhotos.length > 0;
+  const hasManualCustomerCopy =
+    Boolean(values.summaryOverride?.trim()) ||
+    Boolean(values.customerActionOverride?.trim()) ||
+    Boolean(values.followUpOverride?.trim()) ||
+    Boolean(values.followUpNote?.trim()) ||
+    Boolean(values.exceptionNote?.trim());
+  const mobileReportStatus =
+    reportNeedsPhotoReview
+      ? {
+          tone: "review",
+          title: "Check photo roles before sending",
+          copy: "Auto-placed from phone upload. Confirm roles before saving.",
+        }
+      : totalFieldPhotoCount === 0
+        ? {
+            tone: "neutral",
+            title: "Ready without photos",
+            copy: "The report can explain the visit. Add photos only if the crew captured them.",
+          }
+        : missingRequiredSlots.length > 0
+          ? {
+              tone: "partial",
+              title: "Sendable with partial proof",
+              copy: "Open slots stay out unless attached or intentionally marked.",
+            }
+          : {
+              tone: "ready",
+              title: "Ready to send",
+              copy: "Job result, proof, note, and next window are lined up.",
+            };
+  const mobileReportStatusClass =
+    mobileReportStatus.tone === "ready"
+      ? "border-[#2c7a3f]/18 bg-[#f0f8ef] text-[#1f6330]"
+      : mobileReportStatus.tone === "neutral"
+        ? "border-black/8 bg-[#f8f4ec] text-foreground"
+        : "border-[#f26a21]/20 bg-[#fff2e8] text-[#a94410]";
+  const mobileReportIconClass =
+    mobileReportStatus.tone === "ready"
+      ? "bg-[#2c7a3f] text-white"
+      : mobileReportStatus.tone === "neutral"
+        ? "bg-[#111315] text-white"
+        : "bg-[#f26a21] text-white";
+  const mobileReportChecks = [
+    ["Job result", activeJobPattern.label],
+    [
+      "Proof",
+      reportNeedsPhotoReview
+        ? `${orderMatchedPhotoCount + unplacedFieldPhotos.length} role check(s)`
+        : totalFieldPhotoCount > 0
+          ? `${uploadedProofCount} photo(s) placed`
+          : "No photos attached",
+    ],
+    ["Customer copy", hasManualCustomerCopy ? "Custom wording" : "Recommended wording"],
+    [
+      "Previewing",
+      reportOutputMode === "link" ? "Customer link" : "PDF copy",
+    ],
+    [
+      "PDF",
+      packetPresentationMode === "standard" ? "Compact full layout" : "Compact short layout",
+    ],
+  ] as const;
+  const mobileReportInlineActionLabel = reportNeedsPhotoReview
+    ? "Review photo roles"
+    : totalFieldPhotoCount === 0
+      ? "Add photos"
+      : "PDF options";
+  const builderStepIndex = Math.max(
+    0,
+    builderSteps.findIndex((step) => step.value === builderStep),
+  );
+  const mobilePrimaryActionLabel =
+    builderStep === "job"
+      ? "Continue to photos"
+      : builderStep === "photos"
+        ? "Review report"
+        : "Save PDF";
+  const mobileSecondaryActionLabel =
+    builderStep === "job"
+      ? "Sample"
+      : builderStep === "photos"
+        ? hasProofWorkStarted
+          ? "Review photos"
+          : "Back to job"
+        : reportNeedsPhotoReview
+          ? "Review photos"
+          : "Options";
+  const mobileStepCaption =
+    builderStep === "job"
+      ? activeJobPattern.label
+      : builderStep === "photos"
+        ? totalFieldPhotoCount > 0
+          ? `${totalFieldPhotoCount} photo(s)`
+          : "Photos optional"
+        : values.customerActionOverride?.trim()
+          ? "Custom copy"
+          : "Auto copy";
+  const mobileStepHint =
+    builderStep === "job"
+      ? "Pick the closest job result."
+      : builderStep === "photos"
+        ? hasOrderMatchedPhotos
+          ? "Review phone-order photo matches."
+          : totalFieldPhotoCount > 0
+            ? "Photos are attached. Review if needed."
+            : "No photos is acceptable."
+        : reportOutputMode === "link"
+          ? "Check the customer link view, then save PDF."
+          : "Check the PDF copy before saving.";
+  const mobilePrimaryIsPrint = builderStep === "report";
+  const reportOutputMeta =
+    reportOutputMode === "link"
+      ? {
+          label: "Customer link preview",
+          title: "Premium web report",
+          copy: "Best for texting or emailing a hosted link. No builder controls, no marketing header, noindex.",
+          badge: "Primary output",
+        }
+      : {
+          label: "PDF copy preview",
+          title: "Attachment and archive copy",
+          copy: "Best for saving, attaching, printing, or keeping in customer records. Tighter Letter-style layout.",
+          badge: "Document output",
+        };
+  const activePreviewPresentationMode =
+    reportOutputMode === "pdf" ? packetPresentationMode : "standard";
+  const activePreviewSections =
+    reportOutputMode === "pdf" ? packetSections : standardPacketSections;
+  const previewPacket = {
+    ...previewData,
+    proofPhotos: [
+      ...previewData.proofPhotos.flatMap((photo) => {
+        const slot = fieldPhotoSlots.find((item) => item.proofId === photo.proofId);
+        const uploaded = slot ? uploadedFieldPhotos[slot.id] : null;
+
+        if (!slot) {
+          return [photo];
+        }
+
+        if (!uploaded) {
+          return [];
+        }
+
+        return [
+          {
+            ...photo,
+            src: uploaded.src,
+            label: slot.shortLabel,
+            title: slot.title,
+            caption: `${slot.caption} Local field photo: ${uploaded.name}.`,
+            proofRole: slot.proofRole,
+          },
+        ];
+      }),
+      ...(serviceLabelUpload
+        ? [
+            {
+              src: serviceLabelUpload.src,
+              proofId: "P-07",
+              systemRef: "LBL-01",
+              label: "Label",
+              title: "Service label / notice posted",
+              caption: `Close-out label or notice captured from the field file: ${serviceLabelUpload.name}.`,
+              proofRole: "Close-out label proof",
+              tone: "record" as const,
+              position: "50% 50%",
+            },
+          ]
+        : []),
+    ],
+    photoCoverageRows: previewData.photoCoverageRows.map((row) => {
+      const slot = fieldPhotoSlots.find(
+        (item) =>
+          item.proofId === row.proof ||
+          (item.id === "service-label" && row.item === "Service label / notice"),
+      );
+      const uploaded = slot ? uploadedFieldPhotos[slot.id] : null;
+      const resolution = slot ? photoSlotResolutions[slot.id] : "open";
+
+      if (uploaded) {
+        return {
+          ...row,
+          status: "Uploaded",
+        };
+      }
+
+      if (resolution === "not-captured") {
+        return {
+          ...row,
+          status: "Not captured",
+        };
+      }
+
+      if (resolution === "not-applicable") {
+        return {
+          ...row,
+          status: "N/A",
+        };
+      }
+
+      if (slot) {
+        return {
+          ...row,
+          status: "Not attached",
+        };
+      }
+
+      return row;
+    }),
+  };
+
+  function resetBuilder() {
+    form.reset(axis1BuilderDefaults);
+    setUploadedFieldPhotos(emptyFieldPhotoState());
+    setUnplacedFieldPhotos([]);
+    setPhotoSlotResolutions(emptyPhotoSlotResolutions());
+    setPacketPresentationMode("short");
+    setPacketSections(shortPacketSections);
+    selectBuilderStep("job");
+    setShowPacketDetails(false);
+    setShowAllPhotoSlots(false);
+    setShowProofDetails(false);
+    setPhotoImportNotice(null);
+    setMobileSheet(null);
+    toast("Builder reset", {
+      description: "The sample report is back to the default visit.",
+    });
+  }
+
+  function selectBuilderStep(step: BuilderStep) {
+    toast.dismiss();
+    setBuilderStep(step);
+    setMobileSheet(null);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("step", step);
+    window.history.replaceState({}, "", url);
+
+    if (isMobileViewport()) {
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById("packet-builder-workspace")
+          ?.scrollIntoView({ block: "start", behavior: "smooth" });
+      });
+    }
+  }
+
+  function handleMobilePrimaryAction() {
+    if (builderStep === "job") {
+      selectBuilderStep("photos");
+      return;
+    }
+
+    if (builderStep === "photos") {
+      selectBuilderStep("report");
+      return;
+    }
+
+    printCustomerReport();
+  }
+
+  function openMobileSheet(sheet: MobileSheetView) {
+    const activeElement = document.activeElement;
+
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur();
+    }
+
+    toast.dismiss();
+    window.requestAnimationFrame(() => setMobileSheet(sheet));
+  }
+
+  function printCustomerReport() {
+    const activeElement = document.activeElement;
+
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur();
+    }
+
+    document.documentElement.classList.add("app-printing");
+    setReportOutputMode("pdf");
+    setMobileSheet(null);
+    toast.dismiss();
+
+    const clearPrintUiLock = () => {
+      document.documentElement.classList.remove("app-printing");
+    };
+
+    window.addEventListener("afterprint", clearPrintUiLock, { once: true });
+    window.setTimeout(() => {
+      window.print();
+      window.setTimeout(clearPrintUiLock, 900);
+    }, 420);
+  }
+
+  function handleMobileSecondaryAction() {
+    if (builderStep === "job") {
+      window.location.href = "/samples/axis-1";
+      return;
+    }
+
+    if (builderStep === "photos") {
+      if (hasProofWorkStarted) {
+        openMobileSheet("photo-review");
+        return;
+      }
+
+      selectBuilderStep("job");
+      return;
+    }
+
+    if (reportNeedsPhotoReview) {
+      openMobileSheet("photo-review");
+      return;
+    }
+
+    setReportOutputMode("pdf");
+    openMobileSheet("report-actions");
+  }
+
+  function applyPacketPresentationMode(mode: PacketPresentationMode) {
+    setPacketPresentationMode(mode);
+    setPacketSections(
+      mode === "short" ? shortPacketSections : standardPacketSections,
+    );
+  }
+
+  function togglePacketSection(
+    sectionKey: keyof Axis1PacketDocumentSectionVisibility,
+    checked: boolean,
+  ) {
+    setPacketSections((current) => ({
+      ...current,
+      [sectionKey]: checked,
+    }));
+  }
+
+  function useSimpleWording() {
+    if (values.scenario === "clean") {
+      form.setValue(
+        "summaryOverride",
+        "Service was completed today. No open item was recorded.",
+        { shouldDirty: true, shouldValidate: true },
+      );
+      form.setValue(
+        "customerActionOverride",
+        "Please confirm the next service window or request a different date.",
+        { shouldDirty: true, shouldValidate: true },
+      );
+      form.setValue(
+        "followUpOverride",
+        "No open condition was recorded at close-out.",
+        { shouldDirty: true, shouldValidate: true },
+      );
+      toast.success("Short wording applied", {
+        description: "The report now uses the compact customer copy.",
+      });
+      return;
+    }
+
+    form.setValue(
+      "summaryOverride",
+      "Reachable areas were cleaned today. One item still needs access or review.",
+      { shouldDirty: true, shouldValidate: true },
+    );
+    form.setValue(
+      "customerActionOverride",
+      "Please clear the listed item and reply so the revisit can be scheduled.",
+      { shouldDirty: true, shouldValidate: true },
+    );
+    form.setValue(
+      "followUpOverride",
+      "Open item stays on the report for follow-up.",
+      { shouldDirty: true, shouldValidate: true },
+    );
+    toast.success("Short wording applied", {
+      description: "The report now uses the compact customer copy.",
+    });
+  }
+
+  function restoreAutoWording() {
+    form.setValue("summaryOverride", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("customerActionOverride", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("followUpOverride", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    toast("Recommended copy restored", {
+      description: "The report is back to the generated wording.",
+    });
+  }
+
+  function setPhotoSlotResolution(
+    slotId: FieldPhotoSlotId,
+    resolution: PhotoSlotResolution,
+  ) {
+    setPhotoSlotResolutions((current) => ({
+      ...current,
+      [slotId]: resolution,
+    }));
+  }
+
+  async function handlePhotoUpload(
+    slotId: FieldPhotoSlotId,
+    file: File | undefined,
+    source: UploadedFieldPhoto["source"],
+  ) {
+    const slot = fieldPhotoSlots.find((item) => item.id === slotId);
+
+    if (!file) {
+      setUploadedFieldPhotos((current) => ({
+        ...current,
+        [slotId]: null,
+      }));
+      setPhotoSlotResolution(slotId, "open");
+      toast("Photo cleared", {
+        description: slot ? `${slot.shortLabel} is open again.` : "Photo slot is open again.",
+      });
+      return;
+    }
+
+    const result = await preparePhotoForPreview(file);
+    const isMobile = isMobileViewport();
+
+    if (!result.ok) {
+      setPhotoImportNotice({
+        tone: "error",
+        message: result.reason,
+      });
+      if (!isMobile) {
+        toast.error("Photo not attached", {
+          description: result.reason,
+        });
+      }
+      return;
+    }
+
+    setUploadedFieldPhotos((current) => ({
+      ...current,
+      [slotId]: {
+        src: result.src,
+        name: file.name,
+        source,
+        confidence: "manual",
+        matchLabel: "Manually placed",
+      },
+    }));
+    setPhotoSlotResolution(slotId, "open");
+    setPhotoImportNotice(
+      result.wasNormalized
+        ? {
+            tone: "success",
+            message: "Photo prepared for mobile PDF output.",
+          }
+        : null,
+    );
+    setShowProofDetails(!isMobile);
+    if (isMobile) {
+      setShowAllPhotoSlots(false);
+      toast.dismiss();
+      return;
+    }
+    toast.success("Photo attached", {
+      description: slot
+        ? `${slot.shortLabel} is ready for the customer report.`
+        : "Photo is ready for the customer report.",
+    });
+  }
+
+  async function handleBulkPhotoUpload(fileList: FileList | null) {
+    const selectedFiles = Array.from(fileList ?? []);
+    const eligibleImageFiles = selectedFiles.filter(isLikelyImageFile);
+    const skippedNonImageCount = selectedFiles.length - eligibleImageFiles.length;
+    const imageFiles = eligibleImageFiles.slice(0, maxBulkPhotoImportCount);
+    const truncatedCount = Math.max(
+      0,
+      eligibleImageFiles.length - maxBulkPhotoImportCount,
+    );
+
+    if (imageFiles.length === 0) {
+      if (selectedFiles.length > 0) {
+        setPhotoImportNotice({
+          tone: "error",
+          message: "No readable image files were selected.",
+        });
+      }
+      return;
+    }
+
+    const usedSlotIds = new Set<FieldPhotoSlotId>(
+      fieldPhotoSlots
+        .filter((slot) => uploadedFieldPhotos[slot.id])
+        .map((slot) => slot.id),
+    );
+    const slotAssignments: Array<{
+      file: File;
+      suggestion: NonNullable<ReturnType<typeof suggestPhotoSlot>>;
+    }> = [];
+    const extraAssignments: Array<{
+      file: File;
+      confidence: FieldPhotoConfidence;
+      matchLabel: string;
+      reason: UnplacedFieldPhoto["reason"];
+      suggestedSlotId: FieldPhotoSlotId | null;
+    }> = [];
+
+    imageFiles.forEach((file) => {
+      const keywordSlot = findKeywordPhotoSlot(file.name);
+
+      if (keywordSlot && usedSlotIds.has(keywordSlot.id)) {
+        extraAssignments.push({
+          file,
+          confidence: "keyword",
+          matchLabel: `Also matched ${keywordSlot.shortLabel}`,
+          reason: "duplicate",
+          suggestedSlotId: keywordSlot.id,
+        });
+        return;
+      }
+
+      const suggestion = suggestPhotoSlot(file.name, usedSlotIds);
+
+      if (!suggestion) {
+        extraAssignments.push({
+          file,
+          confidence: keywordSlot ? "keyword" : "order",
+          matchLabel: keywordSlot
+            ? `Also matched ${keywordSlot.shortLabel}`
+            : "No empty role available",
+          reason: keywordSlot ? "duplicate" : "overflow",
+          suggestedSlotId: keywordSlot?.id ?? null,
+        });
+        return;
+      }
+
+      usedSlotIds.add(suggestion.slotId);
+      slotAssignments.push({ file, suggestion });
+    });
+
+    const loaded = await Promise.all(
+      slotAssignments.map(async ({ file, suggestion }) => {
+        const prepared = await preparePhotoForPreview(file);
+
+        return {
+          slotId: suggestion.slotId,
+          src: prepared.ok ? prepared.src : null,
+          name: file.name,
+          confidence: suggestion.confidence,
+          matchLabel: suggestion.matchLabel,
+          wasNormalized: prepared.ok ? prepared.wasNormalized : false,
+          error: prepared.ok ? null : prepared.reason,
+        };
+      }),
+    );
+    const loadedExtras = await Promise.all(
+      extraAssignments.map(async (assignment) => {
+        const prepared = await preparePhotoForPreview(assignment.file);
+
+        return {
+          id: createLocalPhotoId(),
+          src: prepared.ok ? prepared.src : null,
+          name: assignment.file.name,
+          source: "bulk" as const,
+          confidence: assignment.confidence,
+          matchLabel: assignment.matchLabel,
+          reason: assignment.reason,
+          suggestedSlotId: assignment.suggestedSlotId,
+          wasNormalized: prepared.ok ? prepared.wasNormalized : false,
+          error: prepared.ok ? null : prepared.reason,
+        };
+      }),
+    );
+    const loadedExtraPhotos: UnplacedFieldPhoto[] = loadedExtras.flatMap((item) =>
+      item.src
+        ? [
+            {
+              ...item,
+              src: item.src,
+            },
+          ]
+        : [],
+    );
+
+    setUploadedFieldPhotos((current) => {
+      const next = { ...current };
+
+      loaded.forEach((item) => {
+        if (item.src) {
+          next[item.slotId] = {
+            src: item.src,
+            name: item.name,
+            source: "bulk",
+            confidence: item.confidence,
+            matchLabel: item.matchLabel,
+          };
+        }
+      });
+
+      return next;
+    });
+    setUnplacedFieldPhotos((current) => [
+      ...current,
+      ...loadedExtraPhotos,
+    ]);
+    setPhotoSlotResolutions((current) => {
+      const next = { ...current };
+
+      loaded.forEach((item) => {
+        if (item.src) {
+          next[item.slotId] = "open";
+        }
+      });
+
+      return next;
+    });
+    if (isMobileViewport()) {
+      setShowProofDetails(false);
+      setShowAllPhotoSlots(false);
+    } else {
+      setShowProofDetails(true);
+    }
+    const loadedPhotoCount = loaded.filter((item) => item.src).length;
+    const failedPhotoCount =
+      loaded.filter((item) => item.error).length +
+      loadedExtras.filter((item) => item.error).length +
+      skippedNonImageCount +
+      truncatedCount;
+    const normalizedPhotoCount =
+      loaded.filter((item) => item.src && item.wasNormalized).length +
+      loadedExtras.filter((item) => item.src && item.wasNormalized).length;
+    const orderReviewCount = loaded.filter(
+      (item) => item.src && item.confidence === "order",
+    ).length;
+    const noticeMessage =
+      failedPhotoCount > 0
+        ? `${failedPhotoCount} photo/file(s) were skipped. Use JPEG/PNG if a field photo is missing.`
+        : normalizedPhotoCount > 0
+          ? `${normalizedPhotoCount} photo(s) were prepared for mobile PDF output.`
+          : null;
+
+    setPhotoImportNotice(
+      noticeMessage
+        ? {
+            tone: failedPhotoCount > 0 ? "warning" : "success",
+            message: noticeMessage,
+          }
+        : null,
+    );
+
+    if (isMobileViewport()) {
+      toast.dismiss();
+    } else if (failedPhotoCount > 0) {
+      toast.warning(`${failedPhotoCount} photo/file(s) skipped`, {
+        description: "Use JPEG/PNG if a field photo is missing from the report.",
+      });
+    } else if (orderReviewCount > 0) {
+      toast.warning(`${orderReviewCount} photo match(es) need review`, {
+        description: "Phone filenames were placed by upload order.",
+      });
+    } else {
+      toast.success(`${loadedPhotoCount} photo(s) added`, {
+        description:
+          loadedExtraPhotos.length > 0
+            ? `${loadedExtraPhotos.length} extra photo(s) kept for review.`
+            : "Filename matches were applied automatically.",
+      });
+    }
+  }
+
+  function applyJobPattern(pattern: (typeof jobPatternPresets)[number]) {
+    form.setValue("scenario", pattern.scenario, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("exceptionKinds", [...pattern.exceptionKinds], {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("followUpMode", pattern.followUpMode, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("exceptionNote", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("followUpNote", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("summaryOverride", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("customerActionOverride", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("followUpOverride", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
+  function reassignPhoto(fromSlotId: FieldPhotoSlotId, toSlotId: FieldPhotoSlotId) {
+    if (fromSlotId === toSlotId) {
+      return;
+    }
+
+    setUploadedFieldPhotos((current) => {
+      const fromPhoto = current[fromSlotId];
+      const toPhoto = current[toSlotId];
+      const fromSlot = fieldPhotoSlots.find((slot) => slot.id === fromSlotId);
+      const toSlot = fieldPhotoSlots.find((slot) => slot.id === toSlotId);
+
+      if (!fromPhoto || !fromSlot || !toSlot) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [toSlotId]: {
+          ...fromPhoto,
+          confidence: "manual",
+          matchLabel: `Moved to ${toSlot.shortLabel}`,
+        },
+        [fromSlotId]: toPhoto
+          ? {
+              ...toPhoto,
+              confidence: "manual",
+              matchLabel: `Moved to ${fromSlot.shortLabel}`,
+            }
+          : null,
+      };
+    });
+    setPhotoSlotResolutions((current) => ({
+      ...current,
+      [fromSlotId]: "open",
+      [toSlotId]: "open",
+    }));
+    const targetSlot = fieldPhotoSlots.find((slot) => slot.id === toSlotId);
+    toast.success("Photo moved", {
+      description: targetSlot
+        ? `Now assigned to ${targetSlot.shortLabel}.`
+        : "Photo role was updated.",
+    });
+  }
+
+  function confirmAutoPlacedPhotoRoles() {
+    setUploadedFieldPhotos((current) => {
+      let changed = false;
+      const next = { ...current };
+
+      fieldPhotoSlots.forEach((slot) => {
+        const photo = current[slot.id];
+
+        if (photo?.confidence === "order") {
+          changed = true;
+          next[slot.id] = {
+            ...photo,
+            confidence: "manual",
+            matchLabel: "Role confirmed",
+          };
+        }
+      });
+
+      return changed ? next : current;
+    });
+    selectBuilderStep("report");
+  }
+
+  function placeUnplacedPhoto(photoId: string, toSlotId: FieldPhotoSlotId) {
+    const photo = unplacedFieldPhotos.find((item) => item.id === photoId);
+    const displacedPhoto = uploadedFieldPhotos[toSlotId];
+    const targetSlot = fieldPhotoSlots.find((slot) => slot.id === toSlotId);
+
+    if (!photo || !targetSlot) {
+      return;
+    }
+
+    setUploadedFieldPhotos((current) => ({
+      ...current,
+      [toSlotId]: {
+        src: photo.src,
+        name: photo.name,
+        source: photo.source,
+        confidence: "manual",
+        matchLabel: `Moved to ${targetSlot.shortLabel}`,
+      },
+    }));
+    setUnplacedFieldPhotos((current) => [
+      ...current.filter((item) => item.id !== photoId),
+      ...(displacedPhoto
+        ? [
+            {
+              ...displacedPhoto,
+              id: createLocalPhotoId(),
+              reason: "overflow" as const,
+              suggestedSlotId: toSlotId,
+              matchLabel: `Replaced from ${targetSlot.shortLabel}`,
+            },
+          ]
+        : []),
+    ]);
+    setPhotoSlotResolution(toSlotId, "open");
+    toast.success("Extra photo placed", {
+      description: `Assigned to ${targetSlot.shortLabel}.`,
+    });
+  }
+
+  return (
+    <section
+      id="packet-builder-workspace"
+      className="workspace-shell scroll-mt-[5.75rem] pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pb-20"
+    >
+      <div className="grid min-w-0 gap-5 2xl:grid-cols-[400px_minmax(0,1fr)]">
+        <div
+          className={`min-w-0 space-y-5 ${
+            builderStep === "report" ? "order-2 md:order-none" : ""
+          }`}
+        >
+          <Panel className="pdf-print-hide px-4 py-4 2xl:sticky 2xl:top-24 md:px-6 md:py-6">
+            <div className="pdf-print-hide border-b border-border pb-3 md:pb-4">
+              <p className={`${labelClassName()} hidden md:block`}>
+                Free customer report builder
+              </p>
+              <h2 className="mt-2 hidden font-display text-[1.32rem] font-bold leading-[0.96] tracking-[-0.06em] text-foreground md:mt-3 md:block md:text-[1.55rem]">
+                Create the customer handoff first. Tune only if needed.
+              </h2>
+              <p className="mt-2 hidden text-sm leading-6 text-muted-foreground md:block">
+                This creates a customer-facing hood cleaning report from the
+                visit result, photos, and next-service timing.
+              </p>
+              <div className="mt-4 hidden gap-2 md:grid md:grid-cols-3 2xl:grid-cols-1">
+                {[
+                  ["Job result", activeJobPattern.label, "Sets report language."],
+                  [
+                    "Photos",
+                    totalFieldPhotoCount > 0 ? `${totalFieldPhotoCount} attached` : "Optional",
+                    "Add what the crew captured.",
+                  ],
+                  [
+                    "PDF",
+                    totalFieldPhotoCount > 0 ? `${uploadedProofCount} placed` : "Ready",
+                    "Review and print PDF.",
+                  ],
+                ].map(([label, value, copy]) => (
+                  <div
+                    key={label}
+                    className="rounded-[18px] border border-black/8 bg-white/70 px-4 py-3 shadow-[0_10px_26px_rgba(17,17,17,0.04)] backdrop-blur"
+                  >
+                    <p className={labelClassName()}>{label}</p>
+                    <p className="mt-2 text-base font-semibold text-foreground">{value}</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{copy}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 hidden rounded-[20px] border border-[#f26a21]/18 bg-[#fff7ef] px-4 py-3 md:block md:py-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className={labelClassName()}>Your company branding</p>
+                    <p className="mt-2 text-sm font-semibold leading-5 text-foreground">
+                      Free builder first. Branded operating setup later.
+                    </p>
+                    <p className="mt-1 hidden text-xs leading-5 text-muted-foreground sm:block">
+                      Vendors can create a neutral customer report now. Setup
+                      turns the same flow into your company-owned closeout system.
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-[#f26a21]/20 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
+                    Free vs setup
+                  </span>
+                </div>
+                <div className="mt-3 grid gap-2 sm:hidden">
+                  {[
+                    ["Free", "Neutral report, local photos, print/save."],
+                    ["Setup", "Logo, phone, saved history, branded delivery."],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex items-center justify-between gap-3 rounded-[14px] border border-black/8 bg-white/72 px-3 py-2"
+                    >
+                      <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                        {label}
+                      </span>
+                      <span className="text-right text-[11px] font-semibold leading-4 text-foreground">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 hidden gap-3 sm:grid sm:grid-cols-2 2xl:grid-cols-1">
+                  {[
+                    {
+                      label: "Free now",
+                      tone: "neutral",
+                      items: ["Neutral report shell", "Local photo preview", "Print / save PDF"],
+                    },
+                    {
+                      label: "Setup unlocks",
+                      tone: "locked",
+                      items: [
+                        "Logo, phone, dispatch email",
+                        "Customer reply / next-service CTA",
+                        "Saved history and branded delivery",
+                      ],
+                    },
+                  ].map((column) => (
+                    <div
+                      key={column.label}
+                      className={`rounded-[16px] border px-3 py-3 ${
+                        column.tone === "locked"
+                          ? "border-[#f26a21]/18 bg-white"
+                          : "border-black/8 bg-white/70"
+                      }`}
+                    >
+                      <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                        {column.label}
+                      </p>
+                      <div className="mt-2 space-y-1.5">
+                        {column.items.map((item) => (
+                          <p
+                            key={item}
+                            className="flex gap-2 text-xs font-semibold leading-5 text-foreground"
+                          >
+                            <span className="mt-[0.42rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#f26a21]" />
+                            <span>{item}</span>
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <a
+                  href="/start"
+                  className="mt-3 inline-flex rounded-full bg-[#111315] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white"
+                >
+                  Request branded setup
+                </a>
+              </div>
+              <Tabs
+                value={builderStep}
+                onValueChange={(value) => selectBuilderStep(value as BuilderStep)}
+                className="mt-5"
+              >
+                <TabsList className="sticky top-[4.5rem] z-20 grid grid-cols-3 overflow-hidden rounded-[20px] border-black/8 bg-white/86 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_12px_30px_rgba(17,17,17,0.08)] backdrop-blur 2xl:grid-cols-1 md:static md:rounded-[22px] md:bg-white/65">
+                  {builderSteps.map((step, index) => {
+                    const stepMetric =
+                      step.value === "job"
+                        ? values.scenario === "clean"
+                          ? "Clean"
+                          : "Exception"
+                        : step.value === "photos"
+                          ? totalFieldPhotoCount > 0
+                            ? `${totalFieldPhotoCount} photos`
+                            : "Optional"
+                          : totalFieldPhotoCount > 0
+                            ? `${uploadedProofCount} placed`
+                            : "Ready";
+
+                    return (
+                      <TabsTrigger
+                        key={step.value}
+                        value={step.value}
+                        className="group min-w-0 flex-col items-start justify-center rounded-[16px] px-2 py-2 text-left data-[state=active]:bg-[#111315] data-[state=active]:text-white data-[state=active]:shadow-[0_18px_34px_rgba(17,17,17,0.18)] md:min-h-[76px] md:rounded-[18px] md:px-4"
+                      >
+                        <span className="flex w-full min-w-0 items-center justify-between gap-2">
+                          <span className="truncate text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground group-data-[state=active]:text-[#ffb489] md:text-[10px] md:tracking-[0.14em]">
+                            {index + 1}. {step.label}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="hidden border-black/10 bg-white/70 px-2 py-0.5 text-[10px] text-muted-foreground group-data-[state=active]:border-white/15 group-data-[state=active]:bg-white/8 group-data-[state=active]:text-white/72 md:inline-flex"
+                          >
+                            {stepMetric}
+                          </Badge>
+                        </span>
+                        <span className="mt-1 truncate text-[13px] font-bold leading-4 tracking-[-0.03em] md:text-sm">
+                          {step.title}
+                        </span>
+                        <span className="mt-0.5 hidden text-xs font-medium leading-5 text-muted-foreground group-data-[state=active]:text-white/56 sm:block">
+                          {step.copy}
+                        </span>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+              </Tabs>
+              <motion.div
+                layout
+                className="mt-3 rounded-[18px] border border-[#f26a21]/16 bg-[#fff7ef] px-3 py-2.5 md:hidden"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-[#f26a21]" />
+                  <span className="text-[11px] font-semibold leading-4 text-foreground">
+                    Free preview now. Branding, saved history, and delivery unlock in setup.
+                  </span>
+                </div>
+              </motion.div>
+            </div>
+
+            <form className="mt-4 space-y-4 md:mt-5">
+              <div
+                className={`rounded-[22px] border border-black/8 bg-white px-3.5 py-4 md:px-4 ${
+                  builderStep === "job" ? "" : "hidden"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className={labelClassName()}>Quick capture</p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      Fill the visit facts the office or owner usually knows right
+                      away. The customer report copy writes itself from these choices.
+                    </p>
+                  </div>
+                  <Sparkles className="h-4 w-4 shrink-0 text-accent" />
+                </div>
+
+                <div className="mt-4 rounded-[20px] border border-black/8 bg-[#111315] px-4 py-4 text-white">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ffb489]">
+                        Job pattern
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-white/62">
+                        Pick the closest situation. It sets result logic, open-item
+                        language, and follow-up stance automatically.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-white/14 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
+                      Smart start
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-2">
+                    {jobPatternPresets.map((pattern) => {
+                      const selected = activeJobPatternId === pattern.id;
+
+                      return (
+                        <motion.button
+                          key={pattern.id}
+                          type="button"
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.985 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 420,
+                            damping: 30,
+                          }}
+                          onClick={() => applyJobPattern(pattern)}
+                          className={`rounded-[18px] border px-4 py-3 text-left transition ${
+                            selected
+                              ? "border-[#ffb489]/45 bg-white text-[#111315]"
+                              : "border-white/12 bg-white/[0.055] text-white hover:bg-white/[0.09]"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p
+                                className={`font-mono text-[10px] uppercase tracking-[0.18em] ${
+                                  selected ? "text-[#bc3d1f]" : "text-[#ffb489]"
+                                }`}
+                              >
+                                {pattern.label}
+                              </p>
+                              <p className="mt-1 text-sm font-bold tracking-[-0.02em]">
+                                {pattern.title}
+                              </p>
+                              <p
+                                className={`mt-1 hidden text-xs leading-5 sm:block ${
+                                  selected ? "text-[#5f574f]" : "text-white/55"
+                                }`}
+                              >
+                                {pattern.copy}
+                              </p>
+                            </div>
+                            {selected ? (
+                              <span className="rounded-full bg-[#f26a21] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+                                Active
+                              </span>
+                            ) : null}
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-4">
+                  <div>
+                    <label className={labelClassName()} htmlFor="propertyName">
+                      Property / customer
+                    </label>
+                    <input
+                      id="propertyName"
+                      className={fieldClassName()}
+                      maxLength={textFieldLimits.propertyName}
+                      {...form.register("propertyName")}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClassName()} htmlFor="siteCity">
+                      Site / city
+                    </label>
+                    <input
+                      id="siteCity"
+                      className={fieldClassName()}
+                      maxLength={textFieldLimits.siteCity}
+                      {...form.register("siteCity")}
+                    />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className={labelClassName()} htmlFor="serviceDate">
+                        Service date
+                      </label>
+                      <input
+                        id="serviceDate"
+                        type="date"
+                        className={fieldClassName()}
+                        {...form.register("serviceDate")}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClassName()} htmlFor="authorizedBy">
+                        Authorized by
+                      </label>
+                      <input
+                        id="authorizedBy"
+                        className={fieldClassName()}
+                        maxLength={textFieldLimits.authorizedBy}
+                        {...form.register("authorizedBy")}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className={labelClassName()}>Next visit timing</p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        This writes the next-service window and timing note automatically.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-black/10 bg-[rgba(17,17,17,0.03)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Auto window
+                    </span>
+                  </div>
+                  <SegmentedControl
+                    type="single"
+                    value={values.cadence}
+                    onValueChange={(value) => {
+                      if (axis1CadenceOptions.some((option) => option.value === value)) {
+                        form.setValue("cadence", value as Axis1BuilderFormValues["cadence"], {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                      }
+                    }}
+                    className="mt-3 flex-wrap"
+                  >
+                    {axis1CadenceOptions.map((option) => (
+                      <SegmentedControlItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SegmentedControlItem>
+                    ))}
+                  </SegmentedControl>
+                  <div className="mt-3 rounded-[16px] border border-accent/25 bg-accent/[0.08] px-4 py-3">
+                    <p className={labelClassName()}>
+                      Selected cadence - {selectedCadenceOption.label}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-foreground">
+                      {selectedCadenceOption.copy}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className={`mt-4 flex justify-end ${
+                    values.scenario === "clean" ? "" : "hidden"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => selectBuilderStep("photos")}
+                    className="rounded-full bg-[#111315] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
+                  >
+                    Next: sort photos
+                  </button>
+                </div>
+              </div>
+
+              {builderStep === "job" && values.scenario === "exception" ? (
+                <div className="rounded-[22px] border border-black/8 bg-white px-4 py-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className={labelClassName()}>Exception capture</p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        Pick the access or condition notes that should stay visible. The report expands only for these items.
+                      </p>
+                    </div>
+                    <TriangleAlert className="h-4 w-4 shrink-0 text-accent" />
+                  </div>
+
+                  <div className="mt-4 space-y-4">
+                    {axis1ExceptionGroups.map((group) => {
+                      const groupOptions = axis1ExceptionOptions.filter(
+                        (option) => option.group === group.value,
+                      );
+                      const selectedOptions = groupOptions.filter((option) =>
+                        values.exceptionKinds.includes(option.value),
+                      );
+                      const selectedCount = groupOptions.filter((option) =>
+                        values.exceptionKinds.includes(option.value),
+                      ).length;
+
+                      return (
+                        <div
+                          key={group.value}
+                          className="rounded-[18px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className={labelClassName()}>{group.label}</p>
+                              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                {group.copy}
+                              </p>
+                            </div>
+                            <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                              {selectedCount}/{groupOptions.length} selected
+                            </span>
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {groupOptions.map((option) => {
+                              const selected = values.exceptionKinds.includes(option.value);
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() =>
+                                    form.setValue(
+                                      "exceptionKinds",
+                                      toggleExceptionKind(values.exceptionKinds, option.value),
+                                      { shouldDirty: true, shouldValidate: true },
+                                    )
+                                  }
+                                  className={`rounded-full border px-4 py-2 text-left text-xs font-semibold uppercase tracking-[0.14em] transition ${
+                                    selected
+                                      ? "border-accent bg-accent text-white"
+                                      : "border-black/10 bg-white text-foreground"
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="mt-3 rounded-[16px] border border-black/8 bg-white px-4 py-3">
+                            <p className={labelClassName()}>Selected logic</p>
+                            <p className="mt-2 text-sm leading-6 text-foreground">
+                              {selectedOptions.length > 0
+                                ? selectedOptions.map((option) => option.copy).join(" ")
+                                : "No item selected in this group."}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className={labelClassName()} htmlFor="exceptionNote">
+                        Short open-item note
+                      </label>
+                      <textarea
+                        id="exceptionNote"
+                        rows={3}
+                        className={fieldClassName()}
+                        maxLength={textFieldLimits.exceptionNote}
+                        placeholder="Only if the default exception wording needs a tighter explanation."
+                        {...form.register("exceptionNote")}
+                      />
+                      <CharacterCount
+                        value={values.exceptionNote}
+                        max={textFieldLimits.exceptionNote}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className={labelClassName()}>Condition response</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                            This controls whether the report asks for review, monitor, or record-only language.
+                          </p>
+                        </div>
+                      </div>
+                      <SegmentedControl
+                        type="single"
+                        value={values.followUpMode}
+                        onValueChange={(value) => {
+                          if (axis1FollowUpOptions.some((option) => option.value === value)) {
+                            form.setValue(
+                              "followUpMode",
+                              value as Axis1BuilderFormValues["followUpMode"],
+                              {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              },
+                            );
+                          }
+                        }}
+                        className="mt-2 flex-wrap"
+                      >
+                        {axis1FollowUpOptions.map((option) => (
+                          <SegmentedControlItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SegmentedControlItem>
+                        ))}
+                      </SegmentedControl>
+                      <div className="mt-3 rounded-[14px] border border-accent/25 bg-accent/[0.08] px-4 py-3">
+                        <p className={labelClassName()}>
+                          Selected response - {selectedFollowUpOption.label}
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-foreground">
+                          {selectedFollowUpOption.copy}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className={labelClassName()} htmlFor="followUpNote">
+                      Recorded condition note
+                    </label>
+                    <textarea
+                      id="followUpNote"
+                      rows={2}
+                      className={fieldClassName()}
+                      maxLength={textFieldLimits.followUpNote}
+                      placeholder="Optional. Only use this if the default recorded-condition sentence needs a tighter note."
+                      {...form.register("followUpNote")}
+                    />
+                    <CharacterCount
+                      value={values.followUpNote}
+                      max={textFieldLimits.followUpNote}
+                    />
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => selectBuilderStep("photos")}
+                      className="rounded-full bg-[#111315] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
+                    >
+                      Next: sort photos
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              <div
+                className={`rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4 ${
+                  builderStep === "report" ? "" : "hidden"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowPacketDetails((current) => !current)}
+                  className="flex w-full items-center justify-between gap-4 text-left"
+                >
+                  <div>
+                    <p className={labelClassName()}>Advanced report details</p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      Leave these on the defaults if the quick report already looks right.
+                    </p>
+                  </div>
+                  {showPacketDetails ? (
+                    <ChevronUp className="h-4 w-4 shrink-0 text-accent" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 shrink-0 text-accent" />
+                  )}
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {showPacketDetails ? (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <div>
+                          <label className={labelClassName()} htmlFor="systemName">
+                            System / hood line
+                          </label>
+                          <input
+                            id="systemName"
+                            className={fieldClassName()}
+                            maxLength={textFieldLimits.systemName}
+                            {...form.register("systemName")}
+                          />
+                        </div>
+                        <div>
+                          <label className={labelClassName()} htmlFor="serviceWindow">
+                            Service window
+                          </label>
+                          <input
+                            id="serviceWindow"
+                            className={fieldClassName()}
+                            maxLength={textFieldLimits.serviceWindow}
+                            {...form.register("serviceWindow")}
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
+
+              <div
+                id="field-photo-intake"
+                className={`overflow-hidden rounded-[26px] border border-white/10 bg-[#101214] px-3.5 py-4 text-white shadow-[0_28px_70px_rgba(17,17,17,0.24)] md:rounded-[28px] md:px-5 md:py-5 ${
+                  builderStep === "photos" ? "" : "hidden"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-5">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
+                      Photo step
+                    </p>
+                    <h3 className="mt-2 text-lg font-bold leading-tight tracking-[-0.018em] text-white md:text-xl">
+                      <span className="md:hidden">
+                        Have photos? Choose them. No photos? Keep going.
+                      </span>
+                      <span className="hidden md:inline">
+                        Have photos? Choose or drop them. No photos? Keep going.
+                      </span>
+                    </h3>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+                      Open the phone files if the crew captured a batch. If a
+                      match is wrong, fix the role before printing.
+                    </p>
+                  </div>
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] md:h-11 md:w-11">
+                    <IconPhotoScan className="h-5 w-5 text-[#ffb489]" />
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-5">
+                  {fieldPhotoSlots
+                    .filter((slot) => slot.id === "hood-before" || slot.id === "hood-after")
+                    .map((slot) => {
+                      const uploaded = uploadedFieldPhotos[slot.id];
+
+                      return (
+                        <motion.label
+                          key={slot.id}
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.99 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 360,
+                            damping: 28,
+                          }}
+                          className={`group relative min-h-[132px] cursor-pointer overflow-hidden rounded-[22px] border px-4 py-4 transition sm:min-h-[170px] sm:rounded-[24px] sm:px-5 sm:py-5 ${
+                            uploaded
+                              ? "border-[#b9d4c6]/28 bg-[#b9d4c6]/10"
+                              : "border-dashed border-[#ffb489]/34 bg-white/[0.05] hover:border-[#ffb489]/60 hover:bg-white/[0.075]"
+                          }`}
+                        >
+                          {uploaded ? (
+                            <div
+                              className="absolute inset-0 bg-cover bg-center opacity-45 transition group-hover:opacity-55"
+                              style={{ backgroundImage: `url(${uploaded.src})` }}
+                            />
+                          ) : null}
+                          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(16,18,20,0.18),rgba(16,18,20,0.86))]" />
+                          <div className="relative z-10 flex h-full min-h-[102px] flex-col justify-between sm:min-h-[130px]">
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
+                                  {slot.shortLabel} photo
+                                </p>
+                                <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.015em] text-white sm:text-xl">
+                                  {uploaded
+                                    ? "Photo attached"
+                                    : `Choose ${slot.shortLabel.toLowerCase()}`}
+                                </p>
+                              </div>
+                              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-white text-[#111315] sm:h-10 sm:w-10">
+                                <IconCameraPlus className="h-5 w-5" />
+                              </div>
+                            </div>
+                            <div>
+                              <p className="truncate text-sm leading-6 text-white/58">
+                                {uploaded
+                                  ? uploaded.name
+                                  : slot.id === "hood-before"
+                                    ? "Optional. Use it if the crew captured a dirty-start photo."
+                                    : "Optional. Use it if the crew captured a clean-finish photo."}
+                              </p>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <Badge
+                                  variant="outline"
+                                  className="border-white/12 bg-white/[0.08] px-3 py-1 text-[11px] text-white/66"
+                                >
+                                  {uploaded ? "Ready" : "Optional"}
+                                </Badge>
+                                {uploaded ? (
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.preventDefault();
+                                      void handlePhotoUpload(slot.id, undefined, "manual");
+                                    }}
+                                    className="rounded-full border border-white/12 bg-white/[0.08] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white/66"
+                                  >
+                                    Clear
+                                  </button>
+                                ) : null}
+                                <Badge
+                                  variant="outline"
+                                  className="border-white/12 bg-white/[0.08] px-3 py-1 text-[11px] text-white/66"
+                                >
+                                  Change later
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(event) => {
+                              void handlePhotoUpload(
+                                slot.id,
+                                event.target.files?.[0],
+                                "manual",
+                              );
+                              event.currentTarget.value = "";
+                            }}
+                          />
+                        </motion.label>
+                      );
+                    })}
+                </div>
+
+                <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-stretch 2xl:grid-cols-1 md:mt-5 md:gap-4">
+                  <motion.label
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 360,
+                      damping: 28,
+                    }}
+                    className="group relative flex min-h-[124px] cursor-pointer items-center justify-between gap-4 overflow-hidden rounded-[22px] border border-dashed border-[#ffb489]/38 bg-[radial-gradient(circle_at_12%_0%,rgba(255,180,137,0.16),transparent_34%),rgba(255,255,255,0.055)] px-4 py-4 transition hover:border-[#ffb489]/60 hover:bg-white/[0.08] sm:min-h-[150px] sm:rounded-[24px] sm:px-5 sm:py-5"
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      void handleBulkPhotoUpload(event.dataTransfer.files);
+                    }}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                        Phone batch
+                      </p>
+                      <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.012em] text-white">
+                        <span className="md:hidden">Choose from phone files</span>
+                        <span className="hidden md:inline">Choose or drop the rest</span>
+                      </p>
+                      <p className="mt-2 max-w-sm text-sm leading-6 text-white/52">
+                        Filters, fan, label, or access photos improve the report.
+                        They are optional, and wrong matches can be changed later.
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className="mt-4 border-white/12 bg-white/[0.06] px-3 py-1 text-[11px] text-white/64"
+                      >
+                        Local preview only
+                      </Badge>
+                    </div>
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-[#111315] shadow-[0_18px_40px_rgba(0,0,0,0.28)] sm:h-12 sm:w-12">
+                      <IconCameraPlus className="h-6 w-6" />
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      data-photo-upload="bulk"
+                      className="sr-only"
+                      onChange={(event) => {
+                        void handleBulkPhotoUpload(event.target.files);
+                        event.currentTarget.value = "";
+                      }}
+                    />
+                  </motion.label>
+                  <div className="rounded-[22px] border border-white/10 bg-white/[0.055] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:rounded-[24px] sm:px-5 sm:py-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                          Photo review
+                        </p>
+                        <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.012em]">
+                          {hasProofWorkStarted
+                            ? proofReadinessTitle
+                            : "Photos are optional"}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-1 text-[11px] text-[#ffb489]"
+                      >
+                        {requiredProofReadyCount}/{requiredProofCount}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-white/52">
+                      {hasProofWorkStarted
+                        ? proofReadinessCopy
+                        : "No photos? Continue now. Have photos? Upload the batch and only review if the auto-sort looks wrong."}
+                    </p>
+                    {photoImportNotice ? (
+                      <div
+                        className={`mt-3 rounded-[16px] border px-3 py-2 ${
+                          photoImportNotice.tone === "error"
+                            ? "border-[#ff8a70]/24 bg-[#bc3d1f]/14"
+                            : photoImportNotice.tone === "warning"
+                              ? "border-[#ffb489]/24 bg-[#ffb489]/10"
+                              : "border-[#b9d4c6]/24 bg-[#b9d4c6]/10"
+                        }`}
+                      >
+                        <p
+                          className={`text-xs font-semibold leading-5 ${
+                            photoImportNotice.tone === "error"
+                              ? "text-[#ffd2c7]"
+                              : photoImportNotice.tone === "warning"
+                                ? "text-[#ffcfb5]"
+                                : "text-[#cfe9da]"
+                          }`}
+                        >
+                          {photoImportNotice.message}
+                        </p>
+                      </div>
+                    ) : null}
+                    {hasOrderMatchedPhotos ? (
+                      <div className="mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2">
+                        <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
+                          Generic phone filenames detected. We sorted them by
+                          upload order, not by visual content.
+                        </p>
+                      </div>
+                    ) : null}
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08]">
+                      <motion.div
+                        className="h-full rounded-full bg-[#ffb489]"
+                        animate={{ width: `${proofProgressPercent}%` }}
+                        transition={{
+                          duration: 0.28,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                      />
+                    </div>
+                    {shouldShowProofDetails ? (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {(missingRequiredSlots.length > 0
+                          ? firstMissingSlots
+                          : fieldPhotoSlots.filter((slot) => slot.required).slice(0, 4)
+                        ).map((slot) => {
+                          const uploaded = uploadedFieldPhotos[slot.id];
+                          const resolution = photoSlotResolutions[slot.id];
+                          const ready = Boolean(uploaded) || resolution !== "open";
+                          const label = uploaded
+                            ? "Photo"
+                            : resolution === "not-captured"
+                              ? "Not captured"
+                              : resolution === "not-applicable"
+                                ? "N/A"
+                                : "Need";
+
+                          return (
+                            <Badge
+                              key={slot.id}
+                              variant="outline"
+                              className={`px-2.5 py-1 text-[10px] ${
+                                ready
+                                  ? "border-[#b9d4c6]/36 bg-[#b9d4c6]/12 text-[#cfe9da]"
+                                  : "border-[#ffb489]/28 bg-[#ffb489]/9 text-[#ffb489]"
+                              }`}
+                            >
+                              {label} {slot.shortLabel}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    ) : !hasProofWorkStarted ? (
+                      <div className="mt-4 grid gap-2 sm:grid-cols-3 2xl:grid-cols-1">
+                        {["No photos? Continue", "Have photos? Upload", "Wrong match? Fix later"].map(
+                          (item) => (
+                            <div
+                              key={item}
+                              className="rounded-2xl border border-white/10 bg-black/10 px-3 py-2 text-xs font-semibold text-white/58"
+                            >
+                              {item}
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    ) : null}
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {!hasProofWorkStarted ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => selectBuilderStep("report")}
+                          className="hidden rounded-full bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#111315] hover:bg-white/90 md:inline-flex"
+                        >
+                          No photos - continue
+                        </Button>
+                      ) : null}
+                      {hasProofWorkStarted ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (shouldShowProofDetails) {
+                              setShowProofDetails(false);
+                              setShowAllPhotoSlots(false);
+                              return;
+                            }
+
+                            setShowProofDetails(true);
+                          }}
+                          className="hidden rounded-full border border-white/12 bg-white/[0.04] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/66 hover:bg-white/[0.08] hover:text-white md:inline-flex"
+                        >
+                          {shouldShowProofDetails ? "Hide review" : "Fix photo matches"}
+                        </Button>
+                      ) : null}
+                      {shouldShowProofDetails ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowAllPhotoSlots((current) => !current)}
+                          className="rounded-full border border-white/12 bg-white/[0.04] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/66 hover:bg-white/[0.08] hover:text-white"
+                        >
+                          {showAllPhotoSlots ? "Open only" : "All slots"}
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
+                {uploadedPhotoSlots.length > 0 ? (
+                  <div className="mt-5 hidden rounded-[24px] border border-[#b9d4c6]/20 bg-[#b9d4c6]/8 px-5 py-5 md:block">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#cfe9da]">
+                          Mapped proof
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-white">
+                          {uploadedPhotoSlots.length} photo(s) already placed
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-[#b9d4c6]/24 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#cfe9da]">
+                        Collapsed
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-2">
+                      {uploadedPhotoSlots.map((slot) => {
+                        const uploaded = uploadedFieldPhotos[slot.id];
+
+                        if (!uploaded) {
+                          return null;
+                        }
+
+                        return (
+                          <div
+                            key={slot.id}
+                            data-mapped-photo-slot={slot.id}
+                            data-photo-confidence={uploaded.confidence}
+                            className="grid gap-3 rounded-[18px] border border-white/10 bg-black/14 px-3 py-3 sm:grid-cols-[56px_minmax(0,1fr)_150px] sm:items-center"
+                          >
+                            <div
+                              className="h-12 overflow-hidden rounded-[12px] border border-white/10 bg-cover bg-center"
+                              style={{ backgroundImage: `url(${uploaded.src})` }}
+                            />
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-sm font-semibold text-white">{slot.label}</p>
+                                <span
+                                  className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                                    uploaded.confidence === "order"
+                                      ? "border-[#ffb489]/30 bg-[#ffb489]/10 text-[#ffcfb5]"
+                                      : "border-[#b9d4c6]/30 bg-[#b9d4c6]/12 text-[#cfe9da]"
+                                  }`}
+                                >
+                                  {uploaded.confidence === "keyword"
+                                    ? "High match"
+                                    : uploaded.confidence === "order"
+                                      ? "Review order"
+                                      : "Manual"}
+                                </span>
+                              </div>
+                              <p className="mt-1 truncate text-xs leading-5 text-white/48">
+                                {uploaded.name} - {uploaded.matchLabel}
+                              </p>
+                            </div>
+                            <select
+                              value={slot.id}
+                              onChange={(event) =>
+                                reassignPhoto(slot.id, event.target.value as FieldPhotoSlotId)
+                              }
+                              className="w-full rounded-full border border-white/12 bg-white px-3 py-2 text-xs font-semibold text-[#111315] outline-none"
+                            >
+                              {fieldPhotoSlots.map((targetSlot) => (
+                                <option key={targetSlot.id} value={targetSlot.id}>
+                                  Move to {targetSlot.shortLabel}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                {shouldShowProofDetails ? (
+                  <div className="mt-5 overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.035]">
+                  <div className="hidden grid-cols-[86px_minmax(0,1fr)_172px_220px] border-b border-white/10 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/38 xl:grid 2xl:hidden">
+                    <span>Proof</span>
+                    <span>Slot</span>
+                    <span>Status</span>
+                    <span className="text-right">Action</span>
+                  </div>
+                  {openPhotoSlots.length === 0 ? (
+                    <div className="px-4 py-5">
+                      <p className="text-sm font-semibold text-white">
+                        No open proof slots in the working view.
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-white/52">
+                        Use Mapped proof to reassign photos, or show all slots if you need
+                        to replace a placed image.
+                      </p>
+                    </div>
+                  ) : null}
+                  {openPhotoSlots.map((slot) => {
+                    const uploaded = uploadedFieldPhotos[slot.id];
+                    const resolution = photoSlotResolutions[slot.id];
+                    const slotStatus = uploaded
+                      ? uploaded.confidence === "manual"
+                        ? "Manual"
+                        : uploaded.confidence === "keyword"
+                          ? "High match"
+                          : "Review order"
+                      : resolution === "not-captured"
+                        ? "Not captured"
+                        : resolution === "not-applicable"
+                          ? "N/A"
+                      : slot.required
+                        ? "Missing"
+                        : "Optional";
+                    const slotStatusClass = uploaded
+                      ? uploaded.confidence === "order"
+                        ? "border-[#ffb489]/30 bg-[#ffb489]/10 text-[#ffcfb5]"
+                        : "border-[#b9d4c6]/35 bg-[#b9d4c6]/12 text-[#cfe9da]"
+                      : resolution !== "open"
+                        ? "border-white/18 bg-white/[0.08] text-white/58"
+                        : slot.required
+                          ? "border-[#ffb489]/30 bg-[#ffb489]/10 text-[#ffb489]"
+                          : "border-white/12 bg-white/[0.04] text-white/48";
+                    const slotResolved = Boolean(uploaded) || resolution !== "open";
+
+                    return (
+                      <div
+                        key={slot.id}
+                        className="grid gap-3 border-b border-white/8 px-4 py-4 last:border-b-0 xl:grid-cols-[86px_minmax(0,1fr)_172px_220px] xl:items-center 2xl:grid-cols-1 2xl:items-start"
+                      >
+                        <div className="flex items-center gap-3 xl:block 2xl:flex">
+                          <div
+                            className="relative h-14 w-16 overflow-hidden rounded-[14px] border border-white/10 bg-white/[0.06] xl:w-full 2xl:w-16"
+                            style={{
+                              backgroundImage: uploaded ? `url(${uploaded.src})` : undefined,
+                              backgroundPosition: "center",
+                              backgroundSize: "cover",
+                            }}
+                          >
+                            {!uploaded ? (
+                              <div className="flex h-full items-center justify-center text-[10px] font-bold uppercase tracking-[0.12em] text-white/34">
+                                {slot.proofId}
+                              </div>
+                            ) : null}
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className="border-white/12 bg-white/[0.04] text-[10px] text-white/45 xl:mt-2 2xl:mt-0"
+                          >
+                            {slot.required ? "Required" : "Optional"}
+                          </Badge>
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {slotResolved ? (
+                              <IconCircleCheck className="h-4 w-4 text-[#cfe9da]" />
+                            ) : (
+                              <IconCircleDashed className="h-4 w-4 text-[#ffb489]" />
+                            )}
+                            <p className="text-sm font-semibold leading-5 text-white">
+                              {slot.label}
+                            </p>
+                          </div>
+                          <p className="mt-1 truncate text-xs leading-5 text-white/52">
+                            {uploaded
+                              ? `${uploaded.name} - ${uploaded.matchLabel}`
+                              : resolution === "not-captured"
+                                ? "Marked not captured. The report will not show a sample image for this slot."
+                                : resolution === "not-applicable"
+                                  ? "Marked not applicable for this visit."
+                              : slot.caption}
+                          </p>
+                        </div>
+                        <div>
+                          <Badge
+                            variant="outline"
+                            className={`px-2.5 py-1 text-[10px] ${slotStatusClass}`}
+                          >
+                            {slotStatus}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-wrap gap-2 xl:justify-end 2xl:justify-start">
+                          {uploaded ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="xs"
+                              onClick={() => {
+                                void handlePhotoUpload(slot.id, undefined, "manual");
+                              }}
+                              className="rounded-full border border-white/12 bg-white/[0.03] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/62 hover:bg-white/[0.08] hover:text-white"
+                            >
+                              Clear
+                            </Button>
+                          ) : null}
+                          {!uploaded && resolution === "open" ? (
+                            <>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="xs"
+                                onClick={() =>
+                                  setPhotoSlotResolution(slot.id, "not-captured")
+                                }
+                                className="rounded-full border border-white/12 bg-white/[0.03] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/62 hover:bg-white/[0.08] hover:text-white"
+                              >
+                                Not captured
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="xs"
+                                onClick={() =>
+                                  setPhotoSlotResolution(slot.id, "not-applicable")
+                                }
+                                className="rounded-full border border-white/12 bg-white/[0.03] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/62 hover:bg-white/[0.08] hover:text-white"
+                              >
+                                N/A
+                              </Button>
+                            </>
+                          ) : null}
+                          {!uploaded && resolution !== "open" ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="xs"
+                              onClick={() => setPhotoSlotResolution(slot.id, "open")}
+                              className="rounded-full border border-white/12 bg-white/[0.03] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/62 hover:bg-white/[0.08] hover:text-white"
+                            >
+                              Reopen
+                            </Button>
+                          ) : null}
+                          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#111315]">
+                            {uploaded ? "Replace" : "Set photo"}
+                            <IconArrowRight className="h-3.5 w-3.5" />
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="sr-only"
+                              onChange={(event) => {
+                                void handlePhotoUpload(
+                                  slot.id,
+                                  event.target.files?.[0],
+                                  "manual",
+                                );
+                                event.currentTarget.value = "";
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  </div>
+                ) : null}
+
+                <div className="mt-5 rounded-[20px] border border-white/10 bg-white/[0.045] px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <IconCircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-[#ffb489]" />
+                    <p className="text-xs leading-5 text-white/58">
+                      Photos stay local in this free preview. Real storage, branded
+                      delivery, saved history, and cross-browser retrieval are paid
+                      operating features.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => selectBuilderStep("job")}
+                    className="rounded-full border border-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/62"
+                  >
+                    Back to job
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => selectBuilderStep("report")}
+                    className="rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#111315]"
+                  >
+                    Review report
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <button
+                  type="button"
+                  onClick={resetBuilder}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-foreground"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Reset quick mode
+                </button>
+                <Button
+                  type="button"
+                  onClick={printCustomerReport}
+                  className="rounded-full bg-[#111315] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white hover:bg-[#111315]/90"
+                >
+                  Print / save PDF
+                </Button>
+              </div>
+            </form>
+          </Panel>
+        </div>
+
+        <div
+          className={`min-w-0 space-y-4 ${
+            builderStep === "report"
+              ? "order-1 md:order-none"
+              : "hidden md:block"
+          }`}
+        >
+          <Panel className="px-5 py-5 print:border-0 print:bg-white print:p-0 print:shadow-none md:px-6 md:py-6">
+            <div className="pdf-print-hide flex flex-col gap-3 border-b border-border pb-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className={labelClassName()}>Customer link preview</p>
+                <h2 className="mt-3 font-display text-[1.38rem] font-bold leading-[1.02] tracking-[-0.045em] text-foreground md:text-[1.55rem] md:leading-[0.96] md:tracking-[-0.06em]">
+                  <span className="md:hidden">Customer link preview.</span>
+                  <span className="hidden md:inline">
+                    This is the web report your customer opens.
+                  </span>
+                </h2>
+              </div>
+              <div className="hidden rounded-[16px] border border-black/10 bg-[rgba(17,17,17,0.03)] px-4 py-3 md:block">
+                <p className={labelClassName()}>Current report mode</p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {values.scenario === "clean"
+                    ? "Everything was completed: proof, customer note, and next visit window."
+                    : `${activeJobPattern.label}: customer action and recorded condition stay visible.`}
+                </p>
+              </div>
+            </div>
+            <motion.div
+              layout
+              initial={{ y: 12, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className={`pdf-print-hide mt-3 overflow-hidden rounded-[22px] border px-3.5 py-3.5 md:hidden ${mobileReportStatusClass}`}
+              data-mobile-report-ready
+            >
+              <div className="flex items-start gap-2.5">
+                <div
+                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-[14px] ${mobileReportIconClass}`}
+                >
+                  {reportNeedsPhotoReview ? (
+                    <TriangleAlert className="h-4 w-4" />
+                  ) : (
+                    <IconCircleCheck className="h-4 w-4" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-70">
+                    Customer link check
+                  </p>
+                  <h3 className="mt-1 text-base font-bold leading-tight tracking-[-0.03em]">
+                    {mobileReportStatus.title}
+                  </h3>
+                  <p className="mt-1.5 text-xs leading-5 opacity-75">
+                    {mobileReportStatus.copy}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 divide-y divide-black/8 rounded-[16px] bg-white/74 px-3">
+                {mobileReportChecks.map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="flex min-w-0 items-center justify-between gap-3 py-2 text-xs"
+                  >
+                    <span className="shrink-0 text-muted-foreground">{label}</span>
+                    <span className="min-w-0 truncate font-semibold text-foreground">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <SegmentedControl
+                type="single"
+                value={reportOutputMode}
+                onValueChange={(value) => {
+                  if (value === "link" || value === "pdf") {
+                    setReportOutputMode(value);
+                  }
+                }}
+                className="mt-3 rounded-full bg-white/72"
+              >
+                <SegmentedControlItem value="link" className="rounded-full text-[11px]">
+                  Link view
+                </SegmentedControlItem>
+                <SegmentedControlItem value="pdf" className="rounded-full text-[11px]">
+                  PDF copy
+                </SegmentedControlItem>
+              </SegmentedControl>
+              <div className="mt-2.5 flex items-center justify-between gap-3">
+                <p className="min-w-0 text-[11px] leading-4 opacity-70">
+                  {reportOutputMode === "link"
+                    ? "This is the customer link view."
+                    : "This is the document copy for save/print."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (reportNeedsPhotoReview) {
+                      openMobileSheet("photo-review");
+                      return;
+                    }
+
+                    if (totalFieldPhotoCount === 0) {
+                      selectBuilderStep("photos");
+                      return;
+                    }
+
+                    setReportOutputMode("pdf");
+                    openMobileSheet("report-actions");
+                  }}
+                  className="shrink-0 rounded-full bg-[#111315] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white"
+                >
+                  {mobileReportInlineActionLabel}
+                </button>
+              </div>
+            </motion.div>
+            <div className="pdf-print-hide mt-4 hidden min-w-0 items-start gap-4 md:grid xl:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)]">
+              <div className="rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4">
+                {builderStep === "report" ? (
+                  <>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className={labelClassName()}>Edit customer wording</p>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                          These three customer-facing lines update the report on
+                          the right immediately. Leave a field blank to keep the
+                          recommended wording.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                          {activeJobPattern.label}
+                        </span>
+                        <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                          {values.cadence} days
+                        </span>
+                        {values.scenario === "exception" ? (
+                          <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                            {selectedAccessCount} access / {selectedConditionCount} condition
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="mt-4 rounded-[18px] border border-[#f26a21]/18 bg-[#fff7ef] px-4 py-3">
+                      <p className={labelClassName()}>Live-linked fields</p>
+                      <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                        Edit only these lines when the recommendation feels off.
+                        The rest of the report stays structured so it does not
+                        turn into a long free-form note.
+                      </p>
+                    </div>
+                    <div className="mt-4 grid gap-4">
+                      <div>
+                        <label className={labelClassName()} htmlFor="previewSummaryOverride">
+                          Result sentence
+                        </label>
+                        <textarea
+                          id="previewSummaryOverride"
+                          rows={2}
+                          className={fieldClassName()}
+                          maxLength={textFieldLimits.summaryOverride}
+                          placeholder="Optional. Replaces the top result sentence."
+                          {...form.register("summaryOverride")}
+                        />
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            Shows in: Today&apos;s result.
+                          </p>
+                          <CharacterCount
+                            value={values.summaryOverride}
+                            max={textFieldLimits.summaryOverride}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={labelClassName()} htmlFor="previewCustomerActionOverride">
+                          Customer instruction
+                        </label>
+                        <textarea
+                          id="previewCustomerActionOverride"
+                          rows={2}
+                          className={fieldClassName()}
+                          maxLength={textFieldLimits.customerActionOverride}
+                          placeholder="Optional. Replaces what the customer should do next."
+                          {...form.register("customerActionOverride")}
+                        />
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            Shows in: What to do next.
+                          </p>
+                          <CharacterCount
+                            value={values.customerActionOverride}
+                            max={textFieldLimits.customerActionOverride}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={labelClassName()} htmlFor="previewFollowUpOverride">
+                          Recorded note
+                        </label>
+                        <textarea
+                          id="previewFollowUpOverride"
+                          rows={2}
+                          className={fieldClassName()}
+                          maxLength={textFieldLimits.followUpOverride}
+                          placeholder="Optional. Replaces the condition or office-note sentence."
+                          {...form.register("followUpOverride")}
+                        />
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            Shows in: Recorded note / closeout detail.
+                          </p>
+                          <CharacterCount
+                            value={values.followUpOverride}
+                            max={textFieldLimits.followUpOverride}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <p className={labelClassName()}>Live preview</p>
+                    <h3 className="mt-2 font-display text-[1.35rem] font-bold leading-[0.95] tracking-[-0.055em] text-foreground">
+                      Review first. Change only the customer-facing lines.
+                    </h3>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      The report writes the wording from the job facts. If one
+                      sentence sounds wrong, edit the result, instruction, or
+                      recorded note before printing.
+                    </p>
+                    <div className="mt-4 grid gap-2">
+                      {[
+                        ["Job", activeJobPattern.label],
+                        [
+                          "Proof",
+                          `${uploadedProofCount} placed / ${unplacedFieldPhotos.length} extra`,
+                        ],
+                        ["Next", `${selectedCadenceOption.label} cadence`],
+                      ].map(([label, value]) => (
+                        <div
+                          key={label}
+                          className="flex items-center justify-between gap-4 border-t border-black/8 py-2.5 text-sm"
+                        >
+                          <span className="text-muted-foreground">{label}</span>
+                          <span className="font-semibold text-foreground">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => selectBuilderStep("report")}
+                      className="mt-4 rounded-full bg-[#111315] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
+                    >
+                      Edit customer wording
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className={labelClassName()}>Customer link vs PDF</p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      Switch the preview so vendors see exactly why the link is
+                      the premium customer surface and the PDF is the document copy.
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={printCustomerReport}
+                      className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
+                    >
+                      Save PDF layout
+                    </Button>
+                    <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Web link preview
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 rounded-[18px] border border-black/8 bg-white px-4 py-4">
+                  <div className="flex flex-col gap-4">
+                    <SegmentedControl
+                      type="single"
+                      value={reportOutputMode}
+                      onValueChange={(value) => {
+                        if (value === "link" || value === "pdf") {
+                          setReportOutputMode(value);
+                        }
+                      }}
+                      className="rounded-full"
+                    >
+                      <SegmentedControlItem value="link" className="rounded-full text-xs">
+                        Customer link preview
+                      </SegmentedControlItem>
+                      <SegmentedControlItem value="pdf" className="rounded-full text-xs">
+                        PDF copy preview
+                      </SegmentedControlItem>
+                    </SegmentedControl>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {[
+                        [
+                          "Customer link",
+                          "Primary output",
+                          "Web report - best for texting or emailing a live link.",
+                        ],
+                        [
+                          "PDF / print",
+                          "Document output",
+                          "Compact document layout - best for attachment, archive, or print.",
+                        ],
+                      ].map(([label, value, copy]) => {
+                        const isActive =
+                          (label === "Customer link" && reportOutputMode === "link") ||
+                          (label === "PDF / print" && reportOutputMode === "pdf");
+
+                        return (
+                        <button
+                          type="button"
+                          key={label}
+                          onClick={() =>
+                            setReportOutputMode(
+                              label === "Customer link" ? "link" : "pdf",
+                            )
+                          }
+                          className={`rounded-[16px] border px-3 py-3 text-left transition ${
+                            isActive
+                              ? "border-[#f26a21]/35 bg-[#fff7ef] shadow-[0_12px_26px_rgba(242,106,33,0.08)]"
+                              : "border-black/8 bg-[#fbf8f3] hover:border-black/14"
+                          }`}
+                        >
+                          <p className={labelClassName()}>{label}</p>
+                          <p className="mt-1 text-sm font-bold tracking-[-0.03em] text-foreground">
+                            {value}
+                          </p>
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            {copy}
+                          </p>
+                        </button>
+                        );
+                      })}
+                    </div>
+                    <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="min-w-0">
+                        <p className={labelClassName()}>PDF detail options</p>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          These switches control the saved PDF layout. The web
+                          customer link keeps the same report identity.
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                        <SegmentedControl
+                          type="single"
+                          value={packetPresentationMode}
+                          onValueChange={(value) => {
+                            if (value === "short" || value === "standard") {
+                              applyPacketPresentationMode(value);
+                            }
+                          }}
+                          className="w-full rounded-full sm:w-[220px]"
+                        >
+                          <SegmentedControlItem
+                            value="standard"
+                            className="rounded-full text-xs"
+                          >
+                            Full report
+                          </SegmentedControlItem>
+                          <SegmentedControlItem
+                            value="short"
+                            className="rounded-full text-xs"
+                          >
+                            Short report
+                          </SegmentedControlItem>
+                        </SegmentedControl>
+                      </div>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {packetSectionControls.map((section) => (
+                        <label
+                          key={section.key}
+                          className="flex min-w-0 items-center justify-between gap-3 rounded-[16px] border border-black/8 bg-[#fbf8f3] px-3 py-2.5"
+                        >
+                          <span className="min-w-0">
+                            <span className="block text-sm font-semibold text-foreground">
+                              {section.label}
+                            </span>
+                            <span className="block text-[11px] leading-4 text-muted-foreground">
+                              {section.copy}
+                            </span>
+                          </span>
+                          <Switch
+                            checked={packetSections[section.key]}
+                            onCheckedChange={(checked) =>
+                              togglePacketSection(section.key, checked)
+                            }
+                            aria-label={`Show ${section.label}`}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={useSimpleWording}
+                        className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
+                      >
+                        Use shorter wording
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={restoreAutoWording}
+                        className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground hover:bg-white"
+                      >
+                        Restore recommended copy
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-4">
+                  {[
+                    [
+                      "Result",
+                      values.scenario === "clean"
+                        ? "Standard close-out copy"
+                        : values.exceptionKinds.length > 1
+                          ? `${values.exceptionKinds.length} recorded exceptions`
+                          : "1 recorded exception",
+                    ],
+                    [
+                      "Customer action",
+                      values.customerActionOverride?.trim()
+                        ? "Manual wording applied"
+                        : "Auto-written from selections",
+                    ],
+                    [
+                      "Recorded note",
+                      values.followUpOverride?.trim() || values.followUpNote?.trim()
+                        ? "Manual note active"
+                        : "Default recorded note",
+                    ],
+                    [
+                      "Field proof",
+                      hasOrderMatchedPhotos
+                        ? `${uploadedProofCount} placed / ${orderMatchedPhotoCount} review`
+                        : totalFieldPhotoCount > 0
+                        ? `${uploadedProofCount} placed / ${unplacedFieldPhotos.length} extra`
+                        : "No photos attached",
+                    ],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="rounded-[16px] border border-black/8 bg-white px-4 py-3"
+                    >
+                      <p className={labelClassName()}>{label}</p>
+                      <p className="mt-2 text-sm font-medium leading-6 text-foreground">
+                        {value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 overflow-hidden rounded-[18px] border border-black/8 bg-white">
+                  <div className="flex items-start justify-between gap-4 border-b border-black/8 px-4 py-3">
+                    <div>
+                      <p className={labelClassName()}>Photo placement</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        Before/after is a quick start. Fix the final role here before sending.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-black/10 bg-[#f6f1e8] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Move to
+                    </span>
+                  </div>
+                  <PhotoPlacementReview
+                    uploadedPhotoSlots={uploadedPhotoSlots}
+                    uploadedFieldPhotos={uploadedFieldPhotos}
+                    unplacedPhotos={unplacedFieldPhotos}
+                    onMove={reassignPhoto}
+                    onPlaceExtra={placeUnplacedPhoto}
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              className={`mt-4 min-w-0 rounded-[26px] border p-3 print:border-0 print:bg-white print:p-0 ${
+                reportOutputMode === "pdf"
+                  ? "border-black/10 bg-[#d8d0c7] md:p-5"
+                  : "border-black/8 bg-[rgba(17,17,17,0.02)]"
+              }`}
+              data-output-preview={reportOutputMode}
+            >
+              <div className="pdf-print-hide mb-3 flex flex-col gap-3 rounded-[22px] border border-black/8 bg-white/90 px-3.5 py-3 shadow-[0_12px_34px_rgba(17,17,17,0.06)] md:flex-row md:items-center md:justify-between md:px-4">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className={labelClassName()}>{reportOutputMeta.label}</p>
+                    <span className="rounded-full border border-[#f26a21]/20 bg-[#fff7ef] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
+                      {reportOutputMeta.badge}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm font-bold tracking-[-0.035em] text-foreground">
+                    {reportOutputMeta.title}
+                  </p>
+                  <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
+                    {reportOutputMeta.copy}
+                  </p>
+                </div>
+                <SegmentedControl
+                  type="single"
+                  value={reportOutputMode}
+                  onValueChange={(value) => {
+                    if (value === "link" || value === "pdf") {
+                      setReportOutputMode(value);
+                    }
+                  }}
+                  className="shrink-0 rounded-full md:w-[280px]"
+                >
+                  <SegmentedControlItem value="link" className="rounded-full text-xs">
+                    Link view
+                  </SegmentedControlItem>
+                  <SegmentedControlItem value="pdf" className="rounded-full text-xs">
+                    PDF copy
+                  </SegmentedControlItem>
+                </SegmentedControl>
+              </div>
+              <div
+                className={`min-w-0 overflow-x-hidden border bg-white p-2 md:p-3 ${
+                  reportOutputMode === "pdf"
+                    ? "mx-auto max-w-[860px] rounded-[18px] border-black/12 shadow-[0_28px_90px_rgba(17,17,17,0.22)]"
+                    : "rounded-[24px] border-black/10"
+                }`}
+              >
+                <div className="min-w-0">
+                  <Axis1PacketDocument
+                    data={previewPacket}
+                    variant="customer-report"
+                    presentationMode={activePreviewPresentationMode}
+                    visibleSections={activePreviewSections}
+                  />
+                </div>
+              </div>
+            </div>
+          </Panel>
+        </div>
+      </div>
+      <Drawer
+        open={mobileSheet !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setMobileSheet(null);
+          }
+        }}
+      >
+        <DrawerContent className="md:hidden">
+          {mobileSheet === "photo-review" ? (
+            <>
+              <DrawerHeader className="px-4 pb-2 pt-4">
+                <DrawerTitle className="text-[1.45rem]">Review photo roles</DrawerTitle>
+                <DrawerDescription className="text-xs leading-5">
+                  Phone uploads are sorted by order. Change only the wrong roles.
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="min-h-0 overflow-y-auto px-3 pb-3">
+                <div className="overflow-hidden rounded-[22px] border border-black/8 bg-white">
+                  <PhotoPlacementReview
+                    uploadedPhotoSlots={uploadedPhotoSlots}
+                    uploadedFieldPhotos={uploadedFieldPhotos}
+                    unplacedPhotos={unplacedFieldPhotos}
+                    onMove={reassignPhoto}
+                    onPlaceExtra={placeUnplacedPhoto}
+                    mobileSheetMode
+                  />
+                </div>
+              </div>
+              <DrawerFooter className="px-4 py-3">
+                <DrawerClose asChild>
+                  <button
+                    type="button"
+                    className="h-11 rounded-[16px] border border-black/10 bg-[#f6f1e8] text-[11px] font-bold uppercase tracking-[0.12em] text-foreground"
+                  >
+                    Close
+                  </button>
+                </DrawerClose>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasOrderMatchedPhotos) {
+                      confirmAutoPlacedPhotoRoles();
+                      return;
+                    }
+
+                    setMobileSheet(null);
+                    selectBuilderStep("report");
+                  }}
+                  className="h-11 rounded-[16px] bg-[#111315] text-[11px] font-bold uppercase tracking-[0.12em] text-white"
+                >
+                  {hasOrderMatchedPhotos ? "Confirm roles" : "Review report"}
+                </button>
+              </DrawerFooter>
+            </>
+          ) : null}
+
+          {mobileSheet === "report-actions" ? (
+            <>
+              <DrawerHeader>
+                <DrawerTitle>PDF / print options</DrawerTitle>
+                <DrawerDescription>
+                  The customer link is the browser view. Print / save creates a
+                  compact Letter PDF.
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="min-h-0 overflow-y-auto px-4 pb-4">
+                <div className="rounded-[22px] border border-black/8 bg-white px-4 py-4">
+                  <p className={labelClassName()}>PDF detail level</p>
+                  <SegmentedControl
+                    type="single"
+                    value={packetPresentationMode}
+                    onValueChange={(value) => {
+                      if (value === "short" || value === "standard") {
+                        applyPacketPresentationMode(value);
+                      }
+                    }}
+                    className="mt-3 w-full rounded-full"
+                  >
+                    <SegmentedControlItem value="standard" className="rounded-full text-xs">
+                      Full report
+                    </SegmentedControlItem>
+                    <SegmentedControlItem value="short" className="rounded-full text-xs">
+                      Short report
+                    </SegmentedControlItem>
+                  </SegmentedControl>
+                  <div className="mt-3 rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5">
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Customer link and PDF share the same content. The PDF may
+                      reflow into print columns and page breaks.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {packetSectionControls.map((section) => (
+                    <label
+                      key={section.key}
+                      className="flex min-w-0 items-center justify-between gap-3 rounded-[18px] border border-black/8 bg-white px-4 py-3"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-foreground">
+                          {section.label}
+                        </span>
+                        <span className="block text-xs leading-5 text-muted-foreground">
+                          {section.copy}
+                        </span>
+                      </span>
+                      <Switch
+                        checked={packetSections[section.key]}
+                        onCheckedChange={(checked) =>
+                          togglePacketSection(section.key, checked)
+                        }
+                        aria-label={`Show ${section.label}`}
+                      />
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={useSimpleWording}
+                    className="h-11 rounded-[16px] bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white"
+                  >
+                    Short copy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={restoreAutoWording}
+                    className="h-11 rounded-[16px] border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-foreground"
+                  >
+                    Restore
+                  </button>
+                </div>
+              </div>
+              <DrawerFooter>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileSheet(null);
+                    selectBuilderStep("photos");
+                  }}
+                  className="h-12 rounded-[18px] border border-black/10 bg-[#f6f1e8] text-[11px] font-bold uppercase tracking-[0.12em] text-foreground"
+                >
+                  Back to photos
+                </button>
+                <button
+                  type="button"
+                  onClick={printCustomerReport}
+                  className="h-12 rounded-[18px] bg-[#f26a21] text-[11px] font-bold uppercase tracking-[0.12em] text-white"
+                >
+                  Save PDF
+                </button>
+              </DrawerFooter>
+            </>
+          ) : null}
+        </DrawerContent>
+      </Drawer>
+      <motion.div
+        layout
+        initial={{ y: 18, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        className={`pdf-print-hide fixed inset-x-3 bottom-3 z-40 border border-black/10 bg-white/94 shadow-[0_20px_70px_rgba(17,17,17,0.22)] backdrop-blur md:hidden ${
+          builderStep === "report" ? "rounded-[24px] p-2" : "rounded-[26px] p-2.5"
+        }`}
+        style={{
+          paddingBottom:
+            builderStep === "report"
+              ? "calc(0.5rem + env(safe-area-inset-bottom))"
+              : "calc(0.625rem + env(safe-area-inset-bottom))",
+        }}
+      >
+        {builderStep === "report" ? null : (
+          <div className="mb-2 flex items-center justify-between gap-3 px-1">
+            <div className="min-w-0">
+              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                Step {builderStepIndex + 1} of {builderSteps.length}
+              </p>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={builderStep}
+                  initial={{ y: 5, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -5, opacity: 0 }}
+                  transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <p className="mt-0.5 truncate text-xs font-semibold text-foreground">
+                    {mobileStepCaption}
+                  </p>
+                  <p className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
+                    {mobileStepHint}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            <div className="flex shrink-0 gap-1">
+              {builderSteps.map((step, index) => (
+                <motion.span
+                  key={step.value}
+                  layout
+                  className={`h-1.5 rounded-full transition-all ${
+                    index === builderStepIndex
+                      ? "w-6 bg-[#111315]"
+                      : index < builderStepIndex
+                        ? "w-2 bg-[#f26a21]"
+                        : "w-2 bg-black/14"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="grid grid-cols-[0.82fr_1.18fr] gap-2">
+          <button
+            type="button"
+            onClick={handleMobileSecondaryAction}
+            className="h-12 rounded-[18px] border border-black/10 bg-[#f6f1e8] px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-foreground active:scale-[0.99]"
+          >
+            {mobileSecondaryActionLabel}
+          </button>
+          <motion.button
+            layout
+            type="button"
+            onClick={handleMobilePrimaryAction}
+            whileTap={{ scale: 0.985 }}
+            className={`h-12 rounded-[18px] px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_12px_30px_rgba(17,19,21,0.24)] ${
+              mobilePrimaryIsPrint ? "bg-[#f26a21]" : "bg-[#111315]"
+            }`}
+          >
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={mobilePrimaryActionLabel}
+                initial={{ y: 4, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -4, opacity: 0 }}
+                transition={{ duration: 0.14 }}
+              >
+                {mobilePrimaryActionLabel}
+              </motion.span>
+            </AnimatePresence>
+          </motion.button>
+        </div>
+      </motion.div>
+    </section>
+  );
+}

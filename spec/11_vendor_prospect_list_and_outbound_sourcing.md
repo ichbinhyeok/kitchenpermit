@@ -77,6 +77,13 @@ Default MVP target vendors:
 - weak or nonexistent sales-enablement assets
 - visible service area in Austin metro, San Antonio metro, or DFW
 
+Launch-volume expansion target vendors:
+
+- same vendor profile as above
+- visible service area in any explicit US metro
+- usable email or owner route for cold-email handoff
+- not positioned as an enterprise software buyer or mature national chain
+
 ## 5.2 Why this ICP is locked
 These vendors are more likely to:
 
@@ -128,6 +135,29 @@ Vendor targeting geography does not grant permission to claim active Axis 2 cove
 
 Locked rule:
 Only vendors whose service area overlaps an active Axis 2 coverage metro may receive default `Axis 2 first` positioning.
+
+## 6.5 One-month new-vendor launch rule
+If the launch plan uses `30 new vendors/day` for at least one month, the required send-ready pool is:
+
+- `900 send-ready vendor prospects`
+- `1,500-2,000 raw or enrichment candidates`
+
+The MVP three-metro range is not enough to support that volume while preserving list quality.
+
+Locked rule:
+For one-month new-vendor launch volume, vendor sourcing may expand beyond DFW, Austin, and San Antonio, but all non-active-coverage metros must default to `Axis 1 first`.
+
+Houston and other deferred Axis 2 markets may be sourced only under this Axis 1-first expansion rule.
+
+## 6.6 Expansion market posture
+Expansion market sourcing should prioritize local and regional operators in:
+
+- Texas core and Texas reserve markets
+- nearby Sunbelt metros
+- broader US metros with visible hood-cleaning service pages
+
+Locked rule:
+Expansion geography does not imply Axis 2 inventory coverage.
 
 ---
 
@@ -213,7 +243,7 @@ Every prospect should be explainable through these questions:
 A prospect is good enough for MVP outbound when:
 
 - the company clearly appears to offer hood or kitchen exhaust services
-- the service area overlaps at least one target metro
+- the service area overlaps a target metro or an explicit expansion metro
 - a usable contact route exists
 - the angle can be classified as Axis 1 first, Axis 2 first, or mixed
 
@@ -296,6 +326,12 @@ The stable target is still:
 - default stable mix `16 new / 24 follow-up`
 
 But vendor-list quality outranks raw send count.
+
+If outbound intentionally runs `30 new vendors/day` with no follow-up allocation for the first month, the list system must hold at least:
+
+- `900 send-ready prospects`
+- `30-45 days of extra reserve`
+- enough raw candidates to replace bounces, bad-fit rows, and non-responding markets
 
 ## 12.2 Prospect burning rule
 Do not burn high-fit prospects through weak one-shot outreach.

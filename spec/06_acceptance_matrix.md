@@ -27,25 +27,49 @@ The MVP ships only when it is:
 
 ---
 
-## 3. Axis 1 acceptance
+## 3. Architecture acceptance
+
+### Pass conditions
+- browser-facing product pages are owned by `Next.js`
+- Spring Boot owns APIs, data persistence, delivery records, and export truth
+- new public work is not added to `JTE`
+- the frontend-backend boundary is visible in the repository and build flow
+
+### Fail conditions
+- public pages still depend on a permanent JTE strategy
+- business truth is duplicated between frontend and backend
+- the migration leaves route ownership ambiguous
+
+---
+
+## 4. Axis 1 acceptance
 
 ### Pass conditions
 - one vendor setup can be stored
 - one Axis 1 job can be entered with structured data
-- one Service Completion Brief renders to HTML
+- one Service Completion Brief preview exists
 - the same brief exports to PDF
 - the brief includes scope, evidence, findings, next actions, and CTA
 - inaccessible or unworked areas are visible when present
+- the customer link is treated as the primary premium output
+- the PDF is treated as a tighter document copy, not a pixel-identical web screenshot
+- the report answers: what happened, what system is covered, what proof exists,
+  what stayed open, and what the customer should do next
+- photo proof is curated and tied to named sections instead of shown as a raw gallery
+- the first screen can be understood by a restaurant owner or manager without calling back
 
 ### Fail conditions
 - the output is mostly raw notes
 - the output is photo-only
 - no clear next action exists
 - no rebook or contact CTA exists
+- the report implies blocked or inaccessible areas were cleaned
+- the PDF prints builder chrome, drawers, toasts, or navigation
+- the customer link and PDF roles are unclear to the vendor
 
 ---
 
-## 4. Axis 2 acceptance
+## 5. Axis 2 acceptance
 
 ### Pass conditions
 - opportunity signals can be stored with source, date, and score
@@ -54,7 +78,7 @@ The MVP ships only when it is:
 - a 10-item trial batch can be created
 - the batch is built from canonical projects, not duplicate raw rows
 - batch items show trigger reason and hood relevance
-- the first-touch packet renders to HTML
+- the first-touch packet preview exists
 - the packet exports to PDF
 - the batch can be delivered without login
 
@@ -66,7 +90,7 @@ The MVP ships only when it is:
 
 ---
 
-## 5. Data acceptance
+## 6. Data acceptance
 
 ### Pass conditions
 - Austin sources are documented and modeled
@@ -90,7 +114,7 @@ For paid trial inventory:
 
 ---
 
-## 6. Outbound acceptance
+## 7. Outbound acceptance
 
 ### Pass conditions
 - vendor prospect records exist
@@ -112,7 +136,7 @@ For paid trial inventory:
 
 ---
 
-## 7. Commercial honesty acceptance
+## 8. Commercial honesty acceptance
 
 ### Pass conditions
 - public pricing is shown as `starting at`
@@ -127,14 +151,47 @@ For paid trial inventory:
 
 ---
 
-## 8. MVP ship gate
+## 9. Manual commerce acceptance
+
+### Pass conditions
+- a public inquiry can be turned into an internal commercial record
+- an operator can record quote or order value
+- payment status and fulfillment status are tracked separately
+- Axis 1 and Axis 2 line items stay distinct inside the commercial flow
+- delivered artifacts can be tied back to what was sold
+
+### Fail conditions
+- payment truth still lives only in inbox memory
+- fulfillment starts with no order record
+- a delivered packet or batch cannot be tied back to the sale
+- Axis 1 and Axis 2 are merged into one fuzzy commercial item
+
+---
+
+## 10. Frontend migration acceptance
+
+### Pass conditions
+- the Next frontend builds successfully
+- all MVP public routes exist in Next
+- public metadata is controlled in Next
+- public route cutover can happen without breaking the backend domain flow
+
+### Fail conditions
+- public route parity is missing
+- the frontend cannot build for deployment
+- the migration leaves the product in a half-owned browser state
+
+---
+
+## 11. MVP ship gate
 The hood MVP is considered ready to enter real sales only when all of the following are true:
 
 1. the anchor and spec set agree with each other
-2. Axis 1 has one paid-ready render path
-3. Axis 2 has one paid-ready batch path
-4. pricing surface exists
-5. no-login delivery exists
-6. outbound assumptions no longer rely on Austin-only volume
-7. outbound execution is externalized to Smartlead
-8. outbound results can be read back into hood for analysis
+2. the locked frontend-backend architecture is reflected in the codebase
+3. Axis 1 has one paid-ready preview and export path
+4. Axis 2 has one paid-ready batch and packet path
+5. pricing surface exists
+6. no-login delivery exists
+7. outbound assumptions no longer rely on Austin-only volume
+8. outbound execution is externalized to Smartlead
+9. outbound results can be read back into hood for analysis

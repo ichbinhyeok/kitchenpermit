@@ -1,0 +1,18 @@
+Worker C batch 006 notes
+
+Self-check:
+- Chicago Kitchen Hoods exists in C:\Development\Owner\hood\references\vendor-prospects\us-expansion-needs-enrichment-batch-019.tsv.
+- Precision Hood Cleaning exists in C:\Development\Owner\hood\references\vendor-prospects\us-expansion-needs-enrichment-batch-015.tsv.
+- Both recovered emails are public on official first-party pages.
+
+Borderline judgment:
+- Chicago Kitchen Hoods routes legal/footer links to Chicagoland Home Services. The published inbox is on that linked official parent/legal page, not on chicagokitchenhoods.com itself.
+- Precision Hood Cleaning publishes support@fightkitchenfires.com on hoodexhaust.co/faq. The inbox domain differs from hoodexhaust.co and the FAQ copy also references The Kitchen Exhaust Cleaning Co., but the address is public on the same first-party site.
+
+Unable to promote cleanly:
+- Hoods Cleaned, Inc.: official site and privacy/schema still expose phone only.
+- Hood Master Service: official site still exposes phone/fax/form only.
+- Action Fire & Safety Equipment: official pages still expose phone/form only.
+- Commercial Kitchen Cleaners: email remains JavaScript-protected in public pages.
+- Metro Hood Cleaning LLC: official site still exposes phone/form only.
+- LA Kitchen Hoods: no newly recoverable official inbox found in lane scope.

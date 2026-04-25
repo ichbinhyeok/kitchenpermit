@@ -10,7 +10,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -35,10 +35,10 @@ class PublicStartControllerTest {
                         .param("companyName", "Austin Exhaust Co")
                         .param("contactName", "Jamie Rivera")
                         .param("email", "jamie@austinexhaust.example")
-                        .param("serviceArea", "Austin metro")
-                        .param("productInterest", "Axis 2"))
+                .param("serviceArea", "Austin metro")
+                .param("productInterest", "Axis 2"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/start/submitted"));
+                .andExpect(redirectedUrlPattern("/start/submitted?leadId=*"));
     }
 
     @Test

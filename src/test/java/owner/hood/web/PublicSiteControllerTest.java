@@ -22,7 +22,8 @@ class PublicSiteControllerTest {
     void homePageRendersPacketLedValueProposition() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Sharpen Service Delivery.")))
+                .andExpect(content().string(containsString("Proof the service.")))
+                .andExpect(content().string(containsString("Win the next account.")))
                 .andExpect(content().string(containsString("Axis 1")))
                 .andExpect(content().string(containsString("Axis 2")));
     }

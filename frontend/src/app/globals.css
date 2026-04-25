@@ -1,0 +1,327 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f3efe8;
+  --foreground: #111111;
+  --card: rgba(255, 255, 255, 0.9);
+  --card-foreground: #111111;
+  --popover: rgba(255, 255, 255, 0.94);
+  --popover-foreground: #111111;
+  --muted-foreground: #5d5a56;
+  --muted: rgba(236, 231, 226, 0.82);
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.9);
+  --surface-muted: rgba(236, 231, 226, 0.82);
+  --border: rgba(17, 17, 17, 0.1);
+  --border-strong: rgba(17, 17, 17, 0.24);
+  --input: rgba(17, 17, 17, 0.1);
+  --accent: #f26a21;
+  --accent-strong: #d4510e;
+  --primary: #111315;
+  --primary-foreground: #fff7f0;
+  --secondary: #ece5dd;
+  --secondary-foreground: #181310;
+  --ring: rgba(242, 106, 33, 0.3);
+  --success: #2d6a4f;
+  --danger: #bc3d1f;
+  --shadow: 0 28px 80px rgba(17, 17, 17, 0.12);
+  --shadow-soft: 0 12px 30px rgba(17, 17, 17, 0.06);
+  --dark-surface: #111315;
+  --dark-surface-soft: #171a1d;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-dark-surface: var(--dark-surface);
+  --color-dark-surface-soft: var(--dark-surface-soft);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-space-grotesk);
+  --font-mono: var(--font-ibm-plex-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+  overflow-x: clip;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 14% 10%, rgba(242, 106, 33, 0.12), transparent 22%),
+    radial-gradient(circle at 82% 16%, rgba(92, 104, 117, 0.08), transparent 19%),
+    radial-gradient(circle at 50% 100%, rgba(242, 106, 33, 0.045), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.2)),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(to right, rgba(17, 17, 17, 0.028) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 17, 17, 0.028) 1px, transparent 1px);
+  background-size: 44px 44px;
+  content: "";
+  pointer-events: none;
+}
+
+body::after {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent 24%, transparent 76%, rgba(255, 255, 255, 0.14)),
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.26), transparent 40%),
+    radial-gradient(circle at 76% 12%, rgba(92, 104, 117, 0.05), transparent 18%);
+  content: "";
+  pointer-events: none;
+}
+
+::selection {
+  background: rgba(249, 115, 22, 0.18);
+}
+
+a {
+  text-decoration: none;
+}
+
+a:not([class]) {
+  color: inherit;
+}
+
+.container-shell {
+  margin-inline: auto;
+  width: min(1180px, calc(100% - 32px));
+}
+
+.workspace-shell {
+  margin-inline: auto;
+  width: min(1480px, calc(100% - 32px));
+}
+
+@media (max-width: 480px) {
+  .container-shell {
+    width: min(1180px, calc(100% - 24px));
+  }
+
+  .workspace-shell {
+    width: min(1480px, calc(100% - 24px));
+  }
+}
+
+.panel-shadow {
+  box-shadow: var(--shadow);
+}
+
+.font-display {
+  font-family: var(--font-space-grotesk), sans-serif;
+}
+
+html.app-printing .pdf-print-hide,
+html.app-printing [data-sonner-toaster],
+html.app-printing [data-vaul-drawer],
+html.app-printing [data-vaul-overlay] {
+  display: none !important;
+}
+
+@media print {
+  @page {
+    size: Letter;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  body::before,
+  body::after {
+    display: none !important;
+  }
+
+  .pdf-preview-toolbar,
+  .pdf-print-hide,
+  [data-sonner-toaster],
+  [data-vaul-drawer],
+  [data-vaul-overlay] {
+    display: none !important;
+  }
+
+  .pdf-document {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .packet-doc-root {
+    font-family: var(--font-sans), sans-serif !important;
+    font-size: 10.5px !important;
+    line-height: 1.35 !important;
+    color: #151515 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .pdf-document-card {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .packet-doc-root .pdf-document-section {
+    padding: 12px 18px !important;
+  }
+
+  .packet-doc-root .packet-contact-grid > div {
+    padding: 8px 12px !important;
+  }
+
+  .packet-doc-root .pdf-document-card {
+    box-shadow: none !important;
+  }
+
+  .packet-doc-root h2 {
+    font-size: 30px !important;
+    line-height: 0.94 !important;
+    letter-spacing: -0.025em !important;
+    word-spacing: 0.08em !important;
+  }
+
+  .packet-doc-root h3 {
+    font-size: 18px !important;
+    line-height: 1 !important;
+    letter-spacing: -0.02em !important;
+    word-spacing: 0.06em !important;
+  }
+
+  .packet-doc-root p,
+  .packet-doc-root dt,
+  .packet-doc-root dd,
+  .packet-doc-root li {
+    font-size: 10.5px !important;
+    line-height: 1.38 !important;
+    letter-spacing: 0 !important;
+    word-spacing: 0.04em !important;
+  }
+
+  .packet-doc-root .packet-summary-title {
+    letter-spacing: -0.01em !important;
+    word-spacing: 0.1em !important;
+  }
+
+  .packet-doc-root .packet-header-grid {
+    grid-template-columns: minmax(0, 1fr) 240px !important;
+    gap: 18px !important;
+  }
+
+  .packet-doc-root .packet-contact-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .packet-doc-root .packet-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .packet-doc-root .packet-two-col,
+  .packet-doc-root .packet-final-section {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+  }
+
+  .packet-doc-root .packet-status-section-compact,
+  .packet-doc-root .packet-work-section-compact {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .packet-doc-root .packet-evidence-section {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .packet-work-section {
+    break-before: page;
+  }
+
+  .packet-doc-root .packet-photo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .packet-doc-root .packet-photo-grid figure:first-child {
+    grid-column: span 2 / span 2 !important;
+  }
+
+  .packet-doc-root figure > div {
+    max-height: 210px !important;
+  }
+
+  .packet-doc-root img {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .packet-final-section {
+    break-before: page;
+    display: block !important;
+  }
+
+  .packet-final-section > div {
+    width: 100% !important;
+  }
+
+  .packet-final-sidebar {
+    margin-top: 14px !important;
+  }
+
+  .packet-customer-close,
+  .packet-signoff-card {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .packet-print-ack {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .packet-ack-card {
+    display: none !important;
+  }
+
+  .packet-print-customer-close {
+    display: none !important;
+  }
+}

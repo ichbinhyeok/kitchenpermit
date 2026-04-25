@@ -12,7 +12,7 @@
     <meta name="description" content="${page.description()}">
     <meta name="robots" content="${page.robots()}">
     <link rel="canonical" href="${page.canonicalUrl()}">
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/app.css">
 </head>
@@ -25,6 +25,8 @@
         </div>
         <nav class="flex flex-wrap gap-4 text-sm font-semibold uppercase tracking-[0.08em] text-[var(--color-hood-text-muted)]">
             <a href="/ops/vendors">Vendors</a>
+            <a href="/ops/inquiries">Inquiries</a>
+            <a href="/ops/orders">Orders</a>
             <a href="/ops/axis-2/projects">Axis 2</a>
             <a href="/ops/outbound/prospects">Outbound</a>
             <a href="/pricing">Pricing</a>

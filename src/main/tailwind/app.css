@@ -9,18 +9,18 @@
 }
 
 @theme {
-  --font-sans: "Manrope", "Pretendard Variable", "Pretendard", "SUIT", sans-serif;
-  --font-mono: "JetBrains Mono", "IBM Plex Mono", monospace;
+  --font-sans: "Inter", "Pretendard Variable", "Pretendard", "SUIT", sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", monospace;
 
-  --color-hood-bg: #f5f3ef;
-  --color-hood-surface: #fffdf9;
-  --color-hood-surface-muted: #ede8df;
-  --color-hood-border: rgba(17, 21, 24, 0.14);
-  --color-hood-border-strong: rgba(17, 21, 24, 0.24);
+  --color-hood-bg: #f7f4ee;
+  --color-hood-surface: #fffdfa;
+  --color-hood-surface-muted: #f0ebe2;
+  --color-hood-border: rgba(17, 21, 24, 0.1);
+  --color-hood-border-strong: rgba(17, 21, 24, 0.18);
   --color-hood-text: #111518;
   --color-hood-text-muted: #575d63;
-  --color-hood-accent: #f97316;
-  --color-hood-accent-strong: #c2410c;
+  --color-hood-accent: #ff6b00;
+  --color-hood-accent-strong: #b54300;
   --color-hood-alert: #c53f1a;
   --color-hood-success: #326048;
 }
@@ -28,15 +28,15 @@
 :root,
 [data-theme="hood"] {
   color-scheme: light;
-  --color-base-100: #fffdf9;
-  --color-base-200: #f4efe7;
+  --color-base-100: #fffdfa;
+  --color-base-200: #f3eee5;
   --color-base-300: #e7dfd4;
   --color-base-content: #111518;
-  --color-primary: #f97316;
+  --color-primary: #ff6b00;
   --color-primary-content: #fff8f4;
   --color-secondary: #2c3338;
   --color-secondary-content: #faf7f2;
-  --color-accent: #c2410c;
+  --color-accent: #b54300;
   --color-accent-content: #fff8f4;
   --color-neutral: #111518;
   --color-neutral-content: #f8f4ef;
@@ -46,9 +46,9 @@
   --color-warning-content: #fff8ef;
   --color-error: #c53f1a;
   --color-error-content: #fff6f2;
-  --radius-selector: 0.5rem;
-  --radius-field: 0.75rem;
-  --radius-box: 0.75rem;
+  --radius-selector: 0.25rem;
+  --radius-field: 0.2rem;
+  --radius-box: 0.2rem;
   --border: 1px;
   --depth: 0;
   --noise: 0;
@@ -72,9 +72,9 @@
   body {
     min-height: 100vh;
     background:
-      radial-gradient(circle at top left, rgba(249, 115, 22, 0.08), transparent 26rem),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0)),
-      #f5f3ef;
+      radial-gradient(circle at top right, rgba(255, 107, 0, 0.06), transparent 22rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0)),
+      #f7f4ee;
     color: #111518;
     letter-spacing: -0.01em;
   }

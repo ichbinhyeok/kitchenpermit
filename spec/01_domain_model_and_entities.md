@@ -13,6 +13,7 @@ The data model should therefore separate:
 - vendor identity and setup
 - Axis 1 operational artifacts
 - Axis 2 signal and batch artifacts
+- manual commercial order flow
 - outbound acquisition records
 
 ---
@@ -23,8 +24,12 @@ The data model should therefore separate:
 - `VendorOrganization`
 - `VendorContact`
 - `VendorServiceArea`
+- `CommercialLead`
 - `VendorSetupProfile`
 - `CommercialQuote`
+- `CommercialOrder`
+- `CommercialOrderLine`
+- `PaymentRecord`
 - `DeliveryRecord`
 
 ### 2.2 Axis 1 entities
@@ -165,6 +170,186 @@ Required fields:
 - `brand_color_hex`
 - `created_at`
 - `updated_at`
+
+## 3.5 CommercialLead
+Represents one inbound commercial inquiry before it becomes a priced order.
+
+Required fields:
+
+- `id`
+- `source_type`
+- `company_name`
+- `contact_name`
+- `email`
+- `phone`
+- `service_area_text`
+- `product_interest`
+- `lead_notes`
+- `lead_status`
+- `created_at`
+- `converted_to_order_at`
+
+Locked `source_type` values:
+
+- public_start_form
+- direct_email
+- outbound_reply
+- manual_entry
+
+Locked `lead_status` values:
+
+- new
+- reviewed
+- converted_to_order
+- closed_no_fit
+
+## 3.6 CommercialQuote
+Represents the priced commercial proposal sent to the vendor.
+
+Required fields:
+
+- `id`
+- `lead_id`
+- `vendor_id`
+- `quote_number`
+- `quote_status`
+- `currency`
+- `subtotal_amount`
+- `discount_amount`
+- `total_amount`
+- `pricing_basis`
+- `scope_summary`
+- `sent_at`
+- `accepted_at`
+- `created_at`
+
+Locked `quote_status` values:
+
+- draft
+- sent
+- accepted
+- expired
+- closed_lost
+
+## 3.7 CommercialOrder
+Represents the order that operations will fulfill after the vendor agrees to buy.
+
+Required fields:
+
+- `id`
+- `lead_id`
+- `quote_id`
+- `vendor_id`
+- `order_number`
+- `order_status`
+- `payment_status`
+- `fulfillment_status`
+- `ordered_at`
+- `paid_at`
+- `delivered_at`
+- `owner_notes`
+- `created_at`
+- `updated_at`
+
+Locked `order_status` values:
+
+- new
+- awaiting_payment
+- paid
+- in_fulfillment
+- ready_to_send
+- delivered
+- closed_won
+- closed_lost
+
+Locked rule:
+The order is the commercial truth source for fulfillment. A paid packet or batch should not exist only in email memory.
+
+## 3.8 CommercialOrderLine
+Represents one sellable line inside an order.
+
+Required fields:
+
+- `id`
+- `order_id`
+- `product_line_key`
+- `line_label`
+- `quantity`
+- `unit_price`
+- `line_total`
+- `target_metro_scope`
+- `line_fulfillment_status`
+- `linked_vendor_id`
+- `linked_axis1_render_id`
+- `linked_axis2_batch_id`
+- `linked_delivery_record_id`
+- `notes`
+
+Locked `product_line_key` values:
+
+- axis1_setup
+- axis2_packet_setup
+- axis2_paid_batch_10
+- axis1_axis2_bundle
+- axis2_repeat_batch
+
+Locked `line_fulfillment_status` values:
+
+- not_started
+- blocked_vendor_setup
+- blocked_inventory_or_qa
+- building
+- review_ready
+- send_ready
+- sent
+
+## 3.9 PaymentRecord
+Represents one payment request or confirmation record tied to an order.
+
+Required fields:
+
+- `id`
+- `order_id`
+- `payment_method`
+- `payment_status`
+- `requested_amount`
+- `received_amount`
+- `reference_key`
+- `requested_at`
+- `reported_paid_at`
+- `confirmed_at`
+- `notes`
+
+Locked `payment_method` values:
+
+- invoice
+- manual_link
+- stripe_payment_link
+- bank_transfer
+- other
+
+Locked `payment_status` values:
+
+- not_requested
+- requested
+- reported_paid
+- confirmed
+- failed
+- refunded
+
+## 3.10 DeliveryRecord
+Represents one actual artifact delivery event after fulfillment is complete.
+
+Required fields:
+
+- `id`
+- `vendor_id`
+- `product_axis`
+- `artifact_type`
+- `delivery_channel`
+- `delivered_to`
+- `delivered_at`
+- `delivery_status`
 
 ---
 

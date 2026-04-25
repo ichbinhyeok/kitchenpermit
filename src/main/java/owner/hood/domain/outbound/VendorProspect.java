@@ -84,6 +84,27 @@ public class VendorProspect extends AbstractAuditedEntity {
     @Column(name = "contact_source_url")
     private String contactSourceUrl;
 
+    @Column(name = "vendor_fit_score", nullable = false)
+    private int vendorFitScore;
+
+    @Column(name = "prospect_fit_score", nullable = false)
+    private int prospectFitScore;
+
+    @Column(name = "export_readiness_score", nullable = false)
+    private int exportReadinessScore;
+
+    @Column(name = "legitimacy_score", nullable = false)
+    private int legitimacyScore;
+
+    @Column(name = "vendor_quality_tier", nullable = false)
+    private String vendorQualityTier;
+
+    @Column(name = "source_channel", nullable = false)
+    private String sourceChannel;
+
+    @Column(name = "send_priority", nullable = false)
+    private String sendPriority;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "prospect_status", nullable = false)
     private ProspectStatus prospectStatus;
@@ -262,6 +283,62 @@ public class VendorProspect extends AbstractAuditedEntity {
 
     public void setContactSourceUrl(String contactSourceUrl) {
         this.contactSourceUrl = contactSourceUrl;
+    }
+
+    public int getVendorFitScore() {
+        return vendorFitScore;
+    }
+
+    public void setVendorFitScore(int vendorFitScore) {
+        this.vendorFitScore = vendorFitScore;
+    }
+
+    public int getProspectFitScore() {
+        return prospectFitScore;
+    }
+
+    public void setProspectFitScore(int prospectFitScore) {
+        this.prospectFitScore = prospectFitScore;
+    }
+
+    public int getExportReadinessScore() {
+        return exportReadinessScore;
+    }
+
+    public void setExportReadinessScore(int exportReadinessScore) {
+        this.exportReadinessScore = exportReadinessScore;
+    }
+
+    public int getLegitimacyScore() {
+        return legitimacyScore;
+    }
+
+    public void setLegitimacyScore(int legitimacyScore) {
+        this.legitimacyScore = legitimacyScore;
+    }
+
+    public String getVendorQualityTier() {
+        return vendorQualityTier;
+    }
+
+    public void setVendorQualityTier(String vendorQualityTier) {
+        this.vendorQualityTier = vendorQualityTier;
+    }
+
+    public String getSourceChannel() {
+        return sourceChannel;
+    }
+
+    public void setSourceChannel(String sourceChannel) {
+        this.sourceChannel = sourceChannel;
+    }
+
+    public String getSendPriority() {
+        return sendPriority;
+    }
+
+    public void setSendPriority(String sendPriority) {
+        this.sendPriority = sendPriority;
     }
 
     public ProspectStatus getProspectStatus() {
