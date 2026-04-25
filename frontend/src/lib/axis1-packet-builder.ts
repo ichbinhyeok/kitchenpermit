@@ -556,14 +556,14 @@ function buildSummaryCopy(
   );
 
   if (scenario === "clean") {
-    return "Service was completed today and no open access item was recorded at close-out.";
+    return "Completed today: the accessible hood line, filter bank, and reachable plenum were cleaned and closed.";
   }
 
   if (hasAccessException) {
-    return "Reachable areas were cleaned today. The blocked access area stays listed so it is not mistaken as completed.";
+    return "Completed today: accessible hood, filter, and reachable plenum areas were cleaned. Not completed: blocked access remains listed below.";
   }
 
-  return "Service was completed today. The recorded condition stays visible so it is easy to review before the next visit.";
+  return "Completed today: the cleaning was closed. Recorded condition: review the item below before the next service window.";
 }
 
 function buildCustomerActionCopy(
@@ -578,7 +578,7 @@ function buildCustomerActionCopy(
   }
 
   if (scenario === "clean") {
-    return `Reply to confirm ${nextWindow} or request a different service date.`;
+    return `Reply to confirm the next service window: ${nextWindow}.`;
   }
 
   const hasAccessException = kinds.some(
@@ -589,20 +589,20 @@ function buildCustomerActionCopy(
   );
 
   if (hasAccessException && hasConditionFollowUp) {
-    return "Clear the blocked access point, then reply so dispatch can schedule the revisit. Review the recorded condition if you want it quoted.";
+    return "First, clear the blocked access point. Then reply to schedule the revisit. Mention the recorded condition if you want it quoted.";
   }
 
   if (hasAccessException) {
-    return "Clear the blocked access point, then reply so dispatch can schedule the revisit.";
+    return "Clear the blocked access point, then reply to schedule the revisit.";
   }
 
   if (hasConditionFollowUp || followUpMode === "quote") {
     return followUpMode === "quote"
       ? "Review the recorded condition and reply if you want a repair review before the next service window."
-      : `Review the recorded condition and confirm ${nextWindow} unless you want earlier follow-up.`;
+      : `Review the recorded condition, then confirm the next service window: ${nextWindow}.`;
   }
 
-  return `Confirm ${nextWindow} so the next service stays on schedule.`;
+  return `Confirm the next service window: ${nextWindow}.`;
 }
 
 function buildActionTitle(
@@ -611,7 +611,7 @@ function buildActionTitle(
   followUpMode: Axis1BuilderFollowUpMode,
 ) {
   if (scenario === "clean") {
-    return "Confirm next service window";
+    return "Confirm the next service window";
   }
 
   const hasAccessException = kinds.some(
@@ -622,14 +622,14 @@ function buildActionTitle(
   );
 
   if (hasAccessException) {
-    return "Access stayed open because it was blocked";
+    return "Clear blocked access before revisit";
   }
 
   if (hasConditionFollowUp || followUpMode === "quote") {
-    return "Review recorded condition";
+    return "Review the recorded condition";
   }
 
-  return "Confirm next service window";
+  return "Confirm the next service window";
 }
 
 function buildFollowUpCopy(
@@ -833,7 +833,7 @@ export function buildAxis1NeutralPacketData(
   );
   const routeAccessNote =
     scenario === "exception" && hasAccessException
-      ? `${exceptionNote} Exception remains tied to proof P-04.`
+      ? `Not completed: ${exceptionNote} This area remains tied to proof P-04 and should not be read as cleaned.`
       : "Access was available and documented at service time.";
   const hasRooftopCondition = selectedKinds.some((kind) =>
     ["rooftop-hinge-curb", "fan-belt-drive", "liquid-tight"].includes(kind),
@@ -874,12 +874,12 @@ export function buildAxis1NeutralPacketData(
     location: "Next service timing",
     issue: `Recommended next window: ${nextServiceWindow}.`,
     whyItMatters:
-      "The next service window stays explicit inside the same report so the customer does not need a separate explanation call.",
+      "The next service window stays explicit inside the same proof link so the customer can reply before the visit disappears into memory.",
     ownerAction:
       scenario === "clean"
-        ? `Reply to confirm ${nextServiceWindow} or request a different service window.`
+        ? `Reply to confirm the next service window: ${nextServiceWindow}.`
         : customerAction,
-    notice: "This timing is recorded in the report and the office file.",
+    notice: "This timing is recorded in the proof link and the office file.",
     status: scenario === "clean" ? "Action" : "Monitor",
   };
 
@@ -889,7 +889,7 @@ export function buildAxis1NeutralPacketData(
     vendor: freeVendor,
     packetHeader: {
       title: propertyTitle,
-      copy: `${systemLabel}. This report shows what was cleaned today, any area that stayed open, and what you need to do next.`,
+      copy: `${systemLabel}. This proof link shows what was cleaned today, what was not completed or recorded, the proof photos, and the next action.`,
       quickFacts: [
         ["Service date", serviceDateLabel],
         ["Location", siteLabel],
@@ -904,8 +904,8 @@ export function buildAxis1NeutralPacketData(
         label: "Completed today",
         title:
           scenario === "clean"
-            ? "Accessible sections were cleaned and closed."
-            : "Accessible sections were cleaned and documented.",
+            ? "Cleaned: accessible hood line and filters."
+            : "Cleaned: accessible areas only.",
         copy: summaryCopy,
         icon: "status",
       },
@@ -918,7 +918,7 @@ export function buildAxis1NeutralPacketData(
       {
         label: "Next step",
         title: `Recommended window: ${nextServiceWindow}`,
-        copy: `${intervalBasis} The report keeps that timing visible so the customer knows the expected next step instead of needing another explanation.`,
+        copy: `${intervalBasis} Reply to confirm this window or request a different service date.`,
         icon: "next",
       },
     ],
@@ -1103,10 +1103,10 @@ export function buildAxis1NeutralPacketData(
         ? {
             title:
               hasAccessException
-                ? "Clear access, confirm the next window, and keep the record moving."
-                : "Review the recorded condition, confirm the next window, and keep the record moving.",
+                ? "Clear the blocked area, then reply to schedule the revisit."
+                : "Review this condition and reply if you want it quoted.",
             copy:
-              "This report keeps the next step explicit while separating completed work from the recorded condition.",
+              "The proof link separates completed work from the open item so the next reply can be short and clear.",
             actionItems: [
               ["Next visit window", nextServiceWindow],
               ["Reply or action", customerAction],
@@ -1114,9 +1114,9 @@ export function buildAxis1NeutralPacketData(
             ],
           }
         : {
-          title: "Confirm the next service window while the record is still fresh.",
+          title: "Reply to confirm the next service window.",
           copy:
-              "The report keeps the next service window visible without forcing extra explanation later.",
+              "The proof link keeps the recommended service window visible while the visit is still fresh.",
             actionItems: [
               ["Next visit window", nextServiceWindow],
               ["Reply or action", customerAction],

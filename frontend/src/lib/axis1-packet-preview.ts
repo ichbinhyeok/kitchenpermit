@@ -238,7 +238,7 @@ export function getAxis1PacketPreviewData(options: {
     packetHeader: {
       title: "Masked restaurant group",
       copy:
-        "Main cookline exhaust system. This packet shows the accessible areas cleaned today, any area that stayed open, the site notice status, and what you need to do next.",
+        "Main cookline exhaust system. This proof link shows what was cleaned today, what was not completed or recorded, the proof photos, and the next action.",
       quickFacts: [
         ["Service date", "Apr 14, 2026"],
         ["Location", "Austin, TX"],
@@ -257,17 +257,17 @@ export function getAxis1PacketPreviewData(options: {
       {
         label: "Completed today",
         title: exceptionOpen
-          ? "Accessible sections were cleaned and documented."
-          : "Accessible sections were cleaned and closed.",
+          ? "Cleaned: accessible areas only."
+          : "Cleaned: accessible hood line and filters.",
         copy: exceptionOpen
-          ? "Hood body, filter bank, plenum, and reachable duct path were finished with proof photos tied to the record."
+          ? "Hood body, filter bank, plenum, and reachable duct path were cleaned. Rear duct access was not completed."
           : "Hood body, filter bank, plenum, duct path, and visible fan area were documented with no open access item at close-out.",
         icon: "status",
       },
       {
         label: exceptionOpen ? "Still open" : "Nothing open",
         title: exceptionOpen
-          ? "Rear duct access stayed open because it was blocked."
+          ? "Not completed: rear duct access was blocked."
           : "No blocked access item remained at close-out.",
         copy: exceptionOpen
           ? "Stored items blocked the rear duct access panel. This section stays visible here so it is not mistaken as complete."
@@ -276,7 +276,9 @@ export function getAxis1PacketPreviewData(options: {
       },
       {
         label: "Next step",
-        title: exceptionOpen ? "Clear access, then reply." : "Confirm the next service window.",
+        title: exceptionOpen
+          ? "Clear blocked access, then reply."
+          : "Confirm the next service window.",
         copy: exceptionOpen
           ? "Move stored items away from the access panel and reply so the vendor can schedule the revisit or close the open item cleanly."
           : "Confirm the next scheduled service window, or ask dispatch to adjust the week while the record is fresh.",
@@ -582,9 +584,9 @@ export function getAxis1PacketPreviewData(options: {
         ],
     customerClose: exceptionOpen
       ? {
-          title: "Clear access, approve follow-up if needed, or confirm the next service window.",
+          title: "Clear the blocked area, then reply to schedule the revisit.",
           copy:
-            "This report gives you one clean record, one visible access item, and one reply path instead of scattered calls, texts, and photos.",
+            "The proof link separates completed work from the open item so the next reply can be short and clear.",
           actionItems: [
             ["Access action", "Move stored items from rear duct access"],
             ["Reply needed", "Confirm access correction or revisit"],
@@ -593,9 +595,9 @@ export function getAxis1PacketPreviewData(options: {
           ],
         }
       : {
-          title: "Confirm the next service window while the record is still fresh.",
+          title: "Reply to confirm the next service window.",
           copy:
-            "Reply to confirm the next service date, or contact dispatch if timing needs to shift. The report closes with a clear next step instead of turning into archive-only paperwork.",
+            "The proof link keeps the recommended service window visible while the visit is still fresh.",
           actionItems: [
             ["Next visit window", "Jul 8-13, 2026"],
             ["Reply or action", "Confirm next service"],

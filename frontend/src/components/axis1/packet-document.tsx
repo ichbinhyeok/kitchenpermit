@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Clock3,
   ShieldCheck,
+  type LucideIcon,
 } from "lucide-react";
 import type { Axis1PacketPreviewData } from "@/lib/axis1-packet-preview";
 
@@ -412,6 +413,135 @@ function OutputRoleBlock({
   );
 }
 
+function findActionValue(
+  rows: readonly Row[],
+  patterns: RegExp[],
+  fallbackIndex = 0,
+) {
+  return (
+    rows.find(([label]) => patterns.some((pattern) => pattern.test(label))) ??
+    rows[fallbackIndex] ??
+    null
+  );
+}
+
+function CustomerProofSnapshot({
+  data,
+  transform,
+}: {
+  data: Axis1PacketPreviewData;
+  transform: (value: string) => string;
+}) {
+  const primaryOpenItem = data.deficiencyRows[0] ?? null;
+  const primaryAction = findActionValue(data.customerClose.actionItems, [
+    /access action/i,
+    /reply needed/i,
+    /reply or action/i,
+    /customer action/i,
+  ]);
+  const nextWindow = findActionValue(data.customerClose.actionItems, [
+    /next visit window/i,
+  ]);
+  const openTitle =
+    data.scenario === "exception" && primaryOpenItem
+      ? transform(primaryOpenItem.issue)
+      : "No open access item recorded.";
+  const openCopy =
+    data.scenario === "exception" && primaryOpenItem
+      ? transform(primaryOpenItem.ownerAction)
+      : "Accessible service areas were closed and the next service window is ready to confirm.";
+  const actionTitle = primaryAction
+    ? transform(primaryAction[1])
+    : transform(data.customerClose.title);
+  const nextWindowTitle = nextWindow
+    ? transform(nextWindow[1])
+    : transform(data.summaryCards[2]?.title ?? "Next service window is recorded.");
+
+  const rows = [
+    {
+      label: "Completed today",
+      title: transform(data.summaryCards[0]?.title ?? "Accessible work completed."),
+      copy: transform(data.summaryCards[0]?.copy ?? data.packetHeader.copy),
+      icon: CheckCircle2,
+      tone: "success",
+    },
+    {
+      label: data.scenario === "exception" ? "Not complete / recorded" : "Open item",
+      title: openTitle,
+      copy: openCopy,
+      icon: data.scenario === "exception" ? AlertTriangle : CheckCircle2,
+      tone: data.scenario === "exception" ? "issue" : "success",
+    },
+    {
+      label: "Customer action",
+      title: actionTitle,
+      copy: transform(data.customerClose.copy),
+      icon: ShieldCheck,
+      tone: "action",
+    },
+    {
+      label: "Next service window",
+      title: nextWindowTitle,
+      copy: transform(
+        data.summaryCards[2]?.copy ??
+          "The recommended next window is included so the customer can reply while the visit is still fresh.",
+      ),
+      icon: Clock3,
+      tone: "next",
+    },
+  ] satisfies ReadonlyArray<{
+    label: string;
+    title: string;
+    copy: string;
+    icon: LucideIcon;
+    tone: "success" | "issue" | "action" | "next";
+  }>;
+
+  return (
+    <section className="pdf-document-section border-b border-[#ded7cf] bg-[#fbfaf7] px-4 py-6 sm:px-8 sm:py-7 lg:px-10">
+      <div className="mb-5 max-w-3xl">
+        <SectionKicker>Customer proof summary</SectionKicker>
+        <h3 className="mt-3 font-display text-[1.9rem] font-bold leading-[0.94] tracking-[-0.06em] text-[#151515] sm:text-[2.55rem]">
+          Four things the customer should understand without calling back.
+        </h3>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {rows.map((row) => {
+          const Icon = row.icon;
+
+          return (
+            <div
+              key={row.label}
+              className={cx(
+                "rounded-[20px] border px-4 py-4",
+                row.tone === "success" &&
+                  "border-[#b9d4c6] bg-[#eef7f2] text-[#1e6045]",
+                row.tone === "issue" &&
+                  "border-[#f3c0a2] bg-[#fff0e7] text-[#a83b18]",
+                row.tone === "action" &&
+                  "border-[#f26a21]/25 bg-[#fff7ef] text-[#7b2f12]",
+                row.tone === "next" &&
+                  "border-[#d8d2ca] bg-white text-[#423c36]",
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] opacity-65">
+                  {row.label}
+                </p>
+                <Icon className="h-4 w-4 shrink-0 opacity-70" strokeWidth={2.2} />
+              </div>
+              <p className="mt-3 text-base font-bold leading-tight tracking-[-0.03em]">
+                {row.title}
+              </p>
+              <p className="mt-2 text-xs leading-5 opacity-75">{row.copy}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function ServiceRecordUseBlock() {
   return (
     <section className="pdf-document-section border-b border-[#ded7cf] bg-[#f5f1ea] px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
@@ -775,6 +905,10 @@ export function Axis1PacketDocument({
         customerFacing={isCustomerReport}
         serviceRecord={isServiceRecord}
       />
+
+      {!isServiceRecord ? (
+        <CustomerProofSnapshot data={data} transform={copy} />
+      ) : null}
 
       {isServiceRecord ? <ServiceRecordUseBlock /> : null}
 
