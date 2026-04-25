@@ -144,6 +144,23 @@ function proofToneClasses(tone: Axis1PacketPreviewData["proofPhotos"][number]["t
   };
 }
 
+function customerPhotoLabel(photo: Axis1PacketPreviewData["proofPhotos"][number]) {
+  switch (photo.systemRef) {
+    case "HD-01":
+      return photo.label === "Before" ? "Before cleaning" : "After cleaning";
+    case "FL-01":
+      return "Filters reset";
+    case "DK-02":
+      return "Duct access";
+    case "RF-01":
+      return "Rooftop fan";
+    case "GC-01":
+      return "Grease path";
+    default:
+      return photo.label;
+  }
+}
+
 function SectionKicker({ children }: { children: React.ReactNode }) {
   return (
     <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#f26a21]">
@@ -335,8 +352,10 @@ function SummaryBand({
 
 function PhotoEvidence({
   photos,
+  customerFacing = false,
 }: {
   photos: Axis1PacketPreviewData["proofPhotos"];
+  customerFacing?: boolean;
 }) {
   if (photos.length === 0) {
     return (
@@ -359,6 +378,7 @@ function PhotoEvidence({
     <div className="packet-photo-grid grid gap-5 sm:grid-cols-2">
       {photos.map((photo, index) => {
         const tone = proofToneClasses(photo.tone);
+        const label = customerFacing ? customerPhotoLabel(photo) : photo.label;
 
         return (
           <figure
@@ -401,15 +421,17 @@ function PhotoEvidence({
                     tone.label,
                   )}
                 >
-                  {photo.label}
+                  {label}
                 </span>
                 <span className="rounded-full border border-white/16 bg-[#111315]/65 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/72 backdrop-blur">
                   {photo.proofId}
                 </span>
               </div>
-              <span className="absolute bottom-3 left-3 rounded-full border border-white/16 bg-[#111315]/65 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/72 backdrop-blur">
-                {photo.systemRef}
-              </span>
+              {!customerFacing ? (
+                <span className="absolute bottom-3 left-3 rounded-full border border-white/16 bg-[#111315]/65 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/72 backdrop-blur">
+                  {photo.systemRef}
+                </span>
+              ) : null}
             </div>
             <figcaption
               className={cx(
@@ -701,7 +723,10 @@ export function Axis1PacketDocument({
                 </>
               ) : null}
               <div className="mt-6">
-                <PhotoEvidence photos={data.proofPhotos} />
+                <PhotoEvidence
+                  photos={data.proofPhotos}
+                  customerFacing={isCustomerReport}
+                />
               </div>
             </div>
           ) : null}
