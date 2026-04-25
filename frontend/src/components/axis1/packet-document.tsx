@@ -283,12 +283,16 @@ function PhotoCoverageChecklist({
 }
 
 function ContactStrip({ data }: { data: Axis1PacketPreviewData }) {
-  const rows: readonly Row[] = [
+  const rows = ([
     ["Direct line", data.vendor.directLine],
     ["Dispatch", data.vendor.dispatch],
     ["Credential", data.vendor.certification],
     ["After-hours", data.vendor.afterHours],
-  ];
+  ] as const).filter(([, value]) => value.trim().length > 0);
+
+  if (rows.length === 0) {
+    return null;
+  }
 
   return (
     <div className="packet-contact-grid grid border-y border-[#ded7cf] sm:grid-cols-2 xl:grid-cols-4">
@@ -597,9 +601,14 @@ export function Axis1PacketDocument({
           </aside>
         </div>
 
-        <div className="mt-8">
-          <ContactStrip data={data} />
-        </div>
+        {data.vendor.directLine.trim() ||
+        data.vendor.dispatch.trim() ||
+        data.vendor.certification.trim() ||
+        data.vendor.afterHours.trim() ? (
+          <div className="mt-8">
+            <ContactStrip data={data} />
+          </div>
+        ) : null}
       </header>
 
       <SummaryBand data={data} transform={copy} />

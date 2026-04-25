@@ -681,6 +681,23 @@ export function buildAxis1NeutralPacketData(
     branding: "neutral",
     scenario,
   });
+  const freeVendor: Axis1PacketPreviewData["vendor"] = {
+    ...base.vendor,
+    name: "Service report",
+    initials: "SR",
+    logoUrl: undefined,
+    office: "Kitchen exhaust service record",
+    directLine: "",
+    dispatch: "",
+    certification: "",
+    technician: "Technician / crew",
+    afterHours: "",
+    reviewPrompt: "",
+    preparedBy: "Technician / crew",
+    previewBlurb:
+      "Free report output excludes vendor branding, phone, email, and hosted customer links.",
+    brandingApplied: false,
+  };
 
   const selectedKinds = pickExceptionKinds(values);
   const hasAccessException = selectedKinds.some(
@@ -780,6 +797,8 @@ export function buildAxis1NeutralPacketData(
 
   return {
     ...base,
+    reportUrl: "",
+    vendor: freeVendor,
     packetHeader: {
       title: propertyTitle,
       copy: `${systemLabel}. This report shows what was cleaned today, any area that stayed open, and what you need to do next.`,
@@ -826,8 +845,7 @@ export function buildAxis1NeutralPacketData(
     serviceRecordRows: [
       ["Service window", `${serviceDateLabel} | ${values.serviceWindow.trim()}`],
       ["Today's visit", "Kitchen exhaust cleaning report"],
-      ["Technician", base.serviceRecordRows[2][1]],
-      ["Credential", base.serviceRecordRows[3][1]],
+      ["Technician", freeVendor.technician],
       ["Today's result", serviceResultTitle],
       [
         "Service label",
@@ -1037,13 +1055,8 @@ export function buildAxis1NeutralPacketData(
           ? "Yes - service date + report reference"
           : "Yes - next due date shown",
       ],
-      ["Prepared by technician", base.vendor.preparedBy],
-      ["Technician credential", base.vendor.certification],
-      ["Dispatch", base.vendor.dispatch],
-      ["After-hours", base.vendor.afterHours],
-      ["Follow-up contact", base.vendor.reviewPrompt],
+      ["Prepared by technician", freeVendor.preparedBy],
       ["Approved on site", authorizedBy],
-      ["Customer link", base.reportUrl],
       ["Delivery record", "PDF copy saved for customer records"],
       ["Record retention", "Customer report and office archive retained"],
       ["Next due", nextDue],
