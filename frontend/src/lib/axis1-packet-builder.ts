@@ -952,7 +952,10 @@ export function buildAxis1NeutralPacketData(
           : "LBL-0424-SYS01",
       ],
       ["Why this timing", intervalBasis],
-      ["Fire authority notice", "No fire authority notice triggered by this report"],
+      [
+        "Official inspection status",
+        "Not evaluated by this report. Official inspection decisions are made by the applicable authority.",
+      ],
       ["Report ID", "HDS-MASKED-0424"],
     ],
     routeSegments: [

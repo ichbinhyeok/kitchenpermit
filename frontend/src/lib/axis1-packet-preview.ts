@@ -210,7 +210,7 @@ export function getAxis1PacketPreviewData(options: {
         reviewPrompt: "review@summit.example",
         preparedBy: "Summit Hood Service Co. | SH-114",
         previewBlurb:
-          "Customer sees a same-day service report with vendor brand, service contact, certification, and report references already in place.",
+          "Customer sees a same-day proof packet with vendor brand, service contact, credential, and record references already in place.",
         brandingApplied: true,
       }
     : {
@@ -318,7 +318,10 @@ export function getAxis1PacketPreviewData(options: {
           ? "Access and rooftop conditions recorded"
           : "No deficiency record required in this sample",
       ],
-      ["Authority notice", "No AHJ notice triggered by this sample record"],
+      [
+        "Official inspection status",
+        "Not evaluated by this sample record. Official inspection decisions are made by the applicable authority.",
+      ],
       ["Report ID", "HDS-MASKED-0414"],
     ],
     routeSegments: [

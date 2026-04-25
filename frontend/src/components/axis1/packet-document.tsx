@@ -358,6 +358,103 @@ function SummaryBand({
   );
 }
 
+function InspectionRecordBlock({
+  customerFacing,
+}: {
+  customerFacing: boolean;
+}) {
+  const recordName = customerFacing ? "report" : "packet";
+
+  return (
+    <section className="pdf-document-section border-b border-[#ded7cf] bg-white/72 px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start">
+        <div className="min-w-0">
+          <SectionKicker>
+            {customerFacing
+              ? "Inspection-friendly service record"
+              : "Inspection-friendly proof record"}
+          </SectionKicker>
+          <h3 className="mt-3 font-display text-[1.78rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.25rem]">
+            Keep this {recordName} with kitchen maintenance records.
+          </h3>
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm leading-7 text-[#5f574f]">
+            This {recordName} summarizes the service date, work scope, photo
+            evidence, inaccessible or not-serviced areas, findings, and next
+            recommended service window so the customer has a clear kitchen exhaust
+            maintenance record.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {[
+              "Service date + scope",
+              "Photo evidence + open items",
+              "Next window + record copy",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-[16px] border border-[#ded7cf] bg-[#fbfaf7] px-3 py-3 text-xs font-semibold leading-5 text-[#423c36]"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function OpenServiceItemBlock({
+  data,
+  transform,
+}: {
+  data: Axis1PacketPreviewData;
+  transform: (value: string) => string;
+}) {
+  if (data.scenario !== "exception" || data.deficiencyRows.length === 0) {
+    return null;
+  }
+
+  const primaryOpenItem = data.deficiencyRows[0];
+  const isAccessItem =
+    /access|not cleaned|inaccessible|blocked/i.test(data.callout.eyebrow) ||
+    /access|duct/i.test(primaryOpenItem.location);
+
+  return (
+    <section className="pdf-document-section border-b border-[#ded7cf] bg-[#fff5ee] px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+        <div className="min-w-0">
+          <SectionKicker>
+            {isAccessItem
+              ? "Inaccessible / not-serviced areas"
+              : "Recorded condition to review"}
+          </SectionKicker>
+          <h3 className="mt-3 font-display text-[1.78rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.25rem]">
+            {isAccessItem
+              ? "Open area is not represented as complete."
+              : "Recorded condition stays visible after the visit."}
+          </h3>
+          <p className="mt-3 max-w-xl text-sm leading-7 text-[#746b62]">
+            The customer sees what stayed open, why it stayed open, and what action
+            is needed instead of assuming the full system was completed.
+          </p>
+        </div>
+        <div className="min-w-0 rounded-[20px] border border-[#f3c0a2] bg-white/72 px-4 py-4">
+          <DenseLedger
+            rows={[
+              ["Area", transform(primaryOpenItem.location)],
+              ["Status", primaryOpenItem.status],
+              ["Reason", transform(primaryOpenItem.issue)],
+              ["Customer action", transform(primaryOpenItem.ownerAction)],
+            ]}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function PhotoEvidence({
   photos,
   customerFacing = false,
@@ -614,6 +711,10 @@ export function Axis1PacketDocument({
       </header>
 
       <SummaryBand data={data} transform={copy} />
+
+      <InspectionRecordBlock customerFacing={isCustomerReport} />
+
+      <OpenServiceItemBlock data={data} transform={copy} />
 
       {showCoreSection ? (
       <section className="pdf-document-section packet-two-col packet-core-section grid gap-7 border-b border-[#ded7cf] px-4 py-6 sm:px-8 sm:py-7 lg:grid-cols-2 lg:px-10">
@@ -956,6 +1057,17 @@ export function Axis1PacketDocument({
           </div>
         </div>
       </section>
+      <footer className="pdf-document-section border-t border-[#ded7cf] bg-[#f5f1ea] px-4 py-5 sm:px-8 lg:px-10">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8b8178]">
+          Documentation note
+        </p>
+        <p className="mt-2 max-w-4xl text-xs leading-6 text-[#746b62]">
+          This {isCustomerReport ? "report" : "packet"} is a customer-facing
+          service communication and documentation aid prepared from vendor-provided
+          job information. It does not certify code compliance, replace an official
+          inspection, or guarantee approval by any authority having jurisdiction.
+        </p>
+      </footer>
     </article>
   );
 }

@@ -14,9 +14,9 @@ import {
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Axis 1 Packet Preview",
+  title: "Proof Packet Preview",
   description:
-    "Cold-email first-click preview for a same-day kitchen exhaust service report.",
+    "Cold-email first-click preview for a same-day kitchen exhaust proof packet.",
 };
 
 export const dynamic = "force-dynamic";
@@ -71,11 +71,11 @@ function buildSetupEmailUrl(options: {
   branding: Axis1PacketBranding;
   scenario: Axis1PacketScenario;
 }) {
-  const subject = "Axis 1 packet setup request";
+  const subject = "Proof packet setup request";
   const body = [
     "Kitchen Permit team,",
     "",
-    "I want to discuss an Axis 1 service packet setup.",
+    "I want to discuss a proof packet setup.",
     "",
     `Preview state: ${options.branding} branding / ${options.scenario} scenario`,
     "Company:",
@@ -112,11 +112,11 @@ export default async function Axis1PacketPdfPreviewPage({
           <div className="grid gap-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(420px,1.2fr)] lg:items-start">
             <div className="min-w-0 space-y-3">
               <div className="inline-flex items-center rounded-full border border-black/10 bg-white px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Cold-email preview // Axis 1
+                Cold-email preview // Proof packet
               </div>
               <div className="space-y-3">
                 <h1 className="max-w-3xl font-display text-[1.9rem] font-bold leading-[0.92] tracking-[-0.07em] text-foreground sm:text-[2.2rem]">
-                  This is the service report your customer receives after the job.
+                  This is the proof packet your customer receives after the job.
                 </h1>
                 <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
                   First click should feel like a real delivery artifact, not a product
@@ -155,7 +155,7 @@ export default async function Axis1PacketPdfPreviewPage({
                         Document state
                       </p>
                       <h2 className="mt-3 font-display text-[1.26rem] font-bold leading-[0.95] tracking-[-0.05em] text-foreground">
-                        Review the report in the two delivery states vendors care about.
+                        Review the packet in the two delivery states vendors care about.
                       </h2>
                     </div>
                     <div className="max-w-[260px] rounded-[14px] border border-black/10 bg-[rgba(17,17,17,0.02)] px-3 py-2.5">
