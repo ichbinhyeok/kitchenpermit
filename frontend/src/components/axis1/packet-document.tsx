@@ -95,8 +95,10 @@ function statusClasses(status: string) {
   if (
     status === "Cleaned" ||
     status === "Reset" ||
+    status === "Removed + reset" ||
     status === "Reachable cleaned" ||
     status === "Access clear" ||
+    status === "Documented" ||
     status === "Closed"
   ) {
     return "border-[#b9d4c6] bg-[#eef7f2] text-[#1e6045]";
@@ -370,13 +372,19 @@ function OutputRoleBlock({
   const recordName = customerFacing ? "report" : "packet";
   const title = serviceRecord
     ? `Keep this ${recordName} with kitchen maintenance records.`
-    : "Send this link when the customer needs to understand the visit.";
+    : customerFacing
+      ? "Keep this link with your kitchen exhaust service records."
+      : "Send this link when the customer needs to understand the visit.";
   const copy = serviceRecord
     ? `This ${recordName} summarizes the service date, work scope, photo evidence, inaccessible or not-serviced areas, findings, and next recommended service window so the customer has a clear kitchen exhaust maintenance record.`
-    : `This ${recordName} shows what was cleaned, what stayed open, what the photos prove, and what the customer should do next without waiting for another explanation call.`;
+    : customerFacing
+      ? "This link shows the cleaned scope, open items, proof photos, and next action without requiring another explanation call."
+      : `This ${recordName} shows what was cleaned, what stayed open, what the photos prove, and what the customer should do next without waiting for another explanation call.`;
   const chips = serviceRecord
     ? ["Service date + scope", "Photo evidence + open items", "Next window + record copy"]
-    : ["Readable in one pass", "Open item visible", "Reply path included"];
+    : customerFacing
+      ? ["Cleaned scope", "Open item visible", "Next action"]
+      : ["Readable in one pass", "Open item visible", "Reply path included"];
 
   return (
     <section className="pdf-document-section border-b border-[#ded7cf] bg-white/72 px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
@@ -533,6 +541,164 @@ function CustomerProofSnapshot({
                 {row.title}
               </p>
               <p className="mt-2 text-xs leading-5 opacity-75">{row.copy}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function findRouteSegment(
+  segments: Axis1PacketPreviewData["routeSegments"],
+  code: string,
+) {
+  return segments.find((segment) => segment.code === code) ?? null;
+}
+
+function CustomerExhaustPathBlock({
+  data,
+  transform,
+}: {
+  data: Axis1PacketPreviewData;
+  transform: (value: string) => string;
+}) {
+  const hood = findRouteSegment(data.routeSegments, "HD-01");
+  const filters = findRouteSegment(data.routeSegments, "FL-01");
+  const plenum = findRouteSegment(data.routeSegments, "PL-01");
+  const ductAccess = findRouteSegment(data.routeSegments, "DK-02");
+  const fan = findRouteSegment(data.routeSegments, "RF-01");
+  const grease = findRouteSegment(data.routeSegments, "GC-01");
+  const ductStatusSegment =
+    ductAccess && /blocked|inaccessible|not/i.test(ductAccess.status)
+      ? ductAccess
+      : plenum;
+
+  const zones = [
+    hood && {
+      label: "01",
+      title: "Hood canopy",
+      status: hood.status,
+      note: hood.note,
+      proof: "P-01 / P-02",
+      icon: CheckCircle2,
+    },
+    filters && {
+      label: "02",
+      title: "Filters + tracks",
+      status: filters.status,
+      note: filters.note,
+      proof: "P-03",
+      icon: ShieldCheck,
+    },
+    ductStatusSegment && {
+      label: "03",
+      title: "Plenum / duct access",
+      status: ductStatusSegment.status,
+      note: ductStatusSegment.note,
+      proof: "P-04",
+      icon: /blocked|inaccessible|not/i.test(ductStatusSegment.status)
+        ? AlertTriangle
+        : ShieldCheck,
+    },
+    fan && {
+      label: "04",
+      title: "Fan / roof discharge",
+      status: fan.status,
+      note: fan.note,
+      proof: "P-05",
+      icon: /review|blocked/i.test(fan.status) ? AlertTriangle : ShieldCheck,
+    },
+    grease && {
+      label: "05",
+      title: "Grease path",
+      status: grease.status,
+      note: grease.note,
+      proof: "P-06",
+      icon: /review|blocked/i.test(grease.status) ? AlertTriangle : ShieldCheck,
+    },
+  ].filter(Boolean) as Array<{
+    label: string;
+    title: string;
+    status: string;
+    note: string;
+    proof: string;
+    icon: LucideIcon;
+  }>;
+
+  if (zones.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="pdf-document-section border-b border-[#ded7cf] bg-[#141414] px-4 py-6 text-white sm:px-8 sm:py-7 lg:px-10">
+      <div className="mb-6 grid gap-3 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-end">
+        <div>
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#ffb489]">
+            Exhaust system path
+          </p>
+          <h3 className="mt-3 font-display text-[1.85rem] font-bold leading-[0.94] tracking-[-0.06em] sm:text-[2.35rem]">
+            Not just the hood. The visit follows the grease exhaust line.
+          </h3>
+        </div>
+        <p className="max-w-2xl text-sm leading-6 text-white/62 lg:justify-self-end">
+          This is the customer-readable route: hood, filters, reachable plenum and
+          duct access, fan / roof discharge, and grease path. Anything blocked or
+          separate stays visible instead of being implied as finished.
+        </p>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-5">
+        {zones.map((zone) => {
+          const Icon = zone.icon;
+          const needsAttention = /blocked|review|inaccessible|not/i.test(zone.status);
+
+          return (
+            <div
+              key={zone.label}
+              className={cx(
+                "min-w-0 rounded-[22px] border px-4 py-4",
+                needsAttention
+                  ? "border-[#f26a21]/40 bg-[#2b1a12]"
+                  : "border-white/10 bg-white/[0.055]",
+              )}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                  {zone.label}
+                </span>
+                <span
+                  className={cx(
+                    "flex h-8 w-8 items-center justify-center rounded-full border",
+                    needsAttention
+                      ? "border-[#ffb489]/40 bg-[#ffb489]/12 text-[#ffb489]"
+                      : "border-white/12 bg-white/8 text-white/72",
+                  )}
+                >
+                  <Icon className="h-4 w-4" strokeWidth={2.2} />
+                </span>
+              </div>
+              <h4 className="mt-4 text-base font-bold leading-tight tracking-[-0.035em]">
+                {transform(zone.title)}
+              </h4>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span
+                  className={cx(
+                    "rounded-full border px-2.5 py-1 text-[10px] font-semibold",
+                    needsAttention
+                      ? "border-[#ffb489]/40 bg-[#ffb489]/10 text-[#ffb489]"
+                      : "border-[#b9d4c6]/30 bg-[#b9d4c6]/10 text-[#bfe6cf]",
+                  )}
+                >
+                  {zone.status}
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/42">
+                  {zone.proof}
+                </span>
+              </div>
+              <p className="mt-3 text-xs leading-5 text-white/56">
+                {transform(zone.note)}
+              </p>
             </div>
           );
         })}
@@ -1019,6 +1185,7 @@ export function Axis1PacketDocument({
       ) : (
         <>
           <CustomerProofSnapshot data={data} transform={copy} />
+          <CustomerExhaustPathBlock data={data} transform={copy} />
           <CustomerKeyProofPhotos photos={data.proofPhotos} transform={copy} />
         </>
       )}
