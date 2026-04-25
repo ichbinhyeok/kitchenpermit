@@ -177,6 +177,94 @@ export const axis1BuilderDefaults: Axis1BuilderFormValues = {
   followUpOverride: "",
 };
 
+type Axis1FreeReportSearchParams = Record<
+  string,
+  string | string[] | undefined
+>;
+
+function readSearchParam(
+  params: Axis1FreeReportSearchParams,
+  key: string,
+) {
+  const value = params[key];
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export function buildAxis1FreeReportHref(values: Axis1BuilderFormValues) {
+  const params = new URLSearchParams({
+    s: values.scenario,
+    p: values.propertyName,
+    c: values.siteCity,
+    d: values.serviceDate,
+    a: values.authorizedBy,
+    cd: values.cadence,
+    w: values.serviceWindow,
+    y: values.systemName,
+    e: values.exceptionKinds.join(","),
+    fm: values.followUpMode,
+  });
+
+  const optionalParams: Array<[string, string | undefined]> = [
+    ["en", values.exceptionNote],
+    ["fn", values.followUpNote],
+    ["so", values.summaryOverride],
+    ["co", values.customerActionOverride],
+    ["fo", values.followUpOverride],
+  ];
+
+  optionalParams.forEach(([key, value]) => {
+    const trimmed = value?.trim();
+    if (trimmed) {
+      params.set(key, trimmed);
+    }
+  });
+
+  return `/reports/free-axis-1?${params.toString()}`;
+}
+
+export function parseAxis1FreeReportSearchParams(
+  params: Axis1FreeReportSearchParams,
+): Axis1BuilderFormValues {
+  const candidate: Axis1BuilderFormValues = {
+    scenario:
+      readSearchParam(params, "s") === "clean" ? "clean" : axis1BuilderDefaults.scenario,
+    propertyName:
+      readSearchParam(params, "p") ?? axis1BuilderDefaults.propertyName,
+    siteCity: readSearchParam(params, "c") ?? axis1BuilderDefaults.siteCity,
+    serviceDate: readSearchParam(params, "d") ?? axis1BuilderDefaults.serviceDate,
+    authorizedBy:
+      readSearchParam(params, "a") ?? axis1BuilderDefaults.authorizedBy,
+    cadence:
+      axis1CadenceOptions.some((option) => option.value === readSearchParam(params, "cd"))
+        ? (readSearchParam(params, "cd") as Axis1BuilderCadence)
+        : axis1BuilderDefaults.cadence,
+    serviceWindow:
+      readSearchParam(params, "w") ?? axis1BuilderDefaults.serviceWindow,
+    systemName: readSearchParam(params, "y") ?? axis1BuilderDefaults.systemName,
+    exceptionKinds: (readSearchParam(params, "e") ?? "")
+      .split(",")
+      .filter((kind): kind is Axis1BuilderExceptionKind =>
+        axis1ExceptionOptions.some((option) => option.value === kind),
+      ),
+    exceptionNote: readSearchParam(params, "en") ?? "",
+    followUpMode:
+      axis1FollowUpOptions.some((option) => option.value === readSearchParam(params, "fm"))
+        ? (readSearchParam(params, "fm") as Axis1BuilderFollowUpMode)
+        : axis1BuilderDefaults.followUpMode,
+    followUpNote: readSearchParam(params, "fn") ?? "",
+    summaryOverride: readSearchParam(params, "so") ?? "",
+    customerActionOverride: readSearchParam(params, "co") ?? "",
+    followUpOverride: readSearchParam(params, "fo") ?? "",
+  };
+
+  if (candidate.scenario === "exception" && candidate.exceptionKinds.length === 0) {
+    candidate.exceptionKinds = axis1BuilderDefaults.exceptionKinds;
+  }
+
+  const parsed = axis1BuilderSchema.safeParse(candidate);
+  return parsed.success ? parsed.data : axis1BuilderDefaults;
+}
+
 type ExceptionDefinition = {
   group: (typeof axis1ExceptionGroups)[number]["value"];
   chipLabel: string;
@@ -1064,5 +1152,76 @@ export function buildAxis1NeutralPacketData(
     ],
     scopeNote:
       "This report covers this kitchen exhaust cleaning visit for one exhaust system. Fire suppression inspection and repair work are not included unless separately quoted.",
+  };
+}
+
+export function buildAxis1FreeSharedPacketData(
+  values: Axis1BuilderFormValues,
+): Axis1PacketPreviewData {
+  const data = buildAxis1NeutralPacketData(values);
+
+  return {
+    ...data,
+    proofPhotos: [],
+    proofPolicyRows: [
+      [
+        "Shared report",
+        "This link reproduces the written service report for this visit.",
+      ],
+      [
+        "Field photos",
+        "Any local field photos are supplied separately by the service provider.",
+      ],
+      [
+        "Record copy",
+        "Use the PDF copy or service record for local photo files and archive.",
+      ],
+    ],
+    componentStatusRows: data.componentStatusRows.map((row) => ({
+      ...row,
+      proof: "Service record",
+      note: row.note
+        .replace(" Linked to proof photos P-01 / P-02.", "")
+        .replace(" Proof is tied to P-01 and P-02.", "")
+        .replace("Before and after proof attached to HD-01.", "Work recorded for this section."),
+    })),
+    routeSegments: data.routeSegments.map((segment) => ({
+      ...segment,
+      note: segment.note
+        .replace(" Proof is tied to P-01 and P-02.", " Work recorded for this section.")
+        .replace(" Exception remains tied to proof P-04.", " Exception remains tied to this service record."),
+    })),
+    photoCoverageRows: data.photoCoverageRows.map((row) => ({
+      ...row,
+      proof: "Not hosted",
+      status: "Not attached",
+    })),
+    scopeRows: data.scopeRows.map(([area, status, note]) => [
+      area,
+      status,
+      note
+        .replace(" Linked to proof photos P-01 / P-02.", "")
+        .replace(" Proof is tied to P-01 and P-02.", ""),
+    ] as const),
+    closeoutRows: [
+      ...data.closeoutRows.map(([label, value]): [string, string] => {
+        if (label === "Delivery record") {
+          return [label, "Shared report link delivered"];
+        }
+
+        if (label === "Record retention") {
+          return [
+            label,
+            "Keep this link with kitchen exhaust service records",
+          ];
+        }
+
+        return [label, value];
+      }),
+      [
+        "Field photos",
+        "If field photos were captured, they are supplied separately by the service provider.",
+      ] as [string, string],
+    ],
   };
 }

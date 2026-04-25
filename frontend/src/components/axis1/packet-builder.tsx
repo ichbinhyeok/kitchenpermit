@@ -26,6 +26,8 @@ import {
 import {
   ChevronDown,
   ChevronUp,
+  Copy,
+  ExternalLink,
   GripVertical,
   RotateCcw,
   Sparkles,
@@ -63,6 +65,7 @@ import {
   axis1ExceptionGroups,
   axis1ExceptionOptions,
   axis1FollowUpOptions,
+  buildAxis1FreeReportHref,
   buildAxis1NeutralPacketData,
   type Axis1BuilderExceptionKind,
   type Axis1BuilderFormValues,
@@ -1192,6 +1195,7 @@ export function PacketBuilder() {
   }, []);
 
   const previewData = buildAxis1NeutralPacketData(values);
+  const freeReportHref = buildAxis1FreeReportHref(values);
   const uploadedProofCount = fieldPhotoSlots.filter(
     (slot) => uploadedFieldPhotos[slot.id],
   ).length;
@@ -1348,7 +1352,9 @@ export function PacketBuilder() {
       ? "Continue to photos"
       : builderStep === "photos"
         ? "Review report"
-        : "Save PDF";
+        : reportOutputMode === "link"
+          ? "Copy link"
+          : "Save PDF";
   const mobileSecondaryActionLabel =
     builderStep === "job"
       ? "Sample"
@@ -1381,13 +1387,13 @@ export function PacketBuilder() {
         : reportOutputMode === "link"
           ? "Check the customer link view, then save PDF."
           : "Check the PDF copy before saving.";
-  const mobilePrimaryIsPrint = builderStep === "report";
+  const mobilePrimaryIsPrint = builderStep === "report" && reportOutputMode === "pdf";
   const reportOutputMeta =
     reportOutputMode === "link"
       ? {
           label: "Customer link preview",
           title: "Premium web report",
-          copy: "Best for texting or emailing a hosted link. No builder controls, no marketing header, noindex.",
+          copy: "Best for texting or emailing a noindex report link. Free links are unbranded and do not include local photos until hosted storage is enabled.",
           badge: "Primary output",
         }
       : {
@@ -1530,7 +1536,27 @@ export function PacketBuilder() {
       return;
     }
 
+    if (reportOutputMode === "link") {
+      void copyFreeReportLink();
+      return;
+    }
+
     printCustomerReport();
+  }
+
+  async function copyFreeReportLink() {
+    const shareUrl = new URL(freeReportHref, window.location.origin).toString();
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Free report link copied", {
+        description: "The link is noindex and unbranded. Local photos are not included.",
+      });
+    } catch {
+      toast.error("Could not copy automatically", {
+        description: "Open the report link and copy the browser address.",
+      });
+    }
   }
 
   function openMobileSheet(sheet: MobileSheetView) {
@@ -1569,7 +1595,7 @@ export function PacketBuilder() {
 
   function handleMobileSecondaryAction() {
     if (builderStep === "job") {
-      window.location.href = "/samples/axis-1";
+      window.location.assign("/samples/axis-1");
       return;
     }
 
@@ -3331,6 +3357,14 @@ export function PacketBuilder() {
                 >
                   Print / save PDF
                 </Button>
+                <Button
+                  type="button"
+                  onClick={() => void copyFreeReportLink()}
+                  className="rounded-full bg-[#f26a21] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white hover:bg-[#d95d1d]"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy free link
+                </Button>
               </div>
             </form>
           </Panel>
@@ -3426,7 +3460,7 @@ export function PacketBuilder() {
               <div className="mt-2.5 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-[11px] leading-4 opacity-70">
                   {reportOutputMode === "link"
-                    ? "This is the customer link view."
+                    ? "Copy opens an unbranded noindex report. Photos stay local for now."
                     : "This is the document copy for save/print."}
                 </p>
                 <button
@@ -3442,7 +3476,11 @@ export function PacketBuilder() {
                       return;
                     }
 
-                    setReportOutputMode("pdf");
+                    if (reportOutputMode === "link") {
+                      void copyFreeReportLink();
+                      return;
+                    }
+
                     openMobileSheet("report-actions");
                   }}
                   className="shrink-0 rounded-full bg-[#111315] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white"
@@ -3608,6 +3646,26 @@ export function PacketBuilder() {
                     <Button
                       type="button"
                       size="sm"
+                      onClick={() => void copyFreeReportLink()}
+                      className="rounded-full bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#d95d1d]"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy free link
+                    </Button>
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="ghost"
+                      className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground hover:bg-white"
+                    >
+                      <a href={freeReportHref} target="_blank" rel="noreferrer">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Open link
+                      </a>
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
                       onClick={printCustomerReport}
                       className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
                     >
@@ -3679,6 +3737,43 @@ export function PacketBuilder() {
                         </button>
                         );
                       })}
+                    </div>
+                    <div className="rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className={labelClassName()}>Free share link</p>
+                          <p className="mt-1 text-sm font-bold tracking-[-0.03em] text-foreground">
+                            Noindex, unbranded, document-only.
+                          </p>
+                          <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
+                            This is the free link a vendor can send today. It
+                            carries the written report only; uploaded field
+                            photos stay local until hosted storage is enabled.
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => void copyFreeReportLink()}
+                            className="rounded-full bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#d95d1d]"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                            Copy link
+                          </Button>
+                          <Button
+                            asChild
+                            size="sm"
+                            variant="ghost"
+                            className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground hover:bg-white"
+                          >
+                            <a href={freeReportHref} target="_blank" rel="noreferrer">
+                              <ExternalLink className="h-3.5 w-3.5" />
+                              Open
+                            </a>
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                     <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                       <div className="min-w-0">
@@ -3972,10 +4067,28 @@ export function PacketBuilder() {
                   </SegmentedControl>
                   <div className="mt-3 rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5">
                     <p className="text-xs leading-5 text-muted-foreground">
-                      Customer link and PDF share the same content. The PDF may
-                      reflow into print columns and page breaks.
+                      Free link is noindex and unbranded. It does not include
+                      local photos until hosted storage is enabled. PDF keeps
+                      the printable document copy.
                     </p>
                   </div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void copyFreeReportLink()}
+                    className="h-11 rounded-[16px] bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white"
+                  >
+                    Copy free link
+                  </button>
+                  <a
+                    href={freeReportHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-11 items-center justify-center rounded-[16px] border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-foreground"
+                  >
+                    Open link
+                  </a>
                 </div>
                 <div className="mt-3 grid gap-2">
                   {packetSectionControls.map((section) => (
