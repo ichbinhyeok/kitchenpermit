@@ -450,9 +450,10 @@ function CustomerProofSnapshot({
     data.scenario === "exception" && primaryOpenItem
       ? transform(primaryOpenItem.ownerAction)
       : "Accessible service areas were closed and the next service window is ready to confirm.";
-  const actionTitle = primaryAction
+  const actionTitle = transform(data.customerClose.title);
+  const actionCopy = primaryAction
     ? transform(primaryAction[1])
-    : transform(data.customerClose.title);
+    : transform(data.customerClose.copy);
   const nextWindowTitle = nextWindow
     ? transform(nextWindow[1])
     : transform(data.summaryCards[2]?.title ?? "Next service window is recorded.");
@@ -466,7 +467,7 @@ function CustomerProofSnapshot({
       tone: "success",
     },
     {
-      label: data.scenario === "exception" ? "Not complete / recorded" : "Open item",
+      label: data.scenario === "exception" ? "Not completed" : "Open item",
       title: openTitle,
       copy: openCopy,
       icon: data.scenario === "exception" ? AlertTriangle : CheckCircle2,
@@ -475,17 +476,15 @@ function CustomerProofSnapshot({
     {
       label: "Customer action",
       title: actionTitle,
-      copy: transform(data.customerClose.copy),
+      copy: actionCopy,
       icon: ShieldCheck,
       tone: "action",
     },
     {
       label: "Next service window",
       title: nextWindowTitle,
-      copy: transform(
-        data.summaryCards[2]?.copy ??
-          "The recommended next window is included so the customer can reply while the visit is still fresh.",
-      ),
+      copy:
+        "Reply to confirm this service window or ask for a different date while the visit is still fresh.",
       icon: Clock3,
       tone: "next",
     },
@@ -502,7 +501,7 @@ function CustomerProofSnapshot({
       <div className="mb-5 max-w-3xl">
         <SectionKicker>Customer proof summary</SectionKicker>
         <h3 className="mt-3 font-display text-[1.9rem] font-bold leading-[0.94] tracking-[-0.06em] text-[#151515] sm:text-[2.55rem]">
-          Four things the customer should understand without calling back.
+          What happened today and what to do next.
         </h3>
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -537,6 +536,100 @@ function CustomerProofSnapshot({
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+function CustomerKeyProofPhotos({
+  photos,
+  transform,
+}: {
+  photos: Axis1PacketPreviewData["proofPhotos"];
+  transform: (value: string) => string;
+}) {
+  const keyPhotos = photos
+    .filter((photo) => ["before", "after", "issue"].includes(photo.tone))
+    .slice(0, 3);
+
+  if (keyPhotos.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="pdf-document-section border-b border-[#ded7cf] bg-white px-4 py-6 sm:px-8 sm:py-7 lg:px-10">
+      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <SectionKicker>Key proof photos</SectionKicker>
+          <h3 className="mt-3 font-display text-[1.75rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.2rem]">
+            The main before, after, and open-item proof.
+          </h3>
+        </div>
+        <p className="max-w-md text-sm leading-6 text-[#746b62]">
+          Full photo evidence is still listed below. These are the photos a customer
+          should understand first.
+        </p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        {keyPhotos.map((photo) => {
+          const tone = proofToneClasses(photo.tone);
+
+          return (
+            <figure key={photo.proofId} className="min-w-0">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] bg-[#111315]">
+                <Image
+                  src={photo.src}
+                  alt={photo.title}
+                  fill
+                  sizes="(min-width: 1024px) 28vw, (min-width: 768px) 30vw, 100vw"
+                  className="object-cover"
+                  style={{
+                    filter: tone.filter,
+                    objectPosition: photo.position,
+                  }}
+                />
+                <div className={cx("absolute inset-0", tone.overlay)} />
+                <div className="absolute left-3 top-3 flex flex-wrap items-center gap-2">
+                  <span
+                    className={cx(
+                      "rounded-full border px-2.5 py-1 text-[10px] font-semibold",
+                      tone.label,
+                    )}
+                  >
+                    {customerPhotoLabel(photo)}
+                  </span>
+                  <span className="rounded-full border border-white/16 bg-[#111315]/65 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/72 backdrop-blur">
+                    {photo.proofId}
+                  </span>
+                </div>
+              </div>
+              <figcaption className="pt-3">
+                <p className="text-sm font-bold tracking-[-0.02em] text-[#151515]">
+                  {transform(photo.title)}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-[#746b62]">
+                  {transform(photo.caption)}
+                </p>
+              </figcaption>
+            </figure>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function CustomerReplyPathBlock({ data }: { data: Axis1PacketPreviewData }) {
+  return (
+    <section className="pdf-document-section border-b border-[#ded7cf] bg-[#fbfaf7] px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] lg:items-center">
+        <div className="min-w-0">
+          <SectionKicker>Reply path</SectionKicker>
+          <h3 className="mt-3 font-display text-[1.55rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[1.95rem]">
+            Reply here to clarify an open item or schedule follow-up.
+          </h3>
+        </div>
+        <ContactStrip data={data} />
       </div>
     </section>
   );
@@ -851,7 +944,7 @@ export function Axis1PacketDocument({
 
             <div className="mt-7 max-w-3xl sm:mt-9">
               <SectionKicker>
-                {isServiceRecord ? "Service record" : "Service report"}
+                {isServiceRecord ? "Service record" : "Customer proof"}
               </SectionKicker>
               <h2 className="mt-3 font-display text-[2.05rem] font-bold leading-[0.92] tracking-[-0.065em] text-[#151515] sm:text-[3.65rem]">
                 {data.packetHeader.title}
@@ -861,10 +954,32 @@ export function Axis1PacketDocument({
                   ? copy(data.summaryCards[0]?.copy ?? data.packetHeader.copy)
                   : copy(data.packetHeader.copy)}
               </p>
+              {!isServiceRecord ? (
+                <div className="mt-4 flex flex-wrap gap-2 lg:hidden">
+                  <span className="rounded-full border border-[#ded7cf] bg-white/70 px-3 py-1 text-[11px] font-semibold text-[#5f574f]">
+                    {data.packetHeader.quickFacts[0]?.[1] ?? "Service visit"}
+                  </span>
+                  <span
+                    className={cx(
+                      "rounded-full border px-3 py-1 text-[11px] font-semibold",
+                      data.scenario === "exception"
+                        ? "border-[#f3c0a2] bg-[#fff0e7] text-[#bc3d1f]"
+                        : "border-[#b9d4c6] bg-[#eef7f2] text-[#1e6045]",
+                    )}
+                  >
+                    {documentState}
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
 
-          <aside className="min-w-0 border-t border-[#ded7cf] pt-5 lg:border-l lg:border-t-0 lg:pl-7 lg:pt-0">
+          <aside
+            className={cx(
+              "min-w-0 border-t border-[#ded7cf] pt-5 lg:border-l lg:border-t-0 lg:pl-7 lg:pt-0",
+              !isServiceRecord && "hidden lg:block",
+            )}
+          >
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-[#ded7cf] bg-white/70 px-3 py-1 text-[11px] font-semibold text-[#5f574f]">
                 {isCustomerReport
@@ -892,7 +1007,7 @@ export function Axis1PacketDocument({
           </aside>
         </div>
 
-        {hasVendorContact ? (
+        {hasVendorContact && isServiceRecord ? (
           <div className="mt-8">
             <ContactStrip data={data} />
           </div>
@@ -902,13 +1017,18 @@ export function Axis1PacketDocument({
       {isServiceRecord ? (
         <SummaryBand data={data} transform={copy} />
       ) : (
-        <CustomerProofSnapshot data={data} transform={copy} />
+        <>
+          <CustomerProofSnapshot data={data} transform={copy} />
+          <CustomerKeyProofPhotos photos={data.proofPhotos} transform={copy} />
+        </>
       )}
 
       <OutputRoleBlock
         customerFacing={isCustomerReport}
         serviceRecord={isServiceRecord}
       />
+
+      {!isServiceRecord && hasVendorContact ? <CustomerReplyPathBlock data={data} /> : null}
 
       {isServiceRecord ? <ServiceRecordUseBlock /> : null}
 
