@@ -1223,11 +1223,11 @@ export function PacketBuilder() {
     ["Customer copy", hasManualCustomerCopy ? "Custom wording" : "Recommended wording"],
     [
       "Previewing",
-      reportOutputMode === "link" ? "Customer link" : "PDF copy",
+      reportOutputMode === "link" ? "Proof link" : "Record PDF",
     ],
     [
       "PDF",
-      packetPresentationMode === "standard" ? "Compact full layout" : "Compact short layout",
+      packetPresentationMode === "standard" ? "Full record" : "Short record",
     ],
   ] as const;
   const mobileReportInlineActionLabel = reportNeedsPhotoReview
@@ -1278,21 +1278,21 @@ export function PacketBuilder() {
             : "No photos is acceptable."
         : reportOutputMode === "link"
           ? "Check the customer link view, then copy or save PDF."
-          : "Check the PDF copy before saving.";
+          : "Check the service record PDF before saving.";
   const mobilePrimaryIsPrint = builderStep === "report" && reportOutputMode === "pdf";
   const reportOutputMeta =
     reportOutputMode === "link"
       ? {
-          label: "Customer link preview",
-          title: "Premium web packet",
-          copy: "Best for texting or emailing a noindex proof link. This local version includes photos in the same browser; hosted storage is required for real customer delivery.",
+          label: "Customer proof link preview",
+          title: "Premium customer handoff",
+          copy: "Best for texting or emailing after the visit. It reduces confusion, shows open items, and gives the customer one clear reply path.",
           badge: "Primary output",
         }
       : {
-          label: "PDF copy preview",
-          title: "Attachment and archive copy",
-          copy: "Best for saving, attaching, printing, or keeping in customer records. Tighter Letter-style layout.",
-          badge: "Document output",
+          label: "Service record PDF preview",
+          title: "Archive and request-ready record",
+          copy: "Best for saving, attaching, printing, or answering later record requests. It is formatted as a service record, not a web page screenshot.",
+          badge: "Record output",
         };
   const activePreviewPresentationMode =
     reportOutputMode === "pdf" ? packetPresentationMode : "standard";
@@ -3271,11 +3271,11 @@ export function PacketBuilder() {
           <Panel className="px-5 py-5 print:border-0 print:bg-white print:p-0 print:shadow-none md:px-6 md:py-6">
             <div className="pdf-print-hide flex flex-col gap-3 border-b border-border pb-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className={labelClassName()}>Customer link preview</p>
+                <p className={labelClassName()}>Customer proof link preview</p>
                 <h2 className="mt-3 font-display text-[1.38rem] font-bold leading-[1.02] tracking-[-0.045em] text-foreground md:text-[1.55rem] md:leading-[0.96] md:tracking-[-0.06em]">
-                  <span className="md:hidden">Customer link preview.</span>
+                  <span className="md:hidden">Proof link preview.</span>
                   <span className="hidden md:inline">
-                    This is the web report your customer opens.
+                    This is the premium link your customer opens.
                   </span>
                 </h2>
               </div>
@@ -3308,7 +3308,7 @@ export function PacketBuilder() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-70">
-                    Customer link check
+                    Proof link check
                   </p>
                   <h3 className="mt-1 text-base font-bold leading-tight tracking-[-0.03em]">
                     {mobileReportStatus.title}
@@ -3345,14 +3345,14 @@ export function PacketBuilder() {
                   Link view
                 </SegmentedControlItem>
                 <SegmentedControlItem value="pdf" className="rounded-full text-[11px]">
-                  PDF copy
+                  Record PDF
                 </SegmentedControlItem>
               </SegmentedControl>
               <div className="mt-2.5 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-[11px] leading-4 opacity-70">
                   {reportOutputMode === "link"
                     ? "Copy opens an unbranded local report with the current photos in this browser."
-                    : "This is the document copy for save/print."}
+                    : "This is the service record for save/print."}
                 </p>
                 <button
                   type="button"
@@ -3529,8 +3529,9 @@ export function PacketBuilder() {
                   <div>
                     <p className={labelClassName()}>Customer link vs PDF</p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Switch the preview so vendors see exactly why the link is
-                      the premium customer surface and the PDF is the document copy.
+                      Switch between the two outputs vendors need: a premium
+                      proof link for customer understanding and a service record
+                      PDF for archive or later requests.
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-wrap justify-end gap-2">
@@ -3579,10 +3580,10 @@ export function PacketBuilder() {
                       className="rounded-full"
                     >
                       <SegmentedControlItem value="link" className="rounded-full text-xs">
-                        Customer link preview
+                        Proof link
                       </SegmentedControlItem>
                       <SegmentedControlItem value="pdf" className="rounded-full text-xs">
-                        PDF copy preview
+                        Record PDF
                       </SegmentedControlItem>
                     </SegmentedControl>
                     <div className="grid gap-2 md:grid-cols-2">
@@ -3590,12 +3591,12 @@ export function PacketBuilder() {
                         [
                           "Customer link",
                           "Primary output",
-                          "Web report - best for texting or emailing a live link.",
+                          "Premium web handoff - best for customer clarity, trust, open-item action, and rebook reply.",
                         ],
                         [
                           "PDF / print",
-                          "Document output",
-                          "Compact document layout - best for attachment, archive, or print.",
+                          "Record output",
+                          "Formal service record - best for archive, attachment, print, and later customer requests.",
                         ],
                       ].map(([label, value, copy]) => {
                         const isActive =
@@ -3668,8 +3669,8 @@ export function PacketBuilder() {
                       <div className="min-w-0">
                         <p className={labelClassName()}>PDF detail options</p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          These switches control the saved PDF layout. The web
-                          customer link keeps the same report identity.
+                          These switches control the service record PDF only.
+                          The customer proof link keeps the premium web layout.
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
@@ -3844,7 +3845,7 @@ export function PacketBuilder() {
                     Link view
                   </SegmentedControlItem>
                   <SegmentedControlItem value="pdf" className="rounded-full text-xs">
-                    PDF copy
+                    Record PDF
                   </SegmentedControlItem>
                 </SegmentedControl>
               </div>
@@ -3859,6 +3860,11 @@ export function PacketBuilder() {
                   <Axis1PacketDocument
                     data={previewPacket}
                     variant="customer-report"
+                    outputIntent={
+                      reportOutputMode === "pdf"
+                        ? "service-record"
+                        : "customer-link"
+                    }
                     presentationMode={activePreviewPresentationMode}
                     visibleSections={activePreviewSections}
                   />
@@ -3930,8 +3936,8 @@ export function PacketBuilder() {
               <DrawerHeader>
                 <DrawerTitle>PDF / print options</DrawerTitle>
                 <DrawerDescription>
-                  The customer link is the browser view. Print / save creates a
-                  compact Letter PDF.
+                  The proof link is the customer handoff. Print / save creates a
+                  service record PDF.
                 </DrawerDescription>
               </DrawerHeader>
               <div className="min-h-0 overflow-y-auto px-4 pb-4">

@@ -11,6 +11,7 @@ type Axis1PacketDocumentProps = {
   data: Axis1PacketPreviewData;
   className?: string;
   variant?: "vendor-sample" | "customer-report";
+  outputIntent?: "customer-link" | "service-record";
   presentationMode?: "standard" | "short";
   visibleSections?: Partial<Axis1PacketDocumentSectionVisibility>;
 };
@@ -358,39 +359,45 @@ function SummaryBand({
   );
 }
 
-function InspectionRecordBlock({
+function OutputRoleBlock({
   customerFacing,
+  serviceRecord,
 }: {
   customerFacing: boolean;
+  serviceRecord: boolean;
 }) {
   const recordName = customerFacing ? "report" : "packet";
+  const title = serviceRecord
+    ? `Keep this ${recordName} with kitchen maintenance records.`
+    : "Send this link when the customer needs to understand the visit.";
+  const copy = serviceRecord
+    ? `This ${recordName} summarizes the service date, work scope, photo evidence, inaccessible or not-serviced areas, findings, and next recommended service window so the customer has a clear kitchen exhaust maintenance record.`
+    : `This ${recordName} shows what was cleaned, what stayed open, what the photos prove, and what the customer should do next without waiting for another explanation call.`;
+  const chips = serviceRecord
+    ? ["Service date + scope", "Photo evidence + open items", "Next window + record copy"]
+    : ["Readable in one pass", "Open item visible", "Reply path included"];
 
   return (
     <section className="pdf-document-section border-b border-[#ded7cf] bg-white/72 px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start">
         <div className="min-w-0">
           <SectionKicker>
-            {customerFacing
-              ? "Inspection-friendly service record"
-              : "Inspection-friendly proof record"}
+            {serviceRecord
+              ? customerFacing
+                ? "Service record PDF"
+                : "Service record packet"
+              : customerFacing
+                ? "Customer proof link"
+                : "Customer-ready proof packet"}
           </SectionKicker>
           <h3 className="mt-3 font-display text-[1.78rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.25rem]">
-            Keep this {recordName} with kitchen maintenance records.
+            {title}
           </h3>
         </div>
         <div className="min-w-0">
-          <p className="text-sm leading-7 text-[#5f574f]">
-            This {recordName} summarizes the service date, work scope, photo
-            evidence, inaccessible or not-serviced areas, findings, and next
-            recommended service window so the customer has a clear kitchen exhaust
-            maintenance record.
-          </p>
+          <p className="text-sm leading-7 text-[#5f574f]">{copy}</p>
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            {[
-              "Service date + scope",
-              "Photo evidence + open items",
-              "Next window + record copy",
-            ].map((item) => (
+            {chips.map((item) => (
               <div
                 key={item}
                 className="rounded-[16px] border border-[#ded7cf] bg-[#fbfaf7] px-3 py-3 text-xs font-semibold leading-5 text-[#423c36]"
@@ -405,12 +412,55 @@ function InspectionRecordBlock({
   );
 }
 
+function ServiceRecordUseBlock() {
+  return (
+    <section className="pdf-document-section border-b border-[#ded7cf] bg-[#f5f1ea] px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:items-start">
+        <div className="min-w-0">
+          <SectionKicker>Record use</SectionKicker>
+          <h3 className="mt-3 font-display text-[1.65rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.05rem]">
+            Built as a retrievable service record, not just a pretty handoff.
+          </h3>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          {[
+            [
+              "For the customer file",
+              "Keeps the service date, cleaned scope, photos, open items, and next window together.",
+            ],
+            [
+              "For vendor follow-up",
+              "Gives the office one reference when a customer asks what was done or what stayed open.",
+            ],
+            [
+              "For outside requests",
+              "Helps answer record requests without implying official inspection or code approval.",
+            ],
+          ].map(([label, copy]) => (
+            <div
+              key={label}
+              className="rounded-[18px] border border-[#ded7cf] bg-white/72 px-4 py-4"
+            >
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8b8178]">
+                {label}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-[#5f574f]">{copy}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function OpenServiceItemBlock({
   data,
   transform,
+  serviceRecord,
 }: {
   data: Axis1PacketPreviewData;
   transform: (value: string) => string;
+  serviceRecord: boolean;
 }) {
   if (data.scenario !== "exception" || data.deficiencyRows.length === 0) {
     return null;
@@ -432,12 +482,15 @@ function OpenServiceItemBlock({
           </SectionKicker>
           <h3 className="mt-3 font-display text-[1.78rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.25rem]">
             {isAccessItem
-              ? "Open area is not represented as complete."
+              ? serviceRecord
+                ? "Open area is excluded from the completed scope."
+                : "Open area is not represented as complete."
               : "Recorded condition stays visible after the visit."}
           </h3>
           <p className="mt-3 max-w-xl text-sm leading-7 text-[#746b62]">
-            The customer sees what stayed open, why it stayed open, and what action
-            is needed instead of assuming the full system was completed.
+            {serviceRecord
+              ? "The record separates completed work from inaccessible or not-serviced areas so a later reader does not mistake the full system as completed."
+              : "The customer sees what stayed open, why it stayed open, and what action is needed instead of assuming the full system was completed."}
           </p>
         </div>
         <div className="min-w-0 rounded-[20px] border border-[#f3c0a2] bg-white/72 px-4 py-4">
@@ -570,10 +623,12 @@ export function Axis1PacketDocument({
   data,
   className,
   variant = "vendor-sample",
+  outputIntent = "customer-link",
   presentationMode = "standard",
   visibleSections,
 }: Axis1PacketDocumentProps) {
   const isCustomerReport = variant === "customer-report";
+  const isServiceRecord = outputIntent === "service-record";
   const copy = isCustomerReport ? customerFacingCopy : (value: string) => value;
   const sections = {
     ...defaultSectionVisibility,
@@ -611,7 +666,7 @@ export function Axis1PacketDocument({
   const showStatusSection =
     sections.routeDetail || showPhotoCoverage || sections.nextService;
   const showEvidenceSection = sections.routeDetail || showPhotoEvidence;
-  const showCoreSection = !isShort;
+  const showCoreSection = !isShort || isServiceRecord;
   const compactStatusSection = !sections.routeDetail && !showPhotoCoverage;
   const compactWorkSection = !sections.routeDetail;
   const componentStatusTitle = isCustomerReport
@@ -665,7 +720,9 @@ export function Axis1PacketDocument({
             </div>
 
             <div className="mt-7 max-w-3xl sm:mt-9">
-              <SectionKicker>Service report</SectionKicker>
+              <SectionKicker>
+                {isServiceRecord ? "Service record" : "Service report"}
+              </SectionKicker>
               <h2 className="mt-3 font-display text-[2.05rem] font-bold leading-[0.92] tracking-[-0.065em] text-[#151515] sm:text-[3.65rem]">
                 {data.packetHeader.title}
               </h2>
@@ -681,7 +738,9 @@ export function Axis1PacketDocument({
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-[#ded7cf] bg-white/70 px-3 py-1 text-[11px] font-semibold text-[#5f574f]">
                 {isCustomerReport
-                  ? "Customer service report"
+                  ? isServiceRecord
+                    ? "Service record PDF"
+                    : "Customer proof link"
                   : data.vendor.brandingApplied
                     ? "Branded vendor version"
                     : "Public sample shell"}
@@ -712,9 +771,18 @@ export function Axis1PacketDocument({
 
       <SummaryBand data={data} transform={copy} />
 
-      <InspectionRecordBlock customerFacing={isCustomerReport} />
+      <OutputRoleBlock
+        customerFacing={isCustomerReport}
+        serviceRecord={isServiceRecord}
+      />
 
-      <OpenServiceItemBlock data={data} transform={copy} />
+      {isServiceRecord ? <ServiceRecordUseBlock /> : null}
+
+      <OpenServiceItemBlock
+        data={data}
+        transform={copy}
+        serviceRecord={isServiceRecord}
+      />
 
       {showCoreSection ? (
       <section className="pdf-document-section packet-two-col packet-core-section grid gap-7 border-b border-[#ded7cf] px-4 py-6 sm:px-8 sm:py-7 lg:grid-cols-2 lg:px-10">
