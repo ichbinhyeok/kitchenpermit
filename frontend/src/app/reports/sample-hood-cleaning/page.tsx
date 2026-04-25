@@ -6,9 +6,9 @@ import { PrintButton } from "@/components/print-button";
 import { getAxis1PacketPreviewData } from "@/lib/axis1-packet-preview";
 
 export const metadata: Metadata = {
-  title: "Sample Customer Service Report",
+  title: "Sample Customer Proof Link",
   description:
-    "A customer-facing kitchen exhaust cleaning report sample for restaurant operators after service.",
+    "A customer-facing kitchen exhaust proof link sample for restaurant operators after service.",
 };
 
 const reportData = getAxis1PacketPreviewData({
@@ -26,7 +26,7 @@ export default function SampleHoodCleaningReportPage() {
               Customer-facing sample link
             </p>
             <p className="mt-1 text-sm font-semibold leading-6 text-[#151515]">
-              This is the document-only surface a restaurant operator would open
+              This is the customer proof link a restaurant operator would open
               after service.
             </p>
           </div>

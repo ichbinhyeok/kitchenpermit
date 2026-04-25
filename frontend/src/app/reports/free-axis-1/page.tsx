@@ -6,8 +6,8 @@ import {
 } from "@/lib/axis1-packet-builder";
 
 export const metadata: Metadata = {
-  title: "Customer Service Report",
-  description: "A free unbranded kitchen exhaust service report link.",
+  title: "Customer Proof Link",
+  description: "A free unbranded kitchen exhaust customer proof link.",
   robots: {
     index: false,
     follow: false,

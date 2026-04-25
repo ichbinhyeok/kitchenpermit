@@ -899,16 +899,16 @@ export function Axis1PacketDocument({
         ) : null}
       </header>
 
-      <SummaryBand data={data} transform={copy} />
+      {isServiceRecord ? (
+        <SummaryBand data={data} transform={copy} />
+      ) : (
+        <CustomerProofSnapshot data={data} transform={copy} />
+      )}
 
       <OutputRoleBlock
         customerFacing={isCustomerReport}
         serviceRecord={isServiceRecord}
       />
-
-      {!isServiceRecord ? (
-        <CustomerProofSnapshot data={data} transform={copy} />
-      ) : null}
 
       {isServiceRecord ? <ServiceRecordUseBlock /> : null}
 
