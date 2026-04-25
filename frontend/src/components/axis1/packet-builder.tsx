@@ -109,7 +109,7 @@ const fieldPhotoSlots = [
     proofRole: "Section reset proof",
     tone: "after",
     keywords: ["filter", "baffle", "filters", "fl"],
-    required: true,
+    required: false,
   },
   {
     id: "access-condition",
@@ -122,7 +122,7 @@ const fieldPhotoSlots = [
     proofRole: "Access-path record",
     tone: "issue",
     keywords: ["access", "duct", "panel", "block", "blocked", "exception", "dk"],
-    required: true,
+    required: false,
   },
   {
     id: "rooftop-fan",
@@ -135,7 +135,7 @@ const fieldPhotoSlots = [
     proofRole: "Rooftop condition record",
     tone: "record",
     keywords: ["roof", "rooftop", "fan", "hinge", "curb", "rf"],
-    required: true,
+    required: false,
   },
   {
     id: "grease-containment",
@@ -148,7 +148,7 @@ const fieldPhotoSlots = [
     proofRole: "Residue removal proof",
     tone: "record",
     keywords: ["grease", "contain", "drip", "scrape", "residue", "gc"],
-    required: true,
+    required: false,
   },
   {
     id: "service-label",
@@ -660,13 +660,14 @@ function PhotoPlacementReview({
               <p className={labelClassName()}>Role reference</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 Use the role picker on each photo if the auto-sort is wrong.
+                Before / after are core; the rest are recommended proof slots.
               </p>
             </>
           ) : null}
         </div>
         {mobileSheetMode ? (
           <span className="shrink-0 rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Optional
+            Roles
           </span>
         ) : null}
       </div>
@@ -694,7 +695,7 @@ function PhotoPlacementReview({
         <div className="mt-3 rounded-[16px] border border-[#ff6b1a]/18 bg-[#fff0e4] px-3 py-2">
           <p className="text-xs font-semibold leading-5 text-[#b94d11]">
             {orderMatchedCount} phone-style photo(s) were placed by upload order.
-            Review the role before sending the customer report.
+            Review the role before sending the proof packet.
           </p>
         </div>
       ) : null}
@@ -797,12 +798,12 @@ const builderSteps = [
     value: "photos",
     label: "Photos",
     title: "Add photos",
-    copy: "Upload what the crew captured.",
+    copy: "Start with before / after. Add the rest if captured.",
   },
   {
     value: "report",
-    label: "Report",
-    title: "Review",
+    label: "Packet",
+    title: "Preview",
     copy: "Tune wording only if needed.",
   },
 ] as const satisfies ReadonlyArray<{
@@ -966,7 +967,7 @@ async function preparePhotoForPreview(file: File): Promise<PreparedPhotoPreview>
   if (!isLikelyImageFile(file)) {
     return {
       ok: false,
-      reason: "Only image files can be used in the customer report.",
+      reason: "Only image files can be used in the proof packet.",
     };
   }
 
@@ -1242,17 +1243,17 @@ export function PacketBuilder() {
     hasOrderMatchedPhotos
       ? `${orderMatchedPhotoCount} photo match(es) need review`
       : missingRequiredSlots.length === 0
-      ? "Required proof complete"
+      ? "Core proof handled"
       : totalFieldPhotoCount === 0
-        ? "Have photos? Choose them here"
-        : `${missingRequiredSlots.length} proof slot(s) still missing`;
+        ? "Have photos? Start with before / after"
+        : `${missingRequiredSlots.length} core photo(s) still open`;
   const proofReadinessCopy =
     hasOrderMatchedPhotos
       ? "Phone-style filenames were placed by upload order. Confirm the roles before sending."
       : missingRequiredSlots.length === 0
-      ? "Required proof is either uploaded or intentionally marked for this visit."
+      ? "Before / after is uploaded or intentionally marked for this visit. Add recommended photos only when they help the customer."
       : totalFieldPhotoCount === 0
-        ? "No photos? You can continue anyway. Have photos? Choose them from the phone and fix any wrong match in preview."
+        ? "No photos? Continue anyway. If the crew captured a batch, choose from phone files and fix any wrong match in preview."
         : unplacedFieldPhotos.length > 0
           ? `${unplacedFieldPhotos.length} extra photo(s) waiting for a role.`
         : `Missing: ${firstMissingSlots.map((slot) => slot.shortLabel).join(", ")}.`;
@@ -1296,7 +1297,7 @@ export function PacketBuilder() {
         ? {
             tone: "neutral",
             title: "Ready without photos",
-            copy: "The report can explain the visit. Add photos only if the crew captured them.",
+            copy: "The packet can explain the visit. Add photos only if the crew captured them.",
           }
         : missingRequiredSlots.length > 0
           ? {
@@ -1354,7 +1355,7 @@ export function PacketBuilder() {
     builderStep === "job"
       ? "Continue to photos"
       : builderStep === "photos"
-        ? "Review report"
+        ? "Preview packet"
         : reportOutputMode === "link"
           ? "Copy link"
           : "Save PDF";
@@ -1374,7 +1375,7 @@ export function PacketBuilder() {
       : builderStep === "photos"
         ? totalFieldPhotoCount > 0
           ? `${totalFieldPhotoCount} photo(s)`
-          : "Photos optional"
+          : "Core if captured"
         : values.customerActionOverride?.trim()
           ? "Custom copy"
           : "Auto copy";
@@ -1395,8 +1396,8 @@ export function PacketBuilder() {
     reportOutputMode === "link"
       ? {
           label: "Customer link preview",
-          title: "Premium web report",
-          copy: "Best for texting or emailing a noindex report link. Free links are unbranded and do not include local photos until hosted storage is enabled.",
+          title: "Premium web packet",
+          copy: "Best for texting or emailing a noindex proof link. Free links are unbranded and do not include local photos until hosted storage is enabled.",
           badge: "Primary output",
         }
       : {
@@ -1817,8 +1818,8 @@ export function PacketBuilder() {
     }
     toast.success("Photo attached", {
       description: slot
-        ? `${slot.shortLabel} is ready for the customer report.`
-        : "Photo is ready for the customer report.",
+        ? `${slot.shortLabel} is ready for the proof packet.`
+        : "Photo is ready for the proof packet.",
     });
   }
 
@@ -2177,27 +2178,27 @@ export function PacketBuilder() {
           <Panel className="pdf-print-hide px-4 py-4 2xl:sticky 2xl:top-24 md:px-6 md:py-6">
             <div className="pdf-print-hide border-b border-border pb-3 md:pb-4">
               <p className={`${labelClassName()} hidden md:block`}>
-                Free customer report builder
+                Free proof packet builder
               </p>
               <h2 className="mt-2 hidden font-display text-[1.32rem] font-bold leading-[0.96] tracking-[-0.06em] text-foreground md:mt-3 md:block md:text-[1.55rem]">
-                Create the customer handoff first. Tune only if needed.
+                Create the proof packet first. Tune only if needed.
               </h2>
               <p className="mt-2 hidden text-sm leading-6 text-muted-foreground md:block">
-                This creates a customer-facing hood cleaning report from the
-                visit result, photos, and next-service timing.
+                Your crew already takes photos. This turns job facts and field
+                photos into a customer explanation without office rewrite.
               </p>
               <div className="mt-4 hidden gap-2 md:grid md:grid-cols-3 2xl:grid-cols-1">
                 {[
-                  ["Job result", activeJobPattern.label, "Sets report language."],
+                  ["Job result", activeJobPattern.label, "Sets packet language."],
                   [
                     "Photos",
-                    totalFieldPhotoCount > 0 ? `${totalFieldPhotoCount} attached` : "Optional",
-                    "Add what the crew captured.",
+                    totalFieldPhotoCount > 0 ? `${totalFieldPhotoCount} attached` : "Core 2",
+                    "Core before / after. Rest recommended.",
                   ],
                   [
-                    "PDF",
+                    "Output",
                     totalFieldPhotoCount > 0 ? `${uploadedProofCount} placed` : "Ready",
-                    "Review and print PDF.",
+                    "Review, copy link, or print.",
                   ],
                 ].map(([label, value, copy]) => (
                   <div
@@ -2218,7 +2219,7 @@ export function PacketBuilder() {
                       Free builder first. Branded operating setup later.
                     </p>
                     <p className="mt-1 hidden text-xs leading-5 text-muted-foreground sm:block">
-                      Vendors can create a neutral customer report now. Setup
+                      Vendors can create a neutral customer packet now. Setup
                       turns the same flow into your company-owned closeout system.
                     </p>
                   </div>
@@ -2228,7 +2229,7 @@ export function PacketBuilder() {
                 </div>
                 <div className="mt-3 grid gap-2 sm:hidden">
                   {[
-                    ["Free", "Neutral report, local photos, print/save."],
+                    ["Free", "Neutral packet, local photos, print/save."],
                     ["Setup", "Logo, phone, saved history, branded delivery."],
                   ].map(([label, value]) => (
                     <div
@@ -2249,7 +2250,7 @@ export function PacketBuilder() {
                     {
                       label: "Free now",
                       tone: "neutral",
-                      items: ["Neutral report shell", "Local photo preview", "Print / save PDF"],
+                      items: ["Neutral packet shell", "Local photo preview", "Print / save PDF"],
                     },
                     {
                       label: "Setup unlocks",
@@ -2308,7 +2309,7 @@ export function PacketBuilder() {
                         : step.value === "photos"
                           ? totalFieldPhotoCount > 0
                             ? `${totalFieldPhotoCount} photos`
-                            : "Optional"
+                            : "Core 2"
                           : totalFieldPhotoCount > 0
                             ? `${uploadedProofCount} placed`
                             : "Ready";
@@ -2365,7 +2366,7 @@ export function PacketBuilder() {
                     <p className={labelClassName()}>Quick capture</p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       Fill the visit facts the office or owner usually knows right
-                      away. The customer report copy writes itself from these choices.
+                      away. The customer explanation writes itself from these choices.
                     </p>
                   </div>
                   <Sparkles className="h-4 w-4 shrink-0 text-accent" />
@@ -2789,15 +2790,16 @@ export function PacketBuilder() {
                     </p>
                     <h3 className="mt-2 text-lg font-bold leading-tight tracking-[-0.018em] text-white md:text-xl">
                       <span className="md:hidden">
-                        Have photos? Choose them. No photos? Keep going.
+                        Start with before / after. Add the rest if useful.
                       </span>
                       <span className="hidden md:inline">
-                        Have photos? Choose or drop them. No photos? Keep going.
+                        Start with before / after. Drop the rest if useful.
                       </span>
                     </h3>
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
-                      Open the phone files if the crew captured a batch. If a
-                      match is wrong, fix the role before printing.
+                      Core proof is before and after hood photos. Filters,
+                      access, fan, grease, and label photos are recommended only
+                      when they help explain the job.
                     </p>
                   </div>
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] md:h-11 md:w-11">
@@ -2855,15 +2857,15 @@ export function PacketBuilder() {
                                 {uploaded
                                   ? uploaded.name
                                   : slot.id === "hood-before"
-                                    ? "Optional. Use it if the crew captured a dirty-start photo."
-                                    : "Optional. Use it if the crew captured a clean-finish photo."}
+                                    ? "Best starting point if the crew captured a dirty-start photo."
+                                    : "Best starting point if the crew captured a clean-finish photo."}
                               </p>
                               <div className="mt-3 flex flex-wrap gap-2">
                                 <Badge
                                   variant="outline"
                                   className="border-white/12 bg-white/[0.08] px-3 py-1 text-[11px] text-white/66"
                                 >
-                                  {uploaded ? "Ready" : "Optional"}
+                                  {uploaded ? "Ready" : "Core"}
                                 </Badge>
                                 {uploaded ? (
                                   <button
@@ -2929,8 +2931,8 @@ export function PacketBuilder() {
                         <span className="hidden md:inline">Choose or drop the rest</span>
                       </p>
                       <p className="mt-2 max-w-sm text-sm leading-6 text-white/52">
-                        Filters, fan, label, or access photos improve the report.
-                        They are optional, and wrong matches can be changed later.
+                        Filters, fan, label, access, or grease photos can make the
+                        packet stronger. They are recommended, not required.
                       </p>
                       <Badge
                         variant="outline"
@@ -2963,14 +2965,14 @@ export function PacketBuilder() {
                         <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.012em]">
                           {hasProofWorkStarted
                             ? proofReadinessTitle
-                            : "Photos are optional"}
+                            : "Before / after is enough to start"}
                         </p>
                       </div>
                       <Badge
                         variant="outline"
                         className="border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-1 text-[11px] text-[#ffb489]"
                       >
-                        {requiredProofReadyCount}/{requiredProofCount}
+                        Core {requiredProofReadyCount}/{requiredProofCount}
                       </Badge>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-white/52">
@@ -3215,11 +3217,11 @@ export function PacketBuilder() {
                           : "Review order"
                       : resolution === "not-captured"
                         ? "Not captured"
-                        : resolution === "not-applicable"
-                          ? "N/A"
+                      : resolution === "not-applicable"
+                        ? "N/A"
                       : slot.required
                         ? "Missing"
-                        : "Optional";
+                        : "Recommended";
                     const slotStatusClass = uploaded
                       ? uploaded.confidence === "order"
                         ? "border-[#ffb489]/30 bg-[#ffb489]/10 text-[#ffcfb5]"
@@ -3255,7 +3257,7 @@ export function PacketBuilder() {
                             variant="outline"
                             className="border-white/12 bg-white/[0.04] text-[10px] text-white/45 xl:mt-2 2xl:mt-0"
                           >
-                            {slot.required ? "Required" : "Optional"}
+                            {slot.required ? "Core" : "Recommended"}
                           </Badge>
                         </div>
                         <div className="min-w-0">
@@ -3385,7 +3387,7 @@ export function PacketBuilder() {
                     onClick={() => selectBuilderStep("report")}
                     className="rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#111315]"
                   >
-                    Review report
+                    Preview packet
                   </button>
                 </div>
               </div>
@@ -4077,7 +4079,7 @@ export function PacketBuilder() {
                   }}
                   className="h-11 rounded-[16px] bg-[#111315] text-[11px] font-bold uppercase tracking-[0.12em] text-white"
                 >
-                  {hasOrderMatchedPhotos ? "Confirm roles" : "Review report"}
+                  {hasOrderMatchedPhotos ? "Confirm roles" : "Preview packet"}
                 </button>
               </DrawerFooter>
             </>
@@ -4242,7 +4244,7 @@ export function PacketBuilder() {
                 <div className="rounded-[18px] border border-black/8 bg-white px-4 py-3">
                   <p className={labelClassName()}>Free output</p>
                   <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
-                    Neutral report, local preview, no placeholder contact blocks.
+                    Neutral customer packet, local preview, no placeholder contact blocks.
                   </p>
                 </div>
                 <div className="rounded-[18px] border border-[#f26a21]/22 bg-[#fff7ef] px-4 py-3">

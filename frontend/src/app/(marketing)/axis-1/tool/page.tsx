@@ -4,9 +4,9 @@ import { ButtonLink } from "@/components/ui/button-link";
 import { SectionLabel } from "@/components/ui/section-label";
 
 export const metadata: Metadata = {
-  title: "Free Hood Service Report Builder",
+  title: "Free Hood Proof Packet Builder",
   description:
-    "Free customer-facing hood cleaning report builder for kitchen exhaust vendors. Create a clean service report from job facts and field photos, then print or save the PDF.",
+    "Free customer-facing hood proof packet builder for kitchen exhaust vendors. Create a clean customer explanation from job facts and field photos, then copy a link or save the PDF.",
 };
 
 export default function Axis1ToolPage() {
@@ -17,20 +17,20 @@ export default function Axis1ToolPage() {
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div className="min-w-0">
               <SectionLabel>
-                <span className="sm:hidden">FREE REPORT BUILDER</span>
-                <span className="hidden sm:inline">FREE TOOL FOR HOOD CLEANING VENDORS</span>
+                <span className="sm:hidden">FREE PROOF PACKET</span>
+                <span className="hidden sm:inline">FREE PROOF PACKET TOOL FOR HOOD CLEANING VENDORS</span>
               </SectionLabel>
               <h1 className="mt-2 max-w-3xl font-display text-[clamp(1.62rem,8vw,2.65rem)] font-bold leading-[0.94] tracking-[-0.07em] text-foreground">
-                Make a customer-ready hood service report in minutes.
+                Make a customer-ready hood proof packet in minutes.
               </h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground md:text-[0.95rem]">
-                Pick the job result, add the field photos you have, then print
-                or save a clean report your restaurant customer can understand.
+                Pick the job result, add the field photos you have, then copy a
+                clean link or save a PDF your restaurant customer can understand.
               </p>
             </div>
             <div className="flex min-w-0 flex-col gap-3 lg:items-end">
               <div className="grid grid-cols-3 gap-1.5 text-[11px] text-muted-foreground sm:gap-2 sm:text-xs lg:w-[520px]">
-                {["1. Pick result", "2. Add photos", "3. Print / PDF"].map((item) => (
+                {["1. Pick result", "2. Add photos", "3. Link / PDF"].map((item) => (
                   <div
                     key={item}
                     className="rounded-full border border-black/8 bg-white/72 px-2.5 py-2 text-center font-semibold sm:px-3"
@@ -41,7 +41,7 @@ export default function Axis1ToolPage() {
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
                 <ButtonLink href="/samples/axis-1" variant="outline" withIcon>
-                  View sample report
+                  View sample packet
                 </ButtonLink>
                 <ButtonLink
                   href="/exports/axis-1-packet?branding=applied&scenario=exception"
@@ -58,7 +58,7 @@ export default function Axis1ToolPage() {
             {[
               [
                 "What it makes",
-                "A customer-facing hood cleaning service report, not an internal tech note.",
+                "A customer-facing hood cleaning proof packet, not an internal tech note.",
               ],
               [
                 "Fast path",
@@ -66,7 +66,7 @@ export default function Axis1ToolPage() {
               ],
               [
                 "Branded setup",
-                "Logo, phone, dispatch email, and reply CTA are shown in the report after setup.",
+                "Logo, phone, dispatch email, and reply CTA are shown in the packet after setup.",
               ],
             ].map(([label, copy]) => (
               <div key={label} className="rounded-[18px] border border-black/8 bg-white/64 px-4 py-3">

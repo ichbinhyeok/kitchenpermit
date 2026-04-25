@@ -7,9 +7,9 @@ import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { getAxis1PacketPreviewData } from "@/lib/axis1-packet-preview";
 
 export const metadata: Metadata = {
-  title: "Kitchen Exhaust Cleaning Report Sample",
+  title: "Kitchen Exhaust Proof Packet Sample",
   description:
-    "A public kitchen exhaust cleaning report sample for vendors who want a customer-readable service report after the hood cleaning visit.",
+    "A public kitchen exhaust proof packet sample for vendors who want customer-readable proof after the hood cleaning visit.",
 };
 
 const sampleData = getAxis1PacketPreviewData({
@@ -26,7 +26,7 @@ const proofRows = [
   {
     label: "Vendor defense",
     title: "Blocked access is shown cleanly instead of being buried.",
-    copy: "The report protects the vendor from implying a section was cleaned when it was not reachable.",
+    copy: "The packet protects the vendor from implying a section was cleaned when it was not reachable.",
   },
   {
     label: "Paid setup",
@@ -46,7 +46,7 @@ const setupRows = [
   ["Vendor identity", "Logo, office line, dispatch email, direct callback path"],
   ["Technician context", "Tech ID, service reference, certificate or internal record"],
   ["Delivery format", "Public link, branded PDF, and same-day customer handoff"],
-  ["Scenario coverage", "Clean-close reports and open-item reports"],
+  ["Scenario coverage", "Clean-close packets and open-item packets"],
 ] as const;
 
 const snapshotRows: ReadonlyArray<readonly [ReactNode, string]> = [
@@ -93,7 +93,7 @@ function ReportProofPlate() {
             Public sample shell
           </p>
           <h2 className="mt-3 max-w-sm font-display text-[2.05rem] font-bold leading-[0.92] tracking-[-0.055em]">
-            Same-day service report
+            Same-day proof packet
           </h2>
         </div>
         <Flame className="h-5 w-5 shrink-0 text-[#f26a21]" strokeWidth={2} />
@@ -142,13 +142,13 @@ export default function SampleAxis1Page() {
                   Proof your customer can read.
                 </h1>
                 <p className="mt-7 max-w-xl text-base leading-8 text-white/72 md:text-lg">
-                  A public sample of the customer-facing report after a kitchen exhaust
+                  A public sample of the customer-facing proof packet after a kitchen exhaust
                   cleaning visit: cleaned areas, blocked access, photo proof, and the
                   next action.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <ActionLink href="#sample-report" tone="accent">
-                    View the report
+                    View the packet
                   </ActionLink>
                   <ActionLink href="/reports/sample-hood-cleaning" tone="light">
                     Open customer link
@@ -271,7 +271,7 @@ export default function SampleAxis1Page() {
               Vendor sample page
             </p>
             <h2 className="mt-4 font-display text-[2.6rem] font-bold leading-[0.92] tracking-[-0.06em] text-foreground md:text-[4.45rem]">
-              The report structure, shown safely.
+              The proof packet structure, shown safely.
             </h2>
           </div>
           <div className="space-y-5">

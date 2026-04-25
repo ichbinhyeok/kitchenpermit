@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "hood service report builder",
+    name: "hood proof packet builder",
     short_name: "hood",
     description:
-      "Mobile-first hood service report builder for kitchen exhaust vendors.",
+      "Mobile-first hood proof packet builder for kitchen exhaust vendors.",
     start_url: "/axis-1/tool",
     scope: "/",
     display: "standalone",
@@ -41,9 +41,9 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: "Create service report",
-        short_name: "Report",
-        description: "Open the mobile hood service report builder.",
+        name: "Create proof packet",
+        short_name: "Packet",
+        description: "Open the mobile hood proof packet builder.",
         url: "/axis-1/tool",
         icons: [
           {
@@ -54,9 +54,9 @@ export default function manifest(): MetadataRoute.Manifest {
         ],
       },
       {
-        name: "View sample report",
+        name: "View sample proof packet",
         short_name: "Sample",
-        description: "Open the customer-facing sample report.",
+        description: "Open the customer-facing sample proof packet.",
         url: "/samples/axis-1",
         icons: [
           {
