@@ -82,8 +82,8 @@ export default async function StartSubmittedPage({
     <>
       <PageHeader
         label="START // SUBMITTED"
-        title="The request is structured. The next step is human."
-        description="For MVP, the website hands the request into manual commerce. That keeps the flow honest while the order spine and paid delivery path mature."
+        title="The setup request is structured. The next step is human."
+        description="For MVP, proof packet setup and sales-list delivery stay manual. That keeps the promise honest while payment and hosted delivery mature."
       />
       <section className="container-shell grid gap-6 pb-20 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Panel className="px-6 py-6">
@@ -131,7 +131,7 @@ export default async function StartSubmittedPage({
           <p className="mt-4 text-base leading-8 text-muted-foreground">
             This opens a structured draft to {siteConfig.supportEmail}. After the email
             is sent, hood can review the inquiry, convert it into an order, and
-            fulfill the packet or paid batch without forcing fake self-serve flow.
+            fulfill the proof packet setup or paid batch without forcing fake self-serve flow.
           </p>
           <div className="mt-6 grid gap-3">
             {[

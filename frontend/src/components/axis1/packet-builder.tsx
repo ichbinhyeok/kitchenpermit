@@ -65,105 +65,21 @@ import {
   axis1ExceptionGroups,
   axis1ExceptionOptions,
   axis1FollowUpOptions,
-  buildAxis1FreeReportHref,
   buildAxis1NeutralPacketData,
   type Axis1BuilderExceptionKind,
   type Axis1BuilderFormValues,
 } from "@/lib/axis1-packet-builder";
-
-const fieldPhotoSlots = [
-  {
-    id: "hood-before",
-    proofId: "P-01",
-    systemRef: "HD-01",
-    label: "Before hood interior",
-    shortLabel: "Before",
-    title: "Hood interior before clean",
-    caption: "Field photo captured before work began.",
-    proofRole: "Before clean reference",
-    tone: "before",
-    keywords: ["before", "pre", "dirty", "start", "hood"],
-    required: true,
-  },
-  {
-    id: "hood-after",
-    proofId: "P-02",
-    systemRef: "HD-01",
-    label: "After hood interior",
-    shortLabel: "After",
-    title: "Hood interior after clean",
-    caption: "Field photo captured after reachable surfaces were cleaned.",
-    proofRole: "After clean confirmation",
-    tone: "after",
-    keywords: ["after", "clean", "final", "done", "complete"],
-    required: true,
-  },
-  {
-    id: "filter-bank",
-    proofId: "P-03",
-    systemRef: "FL-01",
-    label: "Filter bank reset",
-    shortLabel: "Filters",
-    title: "Baffle filter reset",
-    caption: "Filters shown removed, cleaned, inspected, or returned to service.",
-    proofRole: "Section reset proof",
-    tone: "after",
-    keywords: ["filter", "baffle", "filters", "fl"],
-    required: false,
-  },
-  {
-    id: "access-condition",
-    proofId: "P-04",
-    systemRef: "DK-02",
-    label: "Access / exception condition",
-    shortLabel: "Access",
-    title: "Duct access condition",
-    caption: "Access, blocked section, or exception condition tied to the report.",
-    proofRole: "Access-path record",
-    tone: "issue",
-    keywords: ["access", "duct", "panel", "block", "blocked", "exception", "dk"],
-    required: false,
-  },
-  {
-    id: "rooftop-fan",
-    proofId: "P-05",
-    systemRef: "RF-01",
-    label: "Rooftop fan / hinge line",
-    shortLabel: "Fan",
-    title: "Rooftop fan line",
-    caption: "Visible fan, hinge, curb, or rooftop condition tied to the report.",
-    proofRole: "Rooftop condition record",
-    tone: "record",
-    keywords: ["roof", "rooftop", "fan", "hinge", "curb", "rf"],
-    required: false,
-  },
-  {
-    id: "grease-containment",
-    proofId: "P-06",
-    systemRef: "GC-01",
-    label: "Grease removed / containment",
-    shortLabel: "Grease",
-    title: "Grease removed / containment",
-    caption: "Removed buildup, containment, or drip-path condition recorded.",
-    proofRole: "Residue removal proof",
-    tone: "record",
-    keywords: ["grease", "contain", "drip", "scrape", "residue", "gc"],
-    required: false,
-  },
-  {
-    id: "service-label",
-    proofId: "P-07",
-    systemRef: "LBL-01",
-    label: "Service label / notice",
-    shortLabel: "Label",
-    title: "Service label / notice posted",
-    caption: "Close-out label, exception notice, or next-due sticker captured.",
-    proofRole: "Close-out label proof",
-    tone: "record",
-    keywords: ["label", "sticker", "notice", "tag", "next", "due", "lbl"],
-    required: false,
-  },
-] as const;
+import {
+  axis1FieldPhotoSlots as fieldPhotoSlots,
+  buildAxis1PacketDataWithFieldPhotos,
+  emptyAxis1FieldPhotoState,
+  emptyAxis1PhotoSlotResolutions,
+  type Axis1FieldPhotoConfidence as FieldPhotoConfidence,
+  type Axis1FieldPhotoSlotId as FieldPhotoSlotId,
+  type Axis1PhotoSlotResolution as PhotoSlotResolution,
+  type Axis1UploadedFieldPhoto as UploadedFieldPhoto,
+} from "@/lib/axis1-field-photos";
+import { saveAxis1LocalPacket } from "@/lib/axis1-local-packet-store";
 
 const jobPatternPresets = [
   {
@@ -203,21 +119,11 @@ const jobPatternPresets = [
   followUpMode: Axis1BuilderFormValues["followUpMode"];
 }>;
 
-type FieldPhotoSlotId = (typeof fieldPhotoSlots)[number]["id"];
-type FieldPhotoConfidence = "keyword" | "order" | "manual";
 type BuilderStep = "job" | "photos" | "report";
 type MobileSheetView = "photo-review" | "report-actions";
-type PhotoSlotResolution = "open" | "not-captured" | "not-applicable";
 type PacketPresentationMode = "standard" | "short";
 type ReportOutputMode = "link" | "pdf";
 type SetupNoticeAction = "copy-link" | "open-link" | "print-pdf";
-type UploadedFieldPhoto = {
-  src: string;
-  name: string;
-  source: "bulk" | "manual";
-  confidence: FieldPhotoConfidence;
-  matchLabel: string;
-};
 type UnplacedFieldPhoto = UploadedFieldPhoto & {
   id: string;
   suggestedSlotId: FieldPhotoSlotId | null;
@@ -910,27 +816,11 @@ function toggleExceptionKind(
 }
 
 function emptyFieldPhotoState(): Record<FieldPhotoSlotId, UploadedFieldPhoto | null> {
-  return {
-    "hood-before": null,
-    "hood-after": null,
-    "filter-bank": null,
-    "access-condition": null,
-    "rooftop-fan": null,
-    "grease-containment": null,
-    "service-label": null,
-  };
+  return emptyAxis1FieldPhotoState();
 }
 
 function emptyPhotoSlotResolutions(): Record<FieldPhotoSlotId, PhotoSlotResolution> {
-  return {
-    "hood-before": "open",
-    "hood-after": "open",
-    "filter-bank": "open",
-    "access-condition": "open",
-    "rooftop-fan": "open",
-    "grease-containment": "open",
-    "service-label": "open",
-  };
+  return emptyAxis1PhotoSlotResolutions();
 }
 
 function readFileAsDataUrl(file: File) {
@@ -1199,7 +1089,6 @@ export function PacketBuilder() {
   }, []);
 
   const previewData = buildAxis1NeutralPacketData(values);
-  const freeReportHref = buildAxis1FreeReportHref(values);
   const uploadedProofCount = fieldPhotoSlots.filter(
     (slot) => uploadedFieldPhotos[slot.id],
   ).length;
@@ -1261,7 +1150,6 @@ export function PacketBuilder() {
     4,
     (requiredProofReadyCount / requiredProofCount) * 100,
   );
-  const serviceLabelUpload = uploadedFieldPhotos["service-label"];
   const selectedCadenceOption =
     axis1CadenceOptions.find((option) => option.value === values.cadence) ??
     axis1CadenceOptions[2];
@@ -1397,7 +1285,7 @@ export function PacketBuilder() {
       ? {
           label: "Customer link preview",
           title: "Premium web packet",
-          copy: "Best for texting or emailing a noindex proof link. Free links are unbranded and do not include local photos until hosted storage is enabled.",
+          copy: "Best for texting or emailing a noindex proof link. This local version includes photos in the same browser; hosted storage is required for real customer delivery.",
           badge: "Primary output",
         }
       : {
@@ -1421,98 +1309,21 @@ export function PacketBuilder() {
       : setupNoticeAction === "open-link"
         ? {
             eyebrow: "Before opening link",
-            title: "Free links stay neutral.",
+            title: "Free local links stay neutral.",
             actionLabel: "Continue to link",
-            copy: "This shared link will open as a noindex customer report without your logo, phone number, dispatch email, saved photos, or branded follow-up path.",
+            copy: "This local test link includes the current photos in this browser only. Cross-device customer delivery still needs hosted storage and branded setup.",
           }
         : {
             eyebrow: "Before copying link",
-            title: "Free links stay neutral.",
+            title: "Free local links stay neutral.",
             actionLabel: "Continue and copy",
-            copy: "This shared link can be sent now, but it will not show your logo, phone number, dispatch email, saved photos, or branded follow-up path.",
+            copy: "This local test link includes the current photos in this browser only. Cross-device customer delivery still needs hosted storage and branded setup.",
           };
-  const previewPacket = {
-    ...previewData,
-    proofPhotos: [
-      ...previewData.proofPhotos.flatMap((photo) => {
-        const slot = fieldPhotoSlots.find((item) => item.proofId === photo.proofId);
-        const uploaded = slot ? uploadedFieldPhotos[slot.id] : null;
-
-        if (!slot) {
-          return [photo];
-        }
-
-        if (!uploaded) {
-          return [];
-        }
-
-        return [
-          {
-            ...photo,
-            src: uploaded.src,
-            label: slot.shortLabel,
-            title: slot.title,
-            caption: `${slot.caption} Local field photo: ${uploaded.name}.`,
-            proofRole: slot.proofRole,
-          },
-        ];
-      }),
-      ...(serviceLabelUpload
-        ? [
-            {
-              src: serviceLabelUpload.src,
-              proofId: "P-07",
-              systemRef: "LBL-01",
-              label: "Label",
-              title: "Service label / notice posted",
-              caption: `Close-out label or notice captured from the field file: ${serviceLabelUpload.name}.`,
-              proofRole: "Close-out label proof",
-              tone: "record" as const,
-              position: "50% 50%",
-            },
-          ]
-        : []),
-    ],
-    photoCoverageRows: previewData.photoCoverageRows.map((row) => {
-      const slot = fieldPhotoSlots.find(
-        (item) =>
-          item.proofId === row.proof ||
-          (item.id === "service-label" && row.item === "Service label / notice"),
-      );
-      const uploaded = slot ? uploadedFieldPhotos[slot.id] : null;
-      const resolution = slot ? photoSlotResolutions[slot.id] : "open";
-
-      if (uploaded) {
-        return {
-          ...row,
-          status: "Uploaded",
-        };
-      }
-
-      if (resolution === "not-captured") {
-        return {
-          ...row,
-          status: "Not captured",
-        };
-      }
-
-      if (resolution === "not-applicable") {
-        return {
-          ...row,
-          status: "N/A",
-        };
-      }
-
-      if (slot) {
-        return {
-          ...row,
-          status: "Not attached",
-        };
-      }
-
-      return row;
-    }),
-  };
+  const previewPacket = buildAxis1PacketDataWithFieldPhotos(
+    previewData,
+    uploadedFieldPhotos,
+    photoSlotResolutions,
+  );
 
   function resetBuilder() {
     form.reset(axis1BuilderDefaults);
@@ -1580,12 +1391,17 @@ export function PacketBuilder() {
     setSetupNoticeAction(null);
 
     if (action === "copy-link") {
-      await copyFreeReportLink();
+      await copyLocalReportLink();
       return;
     }
 
     if (action === "open-link") {
-      window.open(freeReportHref, "_blank", "noopener,noreferrer");
+      const shareUrl = saveCurrentLocalReportUrl();
+
+      if (shareUrl) {
+        window.open(shareUrl, "_blank", "noopener,noreferrer");
+      }
+
       return;
     }
 
@@ -1594,17 +1410,41 @@ export function PacketBuilder() {
     }
   }
 
-  async function copyFreeReportLink() {
-    const shareUrl = new URL(freeReportHref, window.location.origin).toString();
+  function saveCurrentLocalReportUrl() {
+    const result = saveAxis1LocalPacket({
+      values,
+      uploadedFieldPhotos,
+      photoSlotResolutions,
+      presentationMode: packetPresentationMode,
+      visibleSections: packetSections,
+    });
+
+    if (!result.ok) {
+      toast.error("Could not save local packet", {
+        description: result.error,
+      });
+      return null;
+    }
+
+    return new URL(result.href, window.location.origin).toString();
+  }
+
+  async function copyLocalReportLink() {
+    const shareUrl = saveCurrentLocalReportUrl();
+
+    if (!shareUrl) {
+      return;
+    }
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success("Free report link copied", {
-        description: "The link is noindex and unbranded. Local photos are not included.",
+      toast.success("Local photo link copied", {
+        description:
+          "Photos are included for this browser QA pass. Hosted storage is still required for real customer delivery.",
       });
     } catch {
       toast.error("Could not copy automatically", {
-        description: "Open the report link and copy the browser address.",
+        description: "Open the local packet link and copy the browser address.",
       });
     }
   }
@@ -3414,7 +3254,7 @@ export function PacketBuilder() {
                   className="rounded-full bg-[#f26a21] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white hover:bg-[#d95d1d]"
                 >
                   <Copy className="h-4 w-4" />
-                  Copy free link
+                  Copy local link
                 </Button>
               </div>
             </form>
@@ -3511,7 +3351,7 @@ export function PacketBuilder() {
               <div className="mt-2.5 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-[11px] leading-4 opacity-70">
                   {reportOutputMode === "link"
-                    ? "Copy opens an unbranded noindex report. Photos stay local for now."
+                    ? "Copy opens an unbranded local report with the current photos in this browser."
                     : "This is the document copy for save/print."}
                 </p>
                 <button
@@ -3701,7 +3541,7 @@ export function PacketBuilder() {
                       className="rounded-full bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#d95d1d]"
                     >
                       <Copy className="h-3.5 w-3.5" />
-                      Copy free link
+                      Copy local link
                     </Button>
                     <Button
                       type="button"
@@ -3793,12 +3633,12 @@ export function PacketBuilder() {
                         <div className="min-w-0">
                           <p className={labelClassName()}>Free share link</p>
                           <p className="mt-1 text-sm font-bold tracking-[-0.03em] text-foreground">
-                            Noindex, unbranded, document-only.
+                            Noindex, unbranded, local photo test.
                           </p>
                           <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
-                            This is the free link a vendor can send today. It
-                            carries the written report only; uploaded field
-                            photos stay local until hosted storage is enabled.
+                            This link stores the current packet and photos in
+                            this browser for QA. Hosted storage is still needed
+                            before cross-device customer delivery.
                           </p>
                         </div>
                         <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
@@ -4116,9 +3956,9 @@ export function PacketBuilder() {
                   </SegmentedControl>
                   <div className="mt-3 rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5">
                     <p className="text-xs leading-5 text-muted-foreground">
-                      Free link is noindex and unbranded. It does not include
-                      local photos until hosted storage is enabled. PDF keeps
-                      the printable document copy.
+                      Free local links are noindex and unbranded. They include
+                      photos in this browser for QA; hosted storage is still
+                      required for real customer delivery.
                     </p>
                   </div>
                 </div>
@@ -4128,7 +3968,7 @@ export function PacketBuilder() {
                     onClick={() => requestFreeReportOutput("copy-link")}
                     className="h-11 rounded-[16px] bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white"
                   >
-                    Copy free link
+                    Copy local link
                   </button>
                   <button
                     type="button"

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { buildEmailDraftUrl } from "@/lib/start-request";
 
 type InquiryCreateResponse = {
   id: string;
@@ -27,6 +28,8 @@ export function StartRequestForm() {
       notes: String(formData.get("notes") ?? "").trim(),
     };
 
+    const fallbackEmailDraftUrl = buildEmailDraftUrl(payload);
+
     try {
       const response = await fetch("/api/public/inquiries", {
         method: "POST",
@@ -38,7 +41,10 @@ export function StartRequestForm() {
       });
 
       if (!response.ok) {
-        setErrorMessage("The request could not be saved. Check the fields and try again.");
+        setErrorMessage(
+          "The request could not be saved. Opening a structured email draft instead.",
+        );
+        window.location.href = fallbackEmailDraftUrl;
         return;
       }
 
@@ -47,7 +53,10 @@ export function StartRequestForm() {
         router.push(`/start/submitted?leadId=${inquiry.id}`);
       });
     } catch {
-      setErrorMessage("The request could not reach the backend. Confirm the API is running.");
+      setErrorMessage(
+        "The request could not reach the backend. Opening a structured email draft instead.",
+      );
+      window.location.href = fallbackEmailDraftUrl;
     }
   }
 
@@ -120,11 +129,11 @@ export function StartRequestForm() {
           <select
             name="productInterest"
             className="rounded-[22px] border border-border bg-white/86 px-4 py-3.5 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(242,106,33,0.12)]"
-            defaultValue="Service packets + sales lists"
+            defaultValue="Proof packet setup"
           >
-            <option>Service packets</option>
+            <option>Proof packet setup</option>
+            <option>Proof packet setup + sales lists</option>
             <option>Sales lists</option>
-            <option>Service packets + sales lists</option>
           </select>
         </label>
       </div>
@@ -136,7 +145,7 @@ export function StartRequestForm() {
           name="notes"
           rows={5}
           className="rounded-[26px] border border-border bg-white/86 px-4 py-3.5 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(242,106,33,0.12)]"
-          placeholder="Current service area, preferred batch focus, packet needs, or timing."
+          placeholder="Current service area, whether you want branded proof packets, customer link/PDF delivery, sales-list batches, or timing."
         />
       </label>
       {errorMessage ? (
@@ -149,7 +158,7 @@ export function StartRequestForm() {
         disabled={isPending}
         className="mt-3 inline-flex items-center justify-center rounded-full border border-accent bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-[0_18px_40px_rgba(242,106,33,0.18)] transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isPending ? "Saving request..." : "Continue"}
+        {isPending ? "Saving request..." : "Request setup"}
       </button>
     </form>
   );
