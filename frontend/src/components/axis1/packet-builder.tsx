@@ -210,6 +210,7 @@ type MobileSheetView = "photo-review" | "report-actions";
 type PhotoSlotResolution = "open" | "not-captured" | "not-applicable";
 type PacketPresentationMode = "standard" | "short";
 type ReportOutputMode = "link" | "pdf";
+type SetupNoticeAction = "copy-link" | "open-link" | "print-pdf";
 type UploadedFieldPhoto = {
   src: string;
   name: string;
@@ -1172,6 +1173,8 @@ export function PacketBuilder() {
   const [photoImportNotice, setPhotoImportNotice] =
     useState<PhotoImportNotice | null>(null);
   const [mobileSheet, setMobileSheet] = useState<MobileSheetView | null>(null);
+  const [setupNoticeAction, setSetupNoticeAction] =
+    useState<SetupNoticeAction | null>(null);
 
   useEffect(() => {
     const requestedStep = new URLSearchParams(window.location.search).get("step");
@@ -1385,7 +1388,7 @@ export function PacketBuilder() {
             ? "Photos are attached. Review if needed."
             : "No photos is acceptable."
         : reportOutputMode === "link"
-          ? "Check the customer link view, then save PDF."
+          ? "Check the customer link view, then copy or save PDF."
           : "Check the PDF copy before saving.";
   const mobilePrimaryIsPrint = builderStep === "report" && reportOutputMode === "pdf";
   const reportOutputMeta =
@@ -1406,6 +1409,27 @@ export function PacketBuilder() {
     reportOutputMode === "pdf" ? packetPresentationMode : "standard";
   const activePreviewSections =
     reportOutputMode === "pdf" ? packetSections : standardPacketSections;
+  const setupNoticeMeta =
+    setupNoticeAction === "print-pdf"
+      ? {
+          eyebrow: "Before saving PDF",
+          title: "Free PDFs stay neutral.",
+          actionLabel: "Continue to PDF",
+          copy: "This PDF will not show your logo, phone number, dispatch email, customer reply CTA, saved history, or hosted photo delivery.",
+        }
+      : setupNoticeAction === "open-link"
+        ? {
+            eyebrow: "Before opening link",
+            title: "Free links stay neutral.",
+            actionLabel: "Continue to link",
+            copy: "This shared link will open as a noindex customer report without your logo, phone number, dispatch email, saved photos, or branded follow-up path.",
+          }
+        : {
+            eyebrow: "Before copying link",
+            title: "Free links stay neutral.",
+            actionLabel: "Continue and copy",
+            copy: "This shared link can be sent now, but it will not show your logo, phone number, dispatch email, saved photos, or branded follow-up path.",
+          };
   const previewPacket = {
     ...previewData,
     proofPhotos: [
@@ -1537,11 +1561,36 @@ export function PacketBuilder() {
     }
 
     if (reportOutputMode === "link") {
-      void copyFreeReportLink();
+      requestFreeReportOutput("copy-link");
       return;
     }
 
-    printCustomerReport();
+    requestFreeReportOutput("print-pdf");
+  }
+
+  function requestFreeReportOutput(action: SetupNoticeAction) {
+    setMobileSheet(null);
+    toast.dismiss();
+    setSetupNoticeAction(action);
+  }
+
+  async function confirmFreeReportOutput() {
+    const action = setupNoticeAction;
+    setSetupNoticeAction(null);
+
+    if (action === "copy-link") {
+      await copyFreeReportLink();
+      return;
+    }
+
+    if (action === "open-link") {
+      window.open(freeReportHref, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (action === "print-pdf") {
+      window.setTimeout(printCustomerReport, 160);
+    }
   }
 
   async function copyFreeReportLink() {
@@ -3352,14 +3401,14 @@ export function PacketBuilder() {
                 </button>
                 <Button
                   type="button"
-                  onClick={printCustomerReport}
+                  onClick={() => requestFreeReportOutput("print-pdf")}
                   className="rounded-full bg-[#111315] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white hover:bg-[#111315]/90"
                 >
                   Print / save PDF
                 </Button>
                 <Button
                   type="button"
-                  onClick={() => void copyFreeReportLink()}
+                  onClick={() => requestFreeReportOutput("copy-link")}
                   className="rounded-full bg-[#f26a21] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white hover:bg-[#d95d1d]"
                 >
                   <Copy className="h-4 w-4" />
@@ -3477,7 +3526,7 @@ export function PacketBuilder() {
                     }
 
                     if (reportOutputMode === "link") {
-                      void copyFreeReportLink();
+                      requestFreeReportOutput("copy-link");
                       return;
                     }
 
@@ -3646,27 +3695,26 @@ export function PacketBuilder() {
                     <Button
                       type="button"
                       size="sm"
-                      onClick={() => void copyFreeReportLink()}
+                      onClick={() => requestFreeReportOutput("copy-link")}
                       className="rounded-full bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#d95d1d]"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy free link
                     </Button>
                     <Button
-                      asChild
+                      type="button"
                       size="sm"
                       variant="ghost"
+                      onClick={() => requestFreeReportOutput("open-link")}
                       className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground hover:bg-white"
                     >
-                      <a href={freeReportHref} target="_blank" rel="noreferrer">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        Open link
-                      </a>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Open link
                     </Button>
                     <Button
                       type="button"
                       size="sm"
-                      onClick={printCustomerReport}
+                      onClick={() => requestFreeReportOutput("print-pdf")}
                       className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
                     >
                       Save PDF layout
@@ -3755,22 +3803,21 @@ export function PacketBuilder() {
                           <Button
                             type="button"
                             size="sm"
-                            onClick={() => void copyFreeReportLink()}
+                            onClick={() => requestFreeReportOutput("copy-link")}
                             className="rounded-full bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#d95d1d]"
                           >
                             <Copy className="h-3.5 w-3.5" />
                             Copy link
                           </Button>
                           <Button
-                            asChild
+                            type="button"
                             size="sm"
                             variant="ghost"
+                            onClick={() => requestFreeReportOutput("open-link")}
                             className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground hover:bg-white"
                           >
-                            <a href={freeReportHref} target="_blank" rel="noreferrer">
-                              <ExternalLink className="h-3.5 w-3.5" />
-                              Open
-                            </a>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            Open
                           </Button>
                         </div>
                       </div>
@@ -4076,19 +4123,18 @@ export function PacketBuilder() {
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => void copyFreeReportLink()}
+                    onClick={() => requestFreeReportOutput("copy-link")}
                     className="h-11 rounded-[16px] bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white"
                   >
                     Copy free link
                   </button>
-                  <a
-                    href={freeReportHref}
-                    target="_blank"
-                    rel="noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => requestFreeReportOutput("open-link")}
                     className="inline-flex h-11 items-center justify-center rounded-[16px] border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-foreground"
                   >
                     Open link
-                  </a>
+                  </button>
                 </div>
                 <div className="mt-3 grid gap-2">
                   {packetSectionControls.map((section) => (
@@ -4144,7 +4190,7 @@ export function PacketBuilder() {
                 </button>
                 <button
                   type="button"
-                  onClick={printCustomerReport}
+                  onClick={() => requestFreeReportOutput("print-pdf")}
                   className="h-12 rounded-[18px] bg-[#f26a21] text-[11px] font-bold uppercase tracking-[0.12em] text-white"
                 >
                   Save PDF
@@ -4154,6 +4200,87 @@ export function PacketBuilder() {
           ) : null}
         </DrawerContent>
       </Drawer>
+      <AnimatePresence>
+        {setupNoticeAction ? (
+          <motion.div
+            className="pdf-print-hide fixed inset-0 z-50 grid place-items-end bg-[#111315]/42 px-3 py-3 backdrop-blur-sm sm:place-items-center sm:px-5"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="free-output-notice-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
+          >
+            <button
+              type="button"
+              className="absolute inset-0 cursor-default"
+              aria-label="Close setup notice"
+              onClick={() => setSetupNoticeAction(null)}
+            />
+            <motion.div
+              initial={{ y: 22, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 18, opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="relative w-full max-w-[560px] overflow-hidden rounded-[28px] border border-white/14 bg-[#fbf8f3] p-4 shadow-[0_34px_100px_rgba(17,19,21,0.34)] sm:p-5"
+            >
+              <div className="rounded-[22px] border border-black/8 bg-white px-4 py-4 sm:px-5 sm:py-5">
+                <p className={labelClassName()}>{setupNoticeMeta.eyebrow}</p>
+                <h2
+                  id="free-output-notice-title"
+                  className="mt-2 font-display text-[1.85rem] font-bold leading-[0.92] tracking-[-0.065em] text-foreground sm:text-[2.25rem]"
+                >
+                  {setupNoticeMeta.title}
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  {setupNoticeMeta.copy}
+                </p>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="rounded-[18px] border border-black/8 bg-white px-4 py-3">
+                  <p className={labelClassName()}>Free output</p>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
+                    Neutral report, local preview, no placeholder contact blocks.
+                  </p>
+                </div>
+                <div className="rounded-[18px] border border-[#f26a21]/22 bg-[#fff7ef] px-4 py-3">
+                  <p className={labelClassName()}>Setup adds</p>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
+                    Logo, phone, dispatch email, reply CTA, saved photos, and history.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <a
+                  href="/start"
+                  className="inline-flex h-11 items-center justify-center rounded-[16px] border border-black/10 bg-white px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground"
+                >
+                  Request setup
+                </a>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setSetupNoticeAction(null)}
+                    className="h-11 rounded-[16px] border border-black/10 bg-[#f6f1e8] px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void confirmFreeReportOutput()}
+                    className="h-11 rounded-[16px] bg-[#111315] px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-white"
+                  >
+                    {setupNoticeMeta.actionLabel}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
       <motion.div
         layout
         initial={{ y: 18, opacity: 0 }}

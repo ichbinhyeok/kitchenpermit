@@ -501,6 +501,11 @@ export function Axis1PacketDocument({
     ["Site contact", "Customer action", "Record location"].includes(label),
   );
   const customerCloseActionItems = mapRows(data.customerClose.actionItems, copy);
+  const hasVendorContact =
+    data.vendor.directLine.trim().length > 0 ||
+    data.vendor.dispatch.trim().length > 0 ||
+    data.vendor.certification.trim().length > 0 ||
+    data.vendor.afterHours.trim().length > 0;
   const hasProofPhotos = data.proofPhotos.length > 0;
   const showPhotoCoverage =
     sections.checklist && (!isCustomerReport || hasProofPhotos);
@@ -601,10 +606,7 @@ export function Axis1PacketDocument({
           </aside>
         </div>
 
-        {data.vendor.directLine.trim() ||
-        data.vendor.dispatch.trim() ||
-        data.vendor.certification.trim() ||
-        data.vendor.afterHours.trim() ? (
+        {hasVendorContact ? (
           <div className="mt-8">
             <ContactStrip data={data} />
           </div>
@@ -914,7 +916,9 @@ export function Axis1PacketDocument({
           <div className="pdf-document-card packet-signoff-card rounded-[24px] border border-[#ded7cf] bg-white/72 px-5 py-5">
             <div className="flex items-start justify-between gap-5">
               <div className="min-w-0">
-                <SectionKicker>Service label and contact</SectionKicker>
+                <SectionKicker>
+                  {hasVendorContact ? "Service label and contact" : "Service label and record"}
+                </SectionKicker>
                 <h3 className="mt-3 font-display text-[1.62rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[1.9rem]">
                   Signoff details stay attached.
                 </h3>
