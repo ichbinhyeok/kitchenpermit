@@ -150,7 +150,7 @@ export default function SampleAxis1Page() {
                   <ActionLink href="#sample-report" tone="accent">
                     View the packet
                   </ActionLink>
-                  <ActionLink href="/reports/sample-hood-cleaning" tone="light">
+                  <ActionLink href="/p/sample-hood-cleaning" tone="light">
                     Open customer link
                   </ActionLink>
                 </div>
@@ -282,7 +282,7 @@ export default function SampleAxis1Page() {
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <ActionLink
-                href="/reports/sample-hood-cleaning"
+                href="/p/sample-hood-cleaning"
                 tone="dark"
               >
                 Open customer report
@@ -325,7 +325,7 @@ export default function SampleAxis1Page() {
                   Request setup
                 </ActionLink>
                 <ActionLink
-                  href="/reports/sample-hood-cleaning"
+                  href="/p/sample-hood-cleaning"
                   tone="light"
                 >
                   Customer report link

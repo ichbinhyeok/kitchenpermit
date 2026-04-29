@@ -12,7 +12,7 @@ const footerLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="pdf-print-hide mt-14 pb-6 pt-8 text-foreground">
+    <footer className="site-footer pdf-print-hide mt-14 pb-6 pt-8 text-foreground">
       <div className="container-shell">
         <div className="overflow-hidden rounded-[38px] bg-dark-surface text-white shadow-[var(--shadow)]">
           <div className="grid gap-6 border-b border-white/10 px-6 py-8 md:grid-cols-[minmax(0,1.15fr)_auto] md:items-center md:px-8">

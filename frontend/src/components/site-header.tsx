@@ -25,7 +25,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="pdf-print-hide sticky top-0 z-50 px-3 pt-3 sm:px-4 sm:pt-4">
+    <header className="site-header pdf-print-hide sticky top-0 z-50 px-3 pt-3 sm:px-4 sm:pt-4">
       <div className="container-shell">
         <div className="flex min-h-[58px] items-center justify-between gap-3 rounded-full border border-black/8 bg-[#f7f2eb]/84 px-3 shadow-[0_14px_44px_rgba(26,20,16,0.10)] backdrop-blur-xl sm:min-h-[64px] sm:px-4">
           <div className="flex min-w-0 items-center gap-3 lg:gap-8">

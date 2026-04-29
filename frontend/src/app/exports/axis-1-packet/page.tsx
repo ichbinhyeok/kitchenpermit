@@ -254,7 +254,11 @@ export default async function Axis1PacketPdfPreviewPage({
           </div>
         </section>
 
-        <Axis1PacketDocument data={data} />
+        <Axis1PacketDocument
+          data={data}
+          variant="customer-report"
+          outputIntent="service-record"
+        />
       </div>
     </div>
   );

@@ -57,7 +57,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "View sample proof packet",
         short_name: "Sample",
         description: "Open the customer-facing sample proof packet.",
-        url: "/samples/axis-1",
+        url: "/p/sample-hood-cleaning",
         icons: [
           {
             src: "/icons/hood-app-icon-192.png",

@@ -219,7 +219,7 @@ export function buildAxis1FreeReportHref(values: Axis1BuilderFormValues) {
     }
   });
 
-  return `/reports/free-axis-1?${params.toString()}`;
+  return `/p/free?${params.toString()}`;
 }
 
 export function parseAxis1FreeReportSearchParams(
@@ -833,7 +833,7 @@ export function buildAxis1NeutralPacketData(
   );
   const routeAccessNote =
     scenario === "exception" && hasAccessException
-      ? `Not completed: ${exceptionNote} This area remains tied to proof P-04 and should not be read as cleaned.`
+      ? `Not completed: ${exceptionNote} This area remains tied to the blocked access photo and should not be read as cleaned.`
       : "Access was available and documented at service time.";
   const hasRooftopCondition = selectedKinds.some((kind) =>
     ["rooftop-hinge-curb", "fan-belt-drive", "liquid-tight"].includes(kind),
@@ -895,6 +895,7 @@ export function buildAxis1NeutralPacketData(
         ["Location", siteLabel],
         ["System", systemLabel],
         ["Today's result", serviceResultTitle],
+        ["Report ID", "HDS-MASKED-0424"],
       ],
       archiveNote:
         "Customer sees the clear service report. Full image archive and raw technician detail stay retained in the office file.",

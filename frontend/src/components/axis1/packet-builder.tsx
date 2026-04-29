@@ -28,8 +28,13 @@ import {
   ChevronUp,
   Copy,
   ExternalLink,
+  Eye,
+  FileDown,
   GripVertical,
+  PencilLine,
+  Plus,
   RotateCcw,
+  Settings2,
   Sparkles,
   TriangleAlert,
 } from "lucide-react";
@@ -70,10 +75,15 @@ import {
   type Axis1BuilderFormValues,
 } from "@/lib/axis1-packet-builder";
 import {
+  applyAxis1CloseoutEngineToPacket,
+  evaluateAxis1Closeout,
+} from "@/lib/axis1-closeout-engine";
+import {
   axis1FieldPhotoSlots as fieldPhotoSlots,
   buildAxis1PacketDataWithFieldPhotos,
   emptyAxis1FieldPhotoState,
   emptyAxis1PhotoSlotResolutions,
+  getAxis1AdaptiveRecordMeta,
   type Axis1FieldPhotoConfidence as FieldPhotoConfidence,
   type Axis1FieldPhotoSlotId as FieldPhotoSlotId,
   type Axis1PhotoSlotResolution as PhotoSlotResolution,
@@ -86,7 +96,7 @@ const jobPatternPresets = [
     id: "clean-close",
     label: "Everything was completed",
     title: "No open item",
-    copy: "Use when the cleaning was completed and the customer just needs proof plus the next visit window.",
+    copy: "Completed. Send proof and next visit window.",
     scenario: "clean",
     exceptionKinds: [],
     followUpMode: "none",
@@ -95,7 +105,7 @@ const jobPatternPresets = [
     id: "blocked-access",
     label: "Something was blocked",
     title: "Cleaned reachable areas",
-    copy: "Use when storage, access, or a site condition kept the crew from reaching one area.",
+    copy: "Some area was blocked or inaccessible.",
     scenario: "exception",
     exceptionKinds: ["blocked-storage"],
     followUpMode: "monitor",
@@ -104,7 +114,7 @@ const jobPatternPresets = [
     id: "condition-review",
     label: "Something needs review",
     title: "Completed, but flag it",
-    copy: "Use when the job is done but a fan, curb, belt, or containment condition should stay visible.",
+    copy: "Done, but one condition should stay visible.",
     scenario: "exception",
     exceptionKinds: ["rooftop-hinge-curb"],
     followUpMode: "quote",
@@ -124,6 +134,12 @@ type MobileSheetView = "photo-review" | "report-actions";
 type PacketPresentationMode = "standard" | "short";
 type ReportOutputMode = "link" | "pdf";
 type SetupNoticeAction = "copy-link" | "open-link" | "print-pdf";
+type CustomerLineEditor =
+  | "result"
+  | "open-item"
+  | "action"
+  | "photo-record"
+  | "timing";
 type UnplacedFieldPhoto = UploadedFieldPhoto & {
   id: string;
   suggestedSlotId: FieldPhotoSlotId | null;
@@ -419,8 +435,8 @@ function ExtraPhotoRow({
                   ?.shortLabel
               }, but that role already has a representative photo.`
             : mobilePickerMode
-              ? "No clear role was detected. Choose the correct role if needed."
-              : "No clear role was detected. Drag it onto the correct role if needed."}
+              ? "No role is assigned yet. Choose the correct role if needed."
+              : "No role is assigned yet. Drag it onto the correct role if needed."}
         </p>
         {mobilePickerMode ? (
           <select
@@ -565,7 +581,7 @@ function PhotoPlacementReview({
             <>
               <p className={labelClassName()}>Role reference</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Use the role picker on each photo if the auto-sort is wrong.
+                Use the role picker on each photo if the upload-order placement is wrong.
                 Before / after are core; the rest are recommended proof slots.
               </p>
             </>
@@ -600,7 +616,7 @@ function PhotoPlacementReview({
       {orderMatchedCount > 0 ? (
         <div className="mt-3 rounded-[16px] border border-[#ff6b1a]/18 bg-[#fff0e4] px-3 py-2">
           <p className="text-xs font-semibold leading-5 text-[#b94d11]">
-            {orderMatchedCount} phone-style photo(s) were placed by upload order.
+            {orderMatchedCount} phone-style photo(s) were placed by upload order only.
             Review the role before sending the proof packet.
           </p>
         </div>
@@ -644,7 +660,7 @@ function PhotoPlacementReview({
         <div>
           <p className={labelClassName()}>Extra photos</p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Duplicates and overflow are kept here instead of being auto-filed
+            Duplicates and overflow are kept here instead of being filed
             into the wrong role.
           </p>
         </div>
@@ -695,22 +711,22 @@ function PhotoPlacementReview({
 
 const builderSteps = [
   {
-    value: "job",
-    label: "Job",
-    title: "Pick result",
-    copy: "Situation, customer, and next interval.",
-  },
-  {
     value: "photos",
     label: "Photos",
-    title: "Add photos",
-    copy: "Start with before / after. Add the rest if captured.",
+    title: "Drop photos",
+    copy: "Upload all job photos or continue without them.",
+  },
+  {
+    value: "job",
+    label: "Result",
+    title: "Confirm result",
+    copy: "Pick the visit outcome and next action.",
   },
   {
     value: "report",
-    label: "Packet",
-    title: "Preview",
-    copy: "Tune wording only if needed.",
+    label: "Send",
+    title: "Send packet",
+    copy: "Copy the customer link or save the PDF.",
   },
 ] as const satisfies ReadonlyArray<{
   value: BuilderStep;
@@ -766,6 +782,14 @@ function fieldClassName() {
 
 function labelClassName() {
   return "text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground";
+}
+
+function findPacketRowValue(
+  rows: readonly (readonly [string, string])[],
+  label: string,
+  fallback: string,
+) {
+  return rows.find(([rowLabel]) => rowLabel === label)?.[1] ?? fallback;
 }
 
 const textFieldLimits = {
@@ -1051,7 +1075,7 @@ export function PacketBuilder() {
     useState<Record<FieldPhotoSlotId, PhotoSlotResolution>>(
       emptyPhotoSlotResolutions,
     );
-  const [builderStep, setBuilderStep] = useState<BuilderStep>("job");
+  const [builderStep, setBuilderStep] = useState<BuilderStep>("photos");
   const [packetPresentationMode, setPacketPresentationMode] =
     useState<PacketPresentationMode>("short");
   const [reportOutputMode, setReportOutputMode] =
@@ -1059,13 +1083,21 @@ export function PacketBuilder() {
   const [packetSections, setPacketSections] =
     useState<Axis1PacketDocumentSectionVisibility>(shortPacketSections);
   const [showPacketDetails, setShowPacketDetails] = useState(false);
+  const [showJobBasics, setShowJobBasics] = useState(false);
+  const [showExceptionDetails, setShowExceptionDetails] = useState(false);
   const [showAllPhotoSlots, setShowAllPhotoSlots] = useState(false);
   const [showProofDetails, setShowProofDetails] = useState(false);
+  const [showWordingEditor, setShowWordingEditor] = useState(false);
+  const [activeCustomerLineEditor, setActiveCustomerLineEditor] =
+    useState<CustomerLineEditor>("result");
+  const [hasJobOutcomeSelected, setHasJobOutcomeSelected] = useState(false);
   const [photoImportNotice, setPhotoImportNotice] =
     useState<PhotoImportNotice | null>(null);
   const [mobileSheet, setMobileSheet] = useState<MobileSheetView | null>(null);
   const [setupNoticeAction, setSetupNoticeAction] =
     useState<SetupNoticeAction | null>(null);
+  const [showToolMenu, setShowToolMenu] = useState(false);
+  const isPhotoStep = builderStep === "photos";
 
   useEffect(() => {
     const requestedStep = new URLSearchParams(window.location.search).get("step");
@@ -1076,7 +1108,13 @@ export function PacketBuilder() {
       requestedStep === "report"
     ) {
       const frame = window.requestAnimationFrame(() => {
-        setBuilderStep(requestedStep);
+        const resolvedStep = requestedStep === "report" ? "job" : requestedStep;
+        setBuilderStep(resolvedStep);
+        if (resolvedStep !== requestedStep) {
+          const url = new URL(window.location.href);
+          url.searchParams.set("step", resolvedStep);
+          window.history.replaceState({}, "", url);
+        }
         if (window.matchMedia("(max-width: 767px)").matches) {
           document
             .getElementById("packet-builder-workspace")
@@ -1119,6 +1157,10 @@ export function PacketBuilder() {
   const hasOrderMatchedPhotos = orderMatchedPhotoCount > 0;
   const hasProofWorkStarted = totalFieldPhotoCount > 0 || skippedPhotoSlotCount > 0;
   const shouldShowProofDetails = showProofDetails || showAllPhotoSlots;
+  const hasBeforePhoto = Boolean(uploadedFieldPhotos["hood-before"]);
+  const hasAfterPhoto = Boolean(uploadedFieldPhotos["hood-after"]);
+  const hasBeforeOnly = hasBeforePhoto && !hasAfterPhoto;
+  const hasAfterOnly = hasAfterPhoto && !hasBeforePhoto;
   const openPhotoSlots = showAllPhotoSlots
     ? fieldPhotoSlots
     : fieldPhotoSlots.filter(
@@ -1130,19 +1172,27 @@ export function PacketBuilder() {
   const firstMissingSlots = missingRequiredSlots.slice(0, 4);
   const proofReadinessTitle =
     hasOrderMatchedPhotos
-      ? `${orderMatchedPhotoCount} photo match(es) need review`
+      ? `${orderMatchedPhotoCount} photo role(s) need review`
+      : hasAfterOnly
+        ? "After-only record is ready"
+        : hasBeforeOnly
+          ? "Before-only photo needs closeout"
       : missingRequiredSlots.length === 0
-      ? "Core proof handled"
+      ? `${uploadedProofCount} photos sorted`
       : totalFieldPhotoCount === 0
-        ? "Have photos? Start with before / after"
+        ? "Drop photos, or continue without them"
         : `${missingRequiredSlots.length} core photo(s) still open`;
   const proofReadinessCopy =
     hasOrderMatchedPhotos
-      ? "Phone-style filenames were placed by upload order. Confirm the roles before sending."
+      ? "These were placed by order, not reliable labels. Review before sending."
+      : hasAfterOnly
+        ? "No before photo is attached. The packet will avoid a false before/after comparison."
+        : hasBeforeOnly
+          ? "No after photo is attached. Add one, or mark it not captured before continuing."
       : missingRequiredSlots.length === 0
-      ? "Before / after is uploaded or intentionally marked for this visit. Add recommended photos only when they help the customer."
+      ? "Core photos are ready. Continue to result, or add only helpful extras."
       : totalFieldPhotoCount === 0
-        ? "No photos? Continue anyway. If the crew captured a batch, choose from phone files and fix any wrong match in preview."
+        ? "No photos is acceptable. The output becomes a written service record."
         : unplacedFieldPhotos.length > 0
           ? `${unplacedFieldPhotos.length} extra photo(s) waiting for a role.`
         : `Missing: ${firstMissingSlots.map((slot) => slot.shortLabel).join(", ")}.`;
@@ -1167,19 +1217,44 @@ export function PacketBuilder() {
   const activeJobPattern =
     jobPatternPresets.find((pattern) => pattern.id === activeJobPatternId) ??
     jobPatternPresets[1];
+  const closeoutEngine = evaluateAxis1Closeout({
+    values,
+    outcomeSelected: hasJobOutcomeSelected,
+    uploadedFieldPhotos,
+    unplacedPhotoCount: unplacedFieldPhotos.length,
+    photoSlotResolutions,
+  });
+  const adaptiveRecord = getAxis1AdaptiveRecordMeta({
+    uploadedFieldPhotos,
+    photoSlotResolutions,
+    extraPhotoCount: unplacedFieldPhotos.length,
+    hasAccessIssue: selectedAccessCount > 0,
+  });
+  const closeoutFormatLabel =
+    !closeoutEngine.canGeneratePacket
+      ? "Waiting for selected result"
+      : adaptiveRecord.recordType === "access_issue_record"
+      ? "Ready as customer action record"
+      : adaptiveRecord.recordType === "service_closeout_record"
+        ? "Ready as written service record"
+        : adaptiveRecord.recordType === "after_cleaning_record"
+          ? "Ready as after-photo record"
+          : adaptiveRecord.recordType === "photo_supported_service_record"
+            ? "Ready as photo-supported record"
+            : "Ready as photo proof packet";
   const reportNeedsPhotoReview = hasOrderMatchedPhotos || unplacedFieldPhotos.length > 0;
-  const hasManualCustomerCopy =
-    Boolean(values.summaryOverride?.trim()) ||
-    Boolean(values.customerActionOverride?.trim()) ||
-    Boolean(values.followUpOverride?.trim()) ||
-    Boolean(values.followUpNote?.trim()) ||
-    Boolean(values.exceptionNote?.trim());
   const mobileReportStatus =
-    reportNeedsPhotoReview
+    !closeoutEngine.canGeneratePacket
+      ? {
+          tone: "partial",
+          title: "Pick the result first",
+          copy: closeoutEngine.blockingReason ?? "No packet is generated from sample defaults.",
+        }
+      : reportNeedsPhotoReview
       ? {
           tone: "review",
           title: "Check photo roles before sending",
-          copy: "Auto-placed from phone upload. Confirm roles before saving.",
+          copy: "Placed by upload order only. Confirm roles before saving.",
         }
       : totalFieldPhotoCount === 0
         ? {
@@ -1210,26 +1285,6 @@ export function PacketBuilder() {
       : mobileReportStatus.tone === "neutral"
         ? "bg-[#111315] text-white"
         : "bg-[#f26a21] text-white";
-  const mobileReportChecks = [
-    ["Job result", activeJobPattern.label],
-    [
-      "Proof",
-      reportNeedsPhotoReview
-        ? `${orderMatchedPhotoCount + unplacedFieldPhotos.length} role check(s)`
-        : totalFieldPhotoCount > 0
-          ? `${uploadedProofCount} photo(s) placed`
-          : "No photos attached",
-    ],
-    ["Customer copy", hasManualCustomerCopy ? "Custom wording" : "Recommended wording"],
-    [
-      "Previewing",
-      reportOutputMode === "link" ? "Proof link" : "Record PDF",
-    ],
-    [
-      "PDF",
-      packetPresentationMode === "standard" ? "Full record" : "Short record",
-    ],
-  ] as const;
   const mobileReportInlineActionLabel = reportNeedsPhotoReview
     ? "Review photo roles"
     : totalFieldPhotoCount === 0
@@ -1240,45 +1295,62 @@ export function PacketBuilder() {
     builderSteps.findIndex((step) => step.value === builderStep),
   );
   const mobilePrimaryActionLabel =
-    builderStep === "job"
-      ? "Continue to photos"
-      : builderStep === "photos"
-        ? "Preview packet"
+    builderStep === "photos"
+      ? "Confirm result"
+    : builderStep === "job"
+        ? hasJobOutcomeSelected
+          ? "Preview packet"
+          : "Pick result first"
         : reportOutputMode === "link"
           ? "Copy link"
           : "Save PDF";
   const mobileSecondaryActionLabel =
-    builderStep === "job"
-      ? "Sample"
-      : builderStep === "photos"
+    builderStep === "photos"
         ? hasProofWorkStarted
           ? "Review photos"
-          : "Back to job"
+          : "Sample"
+      : builderStep === "job"
+        ? "Back to photos"
         : reportNeedsPhotoReview
           ? "Review photos"
           : "Options";
   const mobileStepCaption =
-    builderStep === "job"
-      ? activeJobPattern.label
-      : builderStep === "photos"
+    builderStep === "photos"
         ? totalFieldPhotoCount > 0
           ? `${totalFieldPhotoCount} photo(s)`
           : "Core if captured"
+      : builderStep === "job"
+        ? hasJobOutcomeSelected
+          ? activeJobPattern.label
+          : "Result required"
         : values.customerActionOverride?.trim()
           ? "Custom copy"
-          : "Auto copy";
+          : "Generated copy";
   const mobileStepHint =
-    builderStep === "job"
-      ? "Pick the closest job result."
-      : builderStep === "photos"
+    builderStep === "photos"
         ? hasOrderMatchedPhotos
           ? "Review phone-order photo matches."
-          : totalFieldPhotoCount > 0
+        : totalFieldPhotoCount > 0
             ? "Photos are attached. Review if needed."
             : "No photos is acceptable."
+      : builderStep === "job"
+        ? hasJobOutcomeSelected
+          ? "Confirm the service result and next timing."
+          : "Choose what actually happened before a packet can be generated."
         : reportOutputMode === "link"
           ? "Check the customer link view, then copy or save PDF."
           : "Check the service record PDF before saving.";
+  const photoStepPrimaryLabel = hasOrderMatchedPhotos
+    ? shouldShowProofDetails
+      ? "Confirm roles"
+      : "Review matches"
+    : hasBeforeOnly || hasAfterOnly
+      ? shouldShowProofDetails
+        ? "Continue with partial proof"
+        : "Review missing core"
+    : totalFieldPhotoCount === 0
+      ? "No photos today"
+      : "Next: confirm result";
   const mobilePrimaryIsPrint = builderStep === "report" && reportOutputMode === "pdf";
   const reportOutputMeta =
     reportOutputMode === "link"
@@ -1319,25 +1391,96 @@ export function PacketBuilder() {
             actionLabel: "Continue and copy",
             copy: "This local test link includes the current photos in this browser only. Cross-device customer delivery still needs hosted storage and branded setup.",
           };
-  const previewPacket = buildAxis1PacketDataWithFieldPhotos(
-    previewData,
-    uploadedFieldPhotos,
-    photoSlotResolutions,
+  const previewPacket = applyAxis1CloseoutEngineToPacket(
+    buildAxis1PacketDataWithFieldPhotos(
+      previewData,
+      uploadedFieldPhotos,
+      photoSlotResolutions,
+    ),
+    closeoutEngine,
   );
+  const generatedCustomerLines = [
+    {
+      label: "Today's result",
+      value: previewPacket.summaryCards[0]?.copy ?? previewPacket.packetHeader.copy,
+      source: values.summaryOverride?.trim() ? "Edited wording" : "Generated from selected result",
+      action: "Edit wording",
+      editor: "result" as const,
+      onClick: () => setActiveCustomerLineEditor("result"),
+    },
+    {
+      label: values.scenario === "exception" ? "Open item" : "Closeout status",
+      value:
+        previewPacket.summaryCards[1]?.copy ??
+        previewPacket.deficiencyRows[0]?.issue ??
+        "No open access item recorded.",
+      source: values.scenario === "exception" ? "Shown to avoid confusion" : "Shown as closed",
+      action: "Edit result",
+      editor: "open-item" as const,
+      onClick: () => setActiveCustomerLineEditor("open-item"),
+    },
+    {
+      label: "Customer action",
+      value:
+        findPacketRowValue(
+          previewPacket.customerClose.actionItems,
+          "Reply or action",
+          previewPacket.customerClose.copy,
+        ) || previewPacket.customerClose.copy,
+      source: values.customerActionOverride?.trim()
+        ? "Edited instruction"
+        : "Generated from selected next step",
+      action: "Edit wording",
+      editor: "action" as const,
+      onClick: () => setActiveCustomerLineEditor("action"),
+    },
+    {
+      label: "Photo / record basis",
+      value:
+        findPacketRowValue(
+          previewPacket.proofPolicyRows,
+          "Record basis",
+          adaptiveRecord.meta.customerCopy,
+        ) || adaptiveRecord.meta.customerCopy,
+      source:
+        totalFieldPhotoCount > 0
+          ? `${uploadedProofCount} attached photo(s)`
+          : "No-photo closeout",
+      action: "Edit photos",
+      editor: "photo-record" as const,
+      onClick: () => setActiveCustomerLineEditor("photo-record"),
+    },
+    {
+      label: "Next service",
+      value:
+        findPacketRowValue(
+          previewPacket.customerClose.actionItems,
+          "Next visit window",
+          `${selectedCadenceOption.label} cadence`,
+        ) || `${selectedCadenceOption.label} cadence`,
+      source: `${selectedCadenceOption.label} selected`,
+      action: "Edit timing",
+      editor: "timing" as const,
+      onClick: () => setActiveCustomerLineEditor("timing"),
+    },
+  ];
 
   function resetBuilder() {
     form.reset(axis1BuilderDefaults);
+    setHasJobOutcomeSelected(false);
     setUploadedFieldPhotos(emptyFieldPhotoState());
     setUnplacedFieldPhotos([]);
     setPhotoSlotResolutions(emptyPhotoSlotResolutions());
     setPacketPresentationMode("short");
     setPacketSections(shortPacketSections);
-    selectBuilderStep("job");
+    selectBuilderStep("photos");
     setShowPacketDetails(false);
     setShowAllPhotoSlots(false);
     setShowProofDetails(false);
     setPhotoImportNotice(null);
     setMobileSheet(null);
+    setShowWordingEditor(false);
+    setActiveCustomerLineEditor("result");
     toast("Builder reset", {
       description: "The sample report is back to the default visit.",
     });
@@ -1345,6 +1488,14 @@ export function PacketBuilder() {
 
   function selectBuilderStep(step: BuilderStep) {
     toast.dismiss();
+
+    if (step === "report" && !hasJobOutcomeSelected) {
+      toast.error("Pick today's result first.", {
+        description: "The tool will not create a packet from untouched sample defaults.",
+      });
+      step = "job";
+    }
+
     setBuilderStep(step);
     setMobileSheet(null);
 
@@ -1362,12 +1513,16 @@ export function PacketBuilder() {
   }
 
   function handleMobilePrimaryAction() {
-    if (builderStep === "job") {
-      selectBuilderStep("photos");
+    if (builderStep === "photos") {
+      selectBuilderStep("job");
       return;
     }
 
-    if (builderStep === "photos") {
+    if (builderStep === "job") {
+      if (!hasJobOutcomeSelected) {
+        toast.error("Pick today's result first.");
+        return;
+      }
       selectBuilderStep("report");
       return;
     }
@@ -1381,6 +1536,14 @@ export function PacketBuilder() {
   }
 
   function requestFreeReportOutput(action: SetupNoticeAction) {
+    if (!hasJobOutcomeSelected) {
+      toast.error("Pick today's result first.", {
+        description: "The tool will not create a link or PDF from untouched sample defaults.",
+      });
+      selectBuilderStep("job");
+      return;
+    }
+
     setMobileSheet(null);
     toast.dismiss();
     setSetupNoticeAction(action);
@@ -1484,18 +1647,18 @@ export function PacketBuilder() {
   }
 
   function handleMobileSecondaryAction() {
-    if (builderStep === "job") {
-      window.location.assign("/samples/axis-1");
-      return;
-    }
-
     if (builderStep === "photos") {
       if (hasProofWorkStarted) {
         openMobileSheet("photo-review");
         return;
       }
 
-      selectBuilderStep("job");
+      window.location.assign("/samples/axis-1");
+      return;
+    }
+
+    if (builderStep === "job") {
+      selectBuilderStep("photos");
       return;
     }
 
@@ -1864,6 +2027,7 @@ export function PacketBuilder() {
   }
 
   function applyJobPattern(pattern: (typeof jobPatternPresets)[number]) {
+    setHasJobOutcomeSelected(true);
     form.setValue("scenario", pattern.scenario, {
       shouldDirty: true,
       shouldValidate: true,
@@ -1942,7 +2106,7 @@ export function PacketBuilder() {
     });
   }
 
-  function confirmAutoPlacedPhotoRoles() {
+  function confirmAutoPlacedPhotoRoles(nextStep: BuilderStep = "report") {
     setUploadedFieldPhotos((current) => {
       let changed = false;
       const next = { ...current };
@@ -1962,7 +2126,26 @@ export function PacketBuilder() {
 
       return changed ? next : current;
     });
-    selectBuilderStep("report");
+    selectBuilderStep(nextStep);
+  }
+
+  function proceedFromPhotoStep() {
+    if (hasOrderMatchedPhotos && !shouldShowProofDetails) {
+      setShowProofDetails(true);
+      return;
+    }
+
+    if (hasOrderMatchedPhotos) {
+      confirmAutoPlacedPhotoRoles("job");
+      return;
+    }
+
+    if ((hasBeforeOnly || hasAfterOnly) && !shouldShowProofDetails) {
+      setShowProofDetails(true);
+      return;
+    }
+
+    selectBuilderStep("job");
   }
 
   function placeUnplacedPhoto(photoId: string, toSlotId: FieldPhotoSlotId) {
@@ -2007,139 +2190,205 @@ export function PacketBuilder() {
   return (
     <section
       id="packet-builder-workspace"
-      className="workspace-shell scroll-mt-[5.75rem] pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pb-20"
+      className={
+        isPhotoStep
+          ? "min-h-svh scroll-mt-0 bg-[#101214] px-3 py-3 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white sm:px-4 md:px-5 md:py-5 md:pb-8"
+        : "workspace-shell scroll-mt-[5.75rem] pt-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pt-5 md:pb-20"
+      }
     >
-      <div className="grid min-w-0 gap-5 2xl:grid-cols-[400px_minmax(0,1fr)]">
+      {(
+        <div className="pdf-print-hide h-[82px] sm:h-[86px]">
+          <div
+            className="fixed left-3 right-3 top-3 z-50 mx-auto flex min-h-[58px] max-w-[1180px] items-center gap-2 rounded-full border border-white/10 bg-[#171a1d]/94 p-1.5 shadow-[0_14px_46px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:left-4 sm:right-4 sm:top-4 sm:min-h-[62px]"
+            data-axis-tool-header
+          >
+            <div className="flex min-w-0 shrink-0 items-center gap-2 px-1">
+              <div
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white font-black tracking-[-0.06em] text-[#111315]"
+                data-axis-tool-brand-icon
+              >
+                H
+              </div>
+              <div className="hidden min-w-0 sm:block">
+                <p className="truncate text-sm font-black uppercase tracking-[-0.05em] text-white">
+                  Hood
+                </p>
+                <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-white/42">
+                  Builder
+                </p>
+              </div>
+            </div>
+            <div className="flex min-w-0 flex-1 items-center gap-1 rounded-full bg-black/18 p-1">
+              {builderSteps.map((step, index) => {
+                const stepMetric =
+                  step.value === "job"
+                    ? values.scenario === "clean"
+                      ? "Clean"
+                      : "Exception"
+                    : step.value === "photos"
+                      ? totalFieldPhotoCount > 0
+                        ? `${totalFieldPhotoCount} photos`
+                        : "Core 2"
+                      : totalFieldPhotoCount > 0
+                        ? `${uploadedProofCount} placed`
+                        : "Ready";
+                const selected = builderStep === step.value;
+
+                return (
+                  <button
+                    key={step.value}
+                    type="button"
+                    onClick={() => selectBuilderStep(step.value)}
+                    className={`group flex h-10 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 text-center transition-all duration-200 sm:h-11 sm:justify-between sm:px-3 ${
+                      selected
+                        ? "bg-white text-[#111315] shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
+                        : "bg-transparent text-white/38 opacity-70 hover:bg-white/[0.055] hover:text-white/70 hover:opacity-100"
+                    }`}
+                    data-axis-tool-step
+                  >
+                    <span
+                      className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-black ${
+                        selected
+                          ? "bg-[#111315] text-white"
+                          : "bg-white/[0.08] text-white/42"
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
+                    <span
+                      className={`min-w-0 truncate text-[11px] font-black uppercase tracking-[0.08em] ${
+                        selected ? "inline" : "hidden sm:inline"
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                    {selected ? (
+                      <span className="hidden whitespace-nowrap rounded-full border border-black/10 bg-[#111315]/5 px-2 py-0.5 text-[10px] font-bold text-[#111315]/58 md:inline-flex">
+                        {stepMetric}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowToolMenu((current) => !current)}
+                className="inline-flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.065] px-3 text-[11px] font-black uppercase tracking-[0.12em] text-white transition hover:bg-white/[0.09] sm:h-11"
+              >
+                Menu
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition ${
+                    showToolMenu ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {showToolMenu ? (
+                <div className="absolute right-0 top-12 z-[70] w-44 overflow-hidden rounded-[18px] border border-white/10 bg-[#202326] p-1 shadow-[0_22px_70px_rgba(0,0,0,0.38)]">
+                  {[
+                    ["/samples/axis-1", "Sample"],
+                    ["/axis-1", "Product"],
+                    ["/start", "Setup"],
+                  ].map(([href, label]) => (
+                    <a
+                      key={href}
+                      href={href}
+                      onClick={() => setShowToolMenu(false)}
+                      className="block rounded-[14px] px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/68 hover:bg-white/[0.07] hover:text-white"
+                    >
+                      {label}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+      <div
+        className={`grid min-w-0 gap-5 ${
+          builderStep === "report"
+            ? "xl:grid-cols-[minmax(0,0.78fr)_minmax(540px,1.22fr)]"
+            : isPhotoStep
+              ? "mx-auto w-full max-w-[1180px]"
+              : "mx-auto w-full max-w-[980px]"
+        }`}
+      >
         <div
           className={`min-w-0 space-y-5 ${
             builderStep === "report" ? "order-2 md:order-none" : ""
           }`}
         >
-          <Panel className="pdf-print-hide px-4 py-4 2xl:sticky 2xl:top-24 md:px-6 md:py-6">
-            <div className="pdf-print-hide border-b border-border pb-3 md:pb-4">
-              <p className={`${labelClassName()} hidden md:block`}>
-                Free proof packet builder
+          <Panel
+            className={
+              isPhotoStep
+                ? "pdf-print-hide overflow-visible border-0 bg-transparent px-0 py-0 text-white shadow-none backdrop-blur-0 before:hidden xl:sticky xl:top-5"
+                : "pdf-print-hide px-3 py-3 md:px-4 md:py-4"
+            }
+          >
+            <div
+              className="hidden"
+            >
+              <p className={`${labelClassName()} hidden md:block ${builderStep === "photos" ? "sr-only" : ""}`}>
+                Hood closeout
               </p>
-              <h2 className="mt-2 hidden font-display text-[1.32rem] font-bold leading-[0.96] tracking-[-0.06em] text-foreground md:mt-3 md:block md:text-[1.55rem]">
-                Create the proof packet first. Tune only if needed.
+              <h2 className={`mt-2 hidden font-display text-[1.2rem] font-bold leading-[0.96] tracking-[-0.055em] text-foreground md:block md:text-[1.38rem] ${builderStep === "photos" ? "sr-only" : ""}`}>
+                Make the customer packet.
               </h2>
-              <p className="mt-2 hidden text-sm leading-6 text-muted-foreground md:block">
-                Your crew already takes photos. This turns job facts and field
-                photos into a customer explanation without office rewrite.
+              <p className={`mt-2 hidden text-xs leading-5 text-muted-foreground md:block ${builderStep === "photos" ? "sr-only" : ""}`}>
+                Drop today&apos;s photos, confirm what happened, then copy the
+                customer link or save the PDF.
               </p>
-              <div className="mt-4 hidden gap-2 md:grid md:grid-cols-3 2xl:grid-cols-1">
+              <div className={`mt-3 hidden gap-2 md:grid md:grid-cols-3 xl:grid-cols-1 ${builderStep === "photos" ? "sr-only" : ""}`}>
                 {[
-                  ["Job result", activeJobPattern.label, "Sets packet language."],
                   [
                     "Photos",
-                    totalFieldPhotoCount > 0 ? `${totalFieldPhotoCount} attached` : "Core 2",
-                    "Core before / after. Rest recommended.",
+                    totalFieldPhotoCount > 0 ? `${totalFieldPhotoCount} attached` : "Optional",
+                    "Drop the phone batch.",
                   ],
+                  ["Result", activeJobPattern.label, "Vendor confirms outcome."],
                   [
                     "Output",
                     totalFieldPhotoCount > 0 ? `${uploadedProofCount} placed` : "Ready",
-                    "Review, copy link, or print.",
+                    "Copy link or save PDF.",
                   ],
                 ].map(([label, value, copy]) => (
                   <div
                     key={label}
-                    className="rounded-[18px] border border-black/8 bg-white/70 px-4 py-3 shadow-[0_10px_26px_rgba(17,17,17,0.04)] backdrop-blur"
+                    className="rounded-[16px] border border-black/8 bg-white/70 px-3 py-2.5 shadow-[0_10px_26px_rgba(17,17,17,0.04)] backdrop-blur"
                   >
                     <p className={labelClassName()}>{label}</p>
-                    <p className="mt-2 text-base font-semibold text-foreground">{value}</p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{copy}</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
+                    <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{copy}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 hidden rounded-[20px] border border-[#f26a21]/18 bg-[#fff7ef] px-4 py-3 md:block md:py-4">
+              <div className={`mt-3 hidden rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5 md:block xl:hidden ${builderStep === "photos" ? "sr-only" : ""}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className={labelClassName()}>Your company branding</p>
-                    <p className="mt-2 text-sm font-semibold leading-5 text-foreground">
-                      Free builder first. Branded operating setup later.
-                    </p>
-                    <p className="mt-1 hidden text-xs leading-5 text-muted-foreground sm:block">
-                      Vendors can create a neutral customer packet now. Setup
-                      turns the same flow into your company-owned closeout system.
+                    <p className={labelClassName()}>Current format</p>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-foreground">
+                      {closeoutFormatLabel}
                     </p>
                   </div>
                   <span className="rounded-full border border-[#f26a21]/20 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
-                    Free vs setup
+                    Auto
                   </span>
                 </div>
-                <div className="mt-3 grid gap-2 sm:hidden">
-                  {[
-                    ["Free", "Neutral packet, local photos, print/save."],
-                    ["Setup", "Logo, phone, saved history, branded delivery."],
-                  ].map(([label, value]) => (
-                    <div
-                      key={label}
-                      className="flex items-center justify-between gap-3 rounded-[14px] border border-black/8 bg-white/72 px-3 py-2"
-                    >
-                      <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                        {label}
-                      </span>
-                      <span className="text-right text-[11px] font-semibold leading-4 text-foreground">
-                        {value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 hidden gap-3 sm:grid sm:grid-cols-2 2xl:grid-cols-1">
-                  {[
-                    {
-                      label: "Free now",
-                      tone: "neutral",
-                      items: ["Neutral packet shell", "Local photo preview", "Print / save PDF"],
-                    },
-                    {
-                      label: "Setup unlocks",
-                      tone: "locked",
-                      items: [
-                        "Logo, phone, dispatch email",
-                        "Customer reply / next-service CTA",
-                        "Saved history and branded delivery",
-                      ],
-                    },
-                  ].map((column) => (
-                    <div
-                      key={column.label}
-                      className={`rounded-[16px] border px-3 py-3 ${
-                        column.tone === "locked"
-                          ? "border-[#f26a21]/18 bg-white"
-                          : "border-black/8 bg-white/70"
-                      }`}
-                    >
-                      <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                        {column.label}
-                      </p>
-                      <div className="mt-2 space-y-1.5">
-                        {column.items.map((item) => (
-                          <p
-                            key={item}
-                            className="flex gap-2 text-xs font-semibold leading-5 text-foreground"
-                          >
-                            <span className="mt-[0.42rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#f26a21]" />
-                            <span>{item}</span>
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <a
-                  href="/start"
-                  className="mt-3 inline-flex rounded-full bg-[#111315] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white"
-                >
-                  Request branded setup
-                </a>
               </div>
               <Tabs
                 value={builderStep}
                 onValueChange={(value) => selectBuilderStep(value as BuilderStep)}
-                className="mt-5"
+                className={builderStep === "photos" ? "hidden" : "mt-3"}
               >
-                <TabsList className="sticky top-[4.5rem] z-20 grid grid-cols-3 overflow-hidden rounded-[20px] border-black/8 bg-white/86 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_12px_30px_rgba(17,17,17,0.08)] backdrop-blur 2xl:grid-cols-1 md:static md:rounded-[22px] md:bg-white/65">
+                <TabsList
+                  className={
+                    isPhotoStep
+                      ? "fixed left-3 right-3 top-[5.35rem] z-[60] mx-auto grid max-w-[1180px] grid-cols-3 overflow-hidden rounded-[22px] border border-white/10 bg-[#202326]/96 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_48px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:left-4 sm:right-4 sm:top-[5.85rem]"
+                      : "sticky top-[4.5rem] z-20 grid grid-cols-3 overflow-hidden rounded-[18px] border-black/8 bg-white/86 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_12px_30px_rgba(17,17,17,0.08)] backdrop-blur xl:grid-cols-1 md:static md:bg-white/65"
+                  }
+                >
                   {builderSteps.map((step, index) => {
                     const stepMetric =
                       step.value === "job"
@@ -2158,23 +2407,39 @@ export function PacketBuilder() {
                       <TabsTrigger
                         key={step.value}
                         value={step.value}
-                        className="group min-w-0 flex-col items-start justify-center rounded-[16px] px-2 py-2 text-left data-[state=active]:bg-[#111315] data-[state=active]:text-white data-[state=active]:shadow-[0_18px_34px_rgba(17,17,17,0.18)] md:min-h-[76px] md:rounded-[18px] md:px-4"
+                        className={`group min-w-0 flex-col items-start justify-center rounded-[14px] px-2 py-2 text-left data-[state=active]:bg-[#111315] data-[state=active]:text-white data-[state=active]:shadow-[0_18px_34px_rgba(17,17,17,0.18)] md:min-h-[58px] md:px-3 ${
+                          isPhotoStep
+                            ? "text-white/72 data-[state=active]:bg-white data-[state=active]:text-[#111315] data-[state=active]:shadow-[0_18px_44px_rgba(0,0,0,0.34)]"
+                            : ""
+                        }`}
                       >
                         <span className="flex w-full min-w-0 items-center justify-between gap-2">
-                          <span className="truncate text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground group-data-[state=active]:text-[#ffb489] md:text-[10px] md:tracking-[0.14em]">
+                          <span className={`truncate text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground group-data-[state=active]:text-[#ffb489] md:text-[10px] md:tracking-[0.14em] ${
+                            isPhotoStep
+                              ? "text-white/38 group-data-[state=active]:text-[#bc3d1f]"
+                              : ""
+                          }`}>
                             {index + 1}. {step.label}
                           </span>
                           <Badge
                             variant="outline"
-                            className="hidden border-black/10 bg-white/70 px-2 py-0.5 text-[10px] text-muted-foreground group-data-[state=active]:border-white/15 group-data-[state=active]:bg-white/8 group-data-[state=active]:text-white/72 md:inline-flex"
+                            className={`hidden border-black/10 bg-white/70 px-2 py-0.5 text-[10px] text-muted-foreground group-data-[state=active]:border-white/15 group-data-[state=active]:bg-white/8 group-data-[state=active]:text-white/72 md:inline-flex ${
+                              isPhotoStep
+                                ? "border-white/10 bg-white/[0.06] text-white/42 group-data-[state=active]:border-black/10 group-data-[state=active]:bg-[#111315]/5 group-data-[state=active]:text-[#111315]/58"
+                                : ""
+                            }`}
                           >
                             {stepMetric}
                           </Badge>
                         </span>
-                        <span className="mt-1 truncate text-[13px] font-bold leading-4 tracking-[-0.03em] md:text-sm">
+                        <span className="mt-1 truncate text-[13px] font-bold leading-4 tracking-[-0.03em]">
                           {step.title}
                         </span>
-                        <span className="mt-0.5 hidden text-xs font-medium leading-5 text-muted-foreground group-data-[state=active]:text-white/56 sm:block">
+                        <span className={`mt-0.5 hidden text-[11px] font-medium leading-4 text-muted-foreground group-data-[state=active]:text-white/56 sm:block ${
+                          isPhotoStep
+                            ? "text-white/36 group-data-[state=active]:text-[#111315]/52"
+                            : ""
+                        }`}>
                           {step.copy}
                         </span>
                       </TabsTrigger>
@@ -2184,7 +2449,7 @@ export function PacketBuilder() {
               </Tabs>
               <motion.div
                 layout
-                className="mt-3 rounded-[18px] border border-[#f26a21]/16 bg-[#fff7ef] px-3 py-2.5 md:hidden"
+                className={`mt-3 rounded-[18px] border border-[#f26a21]/16 bg-[#fff7ef] px-3 py-2.5 md:hidden ${builderStep === "photos" ? "hidden" : ""}`}
               >
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-[#f26a21]" />
@@ -2195,7 +2460,7 @@ export function PacketBuilder() {
               </motion.div>
             </div>
 
-            <form className="mt-4 space-y-4 md:mt-5">
+            <form className="mt-3 space-y-3">
               <div
                 className={`rounded-[22px] border border-black/8 bg-white px-3.5 py-4 md:px-4 ${
                   builderStep === "job" ? "" : "hidden"
@@ -2203,33 +2468,42 @@ export function PacketBuilder() {
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className={labelClassName()}>Quick capture</p>
+                    <p className={labelClassName()}>Result</p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Fill the visit facts the office or owner usually knows right
-                      away. The customer explanation writes itself from these choices.
+                      Pick what happened today. The packet writes the customer language.
                     </p>
                   </div>
-                  <Sparkles className="h-4 w-4 shrink-0 text-accent" />
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Sparkles className="hidden h-4 w-4 text-accent sm:block" />
+                    <button
+                      type="button"
+                      onClick={() => selectBuilderStep("report")}
+                      className="tool-action-btn tool-action-dark tool-action-mini hidden md:inline-flex"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      Send preview
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mt-4 rounded-[20px] border border-black/8 bg-[#111315] px-4 py-4 text-white">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ffb489]">
-                        Job pattern
+                        What happened?
                       </p>
                       <p className="mt-2 text-sm leading-6 text-white/62">
-                        Pick the closest situation. It sets result logic, open-item
-                        language, and follow-up stance automatically.
+                        Choose one. You can still edit details below.
                       </p>
                     </div>
                     <span className="rounded-full border border-white/14 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
-                      Smart start
+                      Auto wording
                     </span>
                   </div>
-                  <div className="mt-4 grid gap-2">
+                  <div className="mt-4 grid gap-2 md:grid-cols-3">
                     {jobPatternPresets.map((pattern) => {
-                      const selected = activeJobPatternId === pattern.id;
+                      const selected =
+                        hasJobOutcomeSelected && activeJobPatternId === pattern.id;
 
                       return (
                         <motion.button
@@ -2243,7 +2517,7 @@ export function PacketBuilder() {
                             damping: 30,
                           }}
                           onClick={() => applyJobPattern(pattern)}
-                          className={`rounded-[18px] border px-4 py-3 text-left transition ${
+                          className={`rounded-[18px] border px-4 py-3 text-left transition md:min-h-[128px] ${
                             selected
                               ? "border-[#ffb489]/45 bg-white text-[#111315]"
                               : "border-white/12 bg-white/[0.055] text-white hover:bg-white/[0.09]"
@@ -2262,7 +2536,7 @@ export function PacketBuilder() {
                                 {pattern.title}
                               </p>
                               <p
-                                className={`mt-1 hidden text-xs leading-5 sm:block ${
+                                className={`mt-2 hidden text-xs leading-5 md:block ${
                                   selected ? "text-[#5f574f]" : "text-white/55"
                                 }`}
                               >
@@ -2281,65 +2555,151 @@ export function PacketBuilder() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-4">
-                  <div>
-                    <label className={labelClassName()} htmlFor="propertyName">
-                      Property / customer
-                    </label>
-                    <input
-                      id="propertyName"
-                      className={fieldClassName()}
-                      maxLength={textFieldLimits.propertyName}
-                      {...form.register("propertyName")}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClassName()} htmlFor="siteCity">
-                      Site / city
-                    </label>
-                    <input
-                      id="siteCity"
-                      className={fieldClassName()}
-                      maxLength={textFieldLimits.siteCity}
-                      {...form.register("siteCity")}
-                    />
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className={labelClassName()} htmlFor="serviceDate">
-                        Service date
-                      </label>
-                      <input
-                        id="serviceDate"
-                        type="date"
-                        className={fieldClassName()}
-                        {...form.register("serviceDate")}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClassName()} htmlFor="authorizedBy">
-                        Authorized by
-                      </label>
-                      <input
-                        id="authorizedBy"
-                        className={fieldClassName()}
-                        maxLength={textFieldLimits.authorizedBy}
-                        {...form.register("authorizedBy")}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className={labelClassName()}>Next visit timing</p>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        This writes the next-service window and timing note automatically.
+                <div className="mt-4 overflow-hidden rounded-[18px] border border-[#f26a21]/18 bg-[#fff7ef]">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className={labelClassName()}>
+                        {hasJobOutcomeSelected ? "Customer draft" : "Customer draft locked"}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {hasJobOutcomeSelected
+                          ? "This is what the packet is writing from your selections."
+                          : "Pick what happened before the tool writes customer-facing result language."}
                       </p>
                     </div>
-                    <span className="rounded-full border border-black/10 bg-[rgba(17,17,17,0.03)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      Auto window
+                    <button
+                      type="button"
+                      onClick={() => selectBuilderStep("report")}
+                      disabled={!hasJobOutcomeSelected}
+                      className="rounded-full bg-[#111315] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white"
+                    >
+                      Full preview
+                    </button>
+                  </div>
+                  {hasJobOutcomeSelected ? (
+                    <div className="grid gap-2 p-3 md:grid-cols-3">
+                      {generatedCustomerLines.slice(0, 3).map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={item.onClick}
+                          className="rounded-[15px] border border-black/8 bg-white/72 px-3 py-3 text-left transition hover:border-[#f26a21]/24 hover:bg-white"
+                        >
+                          <span className="block text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
+                            {item.label}
+                          </span>
+                          <span className="mt-1.5 block text-sm font-bold leading-5 text-foreground">
+                            {item.value}
+                          </span>
+                          <span className="mt-2 inline-flex rounded-full border border-black/10 bg-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                            {item.action}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-3">
+                      <div className="rounded-[15px] border border-dashed border-black/15 bg-white/68 px-3 py-3 text-sm font-semibold leading-6 text-muted-foreground">
+                        No result, open item, or next-action sentence has been generated yet.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 overflow-hidden rounded-[18px] border border-black/8 bg-[rgba(17,17,17,0.025)]">
+                  <button
+                    type="button"
+                    onClick={() => setShowJobBasics((current) => !current)}
+                    className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left"
+                  >
+                    <div className="min-w-0">
+                      <p className={labelClassName()}>Job basics</p>
+                      <p className="mt-1 truncate text-sm font-semibold text-foreground">
+                        {values.propertyName || "Customer"} -{" "}
+                        {values.serviceDate || "Today"}
+                      </p>
+                    </div>
+                    <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                      {showJobBasics ? "Hide" : "Edit"}
+                      {showJobBasics ? (
+                        <ChevronUp className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      )}
+                    </span>
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {showJobBasics ? (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="grid gap-4 border-t border-black/8 bg-white px-4 py-4">
+                          <div>
+                            <label className={labelClassName()} htmlFor="propertyName">
+                              Property / customer
+                            </label>
+                            <input
+                              id="propertyName"
+                              className={fieldClassName()}
+                              maxLength={textFieldLimits.propertyName}
+                              {...form.register("propertyName")}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClassName()} htmlFor="siteCity">
+                              Site / city
+                            </label>
+                            <input
+                              id="siteCity"
+                              className={fieldClassName()}
+                              maxLength={textFieldLimits.siteCity}
+                              {...form.register("siteCity")}
+                            />
+                          </div>
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <div>
+                              <label className={labelClassName()} htmlFor="serviceDate">
+                                Service date
+                              </label>
+                              <input
+                                id="serviceDate"
+                                type="date"
+                                className={fieldClassName()}
+                                {...form.register("serviceDate")}
+                              />
+                            </div>
+                            <div>
+                              <label className={labelClassName()} htmlFor="authorizedBy">
+                                Authorized by
+                              </label>
+                              <input
+                                id="authorizedBy"
+                                className={fieldClassName()}
+                                maxLength={textFieldLimits.authorizedBy}
+                                {...form.register("authorizedBy")}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
+
+                <div className="mt-4 rounded-[18px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-4 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className={labelClassName()}>Next visit</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        {selectedCadenceOption.label} window
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Change only if needed
                     </span>
                   </div>
                   <SegmentedControl
@@ -2361,7 +2721,7 @@ export function PacketBuilder() {
                       </SegmentedControlItem>
                     ))}
                   </SegmentedControl>
-                  <div className="mt-3 rounded-[16px] border border-accent/25 bg-accent/[0.08] px-4 py-3">
+                  <div className="mt-3 hidden rounded-[16px] border border-accent/25 bg-accent/[0.08] px-4 py-3">
                     <p className={labelClassName()}>
                       Selected cadence - {selectedCadenceOption.label}
                     </p>
@@ -2372,31 +2732,57 @@ export function PacketBuilder() {
                 </div>
                 <div
                   className={`mt-4 flex justify-end ${
-                    values.scenario === "clean" ? "" : "hidden"
+                    hasJobOutcomeSelected && values.scenario === "clean" ? "" : "hidden"
                   }`}
                 >
                   <button
                     type="button"
-                    onClick={() => selectBuilderStep("photos")}
+                    onClick={() => selectBuilderStep("report")}
                     className="rounded-full bg-[#111315] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
                   >
-                    Next: sort photos
+                    Preview packet
                   </button>
                 </div>
               </div>
 
-              {builderStep === "job" && values.scenario === "exception" ? (
+              {builderStep === "job" &&
+              hasJobOutcomeSelected &&
+              values.scenario === "exception" ? (
                 <div className="rounded-[22px] border border-black/8 bg-white px-4 py-4">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className={labelClassName()}>Exception capture</p>
+                      <p className={labelClassName()}>Open item defaults</p>
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        Pick the access or condition notes that should stay visible. The report expands only for these items.
+                        {selectedAccessCount} access / {selectedConditionCount} condition selected. Defaults are ready.
                       </p>
                     </div>
-                    <TriangleAlert className="h-4 w-4 shrink-0 text-accent" />
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowExceptionDetails((current) => !current)}
+                        className="rounded-full border border-black/10 bg-[rgba(17,17,17,0.025)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground"
+                      >
+                        {showExceptionDetails ? "Hide details" : "Edit details"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => selectBuilderStep("report")}
+                        className="hidden rounded-full bg-[#111315] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white md:inline-flex"
+                      >
+                        Send preview
+                      </button>
+                    </div>
                   </div>
 
+                  <AnimatePresence initial={false}>
+                    {showExceptionDetails ? (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden"
+                      >
                   <div className="mt-4 space-y-4">
                     {axis1ExceptionGroups.map((group) => {
                       const groupOptions = axis1ExceptionOptions.filter(
@@ -2543,41 +2929,281 @@ export function PacketBuilder() {
                       max={textFieldLimits.followUpNote}
                     />
                   </div>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
 
                   <div className="mt-4 flex justify-end">
                     <button
                       type="button"
-                      onClick={() => selectBuilderStep("photos")}
+                      onClick={() => selectBuilderStep("report")}
                       className="rounded-full bg-[#111315] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
                     >
-                      Next: sort photos
+                      Preview packet
                     </button>
                   </div>
                 </div>
               ) : null}
 
               <div
-                className={`rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4 ${
+                className={`rounded-[22px] border border-black/8 bg-white px-4 py-4 shadow-[0_14px_40px_rgba(17,17,17,0.05)] ${
                   builderStep === "report" ? "" : "hidden"
                 }`}
               >
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="min-w-0">
+                    <p className={labelClassName()}>Customer lines</p>
+                    <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.035em] text-foreground">
+                      Exact wording going into the packet.
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Use these cards only when the auto-written line needs a field correction.
+                    </p>
+                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#b94d11]">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Auto-written
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowPacketDetails((current) => !current)}
-                  className="flex w-full items-center justify-between gap-4 text-left"
+                  className="tool-action-btn tool-action-secondary tool-action-mini mt-3"
                 >
-                  <div>
-                    <p className={labelClassName()}>Advanced report details</p>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Leave these on the defaults if the quick report already looks right.
-                    </p>
-                  </div>
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Advanced details
                   {showPacketDetails ? (
-                    <ChevronUp className="h-4 w-4 shrink-0 text-accent" />
+                    <ChevronUp className="h-3.5 w-3.5" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 shrink-0 text-accent" />
+                    <ChevronDown className="h-3.5 w-3.5" />
                   )}
                 </button>
+
+                <div className="mt-4 grid gap-2 md:grid-cols-1 2xl:grid-cols-2">
+                  {generatedCustomerLines.map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={item.onClick}
+                      className={`group min-w-0 rounded-[18px] border px-3 py-3 text-left transition hover:-translate-y-0.5 hover:border-[#f26a21]/24 hover:bg-[#fff7ef] hover:shadow-[0_14px_32px_rgba(17,19,21,0.07)] ${
+                        activeCustomerLineEditor === item.editor
+                          ? "border-[#f26a21]/35 bg-[#fff7ef]"
+                          : "border-black/8 bg-[rgba(17,17,17,0.025)]"
+                      }`}
+                    >
+                      <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                        {item.label}
+                      </span>
+                      <span className="mt-1 block text-sm font-bold leading-5 text-foreground md:line-clamp-3">
+                        {item.value}
+                      </span>
+                      <span className="mt-2 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+                        {item.source}
+                      </span>
+                      <span className="tool-edit-chip mt-2">
+                        <PencilLine className="h-3 w-3" />
+                        {item.action}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-4 overflow-hidden rounded-[20px] border border-[#f26a21]/18 bg-[#fff7ef]">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className={labelClassName()}>Edit here</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        Changes update the customer preview below without leaving this step.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-[#f26a21]/20 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
+                      {generatedCustomerLines.find(
+                        (item) => item.editor === activeCustomerLineEditor,
+                      )?.label ?? "Selected line"}
+                    </span>
+                  </div>
+
+                  <div className="grid gap-4 px-4 py-4">
+                    {activeCustomerLineEditor === "result" ? (
+                      <div>
+                        <label className={labelClassName()} htmlFor="quickSummaryOverride">
+                          Today&apos;s result sentence
+                        </label>
+                        <textarea
+                          id="quickSummaryOverride"
+                          rows={3}
+                          className={fieldClassName()}
+                          maxLength={textFieldLimits.summaryOverride}
+                          placeholder={previewPacket.summaryCards[0]?.copy}
+                          {...form.register("summaryOverride")}
+                        />
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            Leave blank to use the generated result sentence.
+                          </p>
+                          <CharacterCount
+                            value={values.summaryOverride}
+                            max={textFieldLimits.summaryOverride}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {activeCustomerLineEditor === "open-item" ? (
+                      <>
+                        <div className="grid gap-2 md:grid-cols-3">
+                          {jobPatternPresets.map((pattern) => {
+                            const selected = activeJobPatternId === pattern.id;
+
+                            return (
+                              <button
+                                key={pattern.id}
+                                type="button"
+                                onClick={() => applyJobPattern(pattern)}
+                                className={`rounded-[16px] border px-3 py-3 text-left transition ${
+                                  selected
+                                    ? "border-[#f26a21]/45 bg-white"
+                                    : "border-black/8 bg-white/55 hover:bg-white"
+                                }`}
+                              >
+                                <span className="block text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
+                                  {pattern.label}
+                                </span>
+                                <span className="mt-1 block text-sm font-bold text-foreground">
+                                  {pattern.title}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {values.scenario === "exception" ? (
+                          <div>
+                            <label className={labelClassName()} htmlFor="quickExceptionNote">
+                              Open-item note
+                            </label>
+                            <textarea
+                              id="quickExceptionNote"
+                              rows={2}
+                              className={fieldClassName()}
+                              maxLength={textFieldLimits.exceptionNote}
+                              placeholder="Optional. Tighten the blocked / inaccessible explanation."
+                              {...form.register("exceptionNote")}
+                            />
+                            <CharacterCount
+                              value={values.exceptionNote}
+                              max={textFieldLimits.exceptionNote}
+                            />
+                          </div>
+                        ) : null}
+                      </>
+                    ) : null}
+
+                    {activeCustomerLineEditor === "action" ? (
+                      <div>
+                        <label className={labelClassName()} htmlFor="quickCustomerActionOverride">
+                          Customer instruction
+                        </label>
+                        <textarea
+                          id="quickCustomerActionOverride"
+                          rows={3}
+                          className={fieldClassName()}
+                          maxLength={textFieldLimits.customerActionOverride}
+                          placeholder={findPacketRowValue(
+                            previewPacket.customerClose.actionItems,
+                            "Reply or action",
+                            previewPacket.customerClose.copy,
+                          )}
+                          {...form.register("customerActionOverride")}
+                        />
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            This is the main next-action sentence the customer sees.
+                          </p>
+                          <CharacterCount
+                            value={values.customerActionOverride}
+                            max={textFieldLimits.customerActionOverride}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {activeCustomerLineEditor === "photo-record" ? (
+                      <div className="rounded-[16px] border border-black/8 bg-white/70 px-4 py-4">
+                        <p className={labelClassName()}>Photo record</p>
+                        <p className="mt-2 text-sm font-bold leading-5 text-foreground">
+                          {adaptiveRecord.meta.builderTitle}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          {adaptiveRecord.meta.builderCopy}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => selectBuilderStep("photos")}
+                            className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
+                          >
+                            Open photo editor
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              fieldPhotoSlots.forEach((slot) => {
+                                if (!uploadedFieldPhotos[slot.id]) {
+                                  setPhotoSlotResolution(slot.id, "not-captured");
+                                }
+                              });
+                            }}
+                            className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground hover:bg-white"
+                          >
+                            Mark missing as not captured
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {activeCustomerLineEditor === "timing" ? (
+                      <div>
+                        <p className={labelClassName()}>Next service timing</p>
+                        <SegmentedControl
+                          type="single"
+                          value={values.cadence}
+                          onValueChange={(value) => {
+                            if (
+                              axis1CadenceOptions.some(
+                                (option) => option.value === value,
+                              )
+                            ) {
+                              form.setValue(
+                                "cadence",
+                                value as Axis1BuilderFormValues["cadence"],
+                                {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                },
+                              );
+                            }
+                          }}
+                          className="mt-3 flex-wrap bg-white/72"
+                        >
+                          {axis1CadenceOptions.map((option) => (
+                            <SegmentedControlItem
+                              key={option.value}
+                              value={option.value}
+                            >
+                              {option.label}
+                            </SegmentedControlItem>
+                          ))}
+                        </SegmentedControl>
+                        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                          {selectedCadenceOption.copy}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
 
                 <AnimatePresence initial={false}>
                   {showPacketDetails ? (
@@ -2619,27 +3245,25 @@ export function PacketBuilder() {
 
               <div
                 id="field-photo-intake"
-                className={`overflow-hidden rounded-[26px] border border-white/10 bg-[#101214] px-3.5 py-4 text-white shadow-[0_28px_70px_rgba(17,17,17,0.24)] md:rounded-[28px] md:px-5 md:py-5 ${
+                className={`overflow-hidden rounded-[30px] border border-white/10 bg-[#101214] px-3.5 py-4 text-white shadow-[0_28px_70px_rgba(17,17,17,0.24)] md:rounded-[34px] md:px-5 md:py-5 ${
                   builderStep === "photos" ? "" : "hidden"
+                } ${
+                  isPhotoStep
+                    ? "mt-2 min-h-[calc(100svh-96px)] border-white/12 bg-[radial-gradient(circle_at_18%_0%,rgba(255,180,137,0.12),transparent_30%),linear-gradient(180deg,#121416,#0d0f10)] shadow-[0_24px_80px_rgba(0,0,0,0.28)] md:mt-3 md:px-6 md:py-6"
+                    : ""
                 }`}
               >
                 <div className="flex items-start justify-between gap-5">
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                      Photo step
+                      Closeout start
                     </p>
-                    <h3 className="mt-2 text-lg font-bold leading-tight tracking-[-0.018em] text-white md:text-xl">
-                      <span className="md:hidden">
-                        Start with before / after. Add the rest if useful.
-                      </span>
-                      <span className="hidden md:inline">
-                        Start with before / after. Drop the rest if useful.
-                      </span>
+                    <h3 className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]">
+                      Start the closeout.
                     </h3>
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
-                      Core proof is before and after hood photos. Filters,
-                      access, fan, grease, and label photos are recommended only
-                      when they help explain the job.
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-white/54 md:text-[14px] md:leading-6">
+                      Add photos if the crew captured them, or continue with a
+                      written service record.
                     </p>
                   </div>
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] md:h-11 md:w-11">
@@ -2647,7 +3271,121 @@ export function PacketBuilder() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-5">
+                <motion.label
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.99 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 360,
+                    damping: 28,
+                  }}
+                  className={`group relative mt-5 flex cursor-pointer items-center justify-between gap-4 overflow-hidden border border-dashed border-[#ffb489]/48 bg-[radial-gradient(circle_at_12%_0%,rgba(255,180,137,0.22),transparent_36%),radial-gradient(circle_at_86%_18%,rgba(255,255,255,0.1),transparent_24%),rgba(255,255,255,0.06)] px-5 transition hover:border-[#ffb489]/70 hover:bg-white/[0.09] ${
+                    hasProofWorkStarted
+                      ? "min-h-[104px] rounded-[24px] py-4 sm:min-h-[112px] sm:px-6 sm:py-4"
+                      : "min-h-[220px] rounded-[32px] py-5 sm:min-h-[248px] sm:px-8 sm:py-7 xl:min-h-[266px]"
+                  }`}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    void handleBulkPhotoUpload(event.dataTransfer.files);
+                  }}
+                >
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffb489]">
+                      {hasProofWorkStarted ? "Add more" : "Main action"}
+                    </p>
+                    <p
+                      className={`mt-3 font-bold text-white ${
+                        hasProofWorkStarted
+                          ? "text-2xl leading-[0.98] tracking-[-0.04em] sm:text-3xl"
+                          : "max-w-[11ch] text-[2.45rem] leading-[0.88] tracking-[-0.07em] sm:text-[3.55rem]"
+                      }`}
+                    >
+                      {hasProofWorkStarted ? "Add extra photos" : "Drop photos if you have them"}
+                    </p>
+                    <p className="mt-4 max-w-md text-sm leading-6 text-white/58 md:text-[15px]">
+                      {hasProofWorkStarted
+                        ? "Drop only the missing or extra photos. The current packet stays intact."
+                        : "Before, after, fan, filter, access, label, and issue photos can all go in one batch."}
+                    </p>
+                    <div
+                      className={`mt-5 flex flex-wrap gap-2 ${
+                        hasProofWorkStarted ? "hidden" : ""
+                      }`}
+                    >
+                      <span className="inline-flex items-center rounded-full bg-white px-4 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-[#111315] shadow-[0_14px_34px_rgba(0,0,0,0.26)]">
+                        Choose photos
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="border-white/14 bg-white/[0.08] px-3 py-1 text-[11px] text-white/70"
+                      >
+                        Photos optional
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-white/14 bg-white/[0.08] px-3 py-1 text-[11px] text-white/70"
+                      >
+                        Sort later if needed
+                      </Badge>
+                    </div>
+                  </div>
+                  <div
+                    className={`grid shrink-0 place-items-center bg-white text-[#111315] shadow-[0_22px_54px_rgba(0,0,0,0.34)] ${
+                      hasProofWorkStarted
+                        ? "h-12 w-12 rounded-[20px] sm:h-14 sm:w-14"
+                        : "h-16 w-16 rounded-[26px] sm:h-20 sm:w-20"
+                    }`}
+                  >
+                    <IconCameraPlus className="h-8 w-8" />
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    data-photo-upload="bulk"
+                    className="sr-only"
+                    onChange={(event) => {
+                      void handleBulkPhotoUpload(event.target.files);
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                </motion.label>
+
+                {!hasProofWorkStarted ? (
+                  <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                    <button
+                      type="button"
+                      onClick={() => selectBuilderStep("job")}
+                      className="group flex min-h-[86px] items-center justify-between gap-4 rounded-[24px] border border-white/12 bg-white px-5 py-4 text-left text-[#111315] shadow-[0_18px_48px_rgba(0,0,0,0.28)] transition hover:-translate-y-0.5 hover:bg-white/95"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-[#bc3d1f]">
+                          No photos?
+                        </span>
+                        <span className="mt-1 block text-xl font-black tracking-[-0.045em]">
+                          Continue anyway
+                        </span>
+                        <span className="mt-1 block text-xs font-semibold leading-5 text-[#111315]/58">
+                          Build a written service record first.
+                        </span>
+                      </span>
+                      <IconArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5" />
+                    </button>
+                    <div className="grid min-h-[86px] content-center rounded-[24px] border border-white/10 bg-black/14 px-5 py-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/42">
+                        Next
+                      </p>
+                      <p className="mt-2 text-sm font-bold leading-5 text-white">
+                        Pick the result, then copy the customer link or save the PDF.
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div
+                  className="hidden"
+                >
                   {fieldPhotoSlots
                     .filter((slot) => slot.id === "hood-before" || slot.id === "hood-after")
                     .map((slot) => {
@@ -2663,7 +3401,7 @@ export function PacketBuilder() {
                             stiffness: 360,
                             damping: 28,
                           }}
-                          className={`group relative min-h-[132px] cursor-pointer overflow-hidden rounded-[22px] border px-4 py-4 transition sm:min-h-[170px] sm:rounded-[24px] sm:px-5 sm:py-5 ${
+                          className={`group relative min-h-[112px] cursor-pointer overflow-hidden rounded-[20px] border px-4 py-4 transition sm:min-h-[138px] sm:rounded-[22px] sm:px-5 sm:py-5 ${
                             uploaded
                               ? "border-[#b9d4c6]/28 bg-[#b9d4c6]/10"
                               : "border-dashed border-[#ffb489]/34 bg-white/[0.05] hover:border-[#ffb489]/60 hover:bg-white/[0.075]"
@@ -2746,83 +3484,84 @@ export function PacketBuilder() {
                     })}
                 </div>
 
-                <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-stretch 2xl:grid-cols-1 md:mt-5 md:gap-4">
-                  <motion.label
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.99 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 360,
-                      damping: 28,
-                    }}
-                    className="group relative flex min-h-[124px] cursor-pointer items-center justify-between gap-4 overflow-hidden rounded-[22px] border border-dashed border-[#ffb489]/38 bg-[radial-gradient(circle_at_12%_0%,rgba(255,180,137,0.16),transparent_34%),rgba(255,255,255,0.055)] px-4 py-4 transition hover:border-[#ffb489]/60 hover:bg-white/[0.08] sm:min-h-[150px] sm:rounded-[24px] sm:px-5 sm:py-5"
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={(event) => {
-                      event.preventDefault();
-                      void handleBulkPhotoUpload(event.dataTransfer.files);
-                    }}
-                  >
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
-                        Phone batch
-                      </p>
-                      <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.012em] text-white">
-                        <span className="md:hidden">Choose from phone files</span>
-                        <span className="hidden md:inline">Choose or drop the rest</span>
-                      </p>
-                      <p className="mt-2 max-w-sm text-sm leading-6 text-white/52">
-                        Filters, fan, label, access, or grease photos can make the
-                        packet stronger. They are recommended, not required.
-                      </p>
-                      <Badge
-                        variant="outline"
-                        className="mt-4 border-white/12 bg-white/[0.06] px-3 py-1 text-[11px] text-white/64"
-                      >
-                        Local preview only
-                      </Badge>
-                    </div>
-                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-[#111315] shadow-[0_18px_40px_rgba(0,0,0,0.28)] sm:h-12 sm:w-12">
-                      <IconCameraPlus className="h-6 w-6" />
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      data-photo-upload="bulk"
-                      className="sr-only"
-                      onChange={(event) => {
-                        void handleBulkPhotoUpload(event.target.files);
-                        event.currentTarget.value = "";
-                      }}
-                    />
-                  </motion.label>
-                  <div className="rounded-[22px] border border-white/10 bg-white/[0.055] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:rounded-[24px] sm:px-5 sm:py-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
-                          Photo review
+                <div
+                  className={`mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)] lg:items-stretch 2xl:grid-cols-1 md:mt-5 md:gap-4 ${
+                    hasProofWorkStarted ? "" : "hidden"
+                  }`}
+                >
+                  <div className="overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(255,255,255,0.035))] shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_24px_70px_rgba(0,0,0,0.2)]">
+                    <div className="grid gap-4 px-4 py-4 sm:px-5 sm:py-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
+                          Auto-sort result
                         </p>
-                        <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.012em]">
-                          {hasProofWorkStarted
-                            ? proofReadinessTitle
-                            : "Before / after is enough to start"}
+                        <p className="mt-2 text-2xl font-bold leading-[0.95] tracking-[-0.055em] text-white md:text-[2.35rem]">
+                          {proofReadinessTitle}
+                        </p>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-white/54">
+                          {proofReadinessCopy}
                         </p>
                       </div>
-                      <Badge
-                        variant="outline"
-                        className="border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-1 text-[11px] text-[#ffb489]"
-                      >
-                        Core {requiredProofReadyCount}/{requiredProofCount}
-                      </Badge>
+                      <div className="grid grid-cols-3 gap-2 md:w-[310px]">
+                        {[
+                          ["Placed", `${uploadedProofCount}`],
+                          ["Extra", `${unplacedFieldPhotos.length}`],
+                          ["Core", `${requiredProofReadyCount}/${requiredProofCount}`],
+                        ].map(([label, value]) => (
+                          <div
+                            key={label}
+                            className="rounded-[18px] border border-white/10 bg-black/16 px-3 py-3 text-center"
+                          >
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+                              {label}
+                            </p>
+                            <p className="mt-1 text-xl font-bold tracking-[-0.04em] text-white">
+                              {value}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-white/52">
-                      {hasProofWorkStarted
-                        ? proofReadinessCopy
-                        : "No photos? Continue now. Have photos? Upload the batch and only review if the auto-sort looks wrong."}
-                    </p>
+                    {uploadedPhotoSlots.length > 0 ? (
+                      <div className="border-y border-white/8 bg-black/12 px-4 py-3 sm:px-5">
+                        <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                          {uploadedPhotoSlots.map((slot) => {
+                            const uploaded = uploadedFieldPhotos[slot.id];
+
+                            if (!uploaded) {
+                              return null;
+                            }
+
+                            return (
+                              <div
+                                key={slot.id}
+                                className="min-w-[132px] overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.045]"
+                              >
+                                <div
+                                  className="h-20 bg-cover bg-center"
+                                  style={{ backgroundImage: `url(${uploaded.src})` }}
+                                />
+                                <div className="px-3 py-2">
+                                  <p className="truncate text-xs font-bold text-white">
+                                    {slot.shortLabel}
+                                  </p>
+                                  <p className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-white/42">
+                                    {uploaded.confidence === "keyword"
+                                      ? "High match"
+                                      : uploaded.confidence === "order"
+                                        ? "Review"
+                                        : "Manual"}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
                     {photoImportNotice ? (
                       <div
-                        className={`mt-3 rounded-[16px] border px-3 py-2 ${
+                        className={`mx-4 mt-3 rounded-[16px] border px-3 py-2 sm:mx-5 ${
                           photoImportNotice.tone === "error"
                             ? "border-[#ff8a70]/24 bg-[#bc3d1f]/14"
                             : photoImportNotice.tone === "warning"
@@ -2844,14 +3583,46 @@ export function PacketBuilder() {
                       </div>
                     ) : null}
                     {hasOrderMatchedPhotos ? (
-                      <div className="mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2">
+                      <div className="mx-4 mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2 sm:mx-5">
                         <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
                           Generic phone filenames detected. We sorted them by
                           upload order, not by visual content.
                         </p>
                       </div>
                     ) : null}
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08]">
+                    {hasBeforeOnly || hasAfterOnly ? (
+                      <div className="mx-4 mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2 sm:mx-5">
+                        <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
+                          {hasAfterOnly
+                            ? "After photo is present, but no before photo is attached. The packet will stay as an after-photo service record unless you add or mark the missing before photo."
+                            : "Before photo is present, but no after photo is attached. Add an after photo or mark it not captured before sending."}
+                        </p>
+                      </div>
+                    ) : null}
+                    <div className="mx-4 mt-3 rounded-[18px] border border-white/10 bg-black/14 px-3 py-3 sm:mx-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/42">
+                            Next step
+                          </p>
+                          <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-white">
+                            Confirm result before sending
+                          </p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="border-white/12 bg-white/[0.07] px-3 py-1 text-[10px] text-white/58"
+                        >
+                          {adaptiveRecord.coverage.totalPhotos > 0
+                            ? `${adaptiveRecord.coverage.placedPhotos} placed`
+                            : "Written closeout"}
+                        </Badge>
+                      </div>
+                      <p className="mt-2 text-xs leading-5 text-white/54">
+                        Photo roles are prepared. The customer-facing packet is finalized after the visit outcome is selected.
+                      </p>
+                    </div>
+                    <div className="mx-4 mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08] sm:mx-5">
                       <motion.div
                         className="h-full rounded-full bg-[#ffb489]"
                         animate={{ width: `${proofProgressPercent}%` }}
@@ -2862,7 +3633,7 @@ export function PacketBuilder() {
                       />
                     </div>
                     {shouldShowProofDetails ? (
-                      <div className="mt-4 flex flex-wrap gap-2">
+                      <div className="mx-4 mt-4 flex flex-wrap gap-2 sm:mx-5">
                         {(missingRequiredSlots.length > 0
                           ? firstMissingSlots
                           : fieldPhotoSlots.filter((slot) => slot.required).slice(0, 4)
@@ -2907,7 +3678,7 @@ export function PacketBuilder() {
                         )}
                       </div>
                     ) : null}
-                    <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 border-t border-white/8 bg-black/10 px-4 py-4 sm:px-5">
                       {!hasProofWorkStarted ? (
                         <Button
                           type="button"
@@ -2915,7 +3686,7 @@ export function PacketBuilder() {
                           onClick={() => selectBuilderStep("report")}
                           className="hidden rounded-full bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#111315] hover:bg-white/90 md:inline-flex"
                         >
-                          No photos - continue
+                          Continue without photos
                         </Button>
                       ) : null}
                       {hasProofWorkStarted ? (
@@ -2948,12 +3719,42 @@ export function PacketBuilder() {
                           {showAllPhotoSlots ? "Open only" : "All slots"}
                         </Button>
                       ) : null}
+                      {hasAfterOnly && shouldShowProofDetails ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setPhotoSlotResolution("hood-before", "not-captured")
+                          }
+                          className="rounded-full border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffcfb5] hover:bg-[#ffb489]/14 hover:text-[#ffcfb5]"
+                        >
+                          Mark before not captured
+                        </Button>
+                      ) : null}
+                      {hasBeforeOnly && shouldShowProofDetails ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setPhotoSlotResolution("hood-after", "not-captured")
+                          }
+                          className="rounded-full border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffcfb5] hover:bg-[#ffb489]/14 hover:text-[#ffcfb5]"
+                        >
+                          Mark after not captured
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
                 </div>
 
                 {uploadedPhotoSlots.length > 0 ? (
-                  <div className="mt-5 hidden rounded-[24px] border border-[#b9d4c6]/20 bg-[#b9d4c6]/8 px-5 py-5 md:block">
+                  <div
+                    className={`mt-5 rounded-[24px] border border-[#b9d4c6]/20 bg-[#b9d4c6]/8 px-5 py-5 ${
+                      shouldShowProofDetails ? "hidden md:block" : "hidden"
+                    }`}
+                  >
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#cfe9da]">
@@ -3204,7 +4005,7 @@ export function PacketBuilder() {
                   </div>
                 ) : null}
 
-                <div className="mt-5 rounded-[20px] border border-white/10 bg-white/[0.045] px-4 py-3">
+                <div className="mt-5 hidden rounded-[20px] border border-white/10 bg-white/[0.045] px-4 py-3">
                   <div className="flex items-start gap-3">
                     <IconCircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-[#ffb489]" />
                     <p className="text-xs leading-5 text-white/58">
@@ -3215,24 +4016,30 @@ export function PacketBuilder() {
                   </div>
                 </div>
                 <div className="mt-4 flex flex-wrap justify-end gap-2">
+                  {hasProofWorkStarted ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowProofDetails((current) => !current)}
+                      className="rounded-full border border-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/62"
+                    >
+                      {shouldShowProofDetails ? "Hide roles" : "Review photos"}
+                    </button>
+                  ) : null}
                   <button
                     type="button"
-                    onClick={() => selectBuilderStep("job")}
-                    className="rounded-full border border-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/62"
-                  >
-                    Back to job
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => selectBuilderStep("report")}
+                    onClick={proceedFromPhotoStep}
                     className="rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#111315]"
                   >
-                    Preview packet
+                    {photoStepPrimaryLabel}
                   </button>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <div
+                className={`flex flex-col gap-3 sm:flex-row sm:flex-wrap ${
+                  builderStep === "report" ? "hidden" : "hidden"
+                }`}
+              >
                 <button
                   type="button"
                   onClick={resetBuilder}
@@ -3265,27 +4072,193 @@ export function PacketBuilder() {
           className={`min-w-0 space-y-4 ${
             builderStep === "report"
               ? "order-1 md:order-none"
-              : "hidden md:block"
+              : "hidden"
           }`}
         >
-          <Panel className="px-5 py-5 print:border-0 print:bg-white print:p-0 print:shadow-none md:px-6 md:py-6">
+          <Panel className="px-4 py-4 print:border-0 print:bg-white print:p-0 print:shadow-none md:px-5 md:py-5">
             <div className="pdf-print-hide flex flex-col gap-3 border-b border-border pb-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className={labelClassName()}>Customer proof link preview</p>
+                <p className={labelClassName()}>
+                  {closeoutEngine.canGeneratePacket ? "Ready to send" : "Result required"}
+                </p>
                 <h2 className="mt-3 font-display text-[1.38rem] font-bold leading-[1.02] tracking-[-0.045em] text-foreground md:text-[1.55rem] md:leading-[0.96] md:tracking-[-0.06em]">
-                  <span className="md:hidden">Proof link preview.</span>
+                  <span className="md:hidden">
+                    {closeoutEngine.canGeneratePacket
+                      ? "Choose the output."
+                      : "Pick what happened."}
+                  </span>
                   <span className="hidden md:inline">
-                    This is the premium link your customer opens.
+                    {closeoutEngine.canGeneratePacket
+                      ? "Send the link or save the record."
+                      : "Choose a job result before output."}
                   </span>
                 </h2>
               </div>
               <div className="hidden rounded-[16px] border border-black/10 bg-[rgba(17,17,17,0.03)] px-4 py-3 md:block">
                 <p className={labelClassName()}>Current report mode</p>
                 <p className="mt-2 text-sm font-medium text-foreground">
-                  {values.scenario === "clean"
-                    ? "Everything was completed: proof, customer note, and next visit window."
-                    : `${activeJobPattern.label}: customer action and recorded condition stay visible.`}
+                  {closeoutFormatLabel}:{" "}
+                  {!closeoutEngine.canGeneratePacket
+                    ? "no customer link or PDF should be generated yet."
+                    : values.scenario === "clean"
+                      ? "completed result, customer note, and next visit window."
+                      : `${activeJobPattern.label.toLowerCase()} with customer action visible.`}
                 </p>
+              </div>
+            </div>
+            <div className="pdf-print-hide mt-4 rounded-[24px] border border-black/8 bg-[#111315] p-3 text-white shadow-[0_18px_56px_rgba(17,19,21,0.18)]">
+              <div className="grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)]">
+                <div className="rounded-[20px] border border-white/10 bg-white/[0.055] px-4 py-4">
+                  <div className="flex items-start gap-3">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[16px] bg-[#f26a21] text-white shadow-[0_12px_26px_rgba(242,106,33,0.26)]">
+                      <IconCircleCheck className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffb489]">
+                        {closeoutEngine.canGeneratePacket
+                          ? "Draft from selected result"
+                          : "No output yet"}
+                      </p>
+                      <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] text-white">
+                        {closeoutEngine.canGeneratePacket
+                          ? "Ready after the crew picks what happened."
+                          : "Pick what happened before generating output."}
+                      </h3>
+                      <p className="mt-2 text-xs leading-5 text-white/58">
+                        {closeoutEngine.canGeneratePacket
+                          ? "This is generated from the selected job outcome and written service notes, not photo AI."
+                          : "The tool will not create a link or PDF from untouched sample defaults."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    {[
+                      [
+                        "Result",
+                        closeoutEngine.primaryStatusLabel,
+                      ],
+                      [
+                        "Photos",
+                        closeoutEngine.basisLabel,
+                      ],
+                      ["Next", `${selectedCadenceOption.label}`],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="rounded-[14px] border border-white/10 bg-black/18 px-3 py-2"
+                      >
+                        <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-white/38">
+                          {label}
+                        </p>
+                        <p className="mt-1 truncate text-xs font-bold text-white/86">
+                          {value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <button
+                    type="button"
+                    disabled={!closeoutEngine.canGeneratePacket}
+                    onClick={() => {
+                      setReportOutputMode("link");
+                      requestFreeReportOutput("copy-link");
+                    }}
+                    className={`tool-output-card group text-left ${
+                      reportOutputMode === "link" ? "is-active" : ""
+                    } ${
+                      !closeoutEngine.canGeneratePacket
+                        ? "cursor-not-allowed opacity-55"
+                        : ""
+                    }`}
+                  >
+                    <span className="flex items-start justify-between gap-3">
+                      <span>
+                        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#b94d11]">
+                          Customer
+                        </span>
+                        <span className="mt-2 block text-xl font-black leading-none tracking-[-0.055em] text-[#111315]">
+                          Send customer link
+                        </span>
+                      </span>
+                      <span className="tool-output-icon bg-[#f26a21] text-white">
+                        <Copy className="h-5 w-5" />
+                      </span>
+                    </span>
+                    <span className="mt-4 block text-sm leading-5 text-[#5f574f]">
+                      Best for text or email. Customer sees what was done, what is open, and what to do next.
+                    </span>
+                    <span className="tool-output-cta mt-4">
+                      Copy link
+                      <IconArrowRight className="h-4 w-4" />
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!closeoutEngine.canGeneratePacket}
+                    onClick={() => {
+                      setReportOutputMode("pdf");
+                      requestFreeReportOutput("print-pdf");
+                    }}
+                    className={`tool-output-card group text-left ${
+                      reportOutputMode === "pdf" ? "is-active" : ""
+                    } ${
+                      !closeoutEngine.canGeneratePacket
+                        ? "cursor-not-allowed opacity-55"
+                        : ""
+                    }`}
+                  >
+                    <span className="flex items-start justify-between gap-3">
+                      <span>
+                        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#5f574f]">
+                          Record
+                        </span>
+                        <span className="mt-2 block text-xl font-black leading-none tracking-[-0.055em] text-[#111315]">
+                          Save record PDF
+                        </span>
+                      </span>
+                      <span className="tool-output-icon bg-[#111315] text-white">
+                        <FileDown className="h-5 w-5" />
+                      </span>
+                    </span>
+                    <span className="mt-4 block text-sm leading-5 text-[#5f574f]">
+                      Best for archive, landlord, corporate, insurance, or later proof requests.
+                    </span>
+                    <span className="tool-output-cta mt-4">
+                      Save PDF
+                      <IconArrowRight className="h-4 w-4" />
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-white/10 bg-white/[0.055] px-3 py-2.5">
+                <p className="min-w-0 text-xs leading-5 text-white/56">
+                  {closeoutEngine.canGeneratePacket
+                    ? "Need changes? Edit the exact customer lines. Advanced PDF sections stay under options."
+                    : closeoutEngine.blockingReason}
+                </p>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowWordingEditor((current) => !current)}
+                    className="tool-action-btn tool-action-secondary tool-action-mini"
+                  >
+                    <PencilLine className="h-3.5 w-3.5" />
+                    {showWordingEditor ? "Hide edits" : "Edit wording"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReportOutputMode("pdf");
+                      setShowPacketDetails((current) => !current);
+                    }}
+                    className="tool-action-btn tool-action-quiet tool-action-mini hidden md:inline-flex"
+                  >
+                    <Settings2 className="h-3.5 w-3.5" />
+                    PDF options
+                  </button>
+                </div>
               </div>
             </div>
             <motion.div
@@ -3318,18 +4291,36 @@ export function PacketBuilder() {
                   </p>
                 </div>
               </div>
-              <div className="mt-3 divide-y divide-black/8 rounded-[16px] bg-white/74 px-3">
-                {mobileReportChecks.map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="flex min-w-0 items-center justify-between gap-3 py-2 text-xs"
+              <div className="mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
+                <div className="flex items-center justify-between gap-3 px-1 pb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                    Ready wording
+                  </p>
+                  <span className="rounded-full bg-[#111315] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
+                    {reportOutputMode === "link" ? "Link" : "PDF"}
+                  </span>
+                </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCustomerLineEditor("result")}
+                    className="group w-full rounded-[16px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2.5 text-left transition active:scale-[0.995]"
                   >
-                    <span className="shrink-0 text-muted-foreground">{label}</span>
-                    <span className="min-w-0 truncate font-semibold text-foreground">
-                      {value}
+                    <span className="flex items-start justify-between gap-3">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
+                        Today&apos;s result
+                      </span>
+                      <span className="tool-edit-chip shrink-0">
+                        <PencilLine className="h-3 w-3" />
+                        Edit
+                      </span>
                     </span>
-                  </div>
-                ))}
+                    <span className="mt-1.5 block text-xs font-semibold leading-5 text-foreground">
+                      {generatedCustomerLines[0]?.value}
+                    </span>
+                    <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground/80">
+                      Other lines are included in the preview below.
+                    </span>
+                  </button>
               </div>
               <SegmentedControl
                 type="single"
@@ -3339,12 +4330,12 @@ export function PacketBuilder() {
                     setReportOutputMode(value);
                   }
                 }}
-                className="mt-3 rounded-full bg-white/72"
+                className="tool-segmented-control mt-3 rounded-full bg-white/72"
               >
-                <SegmentedControlItem value="link" className="rounded-full text-[11px]">
+                <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-[11px]">
                   Link view
                 </SegmentedControlItem>
-                <SegmentedControlItem value="pdf" className="rounded-full text-[11px]">
+                <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-[11px]">
                   Record PDF
                 </SegmentedControlItem>
               </SegmentedControl>
@@ -3374,23 +4365,39 @@ export function PacketBuilder() {
 
                     openMobileSheet("report-actions");
                   }}
-                  className="shrink-0 rounded-full bg-[#111315] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white"
+                  className="tool-action-btn tool-action-dark tool-action-mini shrink-0"
                 >
+                  {totalFieldPhotoCount === 0 ? (
+                    <Plus className="h-3.5 w-3.5" />
+                  ) : reportOutputMode === "pdf" ? (
+                    <FileDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
                   {mobileReportInlineActionLabel}
                 </button>
               </div>
             </motion.div>
-            <div className="pdf-print-hide mt-4 hidden min-w-0 items-start gap-4 md:grid xl:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)]">
-              <div className="rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4">
+            <div
+              className={`pdf-print-hide mt-4 hidden min-w-0 items-start gap-4 md:grid ${
+                builderStep === "report"
+                  ? ""
+                  : "xl:grid-cols-[minmax(0,0.55fr)_minmax(0,1.45fr)]"
+              }`}
+            >
+              <div
+                className={`rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4 ${
+                  builderStep === "report" ? "hidden" : ""
+                }`}
+              >
                 {builderStep === "report" ? (
                   <>
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
-                        <p className={labelClassName()}>Edit customer wording</p>
+                        <p className={labelClassName()}>Ready to send</p>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          These three customer-facing lines update the report on
-                          the right immediately. Leave a field blank to keep the
-                          recommended wording.
+                          Review the customer link, then copy it or save the PDF.
+                          Edit wording only when the recommended copy feels off.
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -3407,15 +4414,94 @@ export function PacketBuilder() {
                         ) : null}
                       </div>
                     </div>
-                    <div className="mt-4 rounded-[18px] border border-[#f26a21]/18 bg-[#fff7ef] px-4 py-3">
-                      <p className={labelClassName()}>Live-linked fields</p>
-                      <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                        Edit only these lines when the recommendation feels off.
-                        The rest of the report stays structured so it does not
-                        turn into a long free-form note.
-                      </p>
-                    </div>
-                    <div className="mt-4 grid gap-4">
+                    {!showWordingEditor ? (
+                      <div className="mt-4 overflow-hidden rounded-[20px] border border-[#f26a21]/18 bg-[#fff7ef]">
+                        <div className="border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
+                          <p className={labelClassName()}>Generated customer packet</p>
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            These are the exact customer-facing lines to check before sending.
+                          </p>
+                        </div>
+                        <div className="grid gap-2 px-3 py-3">
+                          {generatedCustomerLines.map((item) => (
+                            <button
+                              key={item.label}
+                              type="button"
+                              onClick={item.onClick}
+                              className="group rounded-[18px] border border-transparent bg-white/78 px-3 py-3 text-left transition hover:-translate-y-0.5 hover:border-[#f26a21]/24 hover:bg-white hover:shadow-[0_14px_32px_rgba(17,19,21,0.08)]"
+                            >
+                              <span className="flex items-start justify-between gap-3">
+                                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                                  {item.label}
+                                </span>
+                                <span className="tool-edit-chip shrink-0">
+                                  <PencilLine className="h-3 w-3" />
+                                  {item.action}
+                                </span>
+                              </span>
+                              <span className="mt-1.5 block text-sm font-bold leading-5 text-foreground">
+                                {item.value}
+                              </span>
+                              <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+                                {item.source}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2 border-t border-[#f0dfd1] bg-white/62 px-4 py-3">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => requestFreeReportOutput("copy-link")}
+                            className="tool-action-btn tool-action-primary tool-action-mini"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                            Copy customer link
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => requestFreeReportOutput("print-pdf")}
+                            className="tool-action-btn tool-action-dark tool-action-mini"
+                          >
+                            <FileDown className="h-3.5 w-3.5" />
+                            Save PDF
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setShowWordingEditor(true)}
+                            className="tool-action-btn tool-action-secondary tool-action-mini"
+                          >
+                            <PencilLine className="h-3.5 w-3.5" />
+                            Edit wording
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="mt-4 rounded-[18px] border border-[#f26a21]/18 bg-[#fff7ef] px-4 py-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className={labelClassName()}>Wording override</p>
+                              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                                Change only these lines when needed. Everything else stays structured.
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setShowWordingEditor(false)}
+                              className="tool-action-btn tool-action-secondary tool-action-mini"
+                            >
+                              <IconCircleCheck className="h-3.5 w-3.5" />
+                              Done
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid gap-4">
                       <div>
                         <label className={labelClassName()} htmlFor="previewSummaryOverride">
                           Result sentence
@@ -3482,7 +4568,9 @@ export function PacketBuilder() {
                           />
                         </div>
                       </div>
-                    </div>
+                        </div>
+                      </>
+                    )}
                   </>
                 ) : (
                   <div>
@@ -3524,7 +4612,7 @@ export function PacketBuilder() {
                 )}
               </div>
 
-              <div className="rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4">
+              <div className="hidden rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className={labelClassName()}>Customer link vs PDF</p>
@@ -3539,7 +4627,7 @@ export function PacketBuilder() {
                       type="button"
                       size="sm"
                       onClick={() => requestFreeReportOutput("copy-link")}
-                      className="rounded-full bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#d95d1d]"
+                      className="tool-action-btn tool-action-primary tool-action-mini"
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy local link
@@ -3549,7 +4637,7 @@ export function PacketBuilder() {
                       size="sm"
                       variant="ghost"
                       onClick={() => requestFreeReportOutput("open-link")}
-                      className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground hover:bg-white"
+                      className="tool-action-btn tool-action-secondary tool-action-mini"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                       Open link
@@ -3558,8 +4646,9 @@ export function PacketBuilder() {
                       type="button"
                       size="sm"
                       onClick={() => requestFreeReportOutput("print-pdf")}
-                      className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
+                      className="tool-action-btn tool-action-dark tool-action-mini"
                     >
+                      <FileDown className="h-3.5 w-3.5" />
                       Save PDF layout
                     </Button>
                     <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -3577,12 +4666,12 @@ export function PacketBuilder() {
                           setReportOutputMode(value);
                         }
                       }}
-                      className="rounded-full"
+                      className="tool-segmented-control rounded-full"
                     >
-                      <SegmentedControlItem value="link" className="rounded-full text-xs">
+                      <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-xs">
                         Proof link
                       </SegmentedControlItem>
-                      <SegmentedControlItem value="pdf" className="rounded-full text-xs">
+                      <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-xs">
                         Record PDF
                       </SegmentedControlItem>
                     </SegmentedControl>
@@ -3612,7 +4701,7 @@ export function PacketBuilder() {
                               label === "Customer link" ? "link" : "pdf",
                             )
                           }
-                          className={`rounded-[16px] border px-3 py-3 text-left transition ${
+                          className={`rounded-[18px] border px-3 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(17,19,21,0.08)] ${
                             isActive
                               ? "border-[#f26a21]/35 bg-[#fff7ef] shadow-[0_12px_26px_rgba(242,106,33,0.08)]"
                               : "border-black/8 bg-[#fbf8f3] hover:border-black/14"
@@ -3647,7 +4736,7 @@ export function PacketBuilder() {
                             type="button"
                             size="sm"
                             onClick={() => requestFreeReportOutput("copy-link")}
-                            className="rounded-full bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#d95d1d]"
+                            className="tool-action-btn tool-action-primary tool-action-mini"
                           >
                             <Copy className="h-3.5 w-3.5" />
                             Copy link
@@ -3657,7 +4746,7 @@ export function PacketBuilder() {
                             size="sm"
                             variant="ghost"
                             onClick={() => requestFreeReportOutput("open-link")}
-                            className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground hover:bg-white"
+                            className="tool-action-btn tool-action-secondary tool-action-mini"
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                             Open
@@ -3682,17 +4771,17 @@ export function PacketBuilder() {
                               applyPacketPresentationMode(value);
                             }
                           }}
-                          className="w-full rounded-full sm:w-[220px]"
+                          className="tool-segmented-control w-full rounded-full sm:w-[220px]"
                         >
                           <SegmentedControlItem
                             value="standard"
-                            className="rounded-full text-xs"
+                            className="tool-segmented-item rounded-full text-xs"
                           >
                             Full report
                           </SegmentedControlItem>
                           <SegmentedControlItem
                             value="short"
-                            className="rounded-full text-xs"
+                            className="tool-segmented-item rounded-full text-xs"
                           >
                             Short report
                           </SegmentedControlItem>
@@ -3728,8 +4817,9 @@ export function PacketBuilder() {
                         type="button"
                         size="sm"
                         onClick={useSimpleWording}
-                        className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
+                        className="tool-action-btn tool-action-dark tool-action-mini"
                       >
+                        <Sparkles className="h-3.5 w-3.5" />
                         Use shorter wording
                       </Button>
                       <Button
@@ -3737,8 +4827,9 @@ export function PacketBuilder() {
                         size="sm"
                         variant="ghost"
                         onClick={restoreAutoWording}
-                        className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground hover:bg-white"
+                        className="tool-action-btn tool-action-secondary tool-action-mini"
                       >
+                        <RotateCcw className="h-3.5 w-3.5" />
                         Restore recommended copy
                       </Button>
                     </div>
@@ -3819,7 +4910,9 @@ export function PacketBuilder() {
               <div className="pdf-print-hide mb-3 flex flex-col gap-3 rounded-[22px] border border-black/8 bg-white/90 px-3.5 py-3 shadow-[0_12px_34px_rgba(17,17,17,0.06)] md:flex-row md:items-center md:justify-between md:px-4">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className={labelClassName()}>{reportOutputMeta.label}</p>
+                    <p className={labelClassName()}>
+                      {reportOutputMode === "link" ? "Customer preview" : "PDF preview"}
+                    </p>
                     <span className="rounded-full border border-[#f26a21]/20 bg-[#fff7ef] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
                       {reportOutputMeta.badge}
                     </span>
@@ -3827,7 +4920,7 @@ export function PacketBuilder() {
                   <p className="mt-1 text-sm font-bold tracking-[-0.035em] text-foreground">
                     {reportOutputMeta.title}
                   </p>
-                  <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
+                  <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground md:max-w-xl">
                     {reportOutputMeta.copy}
                   </p>
                 </div>
@@ -3839,26 +4932,37 @@ export function PacketBuilder() {
                       setReportOutputMode(value);
                     }
                   }}
-                  className="shrink-0 rounded-full md:w-[280px]"
+                  className="tool-segmented-control shrink-0 rounded-full md:w-[280px]"
                 >
-                  <SegmentedControlItem value="link" className="rounded-full text-xs">
+                  <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-xs">
                     Link view
                   </SegmentedControlItem>
-                  <SegmentedControlItem value="pdf" className="rounded-full text-xs">
+                  <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-xs">
                     Record PDF
                   </SegmentedControlItem>
                 </SegmentedControl>
               </div>
               <div
-                className={`min-w-0 overflow-x-hidden border bg-white p-2 md:p-3 ${
+                className={`min-w-0 border bg-white ${
                   reportOutputMode === "pdf"
-                    ? "mx-auto max-w-[860px] rounded-[18px] border-black/12 shadow-[0_28px_90px_rgba(17,17,17,0.22)]"
-                    : "rounded-[24px] border-black/10"
+                    ? "tool-pdf-paper-shell mx-auto w-fit max-w-full overflow-x-auto rounded-[18px] border-black/12 p-0 shadow-[0_28px_90px_rgba(17,17,17,0.22)]"
+                    : "overflow-x-hidden rounded-[24px] border-black/10 p-2 md:p-3"
                 }`}
               >
-                <div className="min-w-0">
+                <div
+                  className={
+                    reportOutputMode === "pdf"
+                      ? "tool-pdf-document-stage flex min-w-0 justify-center"
+                      : "min-w-0"
+                  }
+                >
                   <Axis1PacketDocument
                     data={previewPacket}
+                    className={
+                      reportOutputMode === "pdf"
+                        ? "tool-pdf-document-preview"
+                        : undefined
+                    }
                     variant="customer-report"
                     outputIntent={
                       reportOutputMode === "pdf"
@@ -3972,15 +5076,17 @@ export function PacketBuilder() {
                   <button
                     type="button"
                     onClick={() => requestFreeReportOutput("copy-link")}
-                    className="h-11 rounded-[16px] bg-[#f26a21] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white"
+                    className="tool-action-btn tool-action-primary h-11 px-3"
                   >
+                    <Copy className="h-3.5 w-3.5" />
                     Copy local link
                   </button>
                   <button
                     type="button"
                     onClick={() => requestFreeReportOutput("open-link")}
-                    className="inline-flex h-11 items-center justify-center rounded-[16px] border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-foreground"
+                    className="tool-action-btn tool-action-secondary h-11 px-3"
                   >
+                    <ExternalLink className="h-3.5 w-3.5" />
                     Open link
                   </button>
                 </div>
@@ -4012,15 +5118,17 @@ export function PacketBuilder() {
                   <button
                     type="button"
                     onClick={useSimpleWording}
-                    className="h-11 rounded-[16px] bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white"
+                    className="tool-action-btn tool-action-dark h-11 px-3"
                   >
+                    <Sparkles className="h-3.5 w-3.5" />
                     Short copy
                   </button>
                   <button
                     type="button"
                     onClick={restoreAutoWording}
-                    className="h-11 rounded-[16px] border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-foreground"
+                    className="tool-action-btn tool-action-secondary h-11 px-3"
                   >
+                    <RotateCcw className="h-3.5 w-3.5" />
                     Restore
                   </button>
                 </div>
@@ -4032,15 +5140,16 @@ export function PacketBuilder() {
                     setMobileSheet(null);
                     selectBuilderStep("photos");
                   }}
-                  className="h-12 rounded-[18px] border border-black/10 bg-[#f6f1e8] text-[11px] font-bold uppercase tracking-[0.12em] text-foreground"
+                  className="tool-action-btn tool-action-secondary h-12"
                 >
                   Back to photos
                 </button>
                 <button
                   type="button"
                   onClick={() => requestFreeReportOutput("print-pdf")}
-                  className="h-12 rounded-[18px] bg-[#f26a21] text-[11px] font-bold uppercase tracking-[0.12em] text-white"
+                  className="tool-action-btn tool-action-primary h-12"
                 >
+                  <FileDown className="h-4 w-4" />
                   Save PDF
                 </button>
               </DrawerFooter>
@@ -4135,6 +5244,8 @@ export function PacketBuilder() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         className={`pdf-print-hide fixed inset-x-3 bottom-3 z-40 border border-black/10 bg-white/94 shadow-[0_20px_70px_rgba(17,17,17,0.22)] backdrop-blur md:hidden ${
+          isPhotoStep ? "hidden" : ""
+        } ${
           builderStep === "report" ? "rounded-[24px] p-2" : "rounded-[26px] p-2.5"
         }`}
         style={{
@@ -4188,8 +5299,15 @@ export function PacketBuilder() {
           <button
             type="button"
             onClick={handleMobileSecondaryAction}
-            className="h-12 rounded-[18px] border border-black/10 bg-[#f6f1e8] px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-foreground active:scale-[0.99]"
+            className="tool-action-btn tool-action-secondary h-12 px-3 active:scale-[0.99]"
           >
+            {builderStep === "report" ? (
+              <Settings2 className="h-4 w-4" />
+            ) : totalFieldPhotoCount === 0 ? (
+              <Eye className="h-4 w-4" />
+            ) : (
+              <Settings2 className="h-4 w-4" />
+            )}
             {mobileSecondaryActionLabel}
           </button>
           <motion.button
@@ -4197,21 +5315,20 @@ export function PacketBuilder() {
             type="button"
             onClick={handleMobilePrimaryAction}
             whileTap={{ scale: 0.985 }}
-            className={`h-12 rounded-[18px] px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_12px_30px_rgba(17,19,21,0.24)] ${
-              mobilePrimaryIsPrint ? "bg-[#f26a21]" : "bg-[#111315]"
+            className={`tool-action-btn h-12 px-3 ${
+              mobilePrimaryIsPrint ? "tool-action-primary" : "tool-action-dark"
             }`}
           >
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={mobilePrimaryActionLabel}
-                initial={{ y: 4, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -4, opacity: 0 }}
-                transition={{ duration: 0.14 }}
-              >
-                {mobilePrimaryActionLabel}
-              </motion.span>
-            </AnimatePresence>
+            {mobilePrimaryIsPrint ? (
+              <FileDown className="h-4 w-4" />
+            ) : builderStep === "photos" ? (
+              <Plus className="h-4 w-4" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+            <span className="block text-center text-white">
+              {mobilePrimaryActionLabel}
+            </span>
           </motion.button>
         </div>
       </motion.div>

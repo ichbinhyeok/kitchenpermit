@@ -134,7 +134,7 @@ const baseProofPhotos = [
     position: "50% 50%",
   },
   {
-    src: "/images/packet-proof/ai-duct-access.jpg",
+    src: "/images/packet-proof/ai-duct-access-hd.jpg",
     proofId: "P-04",
     systemRef: "DK-02",
     label: "Access",
@@ -233,12 +233,12 @@ export function getAxis1PacketPreviewData(options: {
   return {
     branding: options.branding,
     scenario: options.scenario,
-    reportUrl: "https://kitchenpermit.com/reports/hds-masked-0424",
+    reportUrl: "https://kitchenpermit.com/p/hds-masked-0414",
     vendor,
     packetHeader: {
       title: "Masked restaurant group",
       copy:
-        "Main cookline exhaust system. This proof link summarizes the cleaned hood line, filters, reachable plenum and duct access, fan / roof record, open item, proof photos, and next action.",
+        "This proof packet shows what was cleaned today, what was not completed or recorded, the proof photos, and the next action.",
       quickFacts: [
         ["Service date", "Apr 14, 2026"],
         ["Location", "Austin, TX"],
@@ -249,6 +249,7 @@ export function getAxis1PacketPreviewData(options: {
             ? "Accessible areas cleaned; access item open"
             : "Accessible areas cleaned; ready for records",
         ],
+        ["Report ID", "HDS-MASKED-0414"],
       ],
       archiveNote:
         "Customer sees the clear service report. Full image archive, raw technician notes, and internal QA detail stay retained in the office file.",
@@ -261,7 +262,7 @@ export function getAxis1PacketPreviewData(options: {
           : "Cleaned: accessible hood line and filters.",
         copy: exceptionOpen
           ? "Hood body, filter bank, plenum, and reachable duct path were cleaned. Rear duct access was not completed."
-          : "Hood body, filter bank, plenum, duct path, and visible fan area were documented with no open access item at close-out.",
+          : "Hood body, filter bank, plenum, duct path, and visible fan area were documented with no blocked access area at close-out.",
         icon: "status",
       },
       {
@@ -277,10 +278,10 @@ export function getAxis1PacketPreviewData(options: {
       {
         label: "Next step",
         title: exceptionOpen
-          ? "Clear blocked access, then reply."
+          ? "Clear rear duct access, then reply."
           : "Confirm the next service window.",
         copy: exceptionOpen
-          ? "Move stored items away from the access panel and reply so the vendor can schedule the revisit or close the open item cleanly."
+          ? "Move stored items away from the access panel and reply when access is clear so the vendor can confirm the revisit."
           : "Confirm the next scheduled service window, or ask dispatch to adjust the week while the record is fresh.",
         icon: "next",
       },
@@ -290,7 +291,7 @@ export function getAxis1PacketPreviewData(options: {
       ["Site", "Masked Austin, TX"],
       ["System", "SYS-01 / main cookline hood line"],
       ["Line served", "Main Type I cookline"],
-      ["Packet coverage", "One packet for one exhaust system"],
+      ["Packet coverage", "One report for one exhaust system"],
       ["Access basis", "Accessible hood, filters, plenum, duct access, fan / roof discharge, and grease path"],
       ["On-site diagram", "Matched to SYS-01 / main cookline line"],
       ["Approved on site", "Store manager (masked)"],
@@ -322,7 +323,7 @@ export function getAxis1PacketPreviewData(options: {
       ],
       [
         "Official inspection status",
-        "Not evaluated by this sample record. Official inspection decisions are made by the applicable authority.",
+        "Not an AHJ inspection, approval, or code compliance certificate",
       ],
       ["Report ID", "HDS-MASKED-0414"],
     ],
@@ -343,14 +344,16 @@ export function getAxis1PacketPreviewData(options: {
         code: "PL-01",
         title: "Plenum / duct path",
         status: "Reachable cleaned",
-        note: "Reachable plenum and duct path cleaned and separated from blocked access",
+        note: exceptionOpen
+          ? "Reachable plenum and duct path cleaned and separated from blocked access"
+          : "Reachable plenum and duct path cleaned and documented with access available",
       },
       {
         code: "DK-02",
         title: "Rear duct access",
         status: exceptionOpen ? "Access blocked" : "Access clear",
         note: exceptionOpen
-          ? "Stored items blocked access at service time; exception remains open and tied to proof P-04"
+          ? "Stored items blocked access at service time; exception remains open and tied to the blocked access photo"
           : "Access was available and documented at service time",
       },
       {
@@ -402,7 +405,9 @@ export function getAxis1PacketPreviewData(options: {
         component: "Plenum / reachable duct path",
         status: "Reachable cleaned",
         proof: "P-04",
-        note: "Accessible path cleaned; rear access remains blocked.",
+        note: exceptionOpen
+          ? "Accessible path cleaned; rear access remains blocked."
+          : "Accessible path cleaned and rear access was available during service.",
       },
       {
         component: "Rear duct access panel",
@@ -523,7 +528,7 @@ export function getAxis1PacketPreviewData(options: {
             whyItMatters:
               "The grease-bearing section cannot be represented as cleaned until the access path is clear.",
             ownerAction:
-              "Move stored equipment away from the access panel and reply to confirm whether a revisit is needed.",
+              "Move stored equipment away from the access panel and reply when access is clear so the vendor can confirm the revisit.",
             notice:
               "Exception notice posted at close-out. This section is excluded from the cleaned scope until access is available.",
             status: "Needs reply",
@@ -536,7 +541,7 @@ export function getAxis1PacketPreviewData(options: {
             ownerAction:
               "Approve a hinge and curb-line repair review now, or keep the condition on watch before the next service window.",
             notice:
-              "Recorded from rooftop proof P-05. Repair is not included in this packet.",
+              "Recorded from rooftop proof P-05. Repair is not included in this report.",
             status: "Review",
           },
           {
@@ -546,7 +551,7 @@ export function getAxis1PacketPreviewData(options: {
               "Grease escape or staining can create roof complaints even when the hood cleaning itself was completed.",
             ownerAction:
               "Approve containment review if staining grows, or keep the condition on the next-cycle watch list.",
-            notice: "Condition recorded from rooftop and grease-removal proof. Repair is not included in this packet.",
+            notice: "Condition recorded from rooftop and grease-removal proof. Repair is not included in this report.",
             status: "Review",
           },
         ]
@@ -584,13 +589,14 @@ export function getAxis1PacketPreviewData(options: {
         ],
     customerClose: exceptionOpen
       ? {
-          title: "Clear the blocked area, then reply to schedule the revisit.",
+          title: "Clear rear duct access, then reply.",
           copy:
-            "The proof link separates completed work from the open item so the next reply can be short and clear.",
+            "The proof link separates completed work from the blocked access area, so the next reply can confirm the access revisit.",
           actionItems: [
             ["Access action", "Move stored items from rear duct access"],
-            ["Reply needed", "Confirm access correction or revisit"],
-            ["Next visit window", "Jul 8-13, 2026"],
+            ["Access revisit", "After rear duct access is cleared"],
+            ["Reply needed", "Confirm access correction"],
+            ["Next routine service", "Jul 8-13, 2026"],
             ["Optional quote", "Fan hinge / containment review"],
           ],
         }
@@ -627,9 +633,9 @@ export function getAxis1PacketPreviewData(options: {
       ["Follow-up contact", vendor.reviewPrompt],
       ["Approved on site", "Store manager / masked"],
       ["On-site record", "Keep this report with kitchen service records"],
-      ["Customer link", "https://kitchenpermit.com/reports/hds-masked-0424"],
-      ["Delivery record", "PDF packet emailed same day"],
-      ["Record retention", "Customer packet sent / full office archive retained"],
+      ["Customer link", "https://kitchenpermit.com/p/hds-masked-0414"],
+      ["Delivery record", "PDF service record emailed same day"],
+      ["Record retention", "Customer proof link sent / full vendor archive retained"],
       ["Next due", "Jul 13, 2026"],
       ["Reply path", "Rebook confirmation or repair review reply"],
     ],

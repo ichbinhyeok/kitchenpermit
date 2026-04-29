@@ -54,7 +54,7 @@ function storageKey(id: string) {
 }
 
 export function getAxis1LocalPacketHref(id: string) {
-  return `/reports/local-axis-1/${encodeURIComponent(id)}`;
+  return `/p/local/${encodeURIComponent(id)}`;
 }
 
 function localStorageAvailable() {
