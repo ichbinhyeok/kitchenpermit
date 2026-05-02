@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://owner.local/schemas/axis1-photo-assist-gold-set.schema.json",
+  "title": "Axis 1 Photo Assist Gold Set",
+  "type": "object",
+  "required": ["version", "createdAt", "scope", "cases"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "fixtureSource", "expectedOutcome", "photos"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "fixtureSource": {
+            "type": "string"
+          },
+          "localOnly": {
+            "type": "boolean"
+          },
+          "expectedOutcome": {
+            "enum": ["clean", "blocked_access", "condition_review", "mixed", "unknown"]
+          },
+          "reviewFocus": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "photos": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "photoId",
+                "fileName",
+                "path",
+                "expectedSlotId",
+                "acceptedSlotIds",
+                "expectedTone",
+                "expectedNeedsVendorReview",
+                "notes"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "photoId": {
+                  "type": "string"
+                },
+                "fileName": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "expectedSlotId": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "hood-before",
+                        "hood-after",
+                        "filter-bank",
+                        "access-condition",
+                        "rooftop-fan",
+                        "grease-containment",
+                        "service-label"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "acceptedSlotIds": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "hood-before",
+                          "hood-after",
+                          "filter-bank",
+                          "access-condition",
+                          "rooftop-fan",
+                          "grease-containment",
+                          "service-label"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "expectedTone": {
+                  "enum": ["before", "after", "issue", "record", "unknown"]
+                },
+                "expectedNeedsVendorReview": {
+                  "type": "boolean"
+                },
+                "mustRemainSuggestionOnly": {
+                  "type": "boolean"
+                },
+                "notes": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -18,6 +18,22 @@ The adaptation is for vendor protection first and customer readability second.
 The tool should still feel like minimal input, not a manual report or operations
 form.
 
+Updated product lock:
+The adaptation now serves the `job truth record`. Customer link, evidence PDF,
+invoice/payment support, quote/revisit copy, and next-service copy are output
+fanout from that record.
+
+Do not reinterpret this plan as a full lifecycle operations workflow. Pre-quote
+risk and pre-job scope are optional context controls unless they affect the job
+truth record. The paid Axis 1 wedge remains crew proof, closeout proof,
+payment support, and next action.
+
+Updated UX lock:
+The adaptation must support `Declare -> Package -> Send`. A vendor should not
+start by proving that every photo was classified correctly. The vendor declares
+the job outcome, Axis 1 packages the closeout, and uncertain photos are saved
+without strengthening claims unless the vendor confirms their use.
+
 ---
 
 ## 2. Output Strategy
@@ -49,7 +65,7 @@ Same-input output fanout:
 
 ```text
 minimal vendor input
--> structured job record
+-> job truth record
 -> customer link
 -> evidence PDF
 -> invoice/payment proof summary
@@ -57,6 +73,16 @@ minimal vendor input
 ```
 
 The vendor should not have to create these outputs separately.
+
+Rule:
+If the UI makes the customer link or PDF feel like the source of truth, the
+adaptation has failed. The area coverage ledger and proof basis must be the
+source of truth.
+
+Rule:
+If the UI makes photo classification feel like the product, the adaptation has
+also failed. Photo Assist is allowed to reduce effort, but it must not create a
+mandatory photo-review queue for ordinary closeouts.
 
 ---
 

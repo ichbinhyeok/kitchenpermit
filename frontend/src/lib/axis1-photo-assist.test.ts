@@ -10,6 +10,7 @@ import {
 } from "@/lib/axis1-packet-builder";
 import {
   applyConfirmedAxis1PhotoAssistSuggestions,
+  axis1PhotoAssistLowConfidenceThreshold,
   buildMockAxis1PhotoAssistSuggestions,
   normalizeAxis1PhotoAssistSuggestions,
   setAxis1PhotoAssistDecision,
@@ -135,6 +136,26 @@ describe("Axis1 AI Photo Assist boundary", () => {
     expect(suggestions[1]?.needsVendorReview).toBe(true);
   });
 
+  it("keeps unsafe fallback matches out of proof slots when filenames are commercially ambiguous", () => {
+    const suggestions = buildMockAxis1PhotoAssistSuggestions([
+      {
+        photoId: "wall-fan",
+        fileName: "kitchen-exhaust-fan.jpg",
+      },
+      {
+        photoId: "roof-final",
+        fileName: "roof-top-final-final.jpg",
+      },
+    ]);
+
+    expect(suggestions[0]?.suggestedSlotId).toBeNull();
+    expect(suggestions[0]?.needsVendorReview).toBe(true);
+    expect(suggestions[0]?.confidence).toBeLessThan(axis1PhotoAssistLowConfidenceThreshold);
+    expect(suggestions[1]?.suggestedSlotId).toBe("rooftop-fan");
+    expect(suggestions[1]?.needsVendorReview).toBe(true);
+    expect(suggestions[1]?.vendorDecision).toBe("pending");
+  });
+
   it("keeps risky blocked or ambiguous suggestions in the review queue", () => {
     const riskyAfterSuggestion = normalizeAxis1PhotoAssistSuggestions(
       [
@@ -206,7 +227,7 @@ describe("Axis1 AI Photo Assist boundary", () => {
     expect(suggestion.vendorDecision).toBe("pending");
   });
 
-  it("forces vendor review for high-confidence Gemini suggestions from generic phone filenames", () => {
+  it("lets low-risk Gemini filter after-service phone photos skip the manual review queue", () => {
     const [suggestion] = normalizeAxis1PhotoAssistSuggestions(
       [
         {
@@ -228,6 +249,77 @@ describe("Axis1 AI Photo Assist boundary", () => {
       "gemini",
     );
 
+    expect(suggestion.needsVendorReview).toBe(false);
+    expect(suggestion.vendorDecision).toBe("pending");
+    expect(shouldKeepAxis1PhotoAssistSuggestionInReview(suggestion)).toBe(false);
+  });
+
+  it("keeps high-confidence Gemini generic phone photos in review when the reason has risk cues", () => {
+    const suggestions = normalizeAxis1PhotoAssistSuggestions(
+      [
+        {
+          photoId: "phone-dirty-filter",
+          fileName: "IMG_7423.jpg",
+          suggestedSlotId: "filter-bank",
+          suggestedTone: "after",
+          confidence: 0.92,
+          needsVendorReview: false,
+          reason: "Shows a dirty mesh filter before cleaning.",
+        },
+        {
+          photoId: "phone-clean-duct",
+          fileName: "IMG_7424.jpg",
+          suggestedSlotId: "hood-after",
+          suggestedTone: "after",
+          confidence: 0.92,
+          needsVendorReview: false,
+          reason: "Shows clean duct or plenum interior after service.",
+        },
+      ],
+      [
+        {
+          photoId: "phone-dirty-filter",
+          fileName: "IMG_7423.jpg",
+        },
+        {
+          photoId: "phone-clean-duct",
+          fileName: "IMG_7424.jpg",
+        },
+      ],
+      "gemini",
+    );
+
+    expect(suggestions[0]?.suggestedSlotId).toBe("filter-bank");
+    expect(suggestions[0]?.needsVendorReview).toBe(true);
+    expect(suggestions[0]?.vendorDecision).toBe("pending");
+    expect(suggestions[1]?.suggestedSlotId).toBe("access-condition");
+    expect(suggestions[1]?.needsVendorReview).toBe(true);
+    expect(suggestions[1]?.vendorDecision).toBe("pending");
+  });
+
+  it("keeps generic hood-after photos in review even when Gemini says they look clean", () => {
+    const [suggestion] = normalizeAxis1PhotoAssistSuggestions(
+      [
+        {
+          photoId: "phone-clean-hood",
+          fileName: "IMG_6104.jpg",
+          suggestedSlotId: "hood-after",
+          suggestedTone: "after",
+          confidence: 0.9,
+          needsVendorReview: false,
+          reason: "Visible content clearly shows a cleaned hood canopy interior.",
+        },
+      ],
+      [
+        {
+          photoId: "phone-clean-hood",
+          fileName: "IMG_6104.jpg",
+        },
+      ],
+      "gemini",
+    );
+
+    expect(suggestion.suggestedSlotId).toBe("hood-after");
     expect(suggestion.needsVendorReview).toBe(true);
     expect(suggestion.vendorDecision).toBe("pending");
   });

@@ -1,13 +1,15 @@
-# 03 Axis 1 Service Completion Brief
+# 03 Axis 1 Job Truth Closeout Brief
 
 ## 1. Product role
-Axis 1 is the existing-customer vendor proof packet product.
+Axis 1 is the existing-customer job truth closeout product.
 
 It is not a generic report generator.
-It is a productized service artifact engine that should help a hood vendor:
+It is not a full hood operations platform.
+It is a productized job truth engine that should help a hood vendor:
 
-- prove work
-- explain findings
+- convert crew photos, notes, and area status into one defensible job record
+- prove work without overclaiming
+- explain findings and proof limits
 - protect payment
 - defend scope and price
 - avoid overclaims when proof is missing
@@ -33,7 +35,7 @@ Vendor office staff who need a clean outward-facing artifact without dumping raw
 ## 3. Commercial promise
 The vendor should feel:
 
-`I can turn messy phone photos into a defensible job packet without rewriting it`
+`I can turn messy crew photos, notes, and area status into a defensible job record without rewriting it`
 
 The customer should feel:
 
@@ -42,14 +44,25 @@ The customer should feel:
 Immediate revenue lock:
 Axis 1 is not sold first as records software, customer-management software, or
 a customer-polish report.
-It is sold first as a minimal-input proof packet that:
+It is sold first as a minimal-input job truth closeout tool that:
 
 - reduces explanation calls
 - makes premium work feel premium
 - keeps blocked or incomplete areas defensible
-- gives the customer one clear next step
+- gives the customer one clear next step when customer handoff is needed
 - gives the vendor useful invoice/payment, quote/revisit, and rebook copy from
   the same record
+
+Paid wedge lock:
+The first wedge is steps 3 / 4 / 5 of the broader service cycle:
+
+- crew proof
+- customer confirmation / evidence / payment support
+- next cleaning, revisit, quote, or monitor action
+
+Pre-quote risk and pre-job scope are real pains, but they should enter Axis 1
+as optional context controls. They should not become mandatory first-class
+workflow steps unless a future product explicitly expands into operations.
 
 Small-vendor premiumization lock:
 The product should let a small hood vendor look organized like a larger premium operator without
@@ -72,6 +85,32 @@ The value is speed plus polish:
 the vendor uploads photos and confirms the job facts once, then Axis 1 generates
 the customer link, PDF, invoice proof, quote/revisit copy, and next-service copy
 from one structured job record.
+
+Updated UX lock:
+
+```text
+Declare -> Package -> Send
+```
+
+The first product motion is not "upload photos and sort them." It is "declare
+what happened, let Axis 1 package the closeout, then send/save/get paid." Photos
+and notes are supporting inputs. The closeout packet and outputs are derived
+from the internal record. See `spec/23_axis1_declare_package_send_plan.md`.
+
+Source-of-truth lock:
+The customer link and PDF are outputs. The product center is the job truth
+record:
+
+- job result
+- area coverage ledger
+- proof basis
+- blocked / not-completed / condition states
+- customer-visible summary
+- vendor-only risk and missing-proof checks
+- next action
+
+If the UI feels like a customer link/PDF builder with extra sections, it has
+missed the pivot.
 
 ---
 
@@ -111,6 +150,9 @@ Axis 1 setup uses the shared `VendorSetupProfile`, plus the following product-sp
 
 ## 6. Required job input
 
+MVP input should stay minimal. Required input means "required to produce a safe
+record," not "required as a long form."
+
 ### 6.1 Visit basics
 - site name
 - site address
@@ -119,24 +161,33 @@ Axis 1 setup uses the shared `VendorSetupProfile`, plus the following product-sp
 - contact or manager name
 
 ### 6.2 Work scope
-- what systems or areas were serviced
-- what was completed
-- what was partial
-- what was not completed
-- what was inaccessible
+- default visit type
+- area status only when default scope is wrong, blocked, separate, not
+  completed, or condition-only
+- hood / filters, duct / access, rooftop fan, grease path, and label / notice
+  should be editable as an area ledger
 
 ### 6.3 Observations
 - visible condition notes
 - deficiencies
 - follow-up recommendations
+- optional risk notes only when they affect proof, payment, customer wording, or
+  follow-up
 
 ### 6.4 Evidence
 - before photos
 - after photos
 - optional reference photos
+- written proof when photos are not captured
 
 Locked evidence rule:
 Photo proof should be tied to named system sections, not dumped as an unstructured gallery.
+
+Updated photo rule:
+AI photo suggestions may organize evidence, but they are not the authority for
+completion, area status, claim strength, or before/after proof. Ambiguous photos
+should be saved in the packet without being claimed unless the vendor confirms
+they support a customer-visible statement.
 
 ### 6.5 Compliance and record detail
 - one packet = one system identifier

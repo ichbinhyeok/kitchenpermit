@@ -7,6 +7,7 @@ import {
   type Axis1CloseoutClaimLevel,
   type Axis1CloseoutCtaKind,
   type Axis1CloseoutEvidenceBasis,
+  type Axis1CloseoutAreaLedgerItem,
   type Axis1CloseoutLinks,
 } from "@/lib/axis1-closeout-engine";
 import {
@@ -102,6 +103,7 @@ function evaluate(options: {
   photoSlots?: Axis1FieldPhotoSlotId[];
   unplacedPhotoCount?: number;
   photoSlotResolutions?: Axis1PhotoSlotResolutionState;
+  areaLedger?: Axis1CloseoutAreaLedgerItem[];
   links?: Axis1CloseoutLinks;
 }) {
   return evaluateAxis1Closeout({
@@ -110,6 +112,7 @@ function evaluate(options: {
     uploadedFieldPhotos: photos(options.photoSlots ?? []),
     unplacedPhotoCount: options.unplacedPhotoCount ?? 0,
     photoSlotResolutions: options.photoSlotResolutions ?? resolutions(),
+    areaLedger: options.areaLedger,
     links: options.links,
   });
 }
@@ -738,7 +741,7 @@ describe("evaluateAxis1Closeout", () => {
     });
 
     expect(checked).toBe(generatedServiceCases.length * photoSlotPowerSet.length * 2);
-  });
+  }, 15_000);
 
   it("sweeps unselected result states so photos alone never create a customer output", () => {
     photoSlotPowerSet.forEach((photoSlots) => {
@@ -888,6 +891,408 @@ describe("evaluateAxis1Closeout", () => {
     );
   });
 
+  it("does not create proof warnings for areas outside a narrow visit", () => {
+    const areaLedger: Axis1CloseoutAreaLedgerItem[] = [
+      {
+        area: "hood_filters",
+        label: "Hood / filters",
+        state: "completed_from_notes",
+        proofBasis: "written",
+        photoCount: 0,
+        customerVisible: true,
+      },
+      {
+        area: "duct_access",
+        label: "Duct / access",
+        state: "separate_not_this_visit",
+        proofBasis: "none",
+        photoCount: 0,
+        customerVisible: false,
+      },
+      {
+        area: "rooftop_fan",
+        label: "Rooftop fan",
+        state: "separate_not_this_visit",
+        proofBasis: "none",
+        photoCount: 0,
+        customerVisible: false,
+      },
+      {
+        area: "grease_path",
+        label: "Grease path / containment",
+        state: "separate_not_this_visit",
+        proofBasis: "none",
+        photoCount: 0,
+        customerVisible: false,
+      },
+      {
+        area: "label_notice",
+        label: "Label / notice",
+        state: "separate_not_this_visit",
+        proofBasis: "none",
+        photoCount: 0,
+        customerVisible: false,
+      },
+    ];
+    const result = evaluate({
+      values: values({ scenario: "clean" }),
+      areaLedger,
+    });
+    const warningKinds = result.vendorSendReadinessWarnings.map(
+      (warning) => warning.kind,
+    );
+
+    expect(warningKinds).not.toContain("missing_duct_access_photo");
+    expect(warningKinds).not.toContain("missing_fan_photo");
+    expect(warningKinds).not.toContain("service_label_missing");
+    expectNoOverclaim(result);
+  });
+
+  it("keeps generated outputs downstream of the structured closeout source", () => {
+    const areaLedger: Axis1CloseoutAreaLedgerItem[] = [
+      {
+        area: "hood_filters",
+        label: "Hood / filters",
+        state: "completed_with_photo",
+        proofBasis: "photo",
+        photoCount: 2,
+        customerVisible: true,
+      },
+      {
+        area: "duct_access",
+        label: "Duct / access",
+        state: "completed_from_notes",
+        proofBasis: "written",
+        photoCount: 0,
+        customerVisible: true,
+      },
+      {
+        area: "rooftop_fan",
+        label: "Rooftop fan",
+        state: "blocked_no_access",
+        proofBasis: "written",
+        photoCount: 0,
+        customerVisible: true,
+        vendorOnlyReason: "Roof hatch was locked.",
+      },
+      {
+        area: "grease_path",
+        label: "Grease path / containment",
+        state: "condition_noted",
+        proofBasis: "photo",
+        photoCount: 1,
+        customerVisible: true,
+      },
+      {
+        area: "label_notice",
+        label: "Label / notice",
+        state: "separate_not_this_visit",
+        proofBasis: "none",
+        photoCount: 0,
+        customerVisible: false,
+      },
+    ];
+    const result = evaluate({
+      values: values({
+        scenario: "exception",
+        exceptionKinds: ["blocked-storage"],
+      }),
+      photoSlots: ["hood-before", "hood-after", "grease-containment"],
+      areaLedger,
+    });
+
+    expect(result.sourceOfTruth.areaCoverageLedger).toEqual(areaLedger);
+    expect(result.sourceOfTruth.jobResult).toMatchObject({
+      outcomeType: "blocked_access",
+      confirmedByVendor: true,
+    });
+    expect(result.sourceOfTruth.proofBasis).toMatchObject({
+      type: "photo_record",
+      claimLevel: "photo_supported_record",
+      photosAttached: 3,
+    });
+    expect(result.sourceOfTruth.outputReadiness).toBe(result.generatedOutputs);
+    expect(result.sourceOfTruth.vendorOnlyWarnings).toBe(
+      result.vendorSendReadinessWarnings,
+    );
+    expect(result.sourceOfTruth.nextAction.type).toBe(
+      result.customerActionType,
+    );
+    expectNoOverclaim(result);
+  });
+
+  it("drives revisit readiness from the edited area ledger without blocking duct access", () => {
+    const areaLedger: Axis1CloseoutAreaLedgerItem[] = [
+      {
+        area: "hood_filters",
+        label: "Hood / filters",
+        state: "completed_with_photo",
+        proofBasis: "photo",
+        photoCount: 2,
+        customerVisible: true,
+      },
+      {
+        area: "duct_access",
+        label: "Duct / access",
+        state: "completed_from_notes",
+        proofBasis: "written",
+        photoCount: 0,
+        customerVisible: true,
+      },
+      {
+        area: "rooftop_fan",
+        label: "Rooftop fan",
+        state: "blocked_no_access",
+        proofBasis: "written",
+        photoCount: 0,
+        customerVisible: true,
+      },
+      {
+        area: "grease_path",
+        label: "Grease path / containment",
+        state: "completed_with_photo",
+        proofBasis: "photo",
+        photoCount: 1,
+        customerVisible: true,
+      },
+      {
+        area: "label_notice",
+        label: "Label / notice",
+        state: "separate_not_this_visit",
+        proofBasis: "none",
+        photoCount: 0,
+        customerVisible: false,
+      },
+    ];
+    const result = evaluate({
+      values: values({
+        scenario: "exception",
+        exceptionKinds: ["blocked-storage"],
+        followUpMode: "monitor",
+      }),
+      photoSlots: ["hood-before", "hood-after", "grease-containment"],
+      areaLedger,
+    });
+
+    expect(
+      result.sourceOfTruth.areaCoverageLedger.find(
+        (item) => item.area === "duct_access",
+      )?.state,
+    ).toBe("completed_from_notes");
+    expect(
+      result.sourceOfTruth.areaCoverageLedger.find(
+        (item) => item.area === "rooftop_fan",
+      )?.state,
+    ).toBe("blocked_no_access");
+    const revisit = result.generatedOutputs.find(
+      (output) => output.kind === "revisit_copy",
+    );
+    expect(revisit?.readiness).toBe("ready");
+    expect(revisit?.reason).toMatch(/Rooftop fan/);
+    expect(revisit?.reason).not.toMatch(/Duct \/ access/);
+    expect(
+      result.generatedOutputs.find((output) => output.kind === "next_service_copy")
+        ?.readiness,
+    ).toBe("needs_review");
+    expect(
+      result.generatedOutputs.find(
+        (output) => output.kind === "follow_up_quote_copy",
+      )?.readiness,
+    ).toBe("not_applicable");
+    expect(
+      result.generatedOutputs.find(
+        (output) => output.kind === "invoice_proof_summary",
+      )?.readiness,
+    ).toBe("needs_review");
+    expectNoOverclaim(result);
+  });
+
+  it("does not describe a non-access incomplete area as an access action", () => {
+    const areaLedger: Axis1CloseoutAreaLedgerItem[] = [
+      {
+        area: "hood_filters",
+        label: "Hood / filters",
+        state: "completed_with_photo",
+        proofBasis: "photo",
+        photoCount: 2,
+        customerVisible: true,
+      },
+      {
+        area: "duct_access",
+        label: "Duct / access",
+        state: "completed_from_notes",
+        proofBasis: "written",
+        photoCount: 0,
+        customerVisible: true,
+      },
+      {
+        area: "rooftop_fan",
+        label: "Rooftop fan",
+        state: "completed_from_notes",
+        proofBasis: "written",
+        photoCount: 0,
+        customerVisible: true,
+      },
+      {
+        area: "grease_path",
+        label: "Grease path / containment",
+        state: "not_completed",
+        proofBasis: "written",
+        photoCount: 0,
+        customerVisible: true,
+      },
+      {
+        area: "label_notice",
+        label: "Label / notice",
+        state: "separate_not_this_visit",
+        proofBasis: "none",
+        photoCount: 0,
+        customerVisible: false,
+      },
+    ];
+    const result = evaluate({
+      values: values({
+        scenario: "exception",
+        exceptionKinds: ["not-cleaned"],
+      }),
+      photoSlots: ["hood-before", "hood-after"],
+      areaLedger,
+    });
+    const nextService = result.generatedOutputs.find(
+      (output) => output.kind === "next_service_copy",
+    );
+
+    expect(nextService?.readiness).toBe("needs_review");
+    expect(nextService?.reason).toMatch(/incomplete area/i);
+    expect(nextService?.reason).toMatch(/Grease path/);
+    expect(nextService?.reason).not.toMatch(/Access action/i);
+  });
+
+  it("writes payment, invoice, revisit, and quote copy from area states", () => {
+    const noPhotoClean = evaluate({
+      values: values({ scenario: "clean" }),
+      areaLedger: [
+        {
+          area: "hood_filters",
+          label: "Hood / filters",
+          state: "completed_from_notes",
+          proofBasis: "written",
+          photoCount: 0,
+          customerVisible: true,
+        },
+        {
+          area: "duct_access",
+          label: "Duct / access",
+          state: "completed_from_notes",
+          proofBasis: "written",
+          photoCount: 0,
+          customerVisible: true,
+        },
+        {
+          area: "rooftop_fan",
+          label: "Rooftop fan",
+          state: "completed_from_notes",
+          proofBasis: "written",
+          photoCount: 0,
+          customerVisible: true,
+        },
+        {
+          area: "grease_path",
+          label: "Grease path / containment",
+          state: "completed_from_notes",
+          proofBasis: "written",
+          photoCount: 0,
+          customerVisible: true,
+        },
+        {
+          area: "label_notice",
+          label: "Label / notice",
+          state: "separate_not_this_visit",
+          proofBasis: "none",
+          photoCount: 0,
+          customerVisible: false,
+        },
+      ],
+    });
+    const mixed = evaluate({
+      values: values({
+        scenario: "exception",
+        exceptionKinds: ["blocked-storage", "rooftop-hinge-curb"],
+        followUpMode: "quote",
+      }),
+      photoSlots: ["hood-after", "filter-bank"],
+      areaLedger: [
+        {
+          area: "hood_filters",
+          label: "Hood / filters",
+          state: "completed_with_photo",
+          proofBasis: "photo",
+          photoCount: 2,
+          customerVisible: true,
+        },
+        {
+          area: "duct_access",
+          label: "Duct / access",
+          state: "blocked_no_access",
+          proofBasis: "written",
+          photoCount: 0,
+          customerVisible: true,
+        },
+        {
+          area: "rooftop_fan",
+          label: "Rooftop fan",
+          state: "condition_noted",
+          proofBasis: "written",
+          photoCount: 0,
+          customerVisible: true,
+        },
+        {
+          area: "grease_path",
+          label: "Grease path / containment",
+          state: "completed_from_notes",
+          proofBasis: "written",
+          photoCount: 0,
+          customerVisible: true,
+        },
+        {
+          area: "label_notice",
+          label: "Label / notice",
+          state: "separate_not_this_visit",
+          proofBasis: "none",
+          photoCount: 0,
+          customerVisible: false,
+        },
+      ],
+    });
+
+    expect(
+      noPhotoClean.generatedOutputs.find(
+        (output) => output.kind === "payment_support_copy",
+      )?.copy,
+    ).toMatch(/written closeout record with no field photos attached/i);
+    expect(
+      noPhotoClean.generatedOutputs.find(
+        (output) => output.kind === "invoice_proof_summary",
+      )?.readiness,
+    ).toBe("needs_review");
+    expect(
+      mixed.generatedOutputs.find((output) => output.kind === "revisit_copy")
+        ?.copy,
+    ).toMatch(/access needs to be cleared for Duct \/ access/i);
+    expect(
+      mixed.generatedOutputs.find(
+        (output) => output.kind === "follow_up_quote_copy",
+      )?.copy,
+    ).toMatch(/Rooftop fan was recorded as a condition area/i);
+    expect(
+      mixed.generatedOutputs.find(
+        (output) => output.kind === "payment_support_copy",
+      )?.copy,
+    ).toMatch(/Blocked or incomplete areas stay separated: Duct \/ access/i);
+    expectNoOverclaim(noPhotoClean);
+    expectNoOverclaim(mixed);
+  });
+
   it("marks invoice proof ready only when clean photo coverage is strong", () => {
     const partial = evaluate({
       values: values({ scenario: "clean" }),
@@ -895,7 +1300,14 @@ describe("evaluateAxis1Closeout", () => {
     });
     const strong = evaluate({
       values: values({ scenario: "clean" }),
-      photoSlots: ["hood-before", "hood-after", "filter-bank", "access-condition", "rooftop-fan"],
+      photoSlots: [
+        "hood-before",
+        "hood-after",
+        "filter-bank",
+        "access-condition",
+        "rooftop-fan",
+        "grease-containment",
+      ],
     });
 
     expect(partial.recordFormat.type).toBe("after_cleaning_record");
@@ -1488,6 +1900,16 @@ describe("evaluateAxis1Closeout", () => {
     expect(condition.closeout?.coverageEducation.summary).toMatch(
       /recorded condition/i,
     );
+    expect(
+      condition.componentStatusRows.find(
+        (row) => row.component === "Rear duct access panel",
+      )?.status,
+    ).toBe("Access clear");
+    expect(
+      condition.componentStatusRows.find(
+        (row) => row.component === "Rear duct access panel",
+      )?.note,
+    ).not.toMatch(/blocked|not represented/i);
   });
 
   it("keeps sample customer-facing content locked to customer link and evidence PDF language", () => {

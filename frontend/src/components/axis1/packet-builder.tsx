@@ -35,6 +35,7 @@ import {
   FileText,
   GripVertical,
   Link2,
+  Menu as MenuIcon,
   PencilLine,
   Plus,
   ReceiptText,
@@ -87,6 +88,10 @@ import type { Axis1PacketPreviewData } from "@/lib/axis1-packet-preview";
 import {
   applyAxis1CloseoutEngineToPacket,
   evaluateAxis1Closeout,
+  type Axis1CloseoutAreaId,
+  type Axis1CloseoutAreaLedgerItem,
+  type Axis1CloseoutAreaProofBasis,
+  type Axis1CloseoutAreaState,
   type Axis1CloseoutLinks,
 } from "@/lib/axis1-closeout-engine";
 import {
@@ -150,7 +155,7 @@ const jobPatternPresets = [
 type JobPatternPreset = (typeof jobPatternPresets)[number];
 type JobPatternId = JobPatternPreset["id"];
 
-type BuilderStep = "risk" | "scope" | "proof" | "confirm" | "next";
+type BuilderStep = "photos" | "review" | "outputs";
 type MobileSheetView = "photo-review" | "report-actions";
 type PacketPresentationMode = "standard" | "short";
 type ReportOutputMode = "link" | "pdf";
@@ -307,13 +312,13 @@ const scopeAreaCatalog = [
 const riskFlagCatalog = [
   {
     id: "no-risk",
-    label: "No risk noted",
-    copy: "Standard maintenance visit; no quote or access concern recorded yet.",
+    label: "Standard closeout",
+    copy: "Standard maintenance visit; no quote or access note recorded yet.",
     tone: "clear",
   },
   {
     id: "access-risk",
-    label: "Access risk",
+    label: "Access needs review",
     copy: "Panel, roof, duct, key, tenant, or manager access may block included work.",
     tone: "review",
   },
@@ -331,13 +336,13 @@ const riskFlagCatalog = [
   },
   {
     id: "scope-unclear",
-    label: "Scope unclear",
+    label: "Work boundary unclear",
     copy: "Customer expectation or included/excluded work needs a clear boundary.",
     tone: "review",
   },
   {
     id: "customer-expectation",
-    label: "Price / expectation risk",
+    label: "Payment expectation note",
     copy: "Customer may compare full exhaust work to a cheaper visible-hood wipe.",
     tone: "review",
   },
@@ -479,7 +484,8 @@ function isVendorConfirmedPhoto(photo: UploadedFieldPhoto | null | undefined) {
     Boolean(photo) &&
     (photo?.confidence === "manual" ||
       photo?.vendorDecision === "confirmed" ||
-      photo?.vendorDecision === "edited")
+      photo?.vendorDecision === "edited" ||
+      isFastConfirmableSuggestedPhoto(photo))
   );
 }
 
@@ -556,13 +562,13 @@ function getScopeStatusMeta(status: ScopeStatus) {
   switch (status) {
     case "done-photo":
       return {
-        label: "Done + photo",
+        label: "Completed + photo",
         chip: "Photo",
         className: "border-[#2c7a3f]/22 bg-[#f1f8ef] text-[#1f6330]",
       };
     case "done-no-photo":
       return {
-        label: "Completed from notes",
+        label: "Completed, no photo",
         chip: "Notes",
         className: "border-[#f26a21]/20 bg-[#fff7ef] text-[#a94410]",
       };
@@ -574,7 +580,7 @@ function getScopeStatusMeta(status: ScopeStatus) {
       };
     case "condition-note":
       return {
-        label: "Condition noted",
+        label: "Condition only",
         chip: "Note",
         className: "border-[#7b5c1f]/22 bg-[#fff7d6] text-[#6b4b11]",
       };
@@ -586,13 +592,13 @@ function getScopeStatusMeta(status: ScopeStatus) {
       };
     case "not-in-scope":
       return {
-        label: "Separate / not this visit",
+        label: "Not part of this job",
         chip: "Separate",
         className: "border-black/10 bg-white text-muted-foreground",
       };
     default:
       return {
-        label: "Needs review",
+        label: "Unclear / needs review",
         chip: "Review",
         className: "border-[#f26a21]/24 bg-[#fff2e8] text-[#a94410]",
       };
@@ -602,7 +608,7 @@ function getScopeStatusMeta(status: ScopeStatus) {
 function buildScopeStatusOptions(row: ScopeLedgerRow): ScopeStatusOption[] {
   return [
     ...(row.status === "needs-review"
-      ? [{ value: "needs-review" as const, label: "Needs review" }]
+      ? [{ value: "needs-review" as const, label: "Unclear / needs review" }]
       : []),
     {
       value: "done-photo",
@@ -611,7 +617,7 @@ function buildScopeStatusOptions(row: ScopeLedgerRow): ScopeStatusOption[] {
     },
     {
       value: "done-no-photo",
-      label: "Completed from notes",
+      label: "Completed, no photo",
     },
     {
       value: "could-not-access",
@@ -623,11 +629,11 @@ function buildScopeStatusOptions(row: ScopeLedgerRow): ScopeStatusOption[] {
     },
     {
       value: "condition-note",
-      label: "Condition noted",
+      label: "Condition only",
     },
     {
       value: "not-in-scope",
-      label: "Separate / not this visit",
+      label: "Not part of this job",
     },
   ];
 }
@@ -656,15 +662,11 @@ function buildScopeLedger(options: {
         Boolean(options.uploadedFieldPhotos["hood-after"]));
     const defaultStatus: ScopeStatus = hasPartialHoodProof
       ? "needs-review"
-      : area.id === "duct-access" && photoCount > 0
-        ? "needs-review"
-      : suggestedCount > 0 && photoCount === 0
-          ? "needs-review"
-          : photoCount > 0
-            ? "done-photo"
-            : expectedForVisit
-              ? "done-no-photo"
-              : "not-in-scope";
+      : photoCount > 0
+        ? "done-photo"
+        : expectedForVisit
+          ? "done-no-photo"
+          : "not-in-scope";
     const status = options.overrides[area.id] ?? defaultStatus;
     const evidence: ScopeEvidence =
       status === "done-photo"
@@ -683,9 +685,11 @@ function buildScopeLedger(options: {
       status === "needs-review"
         ? hasPartialHoodProof
           ? "Before/after support is incomplete. Confirm what should be shown."
-          : "AI found a possible match, but it needs vendor confirmation before the customer sees it."
+          : "This area needs a vendor status before the customer sees it."
         : status === "done-no-photo"
-          ? "Assumed complete from the standard closeout; no field photo is attached for this area."
+          ? suggestedCount > 0
+            ? "Assumed complete from the standard closeout. AI saved possible photo evidence, but customer copy will not claim it unless attached."
+            : "Assumed complete from the standard closeout; no field photo is attached for this area."
           : status === "could-not-access"
             ? "This area will be written as blocked or inaccessible, not as completed."
             : status === "condition-note"
@@ -725,8 +729,8 @@ function buildScopeOutcomeRecommendation(
   if (accessRows.length > 0) {
     return {
       pattern: getJobPatternById("blocked-access"),
-      signalLabel: "Scope issue detected",
-      reason: `${accessRows.map((row) => row.shortLabel).join(", ")} marked blocked or not completed in the scope check.`,
+      signalLabel: "Area issue detected",
+      reason: `${accessRows.map((row) => row.shortLabel).join(", ")} marked blocked or not completed in the closeout review.`,
       confidence: "High",
     };
   }
@@ -831,6 +835,10 @@ function formatScopeAreaList(rows: readonly ScopeLedgerRow[], statuses: readonly
   return labels.length > 0 ? labels.join(", ") : "None recorded";
 }
 
+function formatScopeAreaLabels(rows: readonly ScopeLedgerRow[]) {
+  return rows.map((row) => scopeOutputMeta[row.id].coverageLabel).join(", ");
+}
+
 function scopeProofLabel(row: ScopeLedgerRow, data: Axis1PacketPreviewData) {
   if (row.photoCount <= 0) {
     return row.status === "not-in-scope" ? "Not in this visit" : "Service notes";
@@ -869,6 +877,77 @@ function scopeStatusLabel(row: ScopeLedgerRow) {
   }
 }
 
+function closeoutAreaIdForScopeArea(areaId: ScopeAreaId): Axis1CloseoutAreaId {
+  switch (areaId) {
+    case "hood-filters":
+      return "hood_filters";
+    case "duct-access":
+      return "duct_access";
+    case "rooftop-fan":
+      return "rooftop_fan";
+    case "grease-path":
+      return "grease_path";
+    case "service-label":
+      return "label_notice";
+  }
+}
+
+function closeoutAreaStateForScopeStatus(status: ScopeStatus): Axis1CloseoutAreaState {
+  switch (status) {
+    case "done-photo":
+      return "completed_with_photo";
+    case "done-no-photo":
+      return "completed_from_notes";
+    case "could-not-access":
+      return "blocked_no_access";
+    case "not-done":
+      return "not_completed";
+    case "condition-note":
+      return "condition_noted";
+    case "not-in-scope":
+      return "separate_not_this_visit";
+    case "needs-review":
+    default:
+      return "unclear_needs_review";
+  }
+}
+
+function closeoutProofBasisForScopeEvidence(
+  evidence: ScopeEvidence,
+): Axis1CloseoutAreaProofBasis {
+  switch (evidence) {
+    case "photo":
+      return "photo";
+    case "written":
+      return "written";
+    case "none":
+      return "none";
+    case "unclear":
+    default:
+      return "unclear";
+  }
+}
+
+function buildCloseoutAreaLedger(
+  rows: readonly ScopeLedgerRow[],
+): Axis1CloseoutAreaLedgerItem[] {
+  return rows.map((row) => ({
+    area: closeoutAreaIdForScopeArea(row.id),
+    label: row.label,
+    state: closeoutAreaStateForScopeStatus(row.status),
+    proofBasis: closeoutProofBasisForScopeEvidence(row.evidence),
+    photoCount: row.photoCount,
+    customerVisible:
+      row.status !== "not-in-scope" || row.id !== "service-label",
+    vendorOnlyReason:
+      row.status === "needs-review"
+        ? row.reason
+        : row.status === "not-in-scope"
+          ? "Left out of completed-work wording for this visit."
+          : undefined,
+  }));
+}
+
 function scopeStatusForArea(rows: readonly ScopeLedgerRow[], areaId: ScopeAreaId) {
   const row = rows.find((item) => item.id === areaId);
   return row ? scopeStatusLabel(row) : "Not in this visit";
@@ -884,16 +963,18 @@ function scopeRowNote(row: ScopeLedgerRow, data: Axis1PacketPreviewData) {
     case "done-no-photo":
       return `${meta.coveredCopy} Completed from service notes; no field photo is attached for this area.`;
     case "could-not-access":
-      return `${meta.coverageLabel} could not be accessed during this visit and is excluded from the completed scope until access is clear.`;
+      return `${meta.coverageLabel} could not be accessed during this visit and is left out of completed-work wording until access is clear.`;
     case "condition-note":
-      return `${meta.recordedCopy} This is a recorded condition, not completed corrective work.`;
+      return row.photoCount > 0
+        ? `${meta.recordedCopy} Condition photo support: ${proofLabel}. This is a recorded condition, not completed corrective work.`
+        : `${meta.recordedCopy} Condition recorded from service note; no condition photo is attached. This is a recorded condition, not completed corrective work.`;
     case "not-done":
-      return `${meta.coverageLabel} was not completed during this visit and is excluded from the completed scope.`;
+      return `${meta.coverageLabel} was not completed during this visit and is left out of completed-work wording.`;
     case "not-in-scope":
-      return `${meta.coverageLabel} was not part of this service visit and is not claimed as completed.`;
+      return `${meta.coverageLabel} was not part of this service visit and is not shown as completed.`;
     case "needs-review":
     default:
-      return `${meta.coverageLabel} needs vendor review before customer delivery.`;
+      return `${meta.coverageLabel} needs a confirmed area status before customer delivery.`;
   }
 }
 
@@ -933,6 +1014,94 @@ function conditionScopeAreaForKinds(
   return "service-label";
 }
 
+type QuickCloseoutNoteSignal = {
+  areaId: ScopeAreaId | null;
+  status: Extract<ScopeStatus, "could-not-access" | "condition-note" | "not-in-scope">;
+  title: string;
+  actionLabel: string;
+};
+
+function inferQuickCloseoutNoteArea(note: string): ScopeAreaId | null {
+  const text = note.toLowerCase();
+
+  if (/\b(fan|roof|rooftop|hatch|curb|hinge|belt|pulley)\b/.test(text)) {
+    return "rooftop-fan";
+  }
+
+  if (/\b(duct|plenum|access|panel|shaft)\b/.test(text)) {
+    return "duct-access";
+  }
+
+  if (/\b(filter|filters|hood|baffle|canopy)\b/.test(text)) {
+    return "hood-filters";
+  }
+
+  if (/\b(grease|containment|cup|bucket|drip|trail)\b/.test(text)) {
+    return "grease-path";
+  }
+
+  if (/\b(label|sticker|notice|tag)\b/.test(text)) {
+    return "service-label";
+  }
+
+  return null;
+}
+
+function inferQuickCloseoutNoteSignal(note: string): QuickCloseoutNoteSignal | null {
+  const normalized = note.trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const text = normalized.toLowerCase();
+  const areaId = inferQuickCloseoutNoteArea(normalized);
+  const areaLabel = areaId
+    ? scopeAreaCatalog.find((area) => area.id === areaId)?.shortLabel ?? "area"
+    : "area";
+
+  if (
+    /\b(blocked|locked|inaccessible|no access|could not access|couldn't access|access denied|no key|closed roof hatch)\b/.test(
+      text,
+    )
+  ) {
+    return {
+      areaId,
+      status: "could-not-access",
+      title: `${areaLabel} looks blocked`,
+      actionLabel: areaId ? `Apply to ${areaLabel} as blocked` : "Choose the blocked area below",
+    };
+  }
+
+  if (
+    /\b(not part|not this visit|separate|separate visit|outside this visit|filters only|fan only|excluded)\b/.test(
+      text,
+    )
+  ) {
+    return {
+      areaId,
+      status: "not-in-scope",
+      title: `${areaLabel} may be separate`,
+      actionLabel: areaId ? `Mark ${areaLabel} not part of this visit` : "Choose the separate area below",
+    };
+  }
+
+  if (
+    /\b(condition|quote|repair|review|monitor|leak|drip|damage|hinge|curb|belt|pulley|replace|broken)\b/.test(
+      text,
+    )
+  ) {
+    return {
+      areaId,
+      status: "condition-note",
+      title: `${areaLabel} looks like a condition note`,
+      actionLabel: areaId ? `Apply to ${areaLabel} as condition` : "Choose the condition area below",
+    };
+  }
+
+  return null;
+}
+
 function applyScopeLedgerToPacket(
   data: Axis1PacketPreviewData,
   rows: readonly ScopeLedgerRow[],
@@ -947,31 +1116,48 @@ function applyScopeLedgerToPacket(
   const completedRows = visibleRows.filter((row) =>
     row.status === "done-photo" || row.status === "done-no-photo",
   );
-  const openRows = visibleRows.filter((row) =>
-    row.status === "could-not-access" ||
-    row.status === "not-done" ||
-    row.status === "needs-review",
-  );
+  const blockedRows = visibleRows.filter((row) => row.status === "could-not-access");
+  const notCompletedRows = visibleRows.filter((row) => row.status === "not-done");
+  const needsReviewRows = visibleRows.filter((row) => row.status === "needs-review");
   const recordedRows = visibleRows.filter((row) => row.status === "condition-note");
   const notInScopeRows = visibleRows.filter((row) => row.status === "not-in-scope");
-  const excludedRows = conditionOnlyVisit ? openRows : [...openRows, ...notInScopeRows];
-  const completedAreas = completedRows.map((row) => scopeOutputMeta[row.id].coverageLabel).join(", ");
-  const excludedAreas = excludedRows
-    .map((row) => scopeOutputMeta[row.id].coverageLabel)
-    .join(", ");
-  const recordedAreas = recordedRows.map((row) => scopeOutputMeta[row.id].coverageLabel).join(", ");
+  const boundaryParts = [
+    blockedRows.length > 0
+      ? `Blocked / no access: ${formatScopeAreaLabels(blockedRows)}.`
+      : null,
+    notCompletedRows.length > 0
+      ? `Not completed: ${formatScopeAreaLabels(notCompletedRows)}.`
+      : null,
+    !conditionOnlyVisit && notInScopeRows.length > 0
+      ? `Not part of this visit: ${formatScopeAreaLabels(notInScopeRows)}.`
+      : null,
+    needsReviewRows.length > 0
+      ? `Needs review: ${formatScopeAreaLabels(needsReviewRows)}.`
+      : null,
+  ].filter(Boolean) as string[];
+  const completedAreas = formatScopeAreaLabels(completedRows);
+  const recordedAreas = formatScopeAreaLabels(recordedRows);
   const scopeSummary =
     completedRows.length > 0
       ? `Completed: ${completedAreas}.`
       : conditionOnlyVisit
         ? "Condition-only record. No cleaning completion is claimed from this visit."
       : "No completed area is claimed from this visit.";
-  const exclusionSummary = excludedAreas
-    ? ` Not completed or not in scope: ${excludedAreas}.`
+  const boundarySummary = boundaryParts.join(" ");
+  const exclusionSummary = boundarySummary
+    ? ` ${boundarySummary}`
     : conditionOnlyVisit
       ? ""
-    : " No blocked, incomplete, or out-of-scope area is claimed as completed.";
-  const recordedSummary = recordedAreas ? ` Recorded for follow-up: ${recordedAreas}.` : "";
+    : " No blocked, incomplete, or separate area is shown as completed.";
+  const recordedProofSummary =
+    recordedRows.some((row) => row.photoCount <= 0)
+      ? " Condition recorded from service note; no condition photo is attached."
+      : recordedRows.length > 0
+        ? " Condition photo support is listed by area."
+        : "";
+  const recordedSummary = recordedAreas
+    ? ` Recorded for follow-up: ${recordedAreas}.${recordedProofSummary}`
+    : "";
   const recordBasisSummary =
     data.proofPhotos.length > 0
       ? " Photo status stays area-by-area."
@@ -1017,7 +1203,9 @@ function applyScopeLedgerToPacket(
             items: coverageItems,
             boundaryCopy: `${data.closeout.recordFormat.label}. ${scopeCopy}`,
           },
-          claimLimitCopy: `${data.closeout.claimLimitCopy} ${exclusionSummary.trim()}`,
+          claimLimitCopy: [data.closeout.claimLimitCopy, exclusionSummary.trim()]
+            .filter(Boolean)
+            .join(" "),
         }
       : data.closeout;
 
@@ -1031,12 +1219,10 @@ function applyScopeLedgerToPacket(
         ["What this service covered", scopeCopy],
         ["Areas completed", formatScopeAreaList(rows, ["done-photo", "done-no-photo"])],
         ["Recorded for follow-up", formatScopeAreaList(rows, ["condition-note"])],
-        [
-          "Not completed / not in scope",
-          conditionOnlyVisit
-            ? "No cleaning scope claimed"
-            : formatScopeAreaList(rows, ["could-not-access", "not-done", "not-in-scope"]),
-        ],
+        ["Blocked / no access", formatScopeAreaList(rows, ["could-not-access"])],
+        ["Not completed", formatScopeAreaList(rows, ["not-done"])],
+        ["Not part of this visit", formatScopeAreaList(rows, ["not-in-scope"])],
+        ["Needs review", formatScopeAreaList(rows, ["needs-review"])],
       ]),
     },
     summaryCards: data.summaryCards.map((card, index) =>
@@ -1045,8 +1231,8 @@ function applyScopeLedgerToPacket(
             ...card,
             title:
               completedRows.length > 0
-                ? "Completed areas are listed by scope."
-                : "No completed scope is claimed.",
+        ? "Completed areas are listed by area."
+        : "No completed cleaning is claimed.",
             copy: scopeCopy,
           }
         : card,
@@ -1056,38 +1242,34 @@ function applyScopeLedgerToPacket(
       ["What this service covered", scopeCopy],
       ["Areas completed", formatScopeAreaList(rows, ["done-photo", "done-no-photo"])],
       ["Recorded for follow-up", formatScopeAreaList(rows, ["condition-note"])],
-      [
-        "Not completed / not in scope",
-        conditionOnlyVisit
-          ? "No cleaning scope claimed"
-          : formatScopeAreaList(rows, ["could-not-access", "not-done", "not-in-scope"]),
-      ],
+      ["Blocked / no access", formatScopeAreaList(rows, ["could-not-access"])],
+      ["Not completed", formatScopeAreaList(rows, ["not-done"])],
+      ["Not part of this visit", formatScopeAreaList(rows, ["not-in-scope"])],
+      ["Needs review", formatScopeAreaList(rows, ["needs-review"])],
     ]),
     routeSegments,
     componentStatusRows,
     scopeRows,
     completedWork,
     operationalChecks: upsertDisplayRows(data.operationalChecks, [
-      ["Scope checked by area", "Yes"],
+              ["Area status reviewed", "Yes"],
       ["Hood / filters status", scopeStatusForArea(rows, "hood-filters")],
       ["Duct / access status", scopeStatusForArea(rows, "duct-access")],
       ["Rooftop fan status", scopeStatusForArea(rows, "rooftop-fan")],
       ["Grease path status", scopeStatusForArea(rows, "grease-path")],
     ]),
     proofPolicyRows: upsertDisplayRows(data.proofPolicyRows, [
-      ["Scope by area", scopeCopy],
+              ["Area status by closeout", scopeCopy],
       ["Photos and notes", recordBasisSummary.trim()],
     ]),
     closeoutRows: upsertDisplayRows(data.closeoutRows, [
       ["Visit type", visitType.title],
       ["Areas represented as completed", formatScopeAreaList(rows, ["done-photo", "done-no-photo"])],
       ["Areas recorded for follow-up", formatScopeAreaList(rows, ["condition-note"])],
-      [
-        "Areas not completed / excluded",
-        conditionOnlyVisit
-          ? "No cleaning scope claimed"
-          : formatScopeAreaList(rows, ["could-not-access", "not-done", "not-in-scope"]),
-      ],
+      ["Areas blocked / no access", formatScopeAreaList(rows, ["could-not-access"])],
+      ["Areas not completed", formatScopeAreaList(rows, ["not-done"])],
+      ["Areas not part of this visit", formatScopeAreaList(rows, ["not-in-scope"])],
+      ["Areas needing review", formatScopeAreaList(rows, ["needs-review"])],
     ]),
     scopeNote: conditionOnlyVisit
       ? `This service record is a condition-only record for this visit. ${scopeCopy}`
@@ -1137,7 +1319,7 @@ function applyCustomerTextOverridesToPacket(
   }
 
   if (openItemLine) {
-    const openNote = /excluded from the completed scope|not listed as cleaned/i.test(openItemLine)
+  const openNote = /left out of completed-work wording|not listed as cleaned/i.test(openItemLine)
       ? openItemLine
       : `${openItemLine} This area is not listed as cleaned until the follow-up condition is cleared.`;
 
@@ -1389,8 +1571,10 @@ function PhotoPlacementRow({
             {isVendorConfirmedPhoto(uploaded)
               ? uploaded.vendorDecision === "edited"
                 ? "Vendor edited"
-                : "Vendor confirmed"
-              : "Suggested"}
+                : isFastConfirmableSuggestedPhoto(uploaded)
+                  ? "AI attached"
+                  : "Vendor confirmed"
+              : "Saved, not claimed"}
           </span>
         </div>
         <p className="mt-1 truncate text-xs leading-5 text-muted-foreground">
@@ -1509,7 +1693,7 @@ function ExtraPhotoRow({
             {photo.vendorDecision === "rejected"
               ? "Rejected suggestion"
               : photo.assistSource
-                ? "Suggested"
+                ? "Saved, not claimed"
                 : photo.reason === "duplicate"
                   ? "Same-label extra"
                   : "Overflow"}
@@ -1711,8 +1895,8 @@ function PhotoPlacementReview({
       {orderMatchedCount > 0 ? (
         <div className="mt-3 rounded-[16px] border border-[#ff6b1a]/18 bg-[#fff0e4] px-3 py-2">
           <p className="text-xs font-semibold leading-5 text-[#b94d11]">
-            {orderMatchedCount} suggested photo role(s) still need vendor
-            confirmation before they appear in generated outputs.
+            {orderMatchedCount} photo(s) are saved as extra evidence.
+            Attach one only if it supports the closeout.
           </p>
         </div>
       ) : null}
@@ -1808,38 +1992,30 @@ function PhotoPlacementReview({
 
 const builderSteps = [
   {
-    value: "risk",
-    label: "Risk",
-    title: "Pre-quote risk",
-    copy: "What could cost time, access, or margin.",
+    value: "photos",
+    label: "Declare",
+    navLabel: "Declare",
+    title: "Declare what happened",
+    copy: "Pick result first; photos and notes are optional evidence.",
   },
   {
-    value: "scope",
-    label: "Scope",
-    title: "Lock scope",
-    copy: "Included, excluded, blocked, or separate.",
+    value: "review",
+    label: "Package",
+    navLabel: "Package",
+    title: "Package closeout",
+    copy: "Fix only wrong claims, areas, and next action.",
   },
   {
-    value: "proof",
-    label: "Proof",
-    title: "Crew proof",
-    copy: "Photos optional; written proof allowed.",
-  },
-  {
-    value: "confirm",
-    label: "Confirm/Pay",
-    title: "Customer + payment proof",
-    copy: "Handoff, PDF, invoice proof.",
-  },
-  {
-    value: "next",
-    label: "Next",
-    title: "Next cleaning",
-    copy: "Revisit, quote, rebook, or monitor.",
+    value: "outputs",
+    label: "Send",
+    navLabel: "Send",
+    title: "Send / save / get paid",
+    copy: "Link, PDF, invoice proof, and follow-up copy.",
   },
 ] as const satisfies ReadonlyArray<{
   value: BuilderStep;
   label: string;
+  navLabel: string;
   title: string;
   copy: string;
 }>;
@@ -2065,7 +2241,7 @@ async function preparePhotoForPreview(file: File): Promise<PreparedPhotoPreview>
   if (!isLikelyImageFile(file)) {
     return {
       ok: false,
-      reason: "Only image files can be used in generated outputs.",
+      reason: "Only image files can be used in the customer link or PDF.",
     };
   }
 
@@ -2310,7 +2486,7 @@ export function PacketBuilder() {
     useState<Record<FieldPhotoSlotId, PhotoSlotResolution>>(
       emptyPhotoSlotResolutions,
     );
-  const [builderStep, setBuilderStep] = useState<BuilderStep>("risk");
+  const [builderStep, setBuilderStep] = useState<BuilderStep>("photos");
   const [packetPresentationMode, setPacketPresentationMode] =
     useState<PacketPresentationMode>("short");
   const [reportOutputMode, setReportOutputMode] =
@@ -2346,8 +2522,9 @@ export function PacketBuilder() {
   const [setupNoticeAction, setSetupNoticeAction] =
     useState<SetupNoticeAction | null>(null);
   const [showToolMenu, setShowToolMenu] = useState(false);
-  const isProofStep = builderStep === "proof";
-  const isOutputStep = builderStep === "confirm" || builderStep === "next";
+  const toolMenuRef = useRef<HTMLDivElement | null>(null);
+  const isProofStep = builderStep === "photos";
+  const isOutputStep = builderStep === "outputs";
   const isPhotoStep = isProofStep;
   const uploadedFieldPhotosRef = useRef(uploadedFieldPhotos);
   const unplacedFieldPhotosRef = useRef(unplacedFieldPhotos);
@@ -2361,28 +2538,43 @@ export function PacketBuilder() {
   }, [unplacedFieldPhotos]);
 
   useEffect(() => {
+    if (!showToolMenu) {
+      return;
+    }
+
+    function handleToolMenuKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setShowToolMenu(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleToolMenuKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleToolMenuKeyDown);
+    };
+  }, [showToolMenu]);
+
+  useEffect(() => {
     const requestedStep = new URLSearchParams(window.location.search).get("step");
     const normalizedStep =
-      requestedStep === "job"
-        ? "scope"
-        : requestedStep === "photos"
-          ? "proof"
-          : requestedStep === "report"
-            ? "confirm"
+      requestedStep === "job" || requestedStep === "scope"
+        ? "review"
+        : requestedStep === "proof" || requestedStep === "risk"
+          ? "photos"
+          : requestedStep === "report" ||
+              requestedStep === "confirm" ||
+              requestedStep === "next"
+            ? "outputs"
             : requestedStep;
 
     if (
-      normalizedStep === "risk" ||
-      normalizedStep === "scope" ||
-      normalizedStep === "proof" ||
-      normalizedStep === "confirm" ||
-      normalizedStep === "next"
+      normalizedStep === "photos" ||
+      normalizedStep === "review" ||
+      normalizedStep === "outputs"
     ) {
       const frame = window.requestAnimationFrame(() => {
-        const resolvedStep =
-          normalizedStep === "confirm" || normalizedStep === "next"
-            ? "scope"
-            : normalizedStep;
+        const resolvedStep = normalizedStep;
         setBuilderStep(resolvedStep);
         if (resolvedStep !== requestedStep) {
           const url = new URL(window.location.href);
@@ -2457,12 +2649,12 @@ export function PacketBuilder() {
     }
   });
   unplacedFieldPhotos.forEach((photo) => {
-    if (photo.vendorDecision === "pending") {
+    if (photo.vendorDecision === "pending" && photo.needsVendorReview !== false) {
       pendingPhotoAssistIds.add(photo.id);
     }
   });
   photoAssistSuggestions.forEach((suggestion) => {
-    if (suggestion.vendorDecision === "pending") {
+    if (suggestion.vendorDecision === "pending" && suggestion.needsVendorReview) {
       pendingPhotoAssistIds.add(suggestion.photoId);
     }
   });
@@ -2488,12 +2680,12 @@ export function PacketBuilder() {
   const riskReviewFlags = selectedRiskFlags.filter((flag) => flag.id !== "no-risk");
   const riskSummaryLabel =
     riskReviewFlags.length > 0
-      ? `${riskReviewFlags.length} risk item(s)`
-      : "No risk noted";
+      ? `${riskReviewFlags.length} context flag(s)`
+      : "Standard closeout";
   const riskSummaryCopy =
     riskReviewFlags.length > 0
       ? riskReviewFlags.map((flag) => flag.label).join(", ")
-      : "Standard maintenance record; no pre-quote risk flagged.";
+      : "Standard maintenance record; no special customer wording needed.";
   const hasBeforePhoto = Boolean(confirmedUploadedFieldPhotos["hood-before"]);
   const hasAfterPhoto = Boolean(confirmedUploadedFieldPhotos["hood-after"]);
   const hasBeforeOnly = hasBeforePhoto && !hasAfterPhoto;
@@ -2509,29 +2701,29 @@ export function PacketBuilder() {
   const firstMissingSlots = missingRequiredSlots.slice(0, 4);
   const proofReadinessTitle =
     hasPendingPhotoAssist
-      ? `Review ${pendingPhotoAssistCount} suggested photo role(s)`
+      ? `${totalFieldPhotoCount} photos added`
       : hasAfterOnly
         ? "After-only record is ready"
         : hasBeforeOnly
           ? "Before-only photo needs closeout"
       : missingRequiredSlots.length === 0
-      ? `${uploadedProofCount} photos sorted`
+      ? `${uploadedProofCount} proof photos`
       : totalFieldPhotoCount === 0
-        ? "Drop photos, or continue without them"
+        ? "Pick result, then add photos if available"
         : `${missingRequiredSlots.length} core photo(s) still open`;
   const proofReadinessCopy =
     hasPendingPhotoAssist
-      ? "For each photo: use the suggested role, pick another role, or leave it out. Unreviewed photos stay out of generated outputs."
+      ? "Axis attaches only safe evidence. Other photos stay saved as extra evidence; customer copy will not mention them unless you attach a role."
       : hasAfterOnly
-        ? "No before photo is attached. The packet will avoid a false before/after comparison."
+        ? "No before photo is attached. The closeout will avoid a false before/after comparison."
         : hasBeforeOnly
           ? "No after photo is attached. Add one, or mark it not captured before continuing."
       : missingRequiredSlots.length === 0
-      ? "Core photos are ready. Continue to scope/result, or add only helpful extras."
+      ? "Core photos are ready. Continue to package, or add only helpful extras."
       : totalFieldPhotoCount === 0
-        ? "Continue as a written service record when photos were not captured."
+        ? "Pick the result and continue as a written service record when photos were not captured."
         : unplacedFieldPhotos.length > 0
-          ? `${unplacedFieldPhotos.length} extra photo(s) waiting for a role.`
+          ? `${unplacedFieldPhotos.length} extra photo(s) saved, not claimed.`
         : `Missing: ${firstMissingSlots.map((slot) => slot.shortLabel).join(", ")}.`;
   const proofProgressPercent = Math.max(
     4,
@@ -2560,15 +2752,6 @@ export function PacketBuilder() {
   if (
     hasJobOutcomeSelected &&
     values.scenario === "exception" &&
-    selectedAccessCount > 0 &&
-    !inferredScopeOverrides["duct-access"]
-  ) {
-    inferredScopeOverrides["duct-access"] = "could-not-access";
-  }
-
-  if (
-    hasJobOutcomeSelected &&
-    values.scenario === "exception" &&
     selectedConditionCount > 0
   ) {
     const conditionArea = conditionScopeAreaForKinds(values.exceptionKinds);
@@ -2579,11 +2762,22 @@ export function PacketBuilder() {
   }
 
   const scopeLedgerRows = buildScopeLedger({
-    uploadedFieldPhotos,
+    uploadedFieldPhotos: confirmedUploadedFieldPhotos,
     unplacedFieldPhotos,
     overrides: inferredScopeOverrides,
     expectedAreaIds: expectedScopeAreaIds,
   });
+  const quickCloseoutNote = (values.followUpNote ?? "").trim();
+  const quickCloseoutNoteSignal =
+    hasJobOutcomeSelected ? inferQuickCloseoutNoteSignal(quickCloseoutNote) : null;
+  const quickCloseoutNoteAreaRow = quickCloseoutNoteSignal?.areaId
+    ? scopeLedgerRows.find((row) => row.id === quickCloseoutNoteSignal.areaId)
+    : null;
+  const quickCloseoutNoteNeedsPlacement = Boolean(
+    quickCloseoutNoteSignal &&
+      (!quickCloseoutNoteSignal.areaId ||
+        quickCloseoutNoteAreaRow?.status !== quickCloseoutNoteSignal.status),
+  );
   const scopeAttentionRows = scopeLedgerRows.filter((row) => row.needsCheck);
   const scopeNeedsReviewRows = scopeLedgerRows.filter(
     (row) => row.status === "needs-review",
@@ -2619,7 +2813,7 @@ export function PacketBuilder() {
           : scopeWrittenOnlyNeedsConfirmation
           ? scopePhotoEvidenceCount > 0
             ? "Photo record with notes-only areas"
-            : "Confirm notes-based scope"
+            : "Confirm notes-based closeout"
           : "Ready to generate";
   const visibleScopeRows = showScopeDetails ? scopeLedgerRows : scopeAttentionRows;
   const photoJobOutcomeRecommendation = buildJobOutcomeRecommendation({
@@ -2631,6 +2825,7 @@ export function PacketBuilder() {
     scopeLedgerRows,
     photoJobOutcomeRecommendation,
   );
+  const closeoutAreaLedger = buildCloseoutAreaLedger(scopeLedgerRows);
   const isAutoDraftedOutcome =
     Boolean(autoDraftedJobPatternId) && autoDraftedJobPatternId === activeJobPatternId;
   const engineCloseoutLinks = normalizeCloseoutLinks(closeoutLinks);
@@ -2640,22 +2835,22 @@ export function PacketBuilder() {
     uploadedFieldPhotos: confirmedUploadedFieldPhotos,
     unplacedPhotoCount: confirmedUnplacedFieldPhotoCount,
     photoSlotResolutions,
+    areaLedger: closeoutAreaLedger,
     links: engineCloseoutLinks,
   });
   const closeoutFormatLabel =
     !closeoutEngine.canGeneratePacket
       ? "Waiting for selected result"
       : closeoutEngine.recordFormat.type === "access_issue_record"
-      ? "Job proof packet with access action"
+      ? "Closeout with access action"
       : closeoutEngine.recordFormat.type === "service_closeout_record"
-        ? "Job proof packet from written record"
+        ? "Closeout from written record"
         : closeoutEngine.recordFormat.type === "after_cleaning_record"
-          ? "Job proof packet from after photos"
+          ? "Closeout from after photos"
           : closeoutEngine.recordFormat.type === "photo_supported_service_record"
-            ? "Job proof packet from partial photos"
-            : "Job proof packet from photo record";
-  const reportNeedsPhotoReview = pendingPhotoAssistCount > 0 || unplacedFieldPhotos.length > 0;
-  const photoRolesNeedConfirmation = hasSuggestedPhotoRoles || hasPendingPhotoAssist;
+            ? "Closeout from partial photos"
+            : "Closeout from photo record";
+  const reportNeedsPhotoReview = false;
   const pendingPlacedPhotoSlots = uploadedPhotoSlots.filter((slot) => {
     const photo = uploadedFieldPhotos[slot.id];
 
@@ -2675,11 +2870,6 @@ export function PacketBuilder() {
     : null;
   const scopeNeedsConfirmation = scopeNeedsReviewRows.length > 0;
   const sendReadinessBlockers = [
-    photoRolesNeedConfirmation
-      ? (pendingPhotoAssistCount || 1) === 1
-        ? "1 photo role: use, change role, or leave out"
-        : `${pendingPhotoAssistCount || 1} photo roles: use, change role, or leave out`
-      : null,
     scopeNeedsReviewRows.length > 0
       ? scopeNeedsReviewRows.length === 1
         ? "1 area needs review: completed, blocked, or not included"
@@ -2691,40 +2881,55 @@ export function PacketBuilder() {
         : `${writtenOnlyScopeRows.length} notes-only areas: confirm completed from service notes or change them`
       : null,
   ].filter(Boolean) as string[];
+  const hasOutputReviewItems = closeoutEngine.generatedOutputs.some(
+    (output) => output.readiness === "needs_review",
+  );
+  const hasVendorReviewChecks = closeoutEngine.vendorSendReadinessWarnings.some(
+    (warning) => warning.severity !== "note",
+  );
+  const readyToSendWithoutReview =
+    closeoutEngine.canGeneratePacket &&
+    hasJobOutcomeSelected &&
+    sendReadinessBlockers.length === 0 &&
+    !hasOutputReviewItems &&
+    !hasVendorReviewChecks;
+  const customerOutputsReadyWithChecks =
+    closeoutEngine.canGeneratePacket &&
+    hasJobOutcomeSelected &&
+    sendReadinessBlockers.length === 0 &&
+    (hasOutputReviewItems || hasVendorReviewChecks);
   const canPreviewProofLink =
     closeoutEngine.canGeneratePacket &&
     hasJobOutcomeSelected &&
     sendReadinessBlockers.length === 0;
   const previewBlockedBy =
-    photoRolesNeedConfirmation
-      ? "photos"
-      : scopeNeedsReviewRows.length > 0
-        ? "scope"
-        : scopeWrittenOnlyNeedsConfirmation
-          ? "notes"
-          : null;
+    scopeNeedsReviewRows.length > 0
+      ? "review"
+      : scopeWrittenOnlyNeedsConfirmation
+        ? "notes"
+        : null;
   const scopeNeedsWrittenRecordConfirmation =
-    builderStep === "scope" && previewBlockedBy === "notes";
+    builderStep === "review" && previewBlockedBy === "notes";
   const previewProofLinkLabel = !hasJobOutcomeSelected
     ? "Pick result first"
     : canPreviewProofLink
-      ? "Review packet"
-      : previewBlockedBy === "photos"
-        ? "Review photo roles"
-        : previewBlockedBy === "notes"
-          ? "Continue with written record"
-          : "Fix area status";
+      ? "Go to Send"
+      : previewBlockedBy === "notes"
+        ? "Continue with written record"
+        : "Fix area status";
   const reportStatusLabel = !closeoutEngine.canGeneratePacket
     ? "Result required"
-    : canPreviewProofLink
+    : readyToSendWithoutReview
       ? "Ready to send"
-      : "Needs review";
+      : customerOutputsReadyWithChecks
+        ? "Send packet ready"
+    : "Needs review";
   const mobileReportStatus =
     !closeoutEngine.canGeneratePacket
       ? {
           tone: "partial",
           title: "Pick the result first",
-          copy: "Pick what happened before the job proof packet is generated.",
+          copy: "Pick what happened before the closeout is generated.",
         }
       : sendReadinessBlockers.length > 0
       ? {
@@ -2738,6 +2943,19 @@ export function PacketBuilder() {
           title: "Check photo roles before sending",
           copy: "Review AI photo matches first. They stay out until confirmed.",
         }
+    : customerOutputsReadyWithChecks
+      ? {
+          tone: "neutral",
+          title: "Send packet ready",
+          copy:
+            closeoutEngine.generatedOutputs.find(
+              (output) => output.readiness === "needs_review",
+            )?.reason ??
+            closeoutEngine.vendorSendReadinessWarnings.find(
+              (warning) => warning.severity !== "note",
+            )?.copy ??
+            "Customer handoff and PDF are ready; review payment or send checks before using stronger claim language.",
+        }
       : totalFieldPhotoCount === 0
         ? {
             tone: activeJobPatternId === "clean-close" ? "neutral" : "review",
@@ -2749,10 +2967,10 @@ export function PacketBuilder() {
                   : "Ready as written record",
             copy:
               activeJobPatternId === "blocked-access"
-                ? "The packet records reachable work completed and the blocked area still needing action."
+                ? "The closeout records reachable work completed and the blocked area still needing action."
                 : activeJobPatternId === "condition-review"
-                  ? "The packet records service completed with one condition kept visible."
-                  : "The packet can be built from written service notes. Add photos only if the crew captured them.",
+                  ? "The closeout records service completed with one condition kept visible."
+                  : "The closeout can be packaged from written service notes. Add photos only if the crew captured them.",
           }
         : missingRequiredSlots.length > 0
           ? {
@@ -2778,48 +2996,31 @@ export function PacketBuilder() {
         ? "bg-[#111315] text-white"
         : "bg-[#f26a21] text-white";
   const mobileReportInlineActionLabel = reportNeedsPhotoReview
-    ? "Review photo roles"
+    ? "Photo evidence"
     : reportOutputMode === "link"
       ? "Copy handoff"
       : "Save PDF";
-  const photoStepPrimaryLabel = photoRolesNeedConfirmation
-    ? hasSuggestedPhotoRoles
-      ? "Confirm photo roles"
-      : "Review photos"
-    : hasBeforeOnly || hasAfterOnly
+  const photoStepPrimaryLabel =
+    hasJobOutcomeSelected
+      ? "Package closeout"
+      : hasBeforeOnly || hasAfterOnly
       ? shouldShowProofDetails
-        ? "Draft result"
+        ? "Pick result"
         : "Review missing core"
     : totalFieldPhotoCount === 0
       ? "Pick result"
-      : "Draft result";
+      : "Pick result";
   const getBuilderStepMetric = (stepValue: BuilderStep) => {
-    if (stepValue === "risk") {
-      return riskSummaryLabel;
-    }
-
-    if (stepValue === "scope") {
-      return hasJobOutcomeSelected
-        ? activeJobPattern.label
-        : "Required";
-    }
-
-    if (stepValue === "proof") {
+    if (stepValue === "photos") {
       return totalFieldPhotoCount > 0
         ? `${totalFieldPhotoCount} photos`
         : "Optional";
     }
 
-    if (stepValue === "next") {
-      if (activeJobPatternId === "blocked-access") {
-        return "Revisit";
-      }
-
-      if (activeJobPatternId === "condition-review") {
-        return values.followUpMode === "quote" ? "Quote" : "Monitor";
-      }
-
-      return `${selectedCadenceOption.label}`;
+    if (stepValue === "review") {
+      return hasJobOutcomeSelected
+        ? activeJobPattern.label
+        : "Required";
     }
 
     if (!closeoutEngine.canGeneratePacket) {
@@ -2835,45 +3036,39 @@ export function PacketBuilder() {
       : "Ready";
   };
   const mobilePrimaryActionLabel =
-    builderStep === "risk"
-      ? "Lock scope"
-    : builderStep === "proof"
+    builderStep === "photos"
       ? photoStepPrimaryLabel
-    : builderStep === "scope"
+    : builderStep === "review"
         ? !hasJobOutcomeSelected
           ? "Choose result"
           : previewBlockedBy === "notes"
             ? "Next step"
             : previewProofLinkLabel
-        : builderStep === "next"
-          ? "Finish cycle"
         : reportOutputMode === "link"
           ? "Copy handoff"
           : "Save PDF";
   const mobileSecondaryActionLabel =
-    builderStep === "proof"
+    builderStep === "photos"
         ? hasProofWorkStarted
-          ? "Review photos"
-          : "Risk"
-      : builderStep === "risk"
-        ? "Proof"
-      : builderStep === "scope"
-        ? "Add crew proof"
+          ? "Photo tray"
+          : "Package"
+      : builderStep === "review"
+        ? "Add evidence"
         : reportNeedsPhotoReview
-          ? "Review photos"
+          ? "Photo tray"
           : "Options";
   const mobilePrimaryIsPrint = isOutputStep && reportOutputMode === "pdf";
   const reportOutputMeta =
     reportOutputMode === "link"
       ? {
           label: "Customer handoff preview",
-          title: "Customer handoff from this job record",
+          title: "Customer handoff from this closeout",
           copy: "Generated from the same proof coverage, result, and next action. Use it for text or email after the visit.",
           badge: "Generated output",
         }
       : {
           label: "Evidence record preview",
-          title: "Evidence PDF from this job record",
+          title: "Evidence PDF from this closeout",
           copy: "The retained document copy for archive, attachment, print, manager review, or outside record requests.",
           badge: "Generated output",
         };
@@ -2885,22 +3080,22 @@ export function PacketBuilder() {
     setupNoticeAction === "print-pdf"
       ? {
           eyebrow: "Before saving PDF",
-          title: "Free evidence PDFs stay neutral.",
+          title: "Save the current evidence PDF.",
           actionLabel: "Continue to PDF",
-          copy: "This PDF is the evidence record for files and requests. The free version will not show your logo, phone number, dispatch email, saved history, or hosted photo delivery.",
+          copy: "This PDF uses the current closeout and avoids unconfirmed branding, contact, or hosted-photo claims.",
         }
       : setupNoticeAction === "open-link"
         ? {
             eyebrow: "Before opening link",
-            title: "Free browser handoffs stay neutral.",
+            title: "Open the local customer handoff.",
             actionLabel: "Continue to link",
-            copy: "This browser test handoff includes the current photos on this device only. Cross-device customer delivery still needs hosted storage and branded setup.",
+            copy: "This handoff uses the current closeout on this device. Use hosted delivery when the customer needs cross-device access.",
           }
         : {
             eyebrow: "Before copying link",
-            title: "Free browser handoffs stay neutral.",
+            title: "Copy the local customer handoff.",
             actionLabel: "Continue and copy",
-            copy: "This browser test handoff includes the current photos on this device only. Cross-device customer delivery still needs hosted storage and branded setup.",
+            copy: "This handoff uses the current closeout on this device. Use hosted delivery when the customer needs cross-device access.",
           };
   const previewPacketWithPhotos = applyScopeLedgerToPacket(
     buildAxis1PacketDataWithFieldPhotos(
@@ -3062,7 +3257,7 @@ export function PacketBuilder() {
   ];
   const reportDiagnosticCards = [
     {
-      label: "Pre-quote risk",
+      label: "Closeout context",
       value: riskSummaryLabel,
       helper: riskSummaryCopy,
       wideOnPhone: true,
@@ -3090,13 +3285,15 @@ export function PacketBuilder() {
       wideOnPhone: true,
     },
   ];
-  const reportHeadingText = builderStep === "next"
-    ? "Next cleaning and follow-up are ready."
-    : closeoutEngine.canGeneratePacket && canPreviewProofLink
-    ? "Customer confirmation and payment proof are ready."
-    : sendReadinessBlockers.length > 0
+  const reportHeadingText = readyToSendWithoutReview
+    ? "Send, save, and follow up from this closeout."
+    : customerOutputsReadyWithChecks
+      ? closeoutEngine.evidenceBasis === "no_photos"
+        ? "Customer written record is ready; review payment and send checks."
+        : "Customer link and PDF are ready; review payment and send checks."
+      : sendReadinessBlockers.length > 0
       ? "Confirm before sending."
-      : "Pick a result before outputs are generated.";
+      : "Pick a result before the send packet is generated.";
   function selectCustomerLineEditor(
     editor: CustomerLineEditor,
     surface: CustomerLineEditorSurface,
@@ -3142,7 +3339,7 @@ export function PacketBuilder() {
     setActiveCustomerLineEditorSurface(null);
     setReportOutputMode("link");
     setShowScopeDetails(true);
-    selectBuilderStep("scope");
+    selectBuilderStep("review");
 
     const scrollToScopeEditor = () => {
       document
@@ -3191,7 +3388,7 @@ export function PacketBuilder() {
           <div className="flex items-start justify-between gap-3">
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               Leave blank to keep the default line. If the covered area is wrong,
-              use Edit scope instead of only changing this sentence.
+              change the area status instead of only changing this sentence.
             </p>
             <CharacterCount
               value={values.summaryOverride}
@@ -3313,7 +3510,7 @@ export function PacketBuilder() {
             <Button
               type="button"
               size="sm"
-              onClick={() => selectBuilderStep("proof")}
+              onClick={() => selectBuilderStep("photos")}
               className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
             >
               Open photo editor
@@ -3437,7 +3634,7 @@ export function PacketBuilder() {
     {
       label: "Blocked / no access",
       pattern: getJobPatternById("blocked-access"),
-      helper: "One area needs access, revisit, or scope clarification.",
+      helper: "One area needs access, revisit, or area clarification.",
     },
     {
       label: "Condition found",
@@ -3572,12 +3769,12 @@ export function PacketBuilder() {
       : "Pick one";
   const customerChoiceReason =
     selectedRecommendedOutcome
-      ? "The job record follows the recommended result. Change it only if the visit was different."
+      ? "The closeout follows the recommended result. Change it only if the visit was different."
       : !hasJobOutcomeSelected
       ? totalFieldPhotoCount === 0
         ? "No photos or result are confirmed yet. Pick what happened to build a written record."
         : jobOutcomeRecommendation.reason
-      : "You changed the suggested answer. The job record now follows your selected result.";
+      : "You changed the suggested answer. The closeout now follows your selected result.";
 
   function resetBuilder() {
     form.reset(axis1BuilderDefaults);
@@ -3596,7 +3793,7 @@ export function PacketBuilder() {
     setPacketPresentationMode("short");
     setPacketSections(shortPacketSections);
     setCloseoutLinks({});
-    selectBuilderStep("risk");
+    selectBuilderStep("photos");
     setShowPacketDetails(false);
     setShowAllPhotoSlots(false);
     setShowProofDetails(false);
@@ -3607,8 +3804,8 @@ export function PacketBuilder() {
     setActiveCustomerLineEditor("result");
     setActiveCustomerLineEditorSurface(null);
     setActivePreviewEditTarget(null);
-    toast("Builder reset", {
-      description: "The job proof packet draft is back to the default visit.",
+    toast("Closeout reset", {
+      description: "The closeout draft is back to the default visit.",
     });
   }
 
@@ -3634,54 +3831,40 @@ export function PacketBuilder() {
       return;
     }
 
-    if (previewBlockedBy === "photos") {
-      setShowProofDetails(true);
-      selectBuilderStep("proof");
-      return;
-    }
-
-    if (previewBlockedBy === "scope") {
+    if (previewBlockedBy === "review") {
       setShowScopeDetails(true);
       focusScopeReviewPanel();
       return;
     }
 
-    selectBuilderStep("confirm");
+    selectBuilderStep("outputs");
   }
 
   function selectBuilderStep(step: BuilderStep) {
     toast.dismiss();
     let shouldFocusScopePanel = false;
 
-    if ((step === "confirm" || step === "next") && !hasJobOutcomeSelected) {
+    if ((step === "outputs") && !hasJobOutcomeSelected) {
       toast.error("Pick today's result first.", {
-        description: "The tool will not create generated outputs from untouched defaults.",
+        description: "The tool will not create customer-facing outputs from untouched defaults.",
       });
-      step = "scope";
+      step = "review";
     }
 
-    if ((step === "confirm" || step === "next") && hasJobOutcomeSelected && sendReadinessBlockers.length > 0) {
-      if (photoRolesNeedConfirmation) {
-        setShowProofDetails(true);
-        toast.error("Confirm photo roles before sending.", {
-          description:
-            "Photo suggestions stay out of the packet until the vendor confirms them.",
-        });
-        step = "proof";
-      } else {
-        setShowScopeDetails(true);
-        shouldFocusScopePanel = true;
-        toast.error("Confirm the visit scope before sending.", {
+    if ((step === "outputs") && hasJobOutcomeSelected && sendReadinessBlockers.length > 0) {
+      setShowScopeDetails(true);
+      shouldFocusScopePanel = true;
+      toast.error("Confirm the area status before sending.", {
           description:
             sendReadinessBlockers[0] ??
-            "The tool needs one vendor confirmation before outputs are ready.",
-        });
-        step = "scope";
-      }
+            "The closeout needs one area status confirmation before outputs are ready.",
+      });
+      step = "review";
     }
 
     setBuilderStep(step);
     setMobileSheet(null);
+    setShowToolMenu(false);
 
     const url = new URL(window.location.href);
     url.searchParams.set("step", step);
@@ -3697,23 +3880,23 @@ export function PacketBuilder() {
   }
 
   function handleMobilePrimaryAction() {
-    if (builderStep === "risk") {
-      selectBuilderStep("scope");
-      return;
-    }
-
-    if (builderStep === "proof") {
+    if (builderStep === "photos") {
       proceedFromPhotoStep();
       return;
     }
 
-    if (builderStep === "scope") {
+    if (builderStep === "review") {
       handleJobPrimaryAction();
       return;
     }
 
-    if (builderStep === "next") {
-      setMobileSheet("report-actions");
+    if (builderStep === "outputs") {
+      if (reportOutputMode === "link") {
+        requestFreeReportOutput("copy-link");
+        return;
+      }
+
+      requestFreeReportOutput("print-pdf");
       return;
     }
 
@@ -3730,7 +3913,7 @@ export function PacketBuilder() {
       toast.error("Pick today's result first.", {
         description: "The tool will not create outputs from untouched defaults.",
       });
-      selectBuilderStep("scope");
+      selectBuilderStep("review");
       return;
     }
 
@@ -3738,7 +3921,7 @@ export function PacketBuilder() {
       toast.error("Review needed before output.", {
         description: sendReadinessBlockers[0],
       });
-      selectBuilderStep("confirm");
+      selectBuilderStep("outputs");
       return;
     }
 
@@ -3850,7 +4033,7 @@ export function PacketBuilder() {
     const handleEvidencePdfRequest = (event: Event) => {
       event.preventDefault();
       toast.dismiss();
-      setBuilderStep("confirm");
+      setBuilderStep("outputs");
       setReportOutputMode("pdf");
       setMobileSheet(null);
 
@@ -3875,23 +4058,18 @@ export function PacketBuilder() {
   }, []);
 
   function handleMobileSecondaryAction() {
-    if (builderStep === "proof") {
+    if (builderStep === "photos") {
       if (hasProofWorkStarted) {
         openMobileSheet("photo-review");
         return;
       }
 
-      selectBuilderStep("risk");
+      selectBuilderStep("review");
       return;
     }
 
-    if (builderStep === "risk") {
-      selectBuilderStep("proof");
-      return;
-    }
-
-    if (builderStep === "scope") {
-      selectBuilderStep("proof");
+    if (builderStep === "review") {
+      selectBuilderStep("photos");
       return;
     }
 
@@ -4174,7 +4352,9 @@ export function PacketBuilder() {
             ...photo,
             matchLabel:
               suggestion.source === "gemini"
-                ? "Suggested role - confirm"
+                ? suggestion.needsVendorReview
+                  ? "Possible role - saved as extra evidence"
+                  : "AI attached evidence"
                 : photo.matchLabel,
             ...createPhotoAssistMetadata(suggestion),
           };
@@ -4185,7 +4365,9 @@ export function PacketBuilder() {
           ...photo,
           matchLabel:
             suggestion.source === "gemini"
-              ? "Suggested role - confirm"
+              ? suggestion.needsVendorReview
+                ? "Possible role - saved as extra evidence"
+                : "AI attached evidence"
               : photo.matchLabel,
           ...createPhotoAssistMetadata(suggestion),
         };
@@ -4199,7 +4381,9 @@ export function PacketBuilder() {
           confidence: photo.confidence,
           matchLabel:
             suggestion.source === "gemini"
-              ? "Suggested role - confirm"
+              ? suggestion.needsVendorReview
+                ? "Possible role - saved as extra evidence"
+                : "AI attached evidence"
               : photo.matchLabel,
           ...createPhotoAssistMetadata(suggestion),
         };
@@ -4226,8 +4410,8 @@ export function PacketBuilder() {
             matchLabel:
               suggestion.source === "gemini"
                 ? suggestion.suggestedSlotId
-                  ? "Suggested role - confirm"
-                  : "Photo needs manual placement"
+                  ? "Possible role - saved as extra evidence"
+                  : "No safe proof role found"
               : photo.matchLabel,
             ...createPhotoAssistMetadata(suggestion),
           },
@@ -4247,8 +4431,8 @@ export function PacketBuilder() {
                   reason: "overflow" as const,
                   suggestedSlotId: suggestion.suggestedSlotId,
                   matchLabel: suggestion.suggestedSlotId
-                    ? "Suggested a different role - review"
-                    : "Photo needs manual placement",
+                    ? "Possible role - saved as extra evidence"
+                    : "No safe proof role found",
                   assistSuggestedSlotId: suggestion.suggestedSlotId,
                   assistReason: suggestion.reason,
                   confidence: photo.confidence,
@@ -4262,8 +4446,8 @@ export function PacketBuilder() {
     });
     if (photosToReview.length > 0) {
       const movedCount = photosToReview.length;
-      toast("Photo Assist moved photo(s) to review", {
-        description: `${movedCount} photo(s) could not be safely filed into a photo role.`,
+      toast("Photo(s) saved as extra evidence", {
+        description: `${movedCount} photo(s) remain visible; customer outputs will not mention them unless you attach them.`,
       });
     }
   }
@@ -4286,8 +4470,23 @@ export function PacketBuilder() {
       message:
         origin === "auto-upload"
           ? "Reading photo content. Phone filenames are normal."
-          : "Checking photo roles.",
+          : "Checking photo evidence.",
     });
+
+    if (!process.env.NEXT_PUBLIC_API_BASE_URL?.trim()) {
+      const suggestions = buildMockAxis1PhotoAssistSuggestions(photos);
+
+      mergePhotoAssistSuggestions(suggestions);
+      setPhotoAssistNotice({
+        tone: "warning",
+        message:
+          "Local photo hints used filename and slot cues. Unclear photos stay saved as extra evidence unless attached.",
+      });
+      setShowProofDetails(false);
+      setShowAllPhotoSlots(false);
+      setIsPhotoAssistRunning(false);
+      return;
+    }
 
     try {
       const response = await fetchApi("/api/axis1/photo-assist", {
@@ -4310,8 +4509,8 @@ export function PacketBuilder() {
         message:
           data.warning ??
           (data.provider === "gemini"
-            ? "AI read the photos. Vendor confirmation is still required."
-            : "Review mode is ready. Vendor confirmation is required before output."),
+            ? "AI read the photos. Clear evidence is attached; uncertain photos stay saved as extra evidence."
+            : "Photo hints are ready. Unclear photos stay saved as extra evidence."),
       });
       setShowProofDetails(false);
       setShowAllPhotoSlots(false);
@@ -4322,7 +4521,7 @@ export function PacketBuilder() {
       setPhotoAssistNotice({
         tone: "warning",
         message:
-          "Photo Assist could not read this set. Review the suggested roles carefully before sending.",
+          "Photo Assist could not read this set. Continue as a written closeout; attach photos only if they help.",
       });
       setShowProofDetails(false);
       setShowAllPhotoSlots(false);
@@ -4338,7 +4537,7 @@ export function PacketBuilder() {
       setPhotoAssistNotice({
         tone: "success",
         message:
-          "All usable photo roles are already confirmed. Add or replace a photo to run Photo Assist again.",
+          "All usable photo evidence is already attached. Add or replace a photo to run Photo Assist again.",
       });
       return;
     }
@@ -4410,8 +4609,8 @@ export function PacketBuilder() {
     }
     toast.success("Photo attached", {
       description: slot
-        ? `${slot.shortLabel} is ready for generated outputs.`
-        : "Photo is ready for generated outputs.",
+        ? `${slot.shortLabel} is ready for the customer link and PDF.`
+        : "Photo is ready for the customer link and PDF.",
     });
   }
 
@@ -4583,7 +4782,7 @@ export function PacketBuilder() {
             vendorDecision: "pending",
             needsVendorReview: true,
             assistReason:
-              "AI is checking this suggested role against the image content before it appears in the output.",
+              "Axis saved this as extra evidence. Attach it only if it supports this closeout.",
           };
         }
       });
@@ -4642,8 +4841,8 @@ export function PacketBuilder() {
       toast.success(`${loadedPhotoCount} photo(s) added`, {
         description:
           loadedExtraPhotos.length > 0
-            ? `${loadedExtraPhotos.length} extra photo(s) kept for review.`
-            : "Photo roles are ready for review.",
+            ? `${loadedExtraPhotos.length} extra photo(s) kept visible as extra evidence.`
+            : "Photo evidence is ready. Unclear photos stay saved as extra evidence.",
       });
     }
 
@@ -4656,28 +4855,46 @@ export function PacketBuilder() {
     pattern: JobPatternPreset,
     options: { autoDraft?: boolean } = {},
   ) {
+    const existingExceptionNote = (form.getValues("exceptionNote") ?? "").trim();
+    const existingFollowUpNote = (form.getValues("followUpNote") ?? "").trim();
+    const noteSignal = inferQuickCloseoutNoteSignal(existingFollowUpNote);
+    const signalPattern =
+      pattern.id === "clean-close" && noteSignal?.areaId
+        ? noteSignal.status === "could-not-access"
+          ? getJobPatternById("blocked-access")
+          : noteSignal.status === "condition-note"
+            ? getJobPatternById("condition-review")
+            : pattern
+        : pattern;
+    const nextExceptionNote =
+      signalPattern.id === "blocked-access"
+        ? existingExceptionNote || existingFollowUpNote
+        : "";
+
     setHasJobOutcomeSelected(true);
-    setAutoDraftedJobPatternId(options.autoDraft ? pattern.id : null);
+    setAutoDraftedJobPatternId(options.autoDraft ? signalPattern.id : null);
     setScopeAssumptionsAccepted(
-      visitTypeId === "condition-record" && pattern.id === "condition-review",
+      visitTypeId === "condition-record" && signalPattern.id === "condition-review",
     );
-    form.setValue("scenario", pattern.scenario, {
+    if (noteSignal?.areaId && pattern.id === "clean-close") {
+      setScopeOverrides((current) => ({
+        ...current,
+        [noteSignal.areaId as ScopeAreaId]: noteSignal.status,
+      }));
+    }
+    form.setValue("scenario", signalPattern.scenario, {
       shouldDirty: true,
       shouldValidate: true,
     });
-    form.setValue("exceptionKinds", [...pattern.exceptionKinds], {
+    form.setValue("exceptionKinds", [...signalPattern.exceptionKinds], {
       shouldDirty: true,
       shouldValidate: true,
     });
-    form.setValue("followUpMode", pattern.followUpMode, {
+    form.setValue("followUpMode", signalPattern.followUpMode, {
       shouldDirty: true,
       shouldValidate: true,
     });
-    form.setValue("exceptionNote", "", {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    form.setValue("followUpNote", "", {
+    form.setValue("exceptionNote", nextExceptionNote, {
       shouldDirty: true,
       shouldValidate: true,
     });
@@ -4704,23 +4921,6 @@ export function PacketBuilder() {
     setActivePreviewEditTarget(null);
   }
 
-  function toggleRiskFlag(flagId: RiskFlagId) {
-    setRiskFlagIds((current) => {
-      if (flagId === "no-risk") {
-        return ["no-risk"];
-      }
-
-      const withoutNoRisk = current.filter((id) => id !== "no-risk");
-
-      if (withoutNoRisk.includes(flagId)) {
-        const next = withoutNoRisk.filter((id) => id !== flagId);
-        return next.length > 0 ? next : ["no-risk"];
-      }
-
-      return [...withoutNoRisk, flagId];
-    });
-  }
-
   function updateScopeAreaStatus(areaId: ScopeAreaId, status: ScopeStatus) {
     const area = scopeAreaCatalog.find((item) => item.id === areaId);
     const nextOverrides = {
@@ -4731,34 +4931,47 @@ export function PacketBuilder() {
     setScopeOverrides(nextOverrides);
 
     if (status === "could-not-access" || status === "not-done") {
+      const existingExceptionNote = (form.getValues("exceptionNote") ?? "").trim();
+      const existingFollowUpNote = (form.getValues("followUpNote") ?? "").trim();
+      const nextExceptionNote =
+        existingExceptionNote ||
+        existingFollowUpNote ||
+        `${area?.label ?? "One area"} could not be completed during this visit`;
+
       applyJobPattern(getJobPatternById("blocked-access"));
-      form.setValue(
-        "exceptionNote",
-        `${area?.label ?? "One area"} could not be completed during this visit`,
-        {
-          shouldDirty: true,
-          shouldValidate: true,
-        },
-      );
+      form.setValue("exceptionNote", nextExceptionNote, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
       return;
     }
 
     if (status === "condition-note") {
+      const existingFollowUpNote = (form.getValues("followUpNote") ?? "").trim();
+
       applyJobPattern(getJobPatternById("condition-review"));
-      form.setValue(
-        "followUpNote",
-        `${area?.label ?? "One area"} should stay visible for follow-up`,
-        {
+
+      if (!existingFollowUpNote) {
+        form.setValue(
+          "followUpNote",
+          `${area?.label ?? "One area"} should stay visible for follow-up`,
+          {
+            shouldDirty: true,
+            shouldValidate: true,
+          },
+        );
+      } else {
+        form.setValue("followUpNote", existingFollowUpNote, {
           shouldDirty: true,
           shouldValidate: true,
-        },
-      );
+        });
+      }
       return;
     }
 
     if (hasJobOutcomeSelected) {
       const nextRows = buildScopeLedger({
-        uploadedFieldPhotos,
+        uploadedFieldPhotos: buildConfirmedFieldPhotoState(uploadedFieldPhotosRef.current),
         unplacedFieldPhotos,
         overrides: nextOverrides,
         expectedAreaIds: expectedScopeAreaIds,
@@ -4770,6 +4983,19 @@ export function PacketBuilder() {
 
       applyJobPattern(nextRecommendation.pattern, { autoDraft: true });
     }
+  }
+
+  function applyQuickCloseoutNoteSignal() {
+    if (!quickCloseoutNoteSignal?.areaId) {
+      setShowScopeDetails(true);
+      return;
+    }
+
+    updateScopeAreaStatus(
+      quickCloseoutNoteSignal.areaId,
+      quickCloseoutNoteSignal.status,
+    );
+    setShowScopeDetails(true);
   }
 
   function updateVisitType(nextVisitTypeId: VisitTypeId) {
@@ -4823,6 +5049,27 @@ export function PacketBuilder() {
       [fromSlotId]: "open",
       [toSlotId]: "open",
     }));
+    const movedPhotoId =
+      uploadedFieldPhotos[fromSlotId]?.localId ?? `slot:${fromSlotId}`;
+    const displacedPhotoId =
+      uploadedFieldPhotos[toSlotId]?.localId ?? `slot:${toSlotId}`;
+    setPhotoAssistSuggestions((current) =>
+      current.map((suggestion) =>
+        suggestion.photoId === movedPhotoId
+          ? {
+              ...suggestion,
+              vendorDecision: "confirmed",
+              confirmedSlotId: toSlotId,
+            }
+          : suggestion.photoId === displacedPhotoId
+            ? {
+                ...suggestion,
+                vendorDecision: "confirmed",
+                confirmedSlotId: fromSlotId,
+              }
+            : suggestion,
+      ),
+    );
     const targetSlot = fieldPhotoSlots.find((slot) => slot.id === toSlotId);
     toast.success("Photo moved", {
       description: targetSlot
@@ -4866,8 +5113,8 @@ export function PacketBuilder() {
     );
     toast.success("Photo role confirmed", {
       description: slot
-        ? `${slot.shortLabel} can now support the job packet.`
-        : "Photo can now support the job packet.",
+        ? `${slot.shortLabel} can now support the closeout.`
+        : "Photo can now support the closeout.",
     });
   }
 
@@ -4876,7 +5123,7 @@ export function PacketBuilder() {
       return;
     }
 
-    selectBuilderStep("scope");
+    selectBuilderStep("review");
   }
 
   function rejectPhotoSuggestion(slotId: FieldPhotoSlotId) {
@@ -4923,7 +5170,7 @@ export function PacketBuilder() {
     });
   }
 
-  function confirmAutoPlacedPhotoRoles(nextStep: BuilderStep = "confirm") {
+  function confirmAutoPlacedPhotoRoles(nextStep: BuilderStep = "outputs") {
     const occupiedSlotIds = new Set(
       fieldPhotoSlots
         .filter((slot) => uploadedFieldPhotos[slot.id])
@@ -5034,35 +5281,22 @@ export function PacketBuilder() {
           : suggestion;
       }),
     );
-    if (pendingPhotoAssistCount > fastConfirmedPhotoIds.size) {
-      setShowProofDetails(true);
-      setShowAllPhotoSlots(true);
-      return;
-    }
-    toast("Photo roles confirmed", {
+    toast("Photo evidence attached", {
       description:
-        "Confirmed photo roles are now included as proof. Job result still comes from your scope selection.",
+        pendingPhotoAssistCount > fastConfirmedPhotoIds.size
+          ? "Clear photo roles are now proof. Uncertain photos remain saved as extra evidence."
+          : "Confirmed photo roles are now included as proof. Job result still comes from your area status selection.",
     });
     selectBuilderStep(nextStep);
   }
 
   function proceedFromPhotoStep() {
-    if (photoRolesNeedConfirmation) {
-      if (hasSuggestedPhotoRoles) {
-        confirmAutoPlacedPhotoRoles("scope");
-        return;
-      }
-
-      setShowProofDetails(true);
-      return;
-    }
-
     if ((hasBeforeOnly || hasAfterOnly) && !shouldShowProofDetails) {
       setShowProofDetails(true);
       return;
     }
 
-    selectBuilderStep("scope");
+    selectBuilderStep("review");
   }
 
   function dismissUnplacedPhoto(photoId: string) {
@@ -5087,8 +5321,8 @@ export function PacketBuilder() {
     );
     toast("Photo left out", {
       description: photo
-        ? `${photo.name} will not be used in the packet.`
-        : "The photo will not be used in the packet.",
+        ? `${photo.name} will not be used in the closeout.`
+        : "The photo will not be used in the closeout.",
     });
   }
 
@@ -5130,6 +5364,17 @@ export function PacketBuilder() {
         : []),
     ]);
     setPhotoSlotResolution(toSlotId, "open");
+    setPhotoAssistSuggestions((current) =>
+      current.map((suggestion) =>
+        suggestion.photoId === photoId
+          ? {
+              ...suggestion,
+              vendorDecision: "confirmed",
+              confirmedSlotId: toSlotId,
+            }
+          : suggestion,
+      ),
+    );
     toast.success("Extra photo placed", {
       description: `Assigned to ${targetSlot.shortLabel}.`,
     });
@@ -5147,9 +5392,9 @@ export function PacketBuilder() {
       }
     >
       {(
-        <div className="pdf-print-hide mx-auto w-full max-w-[1180px] pb-3">
+        <div className="pdf-print-hide relative z-[120] mx-auto w-full max-w-[1180px] overflow-visible pb-3">
           <div
-            className="flex min-h-[54px] items-center gap-2 rounded-full border border-white/10 bg-[#171a1d]/94 p-1.5 shadow-[0_14px_46px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:min-h-[58px]"
+            className="relative overflow-visible flex min-h-[54px] items-center gap-2 rounded-full border border-white/10 bg-[#171a1d]/94 p-1.5 shadow-[0_14px_46px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:min-h-[58px]"
             data-axis-tool-header
           >
             <div className="flex min-w-0 shrink-0 items-center gap-2 px-1">
@@ -5164,7 +5409,7 @@ export function PacketBuilder() {
                   Hood
                 </p>
                 <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-white/42">
-                  Builder
+                  Closeout
                 </p>
               </div>
             </div>
@@ -5178,6 +5423,7 @@ export function PacketBuilder() {
                     key={step.value}
                     type="button"
                     onClick={() => selectBuilderStep(step.value)}
+                    aria-label={step.label}
                     className={`group flex h-10 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-center transition-all duration-200 sm:h-11 sm:flex-row sm:justify-between sm:gap-1.5 sm:px-3 ${
                       selected
                         ? "bg-white text-[#111315] shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
@@ -5197,7 +5443,8 @@ export function PacketBuilder() {
                     <span
                       className="min-w-0 whitespace-nowrap text-[9px] font-black uppercase tracking-[0.06em] sm:text-[11px] sm:tracking-[0.08em]"
                     >
-                      {step.label}
+                      <span className="lg:hidden">{step.navLabel}</span>
+                      <span className="hidden lg:inline">{step.label}</span>
                     </span>
                     {selected ? (
                       <span className="hidden whitespace-nowrap rounded-full border border-black/10 bg-[#111315]/5 px-2 py-0.5 text-[10px] font-bold text-[#111315]/58 md:inline-flex">
@@ -5208,21 +5455,37 @@ export function PacketBuilder() {
                 );
               })}
             </div>
-            <div className="relative shrink-0">
+            <div className="relative shrink-0" ref={toolMenuRef}>
               <button
                 type="button"
-                onClick={() => setShowToolMenu((current) => !current)}
-                className="inline-flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.065] px-3 text-[11px] font-black uppercase tracking-[0.12em] text-white transition hover:bg-white/[0.09] sm:h-11"
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                  setShowToolMenu((current) => !current);
+                }}
+                onClick={(event) => {
+                  if (event.detail !== 0) {
+                    return;
+                  }
+
+                  setShowToolMenu((current) => !current);
+                }}
+                aria-label="Open tool menu"
+                className="inline-flex h-10 w-10 items-center justify-center gap-1 rounded-full border border-white/10 bg-white/[0.065] text-[11px] font-black uppercase tracking-[0.08em] text-white transition hover:bg-white/[0.09] sm:h-11 sm:w-auto sm:px-3 sm:tracking-[0.12em]"
               >
-                Menu
+                <MenuIcon className="h-4 w-4 sm:hidden" />
+                <span className="hidden sm:inline">Menu</span>
                 <ChevronDown
-                  className={`h-3.5 w-3.5 transition ${
+                  className={`hidden h-3.5 w-3.5 transition sm:block ${
                     showToolMenu ? "rotate-180" : ""
                   }`}
                 />
               </button>
               {showToolMenu ? (
-                <div className="absolute right-0 top-12 z-[70] w-44 overflow-hidden rounded-[18px] border border-white/10 bg-[#202326] p-1 shadow-[0_22px_70px_rgba(0,0,0,0.38)]">
+                <div
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onTouchStart={(event) => event.stopPropagation()}
+                  className="absolute right-0 top-12 z-[160] w-44 overflow-hidden rounded-[18px] border border-white/10 bg-[#202326] p-1 shadow-[0_22px_70px_rgba(0,0,0,0.38)]"
+                >
                   {[
                     ["/samples/axis-1", "Sample"],
                     ["/axis-1", "Product"],
@@ -5267,17 +5530,17 @@ export function PacketBuilder() {
             <div
               className="hidden"
             >
-              <p className={`${labelClassName()} hidden md:block ${builderStep === "proof" ? "sr-only" : ""}`}>
+              <p className={`${labelClassName()} hidden md:block ${builderStep === "photos" ? "sr-only" : ""}`}>
                 Hood closeout
               </p>
-              <h2 className={`mt-2 hidden font-display text-[1.2rem] font-bold leading-[0.96] tracking-[-0.055em] text-foreground md:block md:text-[1.38rem] ${builderStep === "proof" ? "sr-only" : ""}`}>
-                Build the job proof packet.
+              <h2 className={`mt-2 hidden font-display text-[1.2rem] font-bold leading-[0.96] tracking-[-0.055em] text-foreground md:block md:text-[1.38rem] ${builderStep === "photos" ? "sr-only" : ""}`}>
+                Build the closeout.
               </h2>
-              <p className={`mt-2 hidden text-xs leading-5 text-muted-foreground md:block ${builderStep === "proof" ? "sr-only" : ""}`}>
+              <p className={`mt-2 hidden text-xs leading-5 text-muted-foreground md:block ${builderStep === "photos" ? "sr-only" : ""}`}>
                 Pick what happened, confirm area status, then use the generated
                 customer, PDF, invoice, quote, revisit, and rebook outputs.
               </p>
-              <div className={`mt-3 hidden gap-2 md:grid md:grid-cols-3 xl:grid-cols-1 ${builderStep === "proof" ? "sr-only" : ""}`}>
+              <div className={`mt-3 hidden gap-2 md:grid md:grid-cols-3 xl:grid-cols-1 ${builderStep === "photos" ? "sr-only" : ""}`}>
                 {[
                   [
                     "Photos",
@@ -5301,7 +5564,7 @@ export function PacketBuilder() {
                   </div>
                 ))}
               </div>
-              <div className={`mt-3 hidden rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5 md:block xl:hidden ${builderStep === "proof" ? "sr-only" : ""}`}>
+              <div className={`mt-3 hidden rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5 md:block xl:hidden ${builderStep === "photos" ? "sr-only" : ""}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className={labelClassName()}>Current format</p>
@@ -5317,7 +5580,7 @@ export function PacketBuilder() {
               <Tabs
                 value={builderStep}
                 onValueChange={(value) => selectBuilderStep(value as BuilderStep)}
-                className={builderStep === "proof" ? "hidden" : "mt-3"}
+                className={builderStep === "photos" ? "hidden" : "mt-3"}
               >
                 <TabsList
                   className={
@@ -5375,12 +5638,12 @@ export function PacketBuilder() {
               </Tabs>
               <motion.div
                 layout
-                className={`mt-3 rounded-[18px] border border-[#f26a21]/16 bg-[#fff7ef] px-3 py-2.5 md:hidden ${builderStep === "proof" ? "hidden" : ""}`}
+                className={`mt-3 rounded-[18px] border border-[#f26a21]/16 bg-[#fff7ef] px-3 py-2.5 md:hidden ${builderStep === "photos" ? "hidden" : ""}`}
               >
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-[#f26a21]" />
                   <span className="text-[11px] font-semibold leading-4 text-foreground">
-                    Free preview now. Branding, saved history, and delivery unlock in setup.
+                    Local preview. Add delivery links only when invoice, quote, or schedule buttons should open actions.
                   </span>
                 </div>
               </motion.div>
@@ -5388,117 +5651,26 @@ export function PacketBuilder() {
 
             <form className="mt-3 space-y-3">
               <div
-                className={`rounded-[24px] border border-black/8 bg-white px-4 py-5 md:px-5 ${
-                  builderStep === "risk" ? "" : "hidden"
-                }`}
-              >
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="min-w-0">
-                    <p className={labelClassName()}>Pre-quote risk record</p>
-                    <h1
-                      className="mt-2 max-w-2xl text-2xl font-bold leading-[0.96] tracking-[-0.055em] text-foreground md:text-[2.65rem]"
-                      data-axis-tool-page-heading
-                    >
-                      Close this hood job cycle.
-                    </h1>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                      Start with the risk that can hurt margin, access, payment, or trust.
-                      Photos can help later, but this workflow begins with the job cycle:
-                      risk, scope, crew proof, customer confirmation, then next cleaning.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => selectBuilderStep("scope")}
-                    className="tool-action-btn tool-action-dark tool-action-mini shrink-0 justify-center"
-                  >
-                    Lock scope
-                    <IconArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                <div className="mt-5 grid gap-2 md:grid-cols-3">
-                  {riskFlagCatalog.map((flag) => {
-                    const selected = riskFlagIds.includes(flag.id);
-
-                    return (
-                      <button
-                        key={flag.id}
-                        type="button"
-                        onClick={() => toggleRiskFlag(flag.id)}
-                        className={`rounded-[18px] border px-4 py-3 text-left transition ${
-                          selected
-                            ? flag.tone === "clear"
-                              ? "border-[#2c7a3f]/26 bg-[#f1f8ef]"
-                              : "border-[#f26a21]/30 bg-[#fff7ef]"
-                            : "border-black/8 bg-[rgba(17,17,17,0.025)] hover:border-black/14 hover:bg-white"
-                        }`}
-                      >
-                        <span className="flex items-start justify-between gap-3">
-                          <span className="min-w-0">
-                            <span className="block text-sm font-bold text-foreground">
-                              {flag.label}
-                            </span>
-                            <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                              {flag.copy}
-                            </span>
-                          </span>
-                          {selected ? (
-                            <IconCircleCheck className="h-4 w-4 shrink-0 text-[#2c7a3f]" />
-                          ) : null}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-5 grid gap-2 md:grid-cols-5">
-                  {builderSteps.map((step, index) => (
-                    <button
-                      key={`risk-spine-${step.value}`}
-                      type="button"
-                      onClick={() => selectBuilderStep(step.value)}
-                      className={`rounded-[16px] border px-3 py-3 text-left transition ${
-                        builderStep === step.value
-                          ? "border-[#111315]/18 bg-[#111315] text-white"
-                          : "border-black/8 bg-[rgba(17,17,17,0.025)] text-foreground hover:bg-white"
-                      }`}
-                    >
-                      <span className="block text-[10px] font-bold uppercase tracking-[0.14em] opacity-65">
-                        {index + 1}. {step.label}
-                      </span>
-                      <span className="mt-1 block text-sm font-bold">
-                        {step.title}
-                      </span>
-                      <span className="mt-1 block text-[11px] leading-4 opacity-65">
-                        {step.copy}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div
                 className={`rounded-[22px] border border-black/8 bg-white px-3.5 py-4 md:px-4 ${
-                  builderStep === "scope" ? "" : "hidden"
+                  builderStep === "review" ? "" : "hidden"
                 }`}
               >
                 <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
                   <div className="min-w-0">
-                    <p className={labelClassName()}>Scope lock</p>
-                    {builderStep === "scope" ? (
+                    <p className={labelClassName()}>Review closeout</p>
+                    {builderStep === "review" ? (
                       <h1
                         className="mt-2 text-xl font-bold leading-tight tracking-[-0.045em] text-foreground"
                         data-axis-tool-page-heading
                       >
                         {hasJobOutcomeSelected
-                          ? "Scope and result are locked."
-                          : "Lock the job scope."}
+                          ? "Review the drafted closeout."
+                          : "Pick what happened."}
                       </h1>
                     ) : null}
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       {hasJobOutcomeSelected
-                        ? "Confirm area status once. Every output is generated from this job record."
+                        ? "Fix only the wrong or uncertain parts. Link, PDF, invoice proof, and follow-up copy update together."
                         : totalFieldPhotoCount === 0
                           ? "Pick what happened. Without photos, the tool will not assume the visit was completed."
                           : `${jobOutcomeRecommendation.pattern.label} is ready from ${jobOutcomeRecommendation.signalLabel.toLowerCase()}.`}
@@ -5519,7 +5691,7 @@ export function PacketBuilder() {
                         }`}
                       >
                         <Eye className="h-3.5 w-3.5" />
-                        {hasJobOutcomeSelected ? "Open Confirm/Pay" : "Pick result first"}
+                      {hasJobOutcomeSelected ? "Open Send" : "Pick result first"}
                       </button>
                     </div>
                   ) : null}
@@ -5528,20 +5700,20 @@ export function PacketBuilder() {
                 <div className="mt-4 rounded-[20px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-4 py-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className={labelClassName()}>Included scope</p>
+                      <p className={labelClassName()}>Visit coverage</p>
                       <p className="mt-1 text-sm font-bold text-foreground">
                         {activeVisitType.title}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        Expected in this packet: {activeVisitTypeScopeText}.
-                        Pick a narrower scope or change an area before outputs are generated.
+                        Expected in this closeout: {activeVisitTypeScopeText}.
+                        Pick narrower coverage or change an area before sending.
                       </p>
                     </div>
                     <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
                       {riskSummaryLabel}
                     </span>
                   </div>
-                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                     {visitTypePresets.map((preset) => {
                       const selected = preset.id === visitTypeId;
 
@@ -5550,7 +5722,7 @@ export function PacketBuilder() {
                           key={preset.id}
                           type="button"
                           onClick={() => updateVisitType(preset.id)}
-                          className={`min-w-[142px] rounded-[16px] border px-3 py-2.5 text-left transition ${
+                          className={`min-w-0 rounded-[16px] border px-3 py-2.5 text-left transition ${
                             selected
                               ? "border-[#f26a21]/35 bg-[#fff7ef]"
                               : "border-black/8 bg-white hover:border-black/14"
@@ -5699,33 +5871,6 @@ export function PacketBuilder() {
                   ) : null}
                 </div>
 
-                {photoRolesNeedConfirmation ? (
-                  <div className="mt-4 rounded-[18px] border border-[#f26a21]/24 bg-[#fff7ef] px-4 py-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#a94410]">
-                          Photo needs one tap
-                        </p>
-                        <p className="mt-1 text-sm font-bold leading-5 text-foreground">
-                          {(pendingPhotoAssistCount || 1) === 1
-                            ? "1 photo role still needs your choice."
-                            : `${pendingPhotoAssistCount || 1} photo roles still need your choice.`}
-                        </p>
-                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          Review photo matches before sending. They stay out of generated outputs until confirmed.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => selectBuilderStep("proof")}
-                        className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#111315] px-4 text-[10px] font-black uppercase tracking-[0.13em] text-white"
-                      >
-                        Review photo roles
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-
                 <div
                   data-axis-scope-review-panel
                   className={`mt-4 overflow-hidden rounded-[18px] border bg-white ${
@@ -5742,13 +5887,13 @@ export function PacketBuilder() {
                     }`}
                   >
                     <div className="min-w-0">
-                      <p className={labelClassName()}>Proof / area status</p>
+                      <p className={labelClassName()}>Closeout preview</p>
                       <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-foreground">
                         {scopeCheckTitle}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         {hasJobOutcomeSelected
-                          ? "Change hood, duct, fan, grease, or label status here. All outputs update from these area states."
+                          ? "This reads like the customer preview, but the status chips edit the closeout underneath."
                           : "Pick what happened before confirming service notes or generating outputs."}
                       </p>
                     </div>
@@ -5776,6 +5921,92 @@ export function PacketBuilder() {
                     </div>
                   </div>
                   <div className="space-y-3 px-3 py-3">
+                    {hasJobOutcomeSelected ? (
+                      <div className="rounded-[16px] border border-black/8 bg-[#111315] px-4 py-4 text-white">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
+                              Customer-safe draft
+                            </p>
+                            <p className="mt-2 text-sm font-bold leading-5">
+                              {previewPacket.summaryCards[0]?.copy ?? previewPacket.packetHeader.copy}
+                            </p>
+                            <p className="mt-2 text-xs leading-5 text-white/58">
+                              {findPacketRowValue(
+                                previewPacket.customerClose.actionItems,
+                                "Reply or action",
+                                previewPacket.customerClose.copy,
+                              ) || previewPacket.customerClose.copy}
+                            </p>
+                          </div>
+                          <span className="rounded-full border border-white/14 bg-white/[0.08] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white/62">
+                            {closeoutEngine.basisLabel}
+                          </span>
+                        </div>
+                      </div>
+                    ) : null}
+                    {quickCloseoutNoteNeedsPlacement && quickCloseoutNoteSignal ? (
+                      <div
+                        data-quick-note-placement
+                        className="rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-3"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#a94410]">
+                              Vendor note needs placement
+                            </p>
+                            <p className="mt-1 text-sm font-bold leading-5 text-foreground">
+                              {quickCloseoutNoteSignal.title}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                              &quot;{quickCloseoutNote}&quot; is saved, but it is not yet reflected in an area status.
+                            </p>
+                          </div>
+                          {quickCloseoutNoteSignal.areaId ? (
+                            <button
+                              type="button"
+                              onClick={applyQuickCloseoutNoteSignal}
+                              className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#111315] px-4 text-[10px] font-black uppercase tracking-[0.13em] text-white"
+                            >
+                              {quickCloseoutNoteSignal.actionLabel}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setShowScopeDetails(true)}
+                              className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#111315] px-4 text-[10px] font-black uppercase tracking-[0.13em] text-white"
+                            >
+                              Pick area below
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                    {hasJobOutcomeSelected && unplacedFieldPhotos.length > 0 ? (
+                      <div className="rounded-[16px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className={labelClassName()}>Extra photo evidence</p>
+                            <p className="mt-1 text-sm font-bold leading-5 text-foreground">
+                              {unplacedFieldPhotos.length} photo(s) are saved as extra evidence.
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                              Customer outputs will not mention these photos. Attach one only if it supports the closeout area.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowProofDetails(true);
+                              selectBuilderStep("photos");
+                            }}
+                            className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-white px-4 text-[10px] font-black uppercase tracking-[0.13em] text-foreground"
+                          >
+                            Attach if needed
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
                     {scopeWrittenOnlyNeedsConfirmation ? (
                       <div className="rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -5792,7 +6023,7 @@ export function PacketBuilder() {
                                 : "have"} no photo.
                             </p>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                              The packet will use service notes for these areas. Change any area that was blocked, skipped, or not part of this visit.
+                              The closeout will use service notes for these areas. Change any area that was blocked, skipped, or not part of this visit.
                             </p>
                           </div>
                           <button
@@ -5843,7 +6074,9 @@ export function PacketBuilder() {
                                 </span>
                               </div>
                               <label className="mt-3 block">
-                                <span className="sr-only">Set {row.label} status</span>
+                                <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                                  Change status
+                                </span>
                                 <select
                                   value={row.status}
                                   onChange={(event) =>
@@ -5914,12 +6147,12 @@ export function PacketBuilder() {
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
                     <div className="min-w-0">
                       <p className={labelClassName()}>
-                        {hasJobOutcomeSelected ? "Generated outputs" : "Outputs pending"}
+                        {hasJobOutcomeSelected ? "Send packet" : "Send packet pending"}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         {hasJobOutcomeSelected
-                          ? "All outputs below come from this job record. Customer-safe wording is secondary to area status."
-                          : "Pick the job result before Axis 1 generates customer, PDF, invoice, quote, revisit, and rebook outputs."}
+                          ? "Everything below comes from this closeout. Customer-safe wording follows area status."
+                          : "Pick the job result before Axis 1 generates customer, PDF, invoice, quote, revisit, and rebook copy."}
                       </p>
                     </div>
                     {!scopeNeedsWrittenRecordConfirmation ? (
@@ -6131,17 +6364,17 @@ export function PacketBuilder() {
                 >
                   <button
                     type="button"
-                    onClick={() => selectBuilderStep("confirm")}
+                    onClick={() => selectBuilderStep("outputs")}
                     className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white ${
                       canPreviewProofLink ? "bg-[#111315]" : "bg-[#f26a21]"
                     }`}
                   >
-                    Continue to Confirm/Pay
+                    Continue to Send
                   </button>
                 </div>
               </div>
 
-              {builderStep === "scope" &&
+              {builderStep === "review" &&
               hasJobOutcomeSelected &&
               values.scenario === "exception" &&
               showExceptionDetails ? (
@@ -6164,12 +6397,12 @@ export function PacketBuilder() {
                       <button
                         type="button"
                         disabled={!hasJobOutcomeSelected}
-                        onClick={() => selectBuilderStep("confirm")}
+                        onClick={() => selectBuilderStep("outputs")}
                         className={`hidden rounded-full bg-[#111315] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white md:inline-flex ${
                           !hasJobOutcomeSelected ? "cursor-not-allowed opacity-55" : ""
                         }`}
                       >
-                        Review link
+                      Open Send
                       </button>
                     </div>
                   </div>
@@ -6340,12 +6573,12 @@ export function PacketBuilder() {
                   >
                     <button
                       type="button"
-                      onClick={() => selectBuilderStep("confirm")}
+                      onClick={() => selectBuilderStep("outputs")}
                       className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white ${
                         canPreviewProofLink ? "bg-[#111315]" : "bg-[#f26a21]"
                       }`}
                     >
-                      Continue to Confirm/Pay
+                      Continue to Send
                     </button>
                   </div>
                 </div>
@@ -6358,22 +6591,22 @@ export function PacketBuilder() {
               >
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
-                    <p className={labelClassName()}>Job proof packet</p>
+                    <p className={labelClassName()}>Closeout</p>
                     <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.035em] text-foreground">
-                      Review the packet queue before sending.
+                      Send, save, and get paid.
                     </p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      Outputs come from the same vendor-confirmed job record. Adjust customer-safe copy only when the field visit needs a correction.
+                      Send items come from the same vendor-confirmed closeout. Adjust customer-safe copy only when the field visit needs a correction.
                     </p>
                   </div>
                   <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#b94d11]">
                     <Sparkles className="h-3.5 w-3.5" />
-                    Vendor packet
+                    Send packet
                   </span>
                 </div>
                 <div className="mt-4 grid gap-2 sm:grid-cols-3">
                   {[
-                    ["Outputs ready", `${generatedOutputReadyCount}`],
+                    ["Ready", `${generatedOutputReadyCount}`],
                     ["Need review", `${generatedOutputReviewCount}`],
                     [
                       "Send checks",
@@ -6501,7 +6734,7 @@ export function PacketBuilder() {
               <div
                 id="field-photo-intake"
                 className={`overflow-hidden rounded-[30px] border border-white/10 bg-[#101214] px-3.5 py-4 text-white shadow-[0_28px_70px_rgba(17,17,17,0.24)] md:rounded-[34px] md:px-5 md:py-5 ${
-                  builderStep === "proof" ? "" : "hidden"
+                  builderStep === "photos" ? "" : "hidden"
                 } ${
                   isPhotoStep
                     ? "mt-2 min-h-[calc(100svh-96px)] border-white/12 bg-[radial-gradient(circle_at_18%_0%,rgba(255,180,137,0.12),transparent_30%),linear-gradient(180deg,#121416,#0d0f10)] shadow-[0_24px_80px_rgba(0,0,0,0.28)] md:mt-3 md:px-6 md:py-6"
@@ -6511,27 +6744,86 @@ export function PacketBuilder() {
                 <div className="flex items-start justify-between gap-5">
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                      Optional proof
+                      Declare
                     </p>
-                    {builderStep === "proof" ? (
+                    {builderStep === "photos" ? (
                       <h1
                         className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]"
                         data-axis-tool-page-heading
                       >
-                        Build job proof packet.
+                        Pick what happened.
                       </h1>
                     ) : (
                       <h2 className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]">
-                        Build job proof packet.
+                        Pick what happened.
                       </h2>
                     )}
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-white/54 md:text-[14px] md:leading-6">
-                      Add photos if the crew captured them, or continue with a
-                      written service record.
+                      Choose the closeout result first. Photos and notes improve the record, but they are not a long form.
                     </p>
                   </div>
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] md:h-11 md:w-11">
                     <IconPhotoScan className="h-5 w-5 text-[#ffb489]" />
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-[24px] border border-[#ffb489]/22 bg-white/[0.07] px-3 py-3 sm:px-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
+                        Job result
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-white">
+                        Start here, then add photos if you have them.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-white/12 bg-black/14 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/54">
+                      {customerChoiceStatus}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid gap-2 min-[430px]:grid-cols-3">
+                    {customerShouldKnowOptions.map((option) => {
+                      const pattern = option.pattern;
+                      const selected =
+                        hasJobOutcomeSelected && activeJobPatternId === pattern.id;
+                      const recommended =
+                        jobOutcomeRecommendation.pattern.id === pattern.id;
+
+                      return (
+                        <button
+                          key={`photo-step-${option.label}`}
+                          type="button"
+                          onClick={() => applyJobPattern(pattern)}
+                          className={`min-h-[62px] rounded-[18px] border px-3 py-2.5 text-left transition ${
+                            selected
+                              ? "border-[#ffb489]/55 bg-white text-[#111315]"
+                              : "border-white/12 bg-black/14 text-white hover:bg-white/[0.09]"
+                          }`}
+                        >
+                          <span
+                            className={`block text-[10px] font-black uppercase tracking-[0.12em] ${
+                              selected ? "text-[#bc3d1f]" : "text-[#ffb489]"
+                            }`}
+                          >
+                            {option.label}
+                          </span>
+                          <span className="mt-1 block text-sm font-black leading-5">
+                            {pattern.title}
+                          </span>
+                          <span
+                            className={`mt-1 block text-[11px] font-semibold leading-4 ${
+                              selected ? "text-[#111315]/56" : "text-white/48"
+                            }`}
+                          >
+                            {selected
+                              ? "Selected"
+                              : recommended
+                                ? "Suggested"
+                                : "Pick if true"}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -6556,7 +6848,7 @@ export function PacketBuilder() {
                 >
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffb489]">
-                      {hasProofWorkStarted ? "Add more" : "Main action"}
+                      {hasProofWorkStarted ? "Add more" : "Optional proof"}
                     </p>
                     <p
                       className={`mt-3 font-bold text-white ${
@@ -6569,7 +6861,7 @@ export function PacketBuilder() {
                     </p>
                     <p className="mt-3 max-w-md text-xs leading-5 text-white/58 sm:mt-4 sm:text-sm sm:leading-6 md:text-[15px]">
                       {hasProofWorkStarted
-                        ? "Drop only the missing or extra photos. The current job record stays intact."
+                        ? "Drop only the missing or extra photos. The current closeout stays intact."
                         : "Before, after, fan, filter, access, label, and issue photos can all go in one batch."}
                     </p>
                     <div
@@ -6616,6 +6908,23 @@ export function PacketBuilder() {
                     }}
                   />
                 </motion.label>
+
+                <div className="mt-4 rounded-[22px] border border-white/10 bg-white/[0.055] px-4 py-3">
+                  <label
+                    className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]"
+                    htmlFor="quickCloseoutNote"
+                  >
+                    Optional note
+                  </label>
+                  <textarea
+                    id="quickCloseoutNote"
+                    rows={2}
+                    className="mt-2 min-h-[92px] w-full resize-none rounded-[16px] border border-white/10 bg-black/18 px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-white/30 focus:border-[#ffb489]/55 focus:ring-2 focus:ring-[#ffb489]/15 sm:min-h-[72px]"
+                    maxLength={textFieldLimits.followUpNote}
+                    placeholder="Example: fan access blocked by locked roof hatch, or duct not part of this visit."
+                    {...form.register("followUpNote")}
+                  />
+                </div>
 
                 <div className="mt-4 rounded-[24px] border border-white/10 bg-white/[0.055] px-3 py-3 sm:px-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -6674,7 +6983,7 @@ export function PacketBuilder() {
                           Pick result
                         </span>
                         <span className="mt-1 block text-xs font-semibold leading-5 text-[#111315]/58">
-                          Choose completed, blocked, or condition noted before anything is sent.
+                          Choose completed, blocked, or condition only before anything is sent.
                         </span>
                       </span>
                       <IconArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5" />
@@ -6801,7 +7110,7 @@ export function PacketBuilder() {
                     <div className="grid gap-4 px-4 py-4 sm:px-5 sm:py-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
                       <div className="min-w-0">
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                          Photo role review
+                          Photo evidence
                         </p>
                         <p className="mt-2 text-2xl font-bold leading-[0.95] tracking-[-0.055em] text-white md:text-[2.35rem]">
                           {proofReadinessTitle}
@@ -6814,7 +7123,7 @@ export function PacketBuilder() {
                         <div className="grid grid-cols-3 gap-2">
                           {[
                             ["Confirmed", `${vendorConfirmedPhotoCount}`],
-                            ["Suggested", `${pendingPhotoAssistCount}`],
+                            ["Extra saved", `${pendingPhotoAssistCount}`],
                             ["Extra", `${unplacedFieldPhotos.length}`],
                           ].map(([label, value]) => (
                             <div
@@ -6833,15 +7142,17 @@ export function PacketBuilder() {
                         {hasSuggestedPhotoRoles ? (
                           <button
                             type="button"
-                            onClick={() => confirmAutoPlacedPhotoRoles("scope")}
+                            onClick={() => confirmAutoPlacedPhotoRoles("review")}
                             className="h-10 rounded-full bg-white px-4 text-[10px] font-black uppercase tracking-[0.13em] text-[#111315] shadow-[0_16px_38px_rgba(0,0,0,0.22)]"
                           >
-                            Confirm safe suggestions
+                            Accept AI attachments
                           </button>
                         ) : null}
                       </div>
                     </div>
-                    {firstPendingPlacedPhotoSlot && firstPendingPlacedPhoto ? (
+                    {shouldShowProofDetails &&
+                    firstPendingPlacedPhotoSlot &&
+                    firstPendingPlacedPhoto ? (
                       <div
                         data-photo-one-tap-review="true"
                         className="border-t border-white/8 bg-black/16 px-4 py-4 sm:px-5"
@@ -6856,7 +7167,7 @@ export function PacketBuilder() {
                           />
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffcfb5]">
-                              Review this photo
+                              Optional proof attachment
                             </p>
                             <p className="mt-1 text-lg font-black leading-tight tracking-[-0.04em] text-white">
                               Use this as {firstPendingPlacedPhotoSlot.shortLabel}?
@@ -6864,7 +7175,7 @@ export function PacketBuilder() {
                             <p className="mt-2 text-xs leading-5 text-white/58">
                               {firstPendingPlacedPhoto.assistReason ??
                                 firstPendingPlacedPhoto.matchLabel ??
-                                "AI suggested this role from the photo content. Confirm or change it before the customer sees it."}
+                                "Axis was not sure enough to use this as proof. Attach it only if it supports the closeout."}
                             </p>
                             <p className="mt-1 truncate text-[11px] font-semibold text-white/38">
                               {firstPendingPlacedPhoto.name}
@@ -6931,7 +7242,7 @@ export function PacketBuilder() {
                           </div>
                         </div>
                       </div>
-                    ) : firstPendingExtraPhoto ? (
+                    ) : shouldShowProofDetails && firstPendingExtraPhoto ? (
                       <div
                         data-photo-one-tap-review="true"
                         className="border-t border-white/8 bg-black/16 px-4 py-4 sm:px-5"
@@ -6946,7 +7257,7 @@ export function PacketBuilder() {
                           />
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffcfb5]">
-                              Review this photo
+                              Optional proof attachment
                             </p>
                             <p className="mt-1 text-lg font-black leading-tight tracking-[-0.04em] text-white">
                               {firstPendingExtraSuggestedSlot
@@ -6956,7 +7267,7 @@ export function PacketBuilder() {
                             <p className="mt-2 text-xs leading-5 text-white/58">
                               {firstPendingExtraPhoto.assistReason ??
                                 firstPendingExtraPhoto.matchLabel ??
-                                "Photo Assist could not safely place this photo. It stays out of the packet until you choose."}
+                                "Axis was not sure enough to use this as proof. It stays visible here unless you attach it."}
                             </p>
                             <p className="mt-1 truncate text-[11px] font-semibold text-white/38">
                               {firstPendingExtraPhoto.name}
@@ -7055,7 +7366,9 @@ export function PacketBuilder() {
                                   </p>
                                   <p className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-white/42">
                                     {isVendorConfirmedPhoto(uploaded)
-                                      ? "Vendor confirmed"
+                                      ? isFastConfirmableSuggestedPhoto(uploaded)
+                                        ? "AI attached"
+                                        : "Vendor confirmed"
                                       : "Suggested"}
                                   </p>
                                 </div>
@@ -7097,12 +7410,12 @@ export function PacketBuilder() {
                             </p>
                             <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-white">
                               {pendingPhotoAssistCount > 0
-                                ? `${pendingPhotoAssistCount} suggestion(s) need vendor confirmation`
+                                ? `${pendingPhotoAssistCount} photo(s) saved as extra evidence`
                                 : `${vendorConfirmedPhotoCount} vendor-confirmed photo role(s)`}
                             </p>
                             <p className="mt-1 text-xs leading-5 text-white/52">
-                              AI suggests what the photo shows. Confirming a role
-                              adds evidence; it does not create a customer exception.
+                              Axis keeps unsure photos visible. Customer outputs do
+                              not mention them unless you attach a role.
                             </p>
                           </div>
                           <button
@@ -7124,8 +7437,8 @@ export function PacketBuilder() {
                         </div>
                         <div className="mt-3 grid gap-2 sm:grid-cols-2">
                           {[
-                            ["Suggested", `${pendingPhotoAssistCount}`],
-                            ["Vendor confirmed", `${vendorConfirmedPhotoCount}`],
+                            ["Extra saved", `${pendingPhotoAssistCount}`],
+                            ["Used as proof", `${vendorConfirmedPhotoCount}`],
                           ].map(([label, value]) => (
                             <div
                               key={label}
@@ -7163,18 +7476,18 @@ export function PacketBuilder() {
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffcfb5]">
-                              Needs vendor review
+                              Extra evidence
                             </p>
                             <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-white">
-                              {unplacedFieldPhotos.length} photo(s) are not used yet
+                              {unplacedFieldPhotos.length} photo(s) saved, not claimed
                             </p>
                             <p className="mt-1 text-xs leading-5 text-white/56">
-                              Assign a role only if the photo belongs in the job packet.
-                              Wrong, duplicate, or unclear photos can be left out.
+                              They are not hidden or deleted. Customer copy will not
+                              mention them unless you attach a role.
                             </p>
                           </div>
                           <span className="rounded-full border border-[#ffb489]/24 bg-black/16 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#ffcfb5]">
-                            Left out of packet
+                            Saved, not claimed
                           </span>
                         </div>
                         <div className="mt-3 grid gap-2">
@@ -7211,7 +7524,7 @@ export function PacketBuilder() {
                                   <p className="mt-1 text-xs leading-5 text-white/58">
                                     {photo.assistReason ??
                                       photo.matchLabel ??
-                                      "Review this photo before assigning it to a photo role."}
+                                      "Axis was not confident enough to use this photo as proof automatically."}
                                   </p>
                                   <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                                     <select
@@ -7254,8 +7567,8 @@ export function PacketBuilder() {
                     {hasSuggestedPhotoRoles ? (
                       <div className="mx-4 mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2 sm:mx-5">
                         <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
-                          Suggested roles are waiting for vendor confirmation.
-                          They do not count in the packet until confirmed.
+                          Clear AI attachments can support the closeout. You can still
+                          correct a role before sending.
                         </p>
                       </div>
                     ) : null}
@@ -7263,7 +7576,7 @@ export function PacketBuilder() {
                       <div className="mx-4 mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2 sm:mx-5">
                         <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
                           {hasAfterOnly
-                            ? "After photo is present, but no before photo is attached. The packet will stay as an after-photo service note unless you add or mark the missing before photo."
+                            ? "After photo is present, but no before photo is attached. The closeout will stay as an after-photo service note unless you add or mark the missing before photo."
                             : "Before photo is present, but no after photo is attached. Add an after photo or mark it not captured before sending."}
                         </p>
                       </div>
@@ -7288,7 +7601,7 @@ export function PacketBuilder() {
                           </Badge>
                       </div>
                       <p className="mt-2 text-xs leading-5 text-white/54">
-                        Photo roles are prepared. Generated outputs are finalized after the visit outcome is selected.
+                        Photo evidence is prepared. Outputs are finalized after the visit outcome is selected.
                       </p>
                     </div>
                     <div className="mx-4 mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08] sm:mx-5">
@@ -7372,7 +7685,7 @@ export function PacketBuilder() {
 
                             setShowProofDetails(true);
                           }}
-                          className="hidden rounded-full border border-white/12 bg-white/[0.04] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/66 hover:bg-white/[0.08] hover:text-white md:inline-flex"
+                          className="inline-flex rounded-full border border-white/12 bg-white/[0.04] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/66 hover:bg-white/[0.08] hover:text-white"
                         >
                           {shouldShowProofDetails ? "Hide review" : "Fix photo matches"}
                         </Button>
@@ -7500,8 +7813,10 @@ export function PacketBuilder() {
                                   }`}
                                 >
                                   {isVendorConfirmedPhoto(uploaded)
-                                    ? "Vendor confirmed"
-                                    : "Suggested"}
+                                    ? isFastConfirmableSuggestedPhoto(uploaded)
+                                      ? "AI attached"
+                                      : "Vendor confirmed"
+                                    : "Saved, not claimed"}
                                 </span>
                               </div>
                               <p className="mt-1 truncate text-xs leading-5 text-white/48">
@@ -7552,8 +7867,10 @@ export function PacketBuilder() {
                     const resolution = photoSlotResolutions[slot.id];
                     const slotStatus = uploaded
                       ? isVendorConfirmedPhoto(uploaded)
-                        ? "Vendor confirmed"
-                        : "Suggested"
+                        ? isFastConfirmableSuggestedPhoto(uploaded)
+                          ? "AI attached"
+                          : "Vendor confirmed"
+                        : "Saved, not claimed"
                       : resolution === "not-captured"
                         ? "Not captured"
                       : resolution === "not-applicable"
@@ -7614,7 +7931,7 @@ export function PacketBuilder() {
                             {uploaded
                               ? `${uploaded.name} - ${uploaded.matchLabel}`
                               : resolution === "not-captured"
-                                ? "Marked not captured. The packet will not show a sample image for this slot."
+                                ? "Marked not captured. The closeout will not show a sample image for this slot."
                                 : resolution === "not-applicable"
                                   ? "Marked not applicable for this visit."
                               : slot.caption}
@@ -7730,9 +8047,8 @@ export function PacketBuilder() {
                   <div className="flex items-start gap-3">
                     <IconCircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-[#ffb489]" />
                     <p className="text-xs leading-5 text-white/58">
-                      Photos stay local in this free preview. Real storage, branded
-                      delivery, saved history, and cross-browser retrieval are paid
-                      operating features.
+                      Photos stay local in this preview. Use hosted delivery only
+                      when the customer needs cross-device access.
                     </p>
                   </div>
                 </div>
@@ -7850,16 +8166,12 @@ export function PacketBuilder() {
                       </span>
                       <span className="axis-proof-title">
                         {closeoutEngine.canGeneratePacket
-                          ? builderStep === "next"
-                            ? "Next cleaning / follow-up generated"
-                            : "Customer confirmation and payment proof generated"
-                          : "Select the job result to build the packet"}
+                          ? "Customer proof, payment, and follow-up outputs generated"
+                          : "Select the job result to build the closeout"}
                       </span>
                       <span className="axis-proof-subtitle">
                         {closeoutEngine.canGeneratePacket
-                          ? builderStep === "next"
-                            ? "Next cleaning, revisit, quote follow-up, and monitor copy are derived from the same vendor-confirmed job record."
-                            : "Customer handoff, evidence PDF, invoice proof, follow-up copy, and rebook copy are derived from this same vendor-confirmed job record."
+                          ? "Customer handoff, evidence PDF, invoice proof, payment copy, revisit or quote copy, and next-service text are derived from this same vendor-confirmed closeout."
                           : "Outputs stay locked until the vendor confirms what happened. Photos can organize the record, but they do not decide the final claim."}
                       </span>
                     </span>
@@ -7901,7 +8213,7 @@ export function PacketBuilder() {
                       </span>
                       <span className="axis-proof-action-copy">
                         {canPreviewProofLink
-                          ? "Use the customer-safe handoff from this packet."
+                          ? "Use the customer-safe handoff from this closeout."
                           : previewProofLinkLabel}
                       </span>
                     </span>
@@ -7991,9 +8303,31 @@ export function PacketBuilder() {
 
                   <section className="axis-proof-panel">
                     <div className="axis-proof-panel-head">
-                      <p className="axis-proof-panel-label">Job record areas</p>
-                      <p>Change status here; every generated output updates from the same record.</p>
+                      <p className="axis-proof-panel-label">Closeout areas</p>
+                      <p>Change status here; every output updates from the same closeout.</p>
                     </div>
+                    {quickCloseoutNoteNeedsPlacement && quickCloseoutNoteSignal ? (
+                      <div
+                        data-quick-note-placement="outputs"
+                        className="mb-3 rounded-[14px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-3 text-[#111315]"
+                      >
+                        <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#a94410]">
+                          Vendor note needs placement
+                        </p>
+                        <p className="mt-1 text-xs font-bold leading-5">
+                          {quickCloseoutNoteSignal.title}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={applyQuickCloseoutNoteSignal}
+                          className="mt-2 inline-flex h-9 items-center justify-center rounded-full bg-[#111315] px-3 text-[10px] font-black uppercase tracking-[0.12em] text-white"
+                        >
+                          {quickCloseoutNoteSignal.areaId
+                            ? quickCloseoutNoteSignal.actionLabel
+                            : "Pick area below"}
+                        </button>
+                      </div>
+                    ) : null}
                     <div className="grid gap-2">
                       {scopeLedgerRows
                         .filter((row) => row.status !== "not-in-scope")
@@ -8053,10 +8387,13 @@ export function PacketBuilder() {
                     </div>
                   </section>
 
-                  <section className="axis-proof-panel axis-proof-ledger-panel">
+                  <section
+                    className="axis-proof-panel axis-proof-ledger-panel"
+                    style={builderStep === "outputs" ? { order: -2 } : undefined}
+                  >
                     <div className="axis-proof-panel-head">
-                      <p className="axis-proof-panel-label">Generated outputs</p>
-                      <p>One job record, multiple send/save/get-paid uses.</p>
+                      <p className="axis-proof-panel-label">Send items</p>
+                      <p>One closeout, multiple send/save/get-paid uses.</p>
                     </div>
                     <div className="axis-output-ledger">
                       {closeoutEngine.generatedOutputs.map((output) => {
@@ -8074,6 +8411,9 @@ export function PacketBuilder() {
                             <span className="axis-output-copy">
                               <strong>{output.label}</strong>
                               {output.reason ? <small>{output.reason}</small> : null}
+                              {output.copy ? (
+                                <small className="axis-output-draft">{output.copy}</small>
+                              ) : null}
                             </span>
                             <span
                               className={`axis-readiness-pill ${readinessMeta.className}`}
@@ -8088,11 +8428,11 @@ export function PacketBuilder() {
 
                   <section
                     className="axis-proof-panel"
-                    style={builderStep === "next" ? { order: -1 } : undefined}
+                    style={builderStep === "outputs" ? { order: -1 } : undefined}
                   >
                     <div className="axis-proof-panel-head">
                       <p className="axis-proof-panel-label">Next cleaning / follow-up</p>
-                      <p>Turns the same job record into rebook, revisit, quote, or monitor action.</p>
+                      <p>Turns the same closeout into rebook, revisit, quote, or monitor action.</p>
                     </div>
                     <div className="axis-output-ledger">
                       {nextActionRows.map((item) => {
@@ -8163,7 +8503,7 @@ export function PacketBuilder() {
                     <div className="axis-proof-link-dock-head">
                       <div>
                         <p className="axis-proof-panel-label">Optional action links</p>
-                        <p>Add URLs only when the packet button should open invoice, quote, schedule, or reply actions.</p>
+                        <p>Add URLs only when the output button should open invoice, quote, schedule, or reply actions.</p>
                       </div>
                       <span>
                         {connectedCloseoutLinkCount}/{visibleCloseoutLinkFields.length} filled
@@ -8190,7 +8530,7 @@ export function PacketBuilder() {
                       ))}
                     </div>
                     <p className="axis-proof-local-note">
-                      Browser-only test link. Hosted delivery, branding, saved history, and cross-device access stay in setup.
+                      Local preview link. Use hosted delivery when this needs to work across devices.
                     </p>
                   </div>
                 ) : (
@@ -8205,7 +8545,7 @@ export function PacketBuilder() {
               initial={{ y: 12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className={`pdf-print-hide mt-3 overflow-hidden rounded-[22px] border px-3.5 py-3.5 md:hidden ${mobileReportStatusClass}`}
+              className={`pdf-print-hide mt-3 flex flex-col overflow-hidden rounded-[22px] border px-3.5 py-3.5 md:hidden ${mobileReportStatusClass}`}
               data-mobile-report-ready
             >
               <div className="flex items-start gap-2.5">
@@ -8220,7 +8560,7 @@ export function PacketBuilder() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-70">
-                    Job proof packet
+                    Closeout
                   </p>
                   <h3 className="mt-1 text-base font-bold leading-tight tracking-[-0.03em]">
                     {mobileReportStatus.title}
@@ -8230,13 +8570,13 @@ export function PacketBuilder() {
                   </p>
                 </div>
               </div>
-              <div className="mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3 text-[#111315]">
+              <div className="order-4 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3 text-[#111315]">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                     Area status
                   </p>
                   <span className="rounded-full bg-[#111315] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
-                    Job record
+                    Closeout
                   </span>
                 </div>
                 <div className="grid gap-2">
@@ -8287,7 +8627,7 @@ export function PacketBuilder() {
                     })}
                 </div>
               </div>
-              <div className="mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
+              <div className="order-5 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                     Customer-safe copy
@@ -8335,10 +8675,10 @@ export function PacketBuilder() {
                   })}
                 </div>
               </div>
-              <div className="mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
+              <div className="order-2 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    Generated outputs
+                    Send items
                   </p>
                   <span className="rounded-full bg-[#111315] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
                     {generatedOutputReadyCount} ready
@@ -8351,7 +8691,8 @@ export function PacketBuilder() {
                     return (
                       <div
                         key={output.kind}
-                        className="rounded-[14px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2"
+                        className="axis-output-row rounded-[14px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2"
+                        data-readiness={output.readiness}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="min-w-0 text-xs font-bold text-foreground">
@@ -8363,6 +8704,15 @@ export function PacketBuilder() {
                             {readinessMeta.label}
                           </span>
                         </div>
+                        {output.copy ? (
+                          <p className="mt-1.5 text-[11px] font-semibold leading-4 text-muted-foreground">
+                            {output.copy}
+                          </p>
+                        ) : output.reason ? (
+                          <p className="mt-1.5 text-[11px] font-semibold leading-4 text-muted-foreground">
+                            {output.reason}
+                          </p>
+                        ) : null}
                       </div>
                     );
                   })}
@@ -8373,7 +8723,7 @@ export function PacketBuilder() {
                   </p>
                 ) : null}
               </div>
-              <div className="mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
+              <div className="order-3 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                     Next actions
@@ -8389,7 +8739,8 @@ export function PacketBuilder() {
                     return (
                       <div
                         key={`mobile-${item.label}`}
-                        className="rounded-[14px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2"
+                        className="axis-output-row rounded-[14px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2"
+                        data-readiness={item.state}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <span className="min-w-0">
@@ -8419,7 +8770,7 @@ export function PacketBuilder() {
                     setReportOutputMode(value);
                   }
                 }}
-                className="tool-segmented-control mt-3 rounded-full bg-white/72"
+                className="tool-segmented-control order-6 mt-3 rounded-full bg-white/72"
               >
                 <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-[11px]">
                   Handoff
@@ -8428,10 +8779,10 @@ export function PacketBuilder() {
                   Evidence PDF
                 </SegmentedControlItem>
               </SegmentedControl>
-              <div className="mt-2.5 flex items-center justify-between gap-3">
+              <div className="order-7 mt-2.5 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-[11px] leading-4 opacity-70">
                   {reportOutputMode === "link"
-                    ? "Copy creates a browser-only customer handoff from the current job record."
+                    ? "Copy creates a local customer handoff from the current closeout."
                     : "This is the evidence PDF for save/print."}
                 </p>
                 <button
@@ -8726,7 +9077,7 @@ export function PacketBuilder() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => selectBuilderStep("confirm")}
+                      onClick={() => selectBuilderStep("outputs")}
                       className="mt-4 rounded-full bg-[#111315] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
                     >
                       Edit customer wording
@@ -9111,9 +9462,9 @@ export function PacketBuilder() {
           {mobileSheet === "photo-review" ? (
             <>
               <DrawerHeader className="px-4 pb-2 pt-4">
-                <DrawerTitle className="text-[1.45rem]">Review photo roles</DrawerTitle>
+                <DrawerTitle className="text-[1.45rem]">Photo evidence</DrawerTitle>
                 <DrawerDescription className="text-xs leading-5">
-                  Phone filenames are ignored. Confirm the role, change it, or leave uncertain photos out.
+                  Phone filenames are ignored. Attach uncertain photos only when they support this closeout.
                 </DrawerDescription>
               </DrawerHeader>
               <div className="min-h-0 overflow-y-auto px-3 pb-3">
@@ -9148,11 +9499,11 @@ export function PacketBuilder() {
                     }
 
                     setMobileSheet(null);
-                    selectBuilderStep("confirm");
+                    selectBuilderStep("outputs");
                   }}
                   className="h-11 rounded-[16px] bg-[#111315] text-[11px] font-bold uppercase tracking-[0.12em] text-white"
                 >
-                  {hasSuggestedPhotoRoles ? "Confirm suggested roles" : previewProofLinkLabel}
+                  {hasSuggestedPhotoRoles ? "Accept AI attachments" : previewProofLinkLabel}
                 </button>
               </DrawerFooter>
             </>
@@ -9189,9 +9540,8 @@ export function PacketBuilder() {
                   </SegmentedControl>
                   <div className="mt-3 rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5">
                     <p className="text-xs leading-5 text-muted-foreground">
-                      Free browser links are noindex and unbranded. They include
-                      photos in this browser; hosted storage is still required
-                      for real customer delivery.
+                      Local links use the closeout in this browser. Use hosted
+                      delivery when the customer needs cross-device access.
                     </p>
                   </div>
                 </div>
@@ -9261,7 +9611,7 @@ export function PacketBuilder() {
                   type="button"
                   onClick={() => {
                     setMobileSheet(null);
-                    selectBuilderStep("proof");
+                    selectBuilderStep("photos");
                   }}
                   className="tool-action-btn tool-action-secondary h-12"
                 >
@@ -9320,13 +9670,13 @@ export function PacketBuilder() {
 
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <div className="rounded-[18px] border border-black/8 bg-white px-4 py-3">
-                  <p className={labelClassName()}>Free output</p>
+                  <p className={labelClassName()}>Current output</p>
                   <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
-                    Neutral customer handoff, browser-only photos, no placeholder contact blocks.
+                    Customer handoff and PDF use only the current closeout record.
                   </p>
                 </div>
                 <div className="rounded-[18px] border border-[#f26a21]/22 bg-[#fff7ef] px-4 py-3">
-                  <p className={labelClassName()}>Setup adds</p>
+                  <p className={labelClassName()}>Hosted delivery adds</p>
                   <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
                     Logo, phone, dispatch email, reply button, saved photos, and history.
                   </p>
@@ -9397,7 +9747,7 @@ export function PacketBuilder() {
           >
             {mobilePrimaryIsPrint ? (
               <FileDown className="h-4 w-4" />
-            ) : builderStep === "proof" ? (
+            ) : builderStep === "photos" ? (
               <Plus className="h-4 w-4" />
             ) : (
               <Copy className="h-4 w-4" />

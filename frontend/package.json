@@ -7,8 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:axis1": "vitest run src/lib/axis1-closeout-engine.test.ts src/lib/axis1-photo-assist.test.ts",
+    "test:axis1": "vitest run src/lib/axis1-job-truth.test.ts src/lib/axis1-closeout-engine.test.ts src/lib/axis1-photo-assist.test.ts",
+    "test:axis1:e2e:smoke20": "node ../scripts/axis1-20-vendor-smoke-e2e.cjs",
+    "test:axis1:e2e:deep": "node ../scripts/axis1-deep-product-qa.cjs",
     "test:axis1:gold": "node ../scripts/axis1-evaluate-photo-assist-gold-set.cjs",
+    "test:axis1:live-vendors": "node ../scripts/axis1-evaluate-photo-assist-gemini-vendor-sets.cjs",
     "test:axis1:all": "npm run test:axis1 && npm run test:axis1:gold"
   },
   "dependencies": {

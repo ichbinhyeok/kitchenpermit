@@ -105,6 +105,10 @@ const vendorReviewCueKeywords = [
   "unclear",
 ];
 
+const unsafeMockNonEvidenceFileNameTerms =
+  /\bkitchen[-_\s]?exhaust[-_\s]?fan\b|\bunrelated\b|\breceipt\b/i;
+const ambiguousMockReviewFileNameTerms =
+  /\bfinal[-_\s]?final\b|\boverexposed\b|\blow[-_\s]?light\b|\bblurry\b|\bdark\b|\bcrop\b/i;
 const forbiddenReasonTerms =
   /\b(NFPA|compliance|pass\/fail|pass-fail|fire marshal|official|certificate|inspection|approval|repair|verified|proves|guarantee)\b/gi;
 const riskyReviewTerms =
@@ -115,6 +119,10 @@ const ductAccessPathTerms =
   /\b(duct|ductwork|duct-side plenum|exhaust plenum|access panel|access opening|access path|exhaust path|exhaust duct|vertical shaft)\b/i;
 const accessIssueToneTerms =
   /\b(blocked|inaccessible|sealed|unsafe|dirty|grease|buildup|before|not accessible|no access)\b/i;
+const lowRiskAfterServiceTerms =
+  /\b(clean|cleaned|after-service|after service|installed|reinstalled|returned to service)\b/i;
+const lowRiskAutoConfirmBlockTerms =
+  /\b(access|ambiguous|before|blocked|bucket|composite|condition|dirty|duct|grease|issue|leak|low quality|maybe|plenum|record|review|unclear|unrelated)\b/i;
 
 function normalizeFileName(fileName: string) {
   return fileName
@@ -131,7 +139,14 @@ function isGenericPhonePhotoName(fileName: string) {
 function hasVendorReviewCue(fileName: string) {
   const normalized = normalizeFileName(fileName);
 
-  return vendorReviewCueKeywords.some((keyword) => normalized.includes(keyword));
+  return (
+    vendorReviewCueKeywords.some((keyword) => normalized.includes(keyword)) ||
+    ambiguousMockReviewFileNameTerms.test(normalized)
+  );
+}
+
+function shouldKeepMockPhotoOutOfProofSlots(fileName: string) {
+  return unsafeMockNonEvidenceFileNameTerms.test(normalizeFileName(fileName));
 }
 
 function photoKeywordScore(slot: Axis1FieldPhotoSlot, normalizedFileName: string) {
@@ -201,6 +216,10 @@ function shouldForceModelSuggestionVendorReview(options: {
   confidence: number;
   reason: string;
 }) {
+  if (isLowRiskModelAutoConfirmSuggestion(options)) {
+    return false;
+  }
+
   if (
     !options.suggestedSlotId ||
     options.confidence < axis1PhotoAssistLowConfidenceThreshold
@@ -219,6 +238,29 @@ function shouldForceModelSuggestionVendorReview(options: {
   const riskText = `${options.fileName} ${options.reason}`;
 
   return riskyReviewTerms.test(riskText) || modelForcedReviewTerms.test(riskText);
+}
+
+function isLowRiskModelAutoConfirmSuggestion(options: {
+  fileName: string;
+  suggestedSlotId: Axis1FieldPhotoSlotId | null;
+  suggestedTone: Axis1PhotoAssistSuggestedTone;
+  confidence: number;
+  reason: string;
+}) {
+  if (
+    options.confidence < axis1PhotoAssistLowConfidenceThreshold ||
+    options.suggestedTone !== "after" ||
+    options.suggestedSlotId !== "filter-bank"
+  ) {
+    return false;
+  }
+
+  const riskText = `${options.fileName} ${options.reason}`;
+
+  return (
+    lowRiskAfterServiceTerms.test(options.reason) &&
+    !lowRiskAutoConfirmBlockTerms.test(riskText)
+  );
 }
 
 function coerceModelSuggestedSlot(options: {
@@ -262,10 +304,13 @@ export function buildMockAxis1PhotoAssistSuggestions(
   return photos.map((photo, index) => {
     const match = findBestSlot(photo.fileName);
     const genericName = isGenericPhonePhotoName(photo.fileName);
-    const suggestedSlot = match?.slot ?? null;
+    const keepOutOfProofSlots = shouldKeepMockPhotoOutOfProofSlots(photo.fileName);
+    const suggestedSlot = keepOutOfProofSlots ? null : (match?.slot ?? null);
     const reviewCue = hasVendorReviewCue(photo.fileName);
     const confidence = clampConfidence(
-      match
+      keepOutOfProofSlots
+        ? 0.34
+        : match
         ? genericName
           ? 0.58
           : match.score >= 4
@@ -381,6 +426,15 @@ export function normalizeAxis1PhotoAssistSuggestions(
             reason,
           })
         : confidence < axis1PhotoAssistLowConfidenceThreshold || !suggestedSlotId;
+    const lowRiskModelAutoConfirm =
+      source === "gemini" &&
+      isLowRiskModelAutoConfirmSuggestion({
+        fileName,
+        suggestedSlotId,
+        suggestedTone,
+        confidence,
+        reason,
+      });
 
     byPhotoId.set(photoId, {
       id:
@@ -393,7 +447,9 @@ export function normalizeAxis1PhotoAssistSuggestions(
       suggestedTone,
       confidence,
       needsVendorReview:
-        typeof item.needsVendorReview === "boolean"
+        lowRiskModelAutoConfirm
+          ? false
+          : typeof item.needsVendorReview === "boolean"
           ? item.needsVendorReview || forcedVendorReview
           : forcedVendorReview,
       reason,

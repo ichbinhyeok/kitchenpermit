@@ -5,7 +5,7 @@
 
 It sells two independent product lines:
 
-- `Axis 1`: existing-customer communication packet
+- `Axis 1`: existing-customer job truth record and closeout output fanout
 - `Axis 2`: new-sales opportunity list plus the first-touch packet used against that list
 
 The broader product worldview also includes:
@@ -25,7 +25,8 @@ The project wins if a small hood vendor says:
 ## 2. Why this vertical works
 
 ### 2.1 Axis 1 has real money logic
-Hood vendors repeatedly need to explain:
+Hood vendors repeatedly need to turn messy field reality into a defensible job
+record:
 
 - what was done
 - what was not done
@@ -40,8 +41,23 @@ That explanation affects:
 - reduction of disputes and confusion
 
 So Axis 1 is not a "nice report".
-It is a minimal-input vendor proof packet that protects revenue, reduces
-disputes, and creates retention follow-up.
+It is a minimal-input job truth record that protects revenue, reduces disputes,
+and creates closeout follow-up.
+
+The paid wedge is not full hood lifecycle operations. Axis 1 should not lead
+with quoting, dispatch, scheduling, CRM, or invoice creation. It should win the
+job closeout moment: crew proof, customer confirmation, evidence document,
+invoice/payment support, and next action generated from one job truth record.
+
+Pre-job risk and scope are real, but they are lightweight context controls in
+Axis 1, not mandatory standalone workflow modules.
+
+Latest Axis 1 UX lock:
+The implementation should move from `Photos -> Review -> Outputs` to
+`Declare -> Package -> Send`. The vendor declares what happened, Axis 1 packages
+the closeout from an internal source of truth, and outputs fan out from that
+record. Photos are evidence inputs, not the workflow center. See
+`spec/23_axis1_declare_package_send_plan.md`.
 
 Locked competitive view:
 Axis 1 should absorb the compliance and proof discipline seen in real hood-cleaning reports,
@@ -89,14 +105,26 @@ The restaurant owner, manager, or operator is an end reader of Axis 1 and a targ
 ## 4. Product axes
 
 ## 4.1 Axis 1
-`Hood Job Proof Packet`
+`Hood Job Truth Record`
 
 Purpose:
 
-- prove work clearly
-- document observed issues
+- convert crew photos, notes, and area status into one defensible job record
+- prove work clearly without overclaiming
+- document observed issues and written-only proof boundaries
 - defend scope, price, payment, and missing-proof boundaries
-- drive rebook and follow-up acceptance
+- generate customer handoff, evidence PDF, invoice/payment support, revisit or
+  quote copy, and next-service copy from the same record
+
+Current product shape:
+
+```text
+Declare -> Package -> Send
+```
+
+The vendor should not feel they are sorting photos or building a PDF. They
+should feel they declared the job outcome once and Axis 1 produced the usable
+closeout packet and follow-up outputs.
 
 ### 4.2 Axis 2
 `Sales List + First-Touch Packet`

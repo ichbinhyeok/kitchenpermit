@@ -39,15 +39,14 @@ export function LocalAxis1ProofPageContent() {
             Service handoff missing packet id
           </p>
           <h1 className="mt-3 font-display text-3xl font-bold tracking-[-0.06em] text-foreground">
-            This service handoff needs a packet id query.
+            This service handoff link is missing its record id.
           </h1>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
-            Open the builder and create a new service handoff. Static export cannot
-            ship arbitrary dynamic route segments, so draft record ids now travel in
-            the query string.
+            Open the builder and create a fresh customer handoff. The customer link
+            and evidence PDF will be generated from the current closeout record.
           </p>
           <Link
-            href="/axis-1/tool?step=proof"
+            href="/axis-1/tool?step=photos"
             className="mt-6 inline-flex rounded-full bg-[#111315] px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white"
           >
             Open builder

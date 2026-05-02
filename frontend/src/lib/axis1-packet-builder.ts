@@ -1007,6 +1007,61 @@ export function buildAxis1NeutralPacketData(
         note: followUpCopy,
       },
     ],
+    componentStatusRows: [
+      {
+        component: "Hood canopy interior",
+        status: "Cleaned",
+        proof: "P-01 / P-02",
+        note: "Before and after photos attached to HD-01.",
+      },
+      {
+        component: "Baffle filters / tracks",
+        status: "Removed + reset",
+        proof: "P-03",
+        note:
+          "Filters removed, cleaned, checked, and reinstalled; tracks and nearby grease collection points documented where accessible.",
+      },
+      {
+        component: "Plenum / reachable duct path",
+        status:
+          scenario === "exception" && hasAccessException
+            ? "Reachable cleaned"
+            : "Completed",
+        proof: "P-04",
+        note:
+          scenario === "exception" && hasAccessException
+            ? "Accessible path cleaned; rear access remains blocked."
+            : "Accessible path cleaned and rear access was available during service.",
+      },
+      {
+        component: "Rear duct access panel",
+        status:
+          scenario === "exception" && hasAccessException
+            ? "Access blocked"
+            : "Access clear",
+        proof: "P-04",
+        note:
+          scenario === "exception" && hasAccessException
+            ? "Stored items blocked access; not represented as cleaned."
+            : "Access was clear during service.",
+      },
+      {
+        component: "Fan / roof discharge",
+        status: hasRooftopCondition ? conditionStatusLabel : "Documented",
+        proof: "P-05",
+        note: hasRooftopCondition
+          ? followUpCopy
+          : "Fan housing, hinge/base, curb, and roof discharge condition recorded for customer file.",
+      },
+      {
+        component: "Grease trough / containment path",
+        status: hasContainmentCondition ? conditionStatusLabel : "Documented",
+        proof: "P-06",
+        note: hasContainmentCondition
+          ? exceptionDefinitions["grease-containment"].routeNote
+          : "Grease trough, drip path, removed buildup, and containment condition recorded for customer file.",
+      },
+    ],
     scopeRows: [
       [
         "HD-01 Hood canopy interior",

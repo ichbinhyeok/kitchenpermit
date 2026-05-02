@@ -667,6 +667,7 @@ body:has(.axis-tool-route) .site-footer {
 .axis-tool-route .axis-output-row {
   display: grid;
   min-width: 0;
+  max-width: 100%;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: 0.62rem;
@@ -675,6 +676,7 @@ body:has(.axis-tool-route) .site-footer {
   border-radius: 15px;
   background: rgba(255, 255, 255, 0.055);
   padding: 0.62rem;
+  overflow-wrap: anywhere;
 }
 
 .axis-tool-route .axis-output-row[data-readiness="ready"] {
@@ -688,7 +690,18 @@ body:has(.axis-tool-route) .site-footer {
 .axis-tool-route .axis-output-copy {
   display: grid;
   min-width: 0;
+  max-width: 100%;
   gap: 0.16rem;
+}
+
+.axis-tool-route [data-mobile-report-ready] .axis-output-row {
+  display: block;
+  max-width: 100%;
+}
+
+.axis-tool-route [data-mobile-report-ready] .axis-output-row p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .axis-tool-route .axis-output-copy strong,
@@ -704,6 +717,11 @@ body:has(.axis-tool-route) .site-footer {
   font-size: 0.64rem;
   font-weight: 650;
   line-height: 1.38;
+}
+
+.axis-tool-route .axis-output-copy .axis-output-draft {
+  margin-top: 0.1rem;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .axis-tool-route .axis-readiness-pill {
@@ -887,6 +905,10 @@ body:has(.axis-tool-route) .site-footer {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
+  .axis-tool-route .tool-link-document-preview .packet-hero-shell > .relative > * {
+    grid-column: 1 / -1 !important;
+  }
+
   .axis-tool-route .tool-link-document-preview .packet-result-list,
   .axis-tool-route .tool-link-document-preview .packet-scope-board,
   .axis-tool-route .tool-link-document-preview .packet-findings-board {
@@ -909,8 +931,37 @@ body:has(.axis-tool-route) .site-footer {
     max-height: min(680px, calc(100svh - 8rem));
   }
 
+  .axis-tool-route .tool-link-preview-shell {
+    overflow-x: hidden;
+    padding: 0 !important;
+    scrollbar-gutter: auto;
+  }
+
   .axis-tool-route .tool-link-document-preview {
-    min-width: 100%;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    border-radius: 18px !important;
+  }
+
+  .axis-tool-route .tool-link-document-preview [data-slot="card"],
+  .axis-tool-route .tool-link-document-preview [data-slot="card-header"],
+  .axis-tool-route .tool-link-document-preview [data-slot="card-content"],
+  .axis-tool-route .tool-link-document-preview [data-slot="card-title"],
+  .axis-tool-route .tool-link-document-preview [data-slot="card-description"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .axis-tool-route .tool-link-document-preview [data-slot="card-header"],
+  .axis-tool-route .tool-link-document-preview [data-slot="card-content"] {
+    padding-inline: 1rem !important;
+  }
+
+  .axis-tool-route .tool-link-document-preview [data-slot="card-title"],
+  .axis-tool-route .tool-link-document-preview [data-slot="card-description"] {
+    overflow-wrap: anywhere;
+    width: 100%;
   }
 }
 
@@ -945,6 +996,18 @@ body:has(.axis-tool-route) .site-footer {
   background:
     radial-gradient(circle at 50% -6%, rgba(255, 107, 26, 0.1), transparent 20%),
     linear-gradient(180deg, #f8f2eb, #f2e7da 42%, #f8f4ee);
+}
+
+.customer-web-packet h1.font-display,
+.customer-web-packet h2.font-display,
+.customer-web-packet h3.font-display,
+.axis-tool-route .tool-link-document-preview h1.font-display,
+.axis-tool-route .tool-link-document-preview h2.font-display,
+.axis-tool-route .tool-link-document-preview h3.font-display {
+  line-height: 1.12 !important;
+  letter-spacing: 0 !important;
+  overflow: visible;
+  padding-bottom: 0.08em;
 }
 
 .customer-web-packet .packet-hero-shell {
@@ -1593,7 +1656,20 @@ body:has(.axis-tool-route) .site-footer {
 
   .customer-web-packet .packet-hero-shell h1 {
     max-width: 10ch;
+    line-height: 1.12 !important;
+    letter-spacing: 0 !important;
     text-wrap: balance;
+  }
+
+  .customer-web-packet .packet-result-section h2,
+  .customer-web-packet .packet-proof-section h2,
+  .customer-web-packet .packet-open-section h2,
+  .customer-web-packet .packet-scope-section h2,
+  .customer-web-packet .packet-record-section h2,
+  .customer-web-packet .packet-findings-section h2,
+  .customer-web-packet .packet-details-section h2 {
+    line-height: 1.12 !important;
+    letter-spacing: 0 !important;
   }
 
   .customer-web-packet .packet-hero-next-step {
@@ -1717,10 +1793,13 @@ body:has(.axis-tool-route) .site-footer {
 
   .customer-web-packet .packet-mobile-command {
     position: relative;
-    z-index: 4;
+    z-index: 30;
+    isolation: isolate;
   }
 
   .customer-web-packet .packet-mobile-command-shell {
+    position: relative;
+    z-index: 31;
     border-radius: 30px;
     padding: 1rem;
     background:
@@ -1778,6 +1857,13 @@ html.app-printing [data-sonner-toaster],
 html.app-printing [data-vaul-drawer],
 html.app-printing [data-vaul-overlay] {
   display: none !important;
+}
+
+[data-sonner-toaster],
+[data-sonner-toast],
+[data-sonner-toaster] *,
+[data-sonner-toast] * {
+  pointer-events: none !important;
 }
 
 [data-output-preview="pdf"] {

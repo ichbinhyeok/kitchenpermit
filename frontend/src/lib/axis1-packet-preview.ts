@@ -409,7 +409,7 @@ export function getAxis1PacketPreviewData(options: {
           : "No deficiency record required in this sample",
       ],
       [
-        "Separate scope note",
+        "Separate area note",
         "Separate trade work and follow-up authorization are outside this closeout record",
       ],
       ["Report ID", "HDS-MASKED-0414"],
@@ -568,7 +568,7 @@ export function getAxis1PacketPreviewData(options: {
       ["On-site exhaust diagram checked", "Matched to SYS-01"],
       ["Next service timing recorded", "Jul 8-13, 2026"],
       ["Service label / notice status", exceptionOpen ? "Posted with exception" : "Posted"],
-      ["Separate trade service", "Separate scope"],
+      ["Separate trade service", "Separate visit area"],
       ["Follow-up work included", "Separate quote"],
       [
         "Deficiency record required",
@@ -617,7 +617,7 @@ export function getAxis1PacketPreviewData(options: {
             ownerAction:
               "Move stored equipment away from the access panel and reply when access is clear so the vendor can confirm the revisit.",
             notice:
-              "Exception notice posted at close-out. This section is excluded from the cleaned scope until access is available.",
+              "Exception notice posted at close-out. This section is not shown as completed until access is available.",
             status: "Needs reply",
           },
           {
@@ -739,7 +739,7 @@ export function getAxis1PacketPreviewData(options: {
     sampleFooter: [
       [
         "What the sample proves",
-        "The customer link can explain scope, recorded conditions, blocked access, and next action in language the customer can actually use.",
+        "The customer link can explain completed areas, recorded conditions, blocked access, and next action in language the customer can actually use.",
       ],
       [
         "What stays paid",

@@ -215,7 +215,18 @@ function proofLabel(value: string) {
 }
 
 function componentProofLabel(row: ComponentRow) {
-  if (!row.proof || /service record|written|not attached|not hosted|not captured/i.test(row.proof)) {
+  const conditionStatus = /recorded condition|review|monitor|documented/i.test(row.status);
+  const writtenOrMissingProof =
+    !row.proof ||
+    /service record|service notes|written|not attached|not hosted|not captured|not in this visit|none recorded/i.test(
+      row.proof,
+    );
+
+  if (writtenOrMissingProof) {
+    if (conditionStatus) {
+      return "Condition recorded from service note";
+    }
+
     return "Status recorded";
   }
 
@@ -223,8 +234,10 @@ function componentProofLabel(row: ComponentRow) {
     return "Issue photo attached";
   }
 
-  if (/recorded condition|review|monitor|documented/i.test(row.status)) {
-    return "Condition photo attached";
+  if (conditionStatus) {
+    return /photo attached|field photo|attached photo/i.test(row.proof)
+      ? "Condition photo attached"
+      : "Condition recorded from service note";
   }
 
   if (/partial/i.test(row.proof)) {
@@ -339,7 +352,7 @@ function PreviewScopeEditButton({
       className="pdf-print-hide inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-[#d7c8b8] bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[#111315] transition hover:border-[#f26a21]/36 hover:bg-[#fff7ef] print:hidden"
     >
       <IconPencil className="h-3.5 w-3.5" />
-      Edit scope
+      Edit areas
     </button>
   );
 }
@@ -1472,11 +1485,11 @@ function MobileProofCommand({
                     </p>
                     {pdfServiceRecordHref ? (
                       <a href={pdfServiceRecordHref}>
-                        Download evidence PDF
+                        Open evidence PDF
                       </a>
                     ) : (
                       <button type="button" onClick={onEvidencePdfAction}>
-                        Download evidence PDF
+                        Save evidence PDF
                       </button>
                     )}
                   </div>
@@ -1644,6 +1657,20 @@ export function CustomerWebPacket({
     data.proofPhotos.find((photo) => photo.tone !== "issue") ??
     data.proofPhotos[0];
   const issuePhoto = data.proofPhotos.find((photo) => photo.tone === "issue");
+  const issuePhotoEyebrow = isConditionReviewOutcome
+    ? "Condition recorded"
+    : "Customer action needed";
+  const issuePhotoTitle = isConditionReviewOutcome
+    ? "Condition photo + next action"
+    : "Blocked access photo + next action";
+  const issuePhotoBadge = isConditionReviewOutcome ? "Recorded" : "Not included";
+  const issuePhotoBody = isConditionReviewOutcome
+    ? "This condition is separated from completed work until the customer decides on quote, monitoring, or next-service planning."
+    : "This section is separated from completed work until access is clear.";
+  const issuePhotoAreaLabel = isConditionReviewOutcome ? "Condition area" : "Blocked area";
+  const issuePhotoFallbackReason = isConditionReviewOutcome
+    ? "Condition was recorded during service."
+    : "Access was blocked during service.";
   const hasDistinctPhotoPair =
     Boolean(beforePhoto && afterPhoto && beforePhoto.proofId !== afterPhoto.proofId);
   const canCompareBeforeAfter =
@@ -1983,12 +2010,12 @@ export function CustomerWebPacket({
                 {pdfServiceRecordHref ? (
                   <a href={pdfServiceRecordHref}>
                     <IconFileText className="h-4 w-4" />
-                    Download evidence PDF
+                    Open evidence PDF
                   </a>
                 ) : (
                   <>
                   <IconFileText className="h-4 w-4" />
-                  Download evidence PDF
+                  Save evidence PDF
                   </>
                 )}
               </Button>
@@ -2072,14 +2099,14 @@ export function CustomerWebPacket({
                 <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.11em] text-[#ffb489]">
-                      Customer action needed
+                      {issuePhotoEyebrow}
                     </p>
                     <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-[-0.045em]">
-                      Blocked access photo + next action
+                      {issuePhotoTitle}
                     </h2>
                   </div>
                   <span className="shrink-0 rounded-full border border-[#ffb489]/30 bg-[#ff6b1a]/13 px-3 py-1.5 text-xs font-semibold text-[#ffc29d]">
-                    Not included
+                    {issuePhotoBadge}
                   </span>
                 </div>
 
@@ -2099,19 +2126,19 @@ export function CustomerWebPacket({
                         {mobileCustomerNextStep}
                       </p>
                       <p className="mt-3 text-sm leading-6 text-white/58">
-                        This section is separated from completed work until access is clear.
+                        {issuePhotoBody}
                       </p>
                     </div>
 
                     <dl className="grid gap-2">
                       {[
                         [
-                          "Blocked area",
-                          cleanComponentLabel(primaryOpenItem?.location ?? "Blocked access area"),
+                          issuePhotoAreaLabel,
+                          cleanComponentLabel(primaryOpenItem?.location ?? issuePhotoAreaLabel),
                         ],
                         [
                           "Reason",
-                          primaryOpenItem?.issue ?? "Access was blocked during service.",
+                          primaryOpenItem?.issue ?? issuePhotoFallbackReason,
                         ],
                         ["Next", primaryCtaLabel],
                       ].map(([label, value]) => (
@@ -2275,7 +2302,7 @@ export function CustomerWebPacket({
                           ? "The hood photos show visible change in the completed area."
                           : "Completed service photos stay grouped without forcing a false matched comparison.",
                       ],
-                      ["02", "Check attached photos", "The link keeps service scope and field photos in the same customer-readable record."],
+                      ["02", "Check attached photos", "The link keeps service areas and field photos in the same customer-readable record."],
                       ["03", "Keep the record", "The evidence PDF stays available for files and documentation requests."],
                     ]).map(([step, title, copy]) => (
                   <li
@@ -2305,7 +2332,9 @@ export function CustomerWebPacket({
                     className="aspect-[1.12/1] rounded-none lg:aspect-auto"
                   />
                   <figcaption className="flex flex-col justify-center p-6 sm:p-8">
-                    <SectionLabel light>Blocked access photo</SectionLabel>
+                    <SectionLabel light>
+                      {isConditionReviewOutcome ? "Condition photo" : "Blocked access photo"}
+                    </SectionLabel>
                     <h3 className="mt-3 text-[2rem] font-semibold leading-[0.96] tracking-[-0.06em] sm:text-[3rem]">
                       {customerCopy(issuePhoto.title)}
                     </h3>
@@ -2373,20 +2402,26 @@ export function CustomerWebPacket({
           <div className="grid gap-8 xl:grid-cols-[minmax(300px,0.82fr)_minmax(0,1.18fr)] xl:items-stretch">
             <div className="flex flex-col justify-between">
               <div>
-                <SectionLabel>Blocked area</SectionLabel>
-                <h2 className="font-display mt-3 text-[2.45rem] font-semibold leading-[0.96] tracking-[-0.07em] sm:text-[3.7rem]">
-                  This area was not completed because access was blocked.
+                <SectionLabel>
+                  {hasOpenAccessItem ? "Blocked area" : "Condition recorded"}
+                </SectionLabel>
+                <h2 className="font-display mt-3 text-[2.45rem] font-semibold leading-[1.02] sm:text-[3.7rem]">
+                  {hasOpenAccessItem
+                    ? "This area was not completed because access was blocked."
+                    : "This condition was recorded for follow-up."}
                 </h2>
               </div>
               <p className="mt-6 max-w-xl text-base leading-8 text-[#6b5f55]">
-                Completed work and blocked access are separated, so this visit is not mistaken for full-access service.
+                {hasOpenAccessItem
+                  ? "Completed work and blocked access are separated, so this visit is not mistaken for full-access service."
+                  : "Completed work and recorded conditions are separated, so the condition is not mistaken for completed corrective work."}
               </p>
             </div>
 
             <Card className="packet-open-card gap-0 overflow-hidden rounded-[32px] border-[#edbd9f] bg-white py-0 shadow-[0_28px_80px_rgba(145,72,31,0.14)]">
               <CardHeader className="border-b border-[#ead8ca] px-6 py-6">
                 <CardDescription className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#a85a32]">
-                  Customer action
+                  {hasOpenAccessItem ? "Customer action" : "Follow-up"}
                 </CardDescription>
                 <CardTitle className="mt-2 text-[1.9rem] leading-[0.98] tracking-[-0.055em] sm:text-[2.55rem]">
                   {customerCopy(primaryOpenItem.ownerAction)}
@@ -2394,9 +2429,18 @@ export function CustomerWebPacket({
               </CardHeader>
               <CardContent className="px-6 py-5">
                 <dl className="divide-y divide-[#ead8ca]">
-                  <DataLine label="Area" value={cleanComponentLabel(primaryOpenItem.location)} />
-                  <DataLine label="Status" value="Not included in completed scope" />
-                  <DataLine label="Reason" value={primaryOpenItem.issue} />
+                  <DataLine
+                    label={hasOpenAccessItem ? "Area" : "Condition area"}
+                    value={cleanComponentLabel(primaryOpenItem.location)}
+                  />
+                  <DataLine
+                    label="Status"
+                    value={hasOpenAccessItem ? "Not shown as completed" : "Recorded for review"}
+                  />
+                  <DataLine
+                    label={hasOpenAccessItem ? "Reason" : "Note"}
+                    value={primaryOpenItem.issue}
+                  />
                   <DataLine label="Follow-up" value={primaryOpenItem.status} />
                 </dl>
               </CardContent>
@@ -2410,7 +2454,7 @@ export function CustomerWebPacket({
           <div className="mb-8 grid gap-4 xl:grid-cols-[minmax(300px,0.68fr)_minmax(0,1.32fr)] xl:items-end">
             <div>
               <div className="flex items-center justify-between gap-3">
-                <SectionLabel>Scope at a glance</SectionLabel>
+                <SectionLabel>Area status</SectionLabel>
                 <PreviewScopeEditButton editConfig={editConfig} />
               </div>
               <h2 className="font-display mt-3 text-[2.35rem] font-semibold leading-[0.98] tracking-[-0.07em] sm:text-[3.35rem]">
@@ -2440,7 +2484,7 @@ export function CustomerWebPacket({
               Keep this record.
             </CardTitle>
             <CardDescription className="mt-4 text-sm leading-7 text-white/68">
-              Keep this record with your kitchen exhaust maintenance files. It includes the service date, cleaned scope, photo status, blocked or not-completed areas, and recommended next service window.
+              Keep this record with your kitchen exhaust maintenance files. It includes the service date, completed areas, photo status, blocked or not-completed areas, and recommended next service window.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-6 pb-6">
@@ -2457,12 +2501,12 @@ export function CustomerWebPacket({
               {pdfServiceRecordHref ? (
                 <a href={pdfServiceRecordHref}>
                   <IconFileText className="h-4 w-4" />
-                  Download evidence PDF
+                  Open evidence PDF
                 </a>
               ) : (
                 <>
                 <IconFileText className="h-4 w-4" />
-                Download evidence PDF
+                Save evidence PDF
                 </>
               )}
             </Button>
@@ -2655,7 +2699,7 @@ export function CustomerWebPacket({
               <div>
                 <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#111315]">
                   <IconClipboardText className="h-4 w-4" />
-                  Scope ledger
+                  Area details
                 </p>
                 <dl className="divide-y divide-[#ded6cc] border-y border-[#ded6cc]">
                   {data.scopeRows.map(([area, status, note]) => (

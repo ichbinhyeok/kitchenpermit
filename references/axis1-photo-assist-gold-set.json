@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "createdAt": "2026-05-01",
+  "scope": "Axis 1 Photo Assist slot-suggestion and vendor-review validation. This is not a market validation set.",
+  "notes": [
+    "Repo fixtures are development QA assets, not product defaults or commercial sample assets.",
+    "The gold set uses committed QA fixtures only; generated messy-synthetic images stay local-only and are not required for deterministic CI.",
+    "Gold labels describe expected visual/product behavior. A filename-only mock is expected to fail some messy visual cases; that is useful because it establishes the gap Gemini should close."
+  ],
+  "cases": [
+    {
+      "id": "clean_baseline_fixture_set",
+      "title": "Clean closeout baseline fixture set",
+      "fixtureSource": "frontend/public/axis1-test-photos",
+      "localOnly": false,
+      "expectedOutcome": "clean",
+      "reviewFocus": [
+        "slot suggestions for common clean proof photos",
+        "before/after ambiguity",
+        "partial proof coverage boundaries"
+      ],
+      "photos": [
+        {
+          "photoId": "clean-hood-before-after",
+          "fileName": "clean-hood-before-after.jpg",
+          "path": "frontend/public/axis1-test-photos/clean-hood-before-after.jpg",
+          "expectedSlotId": "hood-before",
+          "acceptedSlotIds": ["hood-before", "hood-after"],
+          "expectedTone": "before",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Combined before/after image; either hood before or after is acceptable only as a suggestion."
+        },
+        {
+          "photoId": "clean-filter-after-wash",
+          "fileName": "clean-filter-after-wash.jpg",
+          "path": "frontend/public/axis1-test-photos/clean-filter-after-wash.jpg",
+          "expectedSlotId": "filter-bank",
+          "acceptedSlotIds": ["filter-bank"],
+          "expectedTone": "after",
+          "expectedNeedsVendorReview": false,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Cleaned filter bank proof."
+        },
+        {
+          "photoId": "clean-exhaust-duct",
+          "fileName": "clean-exhaust-duct.jpg",
+          "path": "frontend/public/axis1-test-photos/clean-exhaust-duct.jpg",
+          "expectedSlotId": "access-condition",
+          "acceptedSlotIds": ["access-condition", "grease-containment"],
+          "expectedTone": "issue",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Duct/path image can support access or grease path, but should not imply full path completion."
+        },
+        {
+          "photoId": "hood-filters-installed",
+          "fileName": "hood-filters-installed.jpg",
+          "path": "frontend/public/axis1-test-photos/hood-filters-installed.jpg",
+          "expectedSlotId": "filter-bank",
+          "acceptedSlotIds": ["filter-bank"],
+          "expectedTone": "after",
+          "expectedNeedsVendorReview": false,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Installed hood filters."
+        },
+        {
+          "photoId": "kitchen-exhaust-fan",
+          "fileName": "kitchen-exhaust-fan.jpg",
+          "path": "frontend/public/axis1-test-photos/kitchen-exhaust-fan.jpg",
+          "expectedSlotId": null,
+          "acceptedSlotIds": [null],
+          "expectedTone": "unknown",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Looks like an unrelated wall-mounted appliance, not a hood/rooftop fan proof photo."
+        },
+        {
+          "photoId": "grease-removed-bucket",
+          "fileName": "grease-removed-bucket.jpg",
+          "path": "frontend/public/axis1-test-photos/grease-removed-bucket.jpg",
+          "expectedSlotId": "grease-containment",
+          "acceptedSlotIds": ["grease-containment"],
+          "expectedTone": "record",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Grease removed/contained, but not cleaned-area proof by itself."
+        }
+      ]
+    },
+    {
+      "id": "blocked_and_condition_baseline",
+      "title": "Blocked access and condition baseline fixtures",
+      "fixtureSource": "frontend/public/axis1-test-photos",
+      "localOnly": false,
+      "expectedOutcome": "mixed",
+      "reviewFocus": [
+        "blocked/dirty photos do not become clean result",
+        "condition photos stay separate from repair or inspection",
+        "grease and duct ambiguity"
+      ],
+      "photos": [
+        {
+          "photoId": "dirty-hood-filter-wide",
+          "fileName": "dirty-hood-filter-wide.jpg",
+          "path": "frontend/public/axis1-test-photos/dirty-hood-filter-wide.jpg",
+          "expectedSlotId": "filter-bank",
+          "acceptedSlotIds": ["filter-bank"],
+          "expectedTone": "after",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Dirty filter image should not be treated as completed clean proof without vendor context."
+        },
+        {
+          "photoId": "dirty-hood-filter-closeup",
+          "fileName": "dirty-hood-filter-closeup.jpg",
+          "path": "frontend/public/axis1-test-photos/dirty-hood-filter-closeup.jpg",
+          "expectedSlotId": "filter-bank",
+          "acceptedSlotIds": ["filter-bank"],
+          "expectedTone": "after",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Close-up dirty filter; needs vendor review."
+        },
+        {
+          "photoId": "grease-duct-before-cleaning",
+          "fileName": "grease-duct-before-cleaning.jpg",
+          "path": "frontend/public/axis1-test-photos/grease-duct-before-cleaning.jpg",
+          "expectedSlotId": "grease-containment",
+          "acceptedSlotIds": ["grease-containment", "access-condition"],
+          "expectedTone": "record",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Grease/duct before image; should not become clean proof."
+        },
+        {
+          "photoId": "fan-before-after",
+          "fileName": "fan-before-after.jpg",
+          "path": "frontend/public/axis1-test-photos/fan-before-after.jpg",
+          "expectedSlotId": "rooftop-fan",
+          "acceptedSlotIds": ["rooftop-fan"],
+          "expectedTone": "record",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Fan before/after comparison belongs to roof/fan record; still review for condition language."
+        },
+        {
+          "photoId": "rooftop-fan-cleaning",
+          "fileName": "rooftop-fan-cleaning.jpg",
+          "path": "frontend/public/axis1-test-photos/rooftop-fan-cleaning.jpg",
+          "expectedSlotId": "rooftop-fan",
+          "acceptedSlotIds": ["rooftop-fan"],
+          "expectedTone": "record",
+          "expectedNeedsVendorReview": false,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Rooftop fan cleaning photo."
+        },
+        {
+          "photoId": "grease-system-before",
+          "fileName": "grease-system-before.jpg",
+          "path": "frontend/public/axis1-test-photos/grease-system-before.jpg",
+          "expectedSlotId": "grease-containment",
+          "acceptedSlotIds": ["grease-containment", "hood-before"],
+          "expectedTone": "record",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Before/grease image; visual slot may be ambiguous."
+        }
+      ]
+    },
+    {
+      "id": "ambiguous_phone_batch_committed",
+      "title": "Ambiguous phone-style batch",
+      "fixtureSource": "frontend/public/axis1-test-photos",
+      "localOnly": true,
+      "expectedOutcome": "unknown",
+      "reviewFocus": [
+        "generic phone filenames",
+        "low light, blur, crop, overexposure, duplicate images",
+        "misleading filenames must not decide result"
+      ],
+      "photos": [
+        {
+          "photoId": "messy-img-7421",
+          "fileName": "IMG_7421.jpg",
+          "path": "frontend/public/axis1-test-photos/clean-hood-before-after.jpg",
+          "expectedSlotId": "hood-before",
+          "acceptedSlotIds": ["hood-before", "hood-after", null],
+          "expectedTone": "before",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Dark rotated hood image with generic phone filename."
+        },
+        {
+          "photoId": "messy-img-7422",
+          "fileName": "IMG_7422.jpg",
+          "path": "frontend/public/axis1-test-photos/clean-filter-after-wash.jpg",
+          "expectedSlotId": "filter-bank",
+          "acceptedSlotIds": ["filter-bank", null],
+          "expectedTone": "after",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Blurred duplicate filter image with generic filename."
+        },
+        {
+          "photoId": "messy-img-7423",
+          "fileName": "IMG_7423.jpg",
+          "path": "frontend/public/axis1-test-photos/hood-filters-installed.jpg",
+          "expectedSlotId": "filter-bank",
+          "acceptedSlotIds": ["filter-bank", null],
+          "expectedTone": "after",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Second duplicate-like filter image should not inflate coverage without confirmation."
+        },
+        {
+          "photoId": "messy-random-kitchen",
+          "fileName": "random-kitchen-01.jpg",
+          "path": "frontend/public/axis1-test-photos/grease-system-before.jpg",
+          "expectedSlotId": "grease-containment",
+          "acceptedSlotIds": ["grease-containment", "access-condition", null],
+          "expectedTone": "record",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Cropped grease/duct path with weak filename."
+        },
+        {
+          "photoId": "messy-roof-final",
+          "fileName": "roof-top-final-final.jpg",
+          "path": "frontend/public/axis1-test-photos/rooftop-fan-cleaning.jpg",
+          "expectedSlotId": "rooftop-fan",
+          "acceptedSlotIds": ["rooftop-fan"],
+          "expectedTone": "record",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Overexposed rooftop/fan photo should be reviewed despite filename cues."
+        },
+        {
+          "photoId": "messy-not-sure",
+          "fileName": "not-sure.jpg",
+          "path": "frontend/public/axis1-test-photos/grease-removed-bucket.jpg",
+          "expectedSlotId": "grease-containment",
+          "acceptedSlotIds": ["grease-containment", null],
+          "expectedTone": "record",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Grease bucket should not become cleaned-area proof."
+        },
+        {
+          "photoId": "messy-after-before-maybe",
+          "fileName": "after-or-before-maybe.jpg",
+          "path": "frontend/public/axis1-test-photos/dirty-hood-filter-wide.jpg",
+          "expectedSlotId": "filter-bank",
+          "acceptedSlotIds": ["filter-bank", "hood-before", "hood-after"],
+          "expectedTone": "after",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Clean filter with ambiguous before/after filename."
+        },
+        {
+          "photoId": "messy-blocked-cleaned-questionmark",
+          "fileName": "blocked_area_cleaned_questionmark.jpg",
+          "path": "frontend/public/axis1-test-photos/grease-duct-before-cleaning.jpg",
+          "expectedSlotId": "access-condition",
+          "acceptedSlotIds": ["access-condition", "hood-after"],
+          "expectedTone": "issue",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Misleading blocked/cleaned filename must not decide closeout result."
+        },
+        {
+          "photoId": "messy-unrelated-receipt",
+          "fileName": "IMG_8420.jpg",
+          "path": "frontend/public/axis1-test-photos/kitchen-exhaust-fan.jpg",
+          "expectedSlotId": null,
+          "acceptedSlotIds": [null],
+          "expectedTone": "unknown",
+          "expectedNeedsVendorReview": true,
+          "mustRemainSuggestionOnly": true,
+          "notes": "Synthetic unrelated receipt/photo should not be forced into a proof slot."
+        }
+      ]
+    }
+  ]
+}

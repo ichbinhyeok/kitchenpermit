@@ -7,7 +7,7 @@ export function AppToaster() {
     <Toaster
       closeButton
       richColors
-      position="top-center"
+      position="bottom-center"
       className="pdf-print-hide"
       toastOptions={{
         className:

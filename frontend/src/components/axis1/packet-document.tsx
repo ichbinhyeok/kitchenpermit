@@ -525,11 +525,22 @@ function ServiceEvidenceRecord({
     getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-MASKED-0414");
   const nextWindow = getNextServiceWindow(data);
   const recommendedInterval = getRecordValue(data.frequencyRows, ["Recommended interval"], "Interval recorded");
-  const blockedAreaRecorded = primaryOpenItem ? "Yes - see excluded area" : "No";
-  const reachablePathCompleted = primaryOpenItem
-    ? "Accessible sections completed; excluded area listed separately"
-    : "Accessible sections completed";
-  const status = primaryOpenItem ? "Completed with documented exception" : "Completed";
+  const conditionOnly = isConditionOnlyRecord(data);
+  const blockedAreaRecorded = primaryOpenItem
+    ? "Yes - see excluded area"
+    : conditionOnly
+      ? "No blocked area; condition recorded"
+      : "No";
+  const reachablePathCompleted = conditionOnly
+    ? "No cleaning completion claimed; condition recorded only"
+    : primaryOpenItem
+      ? "Accessible sections completed; excluded area listed separately"
+      : "Accessible sections completed";
+  const status = conditionOnly
+    ? "Condition recorded; no cleaning claimed"
+    : primaryOpenItem
+      ? "Completed with documented exception"
+      : "Completed";
   const serviceNotice =
     getRecordValue(data.closeoutRows, ["Label / notice ref"], "") ||
     getRecordValue(data.closeoutRows, ["Service label"], "Service label recorded");
@@ -560,7 +571,14 @@ function ServiceEvidenceRecord({
 
   const serviceBoundaryRows = [
     ["Document class", "Customer-retained service evidence record"],
-    ["Service outcome", primaryOpenItem ? "Completed with excluded area listed" : "Completed - no blocked area listed"],
+    [
+      "Service outcome",
+      conditionOnly
+        ? "Condition recorded; no cleaning claimed"
+        : primaryOpenItem
+          ? "Completed with excluded area listed"
+          : "Completed - no blocked area listed",
+    ],
     ["Hood / filters", componentStatusLine(data.componentStatusRows, /hood|filter/i)],
     ["Duct / access status", ductStatus],
     ["Rooftop fan status", fanStatus],
@@ -602,7 +620,7 @@ function ServiceEvidenceRecord({
             Prepared as a retained service record for customer files, manager
             review, landlord, insurance, or documentation requests. It identifies
             the property, service provider, person performing work, service date,
-            system scope, component status, excluded areas, photo status, label
+            system areas, component status, excluded areas, photo status, label
             details, and retained-copy trail.
           </p>
           <div className="mt-5">
@@ -616,7 +634,7 @@ function ServiceEvidenceRecord({
         >
           <SectionKicker>Report sheet fields</SectionKicker>
           <h3 className="mt-3 font-display text-[1.55rem] font-bold leading-[0.96] tracking-[-0.055em] text-[#151515]">
-            Component scope, exclusions, and retained evidence are separated.
+            Component status, exclusions, and retained evidence are separated.
           </h3>
           <div className="mt-5">
             <DenseLedger rows={serviceBoundaryRows} />
@@ -720,7 +738,7 @@ function ServiceEvidenceControls({
         ? "Service facts, route status, and attached photos recorded by the service provider"
         : "Service facts and route status recorded by the service provider; no photos attached",
     ],
-    ["Scope limit", "Blocked or inaccessible areas are excluded until access is provided"],
+    ["Area limit", "Blocked or inaccessible areas are excluded until access is provided"],
     ["Premises copy", "Maintain this record with kitchen exhaust service records"],
   ] as const;
 
@@ -749,7 +767,7 @@ function ServiceEvidenceControls({
       ] as const);
   const requiredFormatRows = [
     ["Identity", "Provider, worker, customer, location, system, date, report ID"],
-    ["Scope", "Hood, filters, duct/access, fan, grease path, excluded areas"],
+    ["Areas", "Hood, filters, duct/access, fan, grease path, excluded areas"],
     ["Evidence", "Photo status, component status, label ref, retained archive"],
     ["Boundary", "Separate from corrective work and outside reviewer requirements"],
   ] as const;
@@ -814,7 +832,7 @@ function ServiceEvidenceControls({
         <div className="min-w-0">
           <SectionKicker>Excluded areas</SectionKicker>
           <h3 className="mt-3 font-display text-[1.5rem] font-bold leading-[1] tracking-[-0.04em] text-[#151515]">
-            Any area outside the completed scope.
+            Any area outside completed work.
           </h3>
           <div className="mt-4">
             <DenseLedger rows={excludedRows} />
@@ -839,14 +857,14 @@ function OutputRoleBlock({
       ? "Send this link when the customer needs the result and next step."
       : "Send this link when the customer needs to understand the visit.";
   const copy = serviceRecord
-    ? `This ${recordName} summarizes the service date, work scope, photo evidence, inaccessible or not-serviced areas, findings, and next recommended service window for customer files, manager review, insurance, landlord, or documentation requests.`
+    ? `This ${recordName} summarizes the service date, work areas, photo evidence, inaccessible or not-serviced areas, findings, and next recommended service window for customer files, manager review, insurance, landlord, or documentation requests.`
     : customerFacing
-      ? "This link shows the cleaned scope, action items, attached photos, and next action. Use the evidence PDF for retained evidence or outside record requests."
+      ? "This link shows completed work, action items, attached photos, and next action. Use the evidence PDF for retained evidence or outside record requests."
       : `This ${recordName} shows what was cleaned, what stayed open, what the photos prove, and what the customer should do next without waiting for another explanation call.`;
   const chips = serviceRecord
     ? ["Service record cover", "Report sheet fields", "Photo evidence appendix"]
     : customerFacing
-      ? ["Cleaned scope", "Action item visible", "Evidence PDF separate"]
+      ? ["Completed work", "Action item visible", "Evidence PDF separate"]
       : ["Readable in one pass", "Action item visible", "Reply path included"];
 
   return (
@@ -1320,7 +1338,7 @@ function OpenServiceItemBlock({
           <h3 className="mt-3 font-display text-[1.78rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.25rem]">
             {isAccessItem
               ? serviceRecord
-                ? "Open area is excluded from the completed scope."
+                ? "Open area is not shown as completed."
                 : "Open area is not represented as complete."
               : "Recorded condition stays visible after the visit."}
           </h3>
@@ -1726,7 +1744,7 @@ export function Axis1PacketDocument({
         >
           {sections.routeDetail ? (
             <div className="min-w-0">
-              <SectionKicker>{isCustomerReport ? "Service scope" : "Component status"}</SectionKicker>
+              <SectionKicker>{isCustomerReport ? "Service areas" : "Component status"}</SectionKicker>
               <h3 className="mt-3 font-display text-[1.72rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[2rem]">
                 {componentStatusTitle}
               </h3>
