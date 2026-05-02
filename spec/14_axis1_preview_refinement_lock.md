@@ -108,7 +108,8 @@ Why:
 - they are still weak at clarity, hierarchy, and product feel
 
 Immediate sales lock:
-Axis 1 should be positioned first as a customer-understandable same-day service report.
+Axis 1 should be positioned first as a minimal-input hood job proof packet for
+vendors, not as a customer-understandable report alone.
 It should not lead with history, portal, or operations-memory promises.
 Those can arrive later as retention layers, but the immediate commercial hook is:
 
@@ -116,6 +117,8 @@ Those can arrive later as retention layers, but the immediate commercial hook is
 - clearer blocked-access defense
 - more premium customer handoff
 - cleaner same-day proof of work
+- invoice/payment proof that is easier to attach or send
+- quote/revisit/rebook copy generated from the same job record
 
 ## 3.3 Field-readiness lock
 Axis 1 must not read like a generic pretty report.
@@ -141,7 +144,8 @@ The sample should avoid:
 - hiding repair/deficiency opportunities below vague copy
 
 Locked commercial interpretation:
-The vendor buys this because it reduces explanation work and makes the visit easier to defend.
+The vendor buys this because it reduces explanation work, helps protect payment,
+and makes the visit easier to defend.
 The customer accepts it because it says what happened, what stayed open, and what to do next.
 
 ## 3.4 Small-vendor premiumization lock
@@ -153,6 +157,7 @@ The product should make that vendor look like a premium operator by default.
 Locked experience:
 
 - the vendor should feel they are sending the same facts they already collect, only faster and cleaner
+- the vendor should not feel they are filling out separate Quote Guard, Crew Proof, Payment Defense, or Rebook forms
 - the customer should feel the vendor is organized, documented, and serious
 - the report should not feel like a cheap template or a government form
 - the field checklist layer should make the vendor look operationally mature without exposing raw

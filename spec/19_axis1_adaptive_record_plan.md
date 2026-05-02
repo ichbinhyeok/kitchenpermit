@@ -2,21 +2,27 @@
 
 ## 1. Purpose
 
-Axis 1 must produce a premium customer link and PDF even when the vendor does
-not provide a perfect photo set.
+Axis 1 must produce a defensible vendor job proof packet even when the vendor
+does not provide a perfect photo set.
 
-The product should not degrade into a weak-looking packet when the input is
-thin. Instead, it should adapt the record format while staying honest about the
-record basis.
+The product should not degrade into a weak-looking customer artifact when input
+is thin. More importantly, it should not trick the vendor into overclaiming work
+when proof is missing. It should adapt the record format while staying honest
+about the record basis.
 
 Rule:
 Weak input changes the evidence format, not the product quality.
+
+Pivot rule:
+The adaptation is for vendor protection first and customer readability second.
+The tool should still feel like minimal input, not a manual report or operations
+form.
 
 ---
 
 ## 2. Output Strategy
 
-The customer-facing packet must keep:
+The vendor proof packet must keep:
 
 - professional layout
 - vendor branding when enabled
@@ -24,8 +30,10 @@ The customer-facing packet must keep:
 - clear next action
 - clean PDF / service record formatting
 - scope and limitation language
+- claim-risk awareness
+- invoice, quote, revisit, or rebook usefulness
 
-The packet may change:
+The generated customer link and PDF may change:
 
 - title
 - section order
@@ -36,6 +44,19 @@ The packet may change:
 
 Rule:
 Never preserve a strong photo-proof layout by overclaiming what the photos show.
+
+Same-input output fanout:
+
+```text
+minimal vendor input
+-> structured job record
+-> customer link
+-> evidence PDF
+-> invoice/payment proof summary
+-> quote/revisit/rebook copy
+```
+
+The vendor should not have to create these outputs separately.
 
 ---
 
@@ -102,7 +123,8 @@ allowed by the attached evidence and confirmed service result.
 
 ## 5. Vendor Flow
 
-The vendor-side flow should feel like a closeout checklist, not report writing.
+The vendor-side flow should feel like photo-first proof generation, not report
+writing and not a long closeout checklist.
 
 ### 5.1 Upload
 
@@ -116,9 +138,14 @@ Secondary action:
 
 The product must allow no-photo and after-only cases.
 
+Assumption:
+Most real uploads come from phone camera rolls with filenames like `IMG_1234`.
+Filenames are not meaningful product input.
+
 ### 5.2 Confirm Proof
 
-AI or deterministic sorting should map photos into evidence slots:
+Gemini-backed AI Photo Assist or deterministic sorting may suggest photos for
+evidence slots:
 
 - hood before
 - hood after
@@ -137,6 +164,17 @@ Vendor actions:
 - Add more photos
 - Exclude photo
 
+The tool should ask questions only where the answer matters:
+
+- "This looks like the rooftop fan. Was fan work completed?"
+- "No duct/access photo is attached. Was duct access serviced, blocked, or not
+  part of this visit?"
+- "This looks like an issue photo. Should it be shown as a follow-up item?"
+
+Rule:
+Suggested photo roles are not confirmed evidence until the vendor accepts,
+edits, or rejects them.
+
 ### 5.3 Confirm Result
 
 The vendor must explicitly confirm one result:
@@ -145,16 +183,26 @@ The vendor must explicitly confirm one result:
 - Completed with access note
 - Access blocked
 - Follow-up recommended
+- Condition only / no cleaning completion claimed
+- Not in scope
 
 Rule:
-AI may suggest a result, but the vendor must confirm the final service result.
+AI must not suggest or select the final service result. The vendor must confirm
+the final service result.
+
+Rule:
+The vendor should confirm the result once. They should not have to rebuild that
+result separately for the customer link, PDF, invoice note, and rebook message.
 
 ### 5.4 Send
 
 The builder generates:
 
+- internal vendor job proof packet
 - `/p/*` customer link
 - `/exports/*` PDF service record
+- invoice/payment proof summary
+- quote/revisit/rebook copy
 
 The customer action should be one primary action, not a menu of equal priorities.
 
@@ -168,21 +216,30 @@ AI is useful for:
 - before / after / issue suggestions
 - blocked or inaccessible visual hints
 - low-quality photo warnings
-- record type suggestion
-- customer action suggestion
+- duplicate or irrelevant photo hints
+- vendor-facing reasons for why a photo needs review
+- suggesting which missing proof areas may need vendor confirmation
 
 AI must not:
 
 - confirm cleaning completion
+- suggest the final job result
+- decide claim level, proof coverage, or customer CTA
 - claim code compliance
 - claim fire inspection coverage
 - guarantee the full duct path was cleaned
 - decide customer liability or vendor liability
-- write unrestricted customer-facing legal or compliance language
+- write customer-facing copy
+- write invoice, quote, or rebook copy without template boundaries
 
 Rule:
 Customer-facing copy should come from templates. AI should produce structured
 evidence suggestions.
+
+Provider lock:
+Live AI Photo Assist should default to Gemini `gemini-2.5-flash` behind a
+provider-neutral adapter, with mock/rule fallback kept for tests and local
+development. See `spec/22_axis1_ai_photo_assist_provider_lock.md`.
 
 ---
 
@@ -276,9 +333,43 @@ Rule:
 Coverage gaps should not create empty visual slots in the customer packet.
 Show only useful sections and move record-basis notes into formal copy.
 
+Vendor-side rule:
+Coverage gaps should be more visible to the vendor than to the customer. The
+vendor needs to know whether sending the packet as completed is risky. The
+customer needs a clear, calm record of what is supported and what is not.
+
+Examples:
+
+| Gap | Vendor view | Customer/PDF view |
+| --- | --- | --- |
+| No rooftop fan photo | "Fan proof missing. Confirm whether fan work was completed, not in scope, or blocked." | "Rooftop fan photo not attached to this record." |
+| No duct/access photo | "Duct/access proof missing. Do not imply concealed path photo coverage." | "Duct/access coverage is recorded by service note only." |
+| Blocked result with no blocked photo | "Blocked access is written only. Add photo if available." | "Access remained blocked per service record." |
+| No photos | "Written record only. No photo-supported completion language." | "Written service record; no field photos attached." |
+
 ---
 
-## 10. Thirty-Person Review
+## 10. Vendor-Margin Persona Review
+
+This review has equal weight across personas and supersedes customer-polish-only
+interpretations of this plan.
+
+| Persona | Strong need | Product implication |
+| --- | --- | --- |
+| Owner-operator | Avoid unpaid jobs, refunds, and low-price comparisons | Packet must support payment and price defense, not only customer education |
+| Night crew lead | Finish fast after a dirty route | Tap confirmations; no long report writing |
+| Dispatcher | Close multiple jobs without chasing techs | AI organizes photos and flags only ambiguous gaps |
+| Estimator | Avoid maintenance pricing on neglected initial cleans | Record should preserve initial/neglect/access risk signals |
+| Office admin | Attach proof to invoice and answer disputes | Generate invoice proof summary from the same record |
+| Repeat-account manager | Keep quarterly/monthly work from slipping | Generate next-service timing and rebook copy |
+| Skeptical small vendor | Pay only for things that save time or money | Avoid generic CRM/report-builder positioning |
+| Insurance/AHJ-adjacent reviewer | Need service facts without fake approval | Keep service evidence language; never certification language |
+| Customer who buys cheap | Compares full-system work to a quick wipe | Show visible hood vs fan/duct/roof scope clearly |
+| Legal/safety reviewer | Avoid overclaiming invisible areas | Missing proof must lower claim level automatically |
+
+---
+
+## 11. Thirty-Person Review
 
 The following review assumes equal weight across personas.
 
@@ -547,7 +638,7 @@ loops or faster customer closeout, not claim unproven reductions.
 
 ---
 
-## 11. Review Verdict
+## 12. Review Verdict
 
 Score: 8.6 / 10.
 

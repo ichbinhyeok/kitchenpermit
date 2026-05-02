@@ -60,9 +60,12 @@ Problem and product explanation page for hood / kitchen exhaust vendors.
 
 This page should explain:
 
-- why loose photos and emails create customer confusion
-- why a customer proof link is useful
+- why loose photos, texts, and emails create payment and dispute risk for vendors
+- why a structured job proof packet is useful
+- why a customer proof link is one generated output
 - why a PDF service record matters
+- how invoice/payment, follow-up quote, and next-service copy can come from the
+  same record
 - how blocked / inaccessible areas stay clear
 - how the input tool keeps vendor effort low
 - what the free versus paid boundary is
@@ -91,13 +94,15 @@ This page should feel like:
 
 - upload photos
 - confirm result
-- send / save
+- review generated outputs
+- send / save / get paid / rebook
 
 It should not feel like:
 
 - a long report editor
 - a marketing page
 - a product documentation page
+- a manual Quote Guard / Crew Proof / Payment Defense form
 
 Primary actions:
 
@@ -106,9 +111,11 @@ Primary actions:
 - Confirm result
 - Copy customer link
 - Save PDF
+- Copy invoice proof summary
+- Copy follow-up or rebook copy
 
 Rule:
-The input tool is the closeout machine. Marketing explanation should stay
+The input tool is the proof packet machine. Marketing explanation should stay
 minimal.
 
 ---
@@ -128,6 +135,7 @@ This page should explain:
 - how photo evidence is organized
 - how open / blocked items are separated
 - what the PDF is for
+- how the same job record can support invoice, quote, revisit, or rebook follow-up
 - how to try the tool with their own photos
 
 Primary CTAs:

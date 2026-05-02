@@ -2,15 +2,26 @@
 
 ## 1. Product Role
 
-The Axis 1 input tool is the vendor-side closeout capture surface.
+The Axis 1 input tool is the vendor-side minimal-input proof packet surface.
 
-It exists to turn one service visit into:
+It exists to turn one service visit into a structured job record and generated
+outputs:
 
-- a customer proof link
-- a service evidence PDF
+- a vendor job proof packet
+- a customer-readable proof link
+- a retained service evidence PDF
+- invoice/payment proof copy
+- follow-up quote or revisit copy when needed
+- next-service / rebook copy
 
-The input tool is not the final customer product. The proof link and PDF are the
-paid-facing outputs.
+The input tool is not a manual operations console. The vendor should not build
+Quote Guard, Crew Proof, Payment Defense, or Rebook sections by hand. The tool
+should infer those packet sections from minimal input and ask the vendor to
+confirm only ambiguous or risky items.
+
+Rule:
+The product promise is `photos plus a few confirmations in, defensible job
+packet out`.
 
 ---
 
@@ -18,16 +29,26 @@ paid-facing outputs.
 
 The tool should keep the required input surface small:
 
-1. job result
-2. customer / property
-3. service date
-4. next service timing
-5. open item or recorded condition when present
-6. field photos when captured
+1. field photos when captured, even if filenames are generic phone names
+2. job result confirmation
+3. customer / property, defaulted or reused when possible
+4. service date, defaulted to today when possible
+5. next service timing, defaulted by visit type when possible
+6. open item, blocked access, recorded condition, or not-applicable state only
+   when present
 
 Rule:
 If a vendor cannot produce a useful packet from these inputs, the tool is too
 hard to operate.
+
+The tool may ask follow-up questions, but only for items that affect claim risk
+or output usefulness:
+
+- a fan/roof/duct area appears in photos but has no confirmed result
+- the vendor selected completed but required proof areas are missing
+- photos look like issue/blocked/access evidence
+- a condition-only record would otherwise read like completed work
+- no photos exist and the vendor is about to claim photo-supported completion
 
 ---
 
@@ -35,10 +56,19 @@ hard to operate.
 
 The same structured input must generate both outputs:
 
+- internal vendor job proof packet
 - `/p/*` customer proof link
 - `/exports/*` PDF / service evidence record
+- invoice/payment proof summary
+- quote/revisit/rebook message snippets
 
 The customer link explains the visit. The PDF preserves a more formal record.
+The invoice/payment and rebook snippets help the vendor turn the record into
+cash collection and recurring work.
+
+Rule:
+The customer link and PDF must be generated from the same job record. They must
+not become parallel hand-written artifacts.
 
 ---
 
@@ -58,6 +88,10 @@ Paid setup:
 - hosted customer links
 - saved history
 - stable PDF record delivery
+- invoice/payment link fields
+- next-service/rebook link fields
+- saved customer/site defaults
+- retained job proof packet history
 
 Rule:
 The input UX can be tested for free, but customer-grade delivery and branding
@@ -74,3 +108,9 @@ The input tool is unacceptable if:
 3. blocked or inaccessible areas are easy to hide accidentally
 4. the user cannot tell whether they are creating a customer link or PDF
 5. the output depends on retyping the same visit details twice
+6. the vendor must manually create separate quote guard, crew proof, payment
+   defense, and rebook sections
+7. AI suggestions enter customer-facing claims before vendor confirmation
+8. a missing roof, fan, duct, or access photo is silently treated as completed
+9. the generated packet is useful for the customer but not useful for the vendor
+   getting paid, defending scope, or booking the next service

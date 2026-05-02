@@ -40,12 +40,14 @@ That explanation affects:
 - reduction of disputes and confusion
 
 So Axis 1 is not a "nice report".
-It is a revenue and retention artifact.
+It is a minimal-input vendor proof packet that protects revenue, reduces
+disputes, and creates retention follow-up.
 
 Locked competitive view:
 Axis 1 should absorb the compliance and proof discipline seen in real hood-cleaning reports,
-but win by being more readable, more sendable, and more revenue-linked than the incumbent
-after-service report and photo-dump pattern.
+but win by being easier for vendors to create, more defensible for payment and
+scope disputes, and more revenue-linked than the incumbent after-service report
+and photo-dump pattern.
 
 ### 2.2 Axis 2 has real outbound logic
 Hood vendors do better when outreach is tied to a live signal:
@@ -87,12 +89,13 @@ The restaurant owner, manager, or operator is an end reader of Axis 1 and a targ
 ## 4. Product axes
 
 ## 4.1 Axis 1
-`Service Completion Brief`
+`Hood Job Proof Packet`
 
 Purpose:
 
 - prove work clearly
 - document observed issues
+- defend scope, price, payment, and missing-proof boundaries
 - drive rebook and follow-up acceptance
 
 ### 4.2 Axis 2

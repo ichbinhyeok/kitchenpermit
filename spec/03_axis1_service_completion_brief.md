@@ -1,13 +1,16 @@
 # 03 Axis 1 Service Completion Brief
 
 ## 1. Product role
-Axis 1 is the existing-customer communication product.
+Axis 1 is the existing-customer vendor proof packet product.
 
 It is not a generic report generator.
-It is a productized service artifact that should help a hood vendor:
+It is a productized service artifact engine that should help a hood vendor:
 
 - prove work
 - explain findings
+- protect payment
+- defend scope and price
+- avoid overclaims when proof is missing
 - reduce confusion
 - rebook service
 - create room for follow-up work
@@ -30,26 +33,30 @@ Vendor office staff who need a clean outward-facing artifact without dumping raw
 ## 3. Commercial promise
 The vendor should feel:
 
-`I can send this to a customer today without rewriting it`
+`I can turn messy phone photos into a defensible job packet without rewriting it`
 
 The customer should feel:
 
 `I understand what happened, what matters, and what to do next`
 
 Immediate revenue lock:
-Axis 1 is not sold first as records software or customer-management software.
-It is sold first as a same-day service report that:
+Axis 1 is not sold first as records software, customer-management software, or
+a customer-polish report.
+It is sold first as a minimal-input proof packet that:
 
 - reduces explanation calls
 - makes premium work feel premium
 - keeps blocked or incomplete areas defensible
 - gives the customer one clear next step
+- gives the vendor useful invoice/payment, quote/revisit, and rebook copy from
+  the same record
 
 Small-vendor premiumization lock:
 The product should let a small hood vendor look organized like a larger premium operator without
 forcing them to buy or maintain a full customer portal.
 
-The packet should package what the vendor already has to send anyway:
+The packet should package what the vendor already has to collect, send, attach,
+or defend anyway:
 
 - what was cleaned
 - which components were covered
@@ -58,10 +65,13 @@ The packet should package what the vendor already has to send anyway:
 - which label or notice was posted
 - what the customer should do next
 - what should stay in the customer's kitchen service records
+- what can be attached to invoice/payment follow-up
+- what can support a quote, revisit, or next-service reminder
 
 The value is speed plus polish:
-the vendor enters or selects the job facts once, and the customer receives a report that feels
-structured, branded, and serious.
+the vendor uploads photos and confirms the job facts once, then Axis 1 generates
+the customer link, PDF, invoice proof, quote/revisit copy, and next-service copy
+from one structured job record.
 
 ---
 
@@ -74,7 +84,12 @@ That means:
 - not just a PDF shell
 - not just a photo gallery
 
-It must render a clear, customer-usable brief from structured data.
+It must render clear, vendor-useful generated outputs from structured data.
+
+Rule:
+Do not make the vendor manually build separate Quote Guard, Crew Proof, Payment
+Defense, or Rebook sections. Those are generated interpretations of the same
+minimal input.
 
 ---
 

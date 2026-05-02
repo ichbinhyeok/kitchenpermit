@@ -1,14 +1,21 @@
-# 16 Axis 1 Content Product Lock
+# 16 Axis 1 Vendor Proof Packet Content Lock
 
 ## 1. Purpose
 This document locks the product-grade content contract for Axis 1.
 
 Axis 1 is not a prettier inspection form.
-Axis 1 is the customer-facing closeout report that lets a hood vendor send a
-premium, defensible, same-day service record without rewriting technician notes.
+Axis 1 is not primarily a customer-facing report product.
+Axis 1 is the vendor-side proof packet generator that turns minimal field input
+into defensible outputs a hood vendor can use to get paid, reduce disputes,
+justify scope, and keep the next service moving.
 
 Locked product sentence:
-`Small vendor effort in, premium customer-ready service report out.`
+`Minimal vendor input in, defensible hood job proof packet out.`
+
+The customer link and PDF are generated outputs. The product's first source of
+truth is the vendor job record: what was claimed, what was photographed, what was
+not photographed, what was blocked, what needs customer action, and what should
+happen next.
 
 ---
 
@@ -19,11 +26,16 @@ Axis 1 is the existing-customer product.
 
 It sells because it helps the vendor:
 
-- explain the job without a follow-up call
-- show proof without dumping raw photo folders
-- defend blocked or incomplete access
-- look like a more organized premium operator
-- create a clean rebook or follow-up path
+- avoid writing a report from scratch after a night route
+- organize raw phone photos into named hood, duct, fan, roof, grease, and access
+  proof
+- avoid overclaiming completion when photos or access are missing
+- defend price against cheap hood-wiper comparisons
+- defend blocked access, incomplete scope, pre-existing conditions, and cleanup
+  disputes
+- attach a concise proof summary to invoice, payment, rebook, revisit, or quote
+  follow-up
+- look like a more organized premium operator without adopting a full FSM
 
 It is not sold first as:
 
@@ -32,16 +44,27 @@ It is not sold first as:
 - generic report generator
 - compliance theatre
 - job-history software
+- manual checklist software
+- AI completion judge
 
 ### 2.2 Primary output
-The primary customer output is the hosted customer link.
+The primary product object is the structured vendor job record / proof packet.
+The primary customer-facing output is the hosted customer link.
 
 Locked interpretation:
 
-- the link is the premium product surface
-- the PDF is the record, attachment, archive, and print copy
+- the job record is the content truth
+- the link is the customer-readable closeout surface
+- the PDF is the retained record, attachment, archive, and print copy
+- invoice, payment, quote, and rebook messages may be generated from the same
+  job record
 - the two outputs share content and brand identity, but do not need to be
   pixel-identical
+
+Rule:
+Do not optimize only for a beautiful customer document. Optimize for the vendor
+being able to safely send, attach, charge, rebook, and defend the job with almost
+no extra typing.
 
 ### 2.3 Free versus paid boundary
 The free builder proves the packet shape.
@@ -77,7 +100,19 @@ Locked MVP storage:
 ---
 
 ## 3. Content job
-Every Axis 1 report must answer five questions fast.
+Every Axis 1 proof packet must answer five vendor questions fast before it
+answers the customer reader.
+
+Vendor questions:
+
+1. What can we safely claim was done?
+2. What proof supports that claim?
+3. What is missing, blocked, not applicable, or only written down?
+4. What customer action, payment action, quote path, or rebook path should this
+   create?
+5. Is there anything risky about sending this as completed?
+
+The generated customer link/PDF must then answer five customer questions fast.
 
 1. What happened today?
 2. What system or area does this report cover?
@@ -88,6 +123,9 @@ Every Axis 1 report must answer five questions fast.
 If a customer needs to call the vendor just to understand the report, the report
 failed.
 
+If a vendor needs to manually compose the proof packet from scratch, the product
+failed.
+
 ---
 
 ## 4. Reader model
@@ -96,8 +134,16 @@ failed.
 The vendor user is busy.
 
 They should not need to write a report.
-They should select the job pattern, add the photos they have, review the result,
-and change only the lines that sound wrong.
+They should upload the photos they have, confirm the result, review only the
+ambiguous or risky items, and change only the lines that sound wrong.
+
+Their mental model is:
+
+`photos in -> system organizes -> I confirm the few risky things -> send/save/get paid/rebook`
+
+They should not be asked to manually build Quote Guard, Crew Proof, Payment
+Defense, or Rebook sections. Those are internal interpretations generated from
+the same minimal input.
 
 ### 4.2 Customer reader
 The customer reader is not a hood technician.
@@ -126,8 +172,9 @@ They need:
 
 ## 5. Report content hierarchy
 
-The customer link should lead with the human-readable layer, then support it with
-operational proof.
+The customer link should lead with the human-readable layer, then support it
+with operational proof. This hierarchy applies to generated customer output, not
+the whole product identity.
 
 Locked order:
 
@@ -148,6 +195,16 @@ Locked order:
 Do not lead with a long checklist.
 Do not lead with a photo dump.
 Do not lead with legal or compliance language.
+
+Vendor-side builder hierarchy is different:
+
+1. job/site basics when not already known
+2. photos or written record basis
+3. AI photo organization suggestions
+4. risky gaps and ambiguous items only
+5. result confirmation
+6. generated outputs: customer link, PDF, invoice proof, quote/revisit copy,
+   next-service copy
 
 ---
 
@@ -357,6 +414,28 @@ Axis 1 content is product-grade only if all of these are true:
 - the CTA is job-specific
 - the PDF is a real document copy, not a broken printed webpage
 - the free layer proves value without giving away paid branding and persistence
+- the vendor can make a usable packet from phone-photo filenames such as
+  `IMG_1234`
+- AI never marks a component completed solely because a photo resembles that
+  component
+- missing photos create explicit record state, not hidden failure or fake proof
+- the same job record can support customer link, PDF, invoice attachment,
+  follow-up quote, and next-service message
+
+### 14.1 Pivot persona checks
+
+The following persona checks are now part of the content lock:
+
+| Persona | Must feel | Must not feel |
+| --- | --- | --- |
+| Hood vendor owner | This protects margin, payment, and reputation | This is just a prettier customer report |
+| Night crew lead | I only confirm the few things the app could not know | I am filling a long office form at 2 a.m. |
+| Dispatcher / office admin | I can close the job and send the right artifact quickly | I am rewriting technician notes |
+| Price-sensitive restaurant owner | I can see why this was more than a quick canopy wipe | I am being sold a fake compliance certificate |
+| Facilities / franchise reviewer | I can retain a clear service record | The vendor is overclaiming inspection approval |
+| Insurance / AHJ-adjacent reviewer | The record separates service facts from approvals | The PDF pretends to be an official pass/fail |
+| Skeptical buyer | This reduces disputes and unpaid follow-up time | This is a photo album with branding |
+| AI skeptic | The vendor stays in control of claims | The AI decides the job was completed |
 
 ---
 
@@ -377,7 +456,8 @@ These should not block the Axis 1 content contract.
 ## 16. Final lock
 The Axis 1 content product is locked as:
 
-`customer link first, PDF document second, structured proof always, raw notes never.`
+`vendor job record first, generated outputs second, structured proof always, raw notes never.`
 
-The next implementation work should improve fidelity to this contract, not add
-more product scope.
+The next implementation work should preserve the minimal-input promise while
+making every output more useful for vendor margin protection, dispute defense,
+payment, quote/revisit follow-up, and rebooking.
