@@ -197,7 +197,7 @@ async function pickVisitType(page, label) {
 }
 
 async function confirmNotesIfNeeded(page) {
-  await clickVisibleButton(page, "USE NOTES FOR MISSING PROOF", {
+  await clickVisibleButton(page, /(^|\n)USE NOTES FOR MISSING PROOF\b|(^|\n)USE NOTES\b|(^|\n)Use notes\b/i, {
     optional: true,
     waitMs: 250,
   });
@@ -205,7 +205,7 @@ async function confirmNotesIfNeeded(page) {
 
 async function goToOutputs(page) {
   await confirmNotesIfNeeded(page);
-  await clickVisibleButton(page, /^SEND|^Send|Go to Send|Continue to Send|Open Send/i, { waitMs: 350 });
+  await clickVisibleButton(page, /(^|\n)SEND\b|(^|\n)Send\b|Go to Send|Continue to Send|Open Send/i, { waitMs: 350 });
   const rows = await outputRows(page);
   assert(rows.length > 0, "Send page did not show generated output rows.");
   return rows;

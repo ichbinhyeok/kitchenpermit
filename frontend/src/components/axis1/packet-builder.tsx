@@ -5706,7 +5706,7 @@ export function PacketBuilder() {
                       <textarea
                         id="customerKnowNote"
                         rows={2}
-                        className="mt-2 w-full rounded-[14px] border border-white/10 bg-black/18 px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-white/30 focus:border-[#ffb489]/55 focus:ring-2 focus:ring-[#ffb489]/15"
+                        className="mt-2 min-h-[92px] w-full rounded-[14px] border border-white/10 bg-black/18 px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-white/30 focus:border-[#ffb489]/55 focus:ring-2 focus:ring-[#ffb489]/15 sm:min-h-[72px]"
                         maxLength={
                           customerNoteField === "exceptionNote"
                             ? textFieldLimits.exceptionNote
@@ -5899,9 +5899,12 @@ export function PacketBuilder() {
                           <button
                             type="button"
                             onClick={() => setScopeAssumptionsAccepted(true)}
-                            className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#111315] px-4 text-[10px] font-black uppercase tracking-[0.13em] text-white"
+                            className="inline-flex min-h-10 max-w-full items-center justify-center rounded-full bg-[#111315] px-4 py-2 text-center text-[10px] font-black uppercase leading-4 tracking-[0.08em] text-white sm:shrink-0 sm:tracking-[0.13em]"
                           >
-                            Use notes for missing proof
+                            <span className="sm:hidden">Use notes</span>
+                            <span className="hidden sm:inline">
+                              Use notes for missing proof
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -6816,7 +6819,7 @@ export function PacketBuilder() {
                       This visit only
                     </span>
                   </div>
-                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="mt-3 flex flex-wrap gap-2 pb-1 sm:flex-nowrap sm:overflow-x-auto sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden">
                     {visitTypePresets.map((preset) => {
                       const selected = preset.id === visitTypeId;
 
