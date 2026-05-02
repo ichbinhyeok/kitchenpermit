@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:axis1": "vitest run src/lib/axis1-closeout-engine.test.ts src/lib/axis1-photo-assist.test.ts",
+    "test:axis1:gold": "node ../scripts/axis1-evaluate-photo-assist-gold-set.cjs",
+    "test:axis1:all": "npm run test:axis1 && npm run test:axis1:gold"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -40,6 +43,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.5"
   }
 }

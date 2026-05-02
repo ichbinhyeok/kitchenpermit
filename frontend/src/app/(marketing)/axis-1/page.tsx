@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import {
   ArrowRight,
   Check,
@@ -13,21 +13,21 @@ import { Panel } from "@/components/ui/panel";
 import { SectionLabel } from "@/components/ui/section-label";
 
 export const metadata: Metadata = {
-  title: "Proof Packets for Existing Customers",
+  title: "Customer Links for Existing Customers",
   description:
-    "Customer-ready proof packets for hood vendors that cut explanation calls, show proof clearly, and defend open items.",
+    "Customer-ready service links for hood vendors that cut explanation calls, show the work clearly, and defend open items.",
 };
 
 const roleFrames = [
   {
     label: "Customer sees",
     copy:
-      "One readable proof packet instead of a loose pile of photos, notes, and invoice fragments.",
+      "One readable customer link instead of a loose pile of photos, notes, and invoice fragments.",
   },
   {
     label: "Vendor gets",
     copy:
-      "A same-day proof packet that protects trust, premium positioning, and open-item defense.",
+      "A same-day customer link that protects trust, premium positioning, and open-item defense.",
   },
 ] as const;
 
@@ -40,9 +40,9 @@ const whyItPays = [
   },
   {
     label: "When price gets compared",
-    title: "If the proof feels sloppy, premium service feels overpriced.",
+    title: "If the handoff feels sloppy, premium service feels overpriced.",
     copy:
-      "A readable packet makes the work look serious before anyone questions the price or the quality of the visit.",
+      "A readable customer link makes the work look serious before anyone questions the price or the quality of the visit.",
   },
 ] as const;
 
@@ -57,9 +57,9 @@ const packetSections = [
       "Blocked access or incomplete areas stay visible instead of getting hidden in technician shorthand.",
   },
   {
-    title: "Photo proof tied to the right area",
+    title: "Photos tied to the right area",
     copy:
-      "Before-and-after proof supports the packet without turning into a giant image dump.",
+      "Before-and-after photos support the link without turning into a giant image dump.",
   },
   {
     title: "What you need to do next",
@@ -69,7 +69,7 @@ const packetSections = [
   {
     title: "Who to contact",
     copy:
-      "The packet ends with a real contact path so the handoff does not feel improvised.",
+      "The customer link ends with a real contact path so the handoff does not feel improvised.",
   },
 ] as const;
 
@@ -78,19 +78,19 @@ const packetFlow = [
     step: "01",
     title: "Finish the service event",
     copy:
-      "The visit closes with one customer-ready proof packet instead of scattered notes, photos, and invoice fragments.",
+      "The visit closes with one customer link instead of scattered notes, photos, and invoice fragments.",
   },
   {
     step: "02",
-    title: "Send the packet same day",
+    title: "Send the customer link same day",
     copy:
       "The customer sees what was done, what stayed open, and what to do next without a callback explanation.",
   },
   {
     step: "03",
-    title: "Let the packet carry the explanation",
+    title: "Let the customer link carry the explanation",
     copy:
-      "That same packet makes premium service look organized and keeps blocked-access or open-item defense inside the document.",
+      "That same link makes premium service look organized and keeps blocked-access or open-item defense inside the customer handoff.",
   },
 ] as const;
 
@@ -128,13 +128,13 @@ const outcomes = [
   {
     title: "Premium handoff",
     copy:
-      "Clear proof and open-item handling make higher-quality service feel worth the price.",
+      "Clear photos and open-item handling make higher-quality service feel worth the price.",
     icon: Repeat2,
   },
 ] as const;
 
 const lockedRules = [
-  "The proof packet is the product surface. Raw technician notes can exist internally, but they are not the customer deliverable.",
+  "The customer link is the product surface. Raw technician notes can exist internally, but they are not the customer deliverable.",
   "Blocked or unworked items stay visible when they matter. Hiding them makes the page cleaner and the vendor less trustworthy.",
   "The public sample proves that the handoff is readable. The paid setup is the real delivery system.",
 ] as const;
@@ -156,7 +156,7 @@ export default function Axis1Page() {
               <SectionLabel>FOR HOOD SERVICE VENDORS</SectionLabel>
               <div className="space-y-4">
                 <h1 className="font-display text-[clamp(2.65rem,13vw,5.1rem)] font-bold leading-[0.9] tracking-[-0.09em] text-foreground md:max-w-[10.5ch] md:text-[clamp(4.9rem,7.2vw,7rem)]">
-                  Turn hood job photos into a customer-ready proof packet.
+                  Turn hood job photos into a customer link.
                 </h1>
                 <p className="max-w-2xl border-l border-border-strong pl-4 text-[15px] leading-[1.62] text-muted-foreground md:pl-5 md:text-lg md:leading-8">
                   Your crew already takes photos. Your office should not have to
@@ -211,10 +211,10 @@ export default function Axis1Page() {
                   <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
                     <div>
                       <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-muted-foreground">
-                        Same-day proof packet
+                        Same-day customer link
                       </p>
                       <h2 className="mt-2 font-display text-3xl font-bold leading-[0.92] tracking-[-0.06em] md:text-4xl">
-                        Customer-ready proof
+                        Customer-readable handoff
                       </h2>
                     </div>
                     <div className="rounded-full bg-[rgba(242,106,33,0.1)] p-2">
@@ -268,7 +268,7 @@ export default function Axis1Page() {
             The customer should not need a callback to understand the job.
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/68 md:text-base md:leading-7">
-            The visit ends with one readable proof packet that explains what was done,
+            The visit ends with one readable customer link that explains what was done,
             what stayed open, and what the customer needs to do next.
           </p>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -295,10 +295,10 @@ export default function Axis1Page() {
           </h2>
           <div className="mt-5 grid gap-3">
             {[
-              "A customer-ready proof packet instead of raw note clutter",
+              "A customer link instead of raw note clutter",
               "Less office time rewriting crew photos into customer explanations",
               "Blocked access and open items made visible without a follow-up explanation call",
-              "Premium service looks premium the moment the packet lands",
+              "Premium service looks premium the moment the customer link lands",
               "A public sample link that lets vendors show quality before setup",
             ].map((item) => (
               <div
@@ -351,7 +351,7 @@ export default function Axis1Page() {
             What goes inside
           </p>
           <h2 className="mt-4 font-display text-[2.2rem] font-bold leading-[0.92] tracking-[-0.06em] text-foreground md:text-4xl">
-            One clean proof-packet surface with visible proof, open items, and next action.
+            One clean customer-link surface with photos, open items, and next action.
           </h2>
           <div className="mt-5 grid gap-3">
             {packetSections.map((item) => (
@@ -373,7 +373,7 @@ export default function Axis1Page() {
             How vendors use it
           </p>
           <h2 className="mt-4 font-display text-[2.15rem] font-bold leading-[0.92] tracking-[-0.06em] md:text-4xl">
-            Finish the visit. Send the packet. Let it carry the explanation.
+            Finish the visit. Send the customer link. Let it carry the explanation.
           </h2>
           <div className="mt-5 grid gap-3">
             {packetFlow.map((item) => (
@@ -400,7 +400,7 @@ export default function Axis1Page() {
             </p>
             <p className="mt-3 text-sm leading-6 text-white">
               In MVP, detailed internal notes can still exist, but the customer-facing
-              product is the readable proof packet, not a raw compliance dump.
+              product is the readable customer link, not a raw back-office dump.
             </p>
           </div>
         </Panel>
@@ -418,7 +418,7 @@ export default function Axis1Page() {
             </p>
           </div>
           <span className="hidden font-mono text-xs uppercase tracking-[0.28em] text-muted-foreground md:block">
-            SEND-READY PROOF
+            SEND-READY HANDOFF
           </span>
         </div>
         <Panel className="bg-white/78 px-5 py-5 md:px-6 md:py-6">
@@ -475,12 +475,12 @@ export default function Axis1Page() {
               Product + sample + request
             </p>
             <h2 className="mt-4 font-display text-[2.2rem] font-bold leading-[0.92] tracking-[-0.06em] text-foreground md:text-4xl">
-              Understand it here. Prove it with the sample. Start setup when the value is obvious.
+              Understand it here. Test it with the sample. Start setup when the value is obvious.
             </h2>
             <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base md:leading-7">
-              Public pricing starts at $149 for proof packet setup. The free sample
-              is a shareable proof link. The paid version is the real send-ready packet
-              system used after live jobs.
+              Public pricing starts at $149 for customer link setup. The free sample
+              is a shareable customer link. The paid version adds the send-ready link,
+              evidence PDF, vendor identity, and delivery workflow used after live jobs.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-[0.78fr_1.22fr]">
@@ -492,12 +492,12 @@ export default function Axis1Page() {
                 $149
               </p>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Proof packet setup
+                Customer link setup
               </p>
             </div>
             <div className="rounded-[24px] border border-border bg-white px-5 py-5">
               <p className="text-sm leading-6 text-muted-foreground">
-                Includes the readable proof structure, photo layout, and open-item
+                Includes the readable evidence structure, photo layout, and open-item
                 handling that make the service look serious right after the visit.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
@@ -512,7 +512,7 @@ export default function Axis1Page() {
                 href="/samples/axis-1"
                 className="mt-4 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-accent"
               >
-                View the free proof link
+                View the free customer link
                 <ArrowRight className="h-4 w-4" />
               </a>
             </div>

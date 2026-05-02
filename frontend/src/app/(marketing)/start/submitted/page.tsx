@@ -1,22 +1,11 @@
-import type { Metadata } from "next";
+﻿"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import { PageHeader } from "@/components/marketing/page-header";
 import { Panel } from "@/components/ui/panel";
-import { fetchBackendJson } from "@/lib/backend";
-import { readQueryValue } from "@/lib/start-request";
+import { fetchApiJson } from "@/lib/api";
 import { siteConfig } from "@/lib/site";
-
-export const metadata: Metadata = {
-  title: "Start Submitted",
-  description: "Confirmation surface for the hood manual intake flow.",
-};
-
-export const dynamic = "force-dynamic";
-
-type SubmittedPageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
 
 type InquiryView = {
   id: string;
@@ -30,11 +19,73 @@ type InquiryView = {
   emailDraftUrl: string;
 };
 
-export default async function StartSubmittedPage({
-  searchParams,
-}: SubmittedPageProps) {
-  const params = await searchParams;
-  const leadId = readQueryValue(params.leadId);
+type InquiryRequestState = {
+  leadId: string;
+  inquiry: InquiryView | null;
+  requestFailed: boolean;
+};
+
+function subscribeToLocationChanges(onStoreChange: () => void) {
+  window.addEventListener("popstate", onStoreChange);
+  return () => {
+    window.removeEventListener("popstate", onStoreChange);
+  };
+}
+
+function getLeadIdFromLocation() {
+  return new URLSearchParams(window.location.search).get("leadId")?.trim() ?? "";
+}
+
+function getServerLeadIdSnapshot() {
+  return null;
+}
+
+function StartSubmittedContent() {
+  const leadId = useSyncExternalStore(
+    subscribeToLocationChanges,
+    getLeadIdFromLocation,
+    getServerLeadIdSnapshot,
+  );
+  const [requestState, setRequestState] = useState<InquiryRequestState>({
+    leadId: "",
+    inquiry: null,
+    requestFailed: false,
+  });
+  const inquiry = requestState.leadId === leadId ? requestState.inquiry : null;
+  const requestFailed =
+    requestState.leadId === leadId ? requestState.requestFailed : false;
+
+  useEffect(() => {
+    if (!leadId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void fetchApiJson<InquiryView>(`/api/public/inquiries/${encodeURIComponent(leadId)}`)
+      .then((result) => {
+        if (!cancelled) {
+          setRequestState({
+            leadId,
+            inquiry: result,
+            requestFailed: false,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRequestState({
+            leadId,
+            inquiry: null,
+            requestFailed: true,
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [leadId]);
 
   if (!leadId) {
     return (
@@ -70,12 +121,57 @@ export default async function StartSubmittedPage({
     );
   }
 
-  let inquiry: InquiryView;
+  if (requestFailed) {
+    return (
+      <>
+        <PageHeader
+          label="START // SUBMITTED"
+          title="The inquiry could not be loaded."
+          description="The confirmation page now reads from the backend API directly. If the inquiry was just created, try again or open the intake form."
+        />
+        <section className="container-shell pb-20">
+          <Panel className="max-w-3xl px-6 py-6">
+            <p className="text-base leading-8 text-muted-foreground">
+              The saved inquiry was not returned for this id. Start from the intake
+              form again or email {siteConfig.supportEmail} directly.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-4">
+              <Link
+                href="/start"
+                className="inline-flex items-center justify-center border border-border-strong bg-white px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-foreground transition hover:bg-surface"
+              >
+                Go to start
+              </Link>
+              <Link
+                href="/samples"
+                className="inline-flex items-center justify-center border border-border-strong bg-surface px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-foreground transition hover:bg-white"
+              >
+                Review samples
+              </Link>
+            </div>
+          </Panel>
+        </section>
+      </>
+    );
+  }
 
-  try {
-    inquiry = await fetchBackendJson<InquiryView>(`/api/public/inquiries/${leadId}`);
-  } catch {
-    notFound();
+  if (!inquiry) {
+    return (
+      <>
+        <PageHeader
+          label="START // SUBMITTED"
+          title="Loading the saved inquiry."
+          description="The confirmation page is reading the saved intake from the backend."
+        />
+        <section className="container-shell pb-20">
+          <Panel className="max-w-3xl px-6 py-6">
+            <p className="text-base leading-8 text-muted-foreground">
+              Loading the inquiry snapshot and manual follow-through details.
+            </p>
+          </Panel>
+        </section>
+      </>
+    );
   }
 
   return (
@@ -83,7 +179,7 @@ export default async function StartSubmittedPage({
       <PageHeader
         label="START // SUBMITTED"
         title="The setup request is structured. The next step is human."
-        description="For MVP, proof packet setup and sales-list delivery stay manual. That keeps the promise honest while payment and hosted delivery mature."
+        description="For MVP, customer link setup and sales-list delivery stay manual. That keeps the promise honest while payment and hosted delivery mature."
       />
       <section className="container-shell grid gap-6 pb-20 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Panel className="px-6 py-6">
@@ -131,7 +227,7 @@ export default async function StartSubmittedPage({
           <p className="mt-4 text-base leading-8 text-muted-foreground">
             This opens a structured draft to {siteConfig.supportEmail}. After the email
             is sent, hood can review the inquiry, convert it into an order, and
-            fulfill the proof packet setup or paid batch without forcing fake self-serve flow.
+            fulfill the customer link setup or paid batch without forcing fake self-serve flow.
           </p>
           <div className="mt-6 grid gap-3">
             {[
@@ -167,5 +263,30 @@ export default async function StartSubmittedPage({
         </Panel>
       </section>
     </>
+  );
+}
+
+export default function StartSubmittedPage() {
+  return (
+    <Suspense
+      fallback={
+        <>
+          <PageHeader
+            label="START // SUBMITTED"
+            title="Loading the saved inquiry."
+            description="The confirmation page is reading the saved intake from the backend."
+          />
+          <section className="container-shell pb-20">
+            <Panel className="max-w-3xl px-6 py-6">
+              <p className="text-base leading-8 text-muted-foreground">
+                Loading the inquiry snapshot and manual follow-through details.
+              </p>
+            </Panel>
+          </section>
+        </>
+      }
+    >
+      <StartSubmittedContent />
+    </Suspense>
   );
 }

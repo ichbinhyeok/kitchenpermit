@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/marketing/page-header";
@@ -6,19 +6,19 @@ import { Panel } from "@/components/ui/panel";
 
 export const metadata: Metadata = {
   title: "Samples",
-  description: "Public sample links for service packets and sales lists.",
+  description: "Public sample links for Hood closeout customer links and sales lists.",
 };
 
 const samples = [
   {
     href: "/samples/axis-1",
     label: "Existing-Customer Sample",
-    title: "Service completion brief preview",
+    title: "Hood Closeout Customer Link preview",
     description:
-      "A free public sample link that vendors can use in cold email, follow-up, and search to show what the service packet feels like.",
+      "A free public sample link that vendors can use in cold email, follow-up, and search to show what the customer link feels like.",
     visible: [
       "Service summary, work scope, and next-step structure",
-      "Evidence block rhythm and customer-facing language",
+      "Photo evidence rhythm and customer-facing language",
       "How inaccessible or partial work is surfaced",
     ],
     hidden: [
@@ -48,8 +48,8 @@ export default function SamplesPage() {
   return (
     <>
       <PageHeader
-        label="SAMPLES // PUBLIC PROOF LINKS"
-        title="Preview the packet surfaces."
+        label="SAMPLES // PUBLIC CUSTOMER LINKS"
+        title="Preview the customer link surfaces."
         description="These sample pages are meant to be public. They help vendors understand the product, support cold outreach, and give search traffic something real to inspect without leaking the paid SKU."
       />
       <section className="container-shell grid gap-6 pb-10 md:grid-cols-2">
@@ -116,7 +116,7 @@ export default function SamplesPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              "The service packet sample proves readability, findings clarity, and rebook posture.",
+              "The customer link sample proves readability, findings clarity, and rebook posture.",
               "The sales-list sample stays list-first and shows only 2 to 3 masked rows publicly.",
               "These sample links are free and public on purpose. They should work in cold email and in SEO.",
               "HTML and PDF previews are fine, but a free sample cannot become a usable paid batch substitute.",

@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight, Check, Flame } from "lucide-react";
@@ -6,7 +6,7 @@ import { Reveal } from "@/components/marketing/reveal";
 
 const serviceReportItems = [
   "Plain-English work summary",
-  "Proof photos with context",
+  "Field photos with context",
   "Blocked access and open items",
   "Customer action and next visit window",
 ];
@@ -21,7 +21,7 @@ const salesListItems = [
 const proofRows = [
   {
     label: "After the visit",
-    title: "A customer-ready proof packet replaces the explanation call.",
+    title: "A customer link replaces the explanation call.",
     detail:
       "The operator sees what happened, what was not accessible, and what they need to do next.",
   },
@@ -34,7 +34,7 @@ const proofRows = [
 ];
 
 const pricingRows = [
-  ["Proof packet setup", "$149", "For existing-customer proof packets"],
+  ["Customer link setup", "$149", "For existing-customer links"],
   ["Sales packet setup", "$149", "For first-touch packet structure"],
   ["Service + sales bundle", "$259", "For vendors using both paths"],
   ["Live sales batch", "$149", "For 10 QA-reviewed prospects"],
@@ -98,7 +98,7 @@ function ProductDocumentPreview() {
                 Service surface
               </p>
               <p className="mt-1 max-w-sm font-display text-3xl font-bold leading-[0.95]">
-                Proof that looks like a real operating document.
+                A handoff that looks like a real operating document.
               </p>
             </div>
             <Flame className="hidden h-6 w-6 text-[#ff8a4d] sm:block" strokeWidth={2} />
@@ -110,7 +110,7 @@ function ProductDocumentPreview() {
               Existing customers
             </p>
             <h3 className="mt-3 font-display text-3xl font-bold leading-[0.96] text-foreground">
-              Same-day proof packet
+              Same-day customer link
             </h3>
             <ul className="mt-5 text-muted-foreground">
               {serviceReportItems.map((item) => (
@@ -161,7 +161,7 @@ function ProductDocumentPreview() {
         </div>
         <div className="border-t border-white/10 pt-6">
           <ArrowLink href="/samples/axis-1" tone="accent">
-            Open proof sample
+            Open customer link sample
           </ArrowLink>
         </div>
       </div>
@@ -183,11 +183,11 @@ export default function HomePage() {
                     For kitchen exhaust vendors
                   </p>
                   <h1 className="mt-8 max-w-[9ch] font-display text-[3.75rem] font-bold leading-[0.9] text-white min-[390px]:text-[4.3rem] md:text-[6.2rem] lg:text-[5.7rem] xl:text-[6.25rem]">
-                    Proof after service. Leads before sales.
+                    Customer links after service. Leads before sales.
                   </h1>
                   <p className="mt-7 max-w-xl text-base leading-8 text-white/70 md:text-lg md:leading-8">
                     hood gives kitchen exhaust vendors two useful deliverables: a
-                    customer-ready proof packet after the job and a live local prospect
+                    customer link after the job and a live local prospect
                     list before the next one.
                   </p>
                   <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -206,7 +206,7 @@ export default function HomePage() {
                       Existing customers
                     </p>
                     <p className="mt-2 font-semibold leading-6 text-white">
-                      Send proof they can understand.
+                      Send a link they can understand.
                     </p>
                   </div>
                   <div>
@@ -245,10 +245,10 @@ export default function HomePage() {
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <div>
                       <h2 className="font-display text-2xl font-bold leading-[0.96]">
-                        Proof packet
+                        Customer link
                       </h2>
                       <p className="mt-2 text-sm leading-6 text-[#60554c]">
-                        Proof, exceptions, and customer action in one clean link.
+                        Result, exceptions, and customer action in one clean link.
                       </p>
                     </div>
                     <div>
@@ -319,7 +319,7 @@ export default function HomePage() {
                     before it turns into a complaint.
                   </p>
                   <div className="mt-7">
-                    <ArrowLink href="/axis-1">See proof packets</ArrowLink>
+                    <ArrowLink href="/axis-1">See customer links</ArrowLink>
                   </div>
                 </div>
                 <div className="bg-[#fbf3ea] p-6 sm:p-8">

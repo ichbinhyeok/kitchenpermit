@@ -12,16 +12,21 @@ import {
   IconShieldCheckFilled,
   type Icon,
 } from "@tabler/icons-react";
-import { CustomerWebPacket } from "@/components/axis1/customer-web-packet";
+import {
+  CustomerWebPacket,
+  type CustomerWebPacketEditConfig,
+} from "@/components/axis1/customer-web-packet";
 import type { Axis1PacketPreviewData } from "@/lib/axis1-packet-preview";
 
 type Axis1PacketDocumentProps = {
   data: Axis1PacketPreviewData;
   className?: string;
+  heroHeadingLevel?: "h1" | "h2";
   variant?: "vendor-sample" | "customer-report";
   outputIntent?: "customer-link" | "service-record";
   presentationMode?: "standard" | "short";
   visibleSections?: Partial<Axis1PacketDocumentSectionVisibility>;
+  editConfig?: CustomerWebPacketEditConfig;
 };
 
 type Row = readonly [string, string];
@@ -32,6 +37,11 @@ export type Axis1PacketDocumentSectionVisibility = {
   routeDetail: boolean;
   nextService: boolean;
 };
+
+export type {
+  CustomerWebPacketEditConfig,
+  CustomerWebPacketEditTarget,
+} from "@/components/axis1/customer-web-packet";
 
 const defaultSectionVisibility: Axis1PacketDocumentSectionVisibility = {
   photos: true,
@@ -44,21 +54,44 @@ function cx(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function customerFacingCopy(value: string) {
+function serviceRecordCopy(value: string) {
   return value
     .replace(/\boffice archive\b/gi, "service archive")
     .replace(/\boffice file\b/gi, "service file")
     .replace(/\boffice records\b/gi, "service records")
-    .replaceAll("Exception shown", "Open item")
+    .replace(/\bthe office\b/gi, "the service team")
+    .replace(/\bcustomer-side correction\b/gi, "customer action")
+    .replace(/\bvendor-provided\b/gi, "service-provider recorded")
+    .replace(/\bvendor-issued\b/gi, "service-provider issued")
+    .replace(/\bother trade service\b/gi, "separate corrective work")
+    .replace(/\bseparate trade service\b/gi, "separate corrective work")
+    .replace(/\bseparate corrective work and follow-up work\b/gi, "separate corrective or follow-up work")
+    .replace(/\bfollow-up work authorization\b/gi, "follow-up go-ahead")
+    .replace(/\bservice close-out\b/gi, "service record")
+    .replace(/\bcustomer handoff\b/gi, "customer service record")
+    .replace(/\bhandoff\b/gi, "service record")
+    .replace(/\bEngine next action\b/gi, "Next action")
+    .replace(/\bPrimary customer CTA\b/gi, "Customer next step")
+    .replace(/\bClaim level\b/gi, "Record support")
+    .replace(/\bOutcome classification\b/gi, "Service outcome")
+    .replace(/\bResponsibility boundary\b/gi, "Action boundary")
+    .replace(/\bPhoto support\b/gi, "Photo coverage")
+    .replace(/\bproof link\b/gi, "service record")
+    .replace(/\bcustomer link\b/gi, "service evidence record")
+    .replace(/\bcustomer service link\b/gi, "service evidence record")
+    .replace(/\bcustomer proof\b/gi, "customer record")
+    .replaceAll("Exception shown", "Action needed")
     .replaceAll("Full raw archive", "Full service archive")
-    .replaceAll("PDF packet", "PDF service report")
+    .replaceAll("PDF packet", "evidence PDF")
     .replaceAll("sample packet", "service visit")
     .replaceAll("Sample packet", "Service visit")
-    .replaceAll("customer packet", "customer report")
-    .replaceAll("Customer packet", "Customer report")
-    .replaceAll("packet", "report")
-    .replaceAll("Packet", "Report")
-    .replaceAll("Packet coverage", "Report coverage")
+    .replaceAll("Packet coverage", "Service record coverage")
+    .replaceAll("customer packet", "customer service link")
+    .replaceAll("Customer packet", "Customer service link")
+    .replaceAll("customer service link", "service evidence record")
+    .replaceAll("Customer service link", "Service evidence record")
+    .replaceAll("packet", "service record")
+    .replaceAll("Packet", "Service record")
     .replaceAll("Office note", "Record note");
 }
 
@@ -167,7 +200,8 @@ function statusMeta(status: string) {
     status === "Uploaded" ||
     status === "Included" ||
     status === "Posted" ||
-    status === "Retained"
+    status === "Retained" ||
+    /completed from notes|completed with photo/i.test(status)
   ) {
     return {
       Icon: IconCircleCheckFilled,
@@ -343,6 +377,63 @@ function getRecordValue(rows: readonly Row[], labels: string[], fallback = "") {
   );
 }
 
+function recordedValue(value: string | undefined | null, fallback = "Not recorded") {
+  const trimmed = value?.trim() ?? "";
+  return trimmed.length > 0 ? trimmed : fallback;
+}
+
+function getNextServiceWindow(data: Axis1PacketPreviewData) {
+  return getRecordValue(
+    data.customerClose.actionItems,
+    ["Next visit window", "Next routine service"],
+    getRecordValue(data.frequencyRows, ["Next service window"], "Next service window recorded"),
+  );
+}
+
+function serviceRecordActionRows(rows: readonly Row[]) {
+  const mappedRows = rows.map(([label, value]) => {
+    if (/^reply or action$/i.test(label) || /^next action$/i.test(label)) {
+      return ["Customer action", value] as const;
+    }
+
+    if (/^recorded note$/i.test(label)) {
+      return ["Service note", value] as const;
+    }
+
+    if (/^evidence pdf note$/i.test(label) || /^evidence pdf$/i.test(label)) {
+      return ["Evidence PDF", value] as const;
+    }
+
+    if (/^customer next step$/i.test(label) || /^primary customer cta$/i.test(label)) {
+      return ["Next step button", value] as const;
+    }
+
+    return [label, value] as const;
+  });
+  const allowedLabels = new Set([
+    "Next visit window",
+    "Next routine service",
+    "Customer action",
+    "Service note",
+    "Evidence PDF",
+  ]);
+  const seen = new Set<string>();
+  const displayRows: Row[] = [];
+
+  for (const row of mappedRows) {
+    const [label] = row;
+
+    if (!allowedLabels.has(label) || seen.has(label)) {
+      continue;
+    }
+
+    seen.add(label);
+    displayRows.push(row);
+  }
+
+  return displayRows;
+}
+
 function getPrimaryOpenItem(data: Axis1PacketPreviewData) {
   if (data.scenario !== "exception") {
     return null;
@@ -358,6 +449,62 @@ function getPrimaryOpenItem(data: Axis1PacketPreviewData) {
   );
 }
 
+function isCompletedComponentStatus(status: string) {
+  if (isExcludedComponentStatus(status) || isRecordedOnlyComponentStatus(status)) {
+    return false;
+  }
+
+  return /completed|cleaned|reset|reachable cleaned|access clear|included/i.test(status);
+}
+
+function isExcludedComponentStatus(status: string) {
+  return /not completed|inaccessible|blocked|not in this visit|not claimed|not serviced|open/i.test(
+    status,
+  );
+}
+
+function isRecordedOnlyComponentStatus(status: string) {
+  if (isExcludedComponentStatus(status)) {
+    return false;
+  }
+
+  return /recorded condition|recorded|review|monitor|documented/i.test(status);
+}
+
+function componentList(
+  rows: Axis1PacketPreviewData["componentStatusRows"],
+  predicate: (status: string) => boolean,
+) {
+  const labels = rows
+    .filter((row) => predicate(row.status))
+    .map((row) => serviceRecordCopy(row.component));
+
+  return labels.length > 0 ? labels.join(", ") : "None recorded";
+}
+
+function componentStatusLine(
+  rows: Axis1PacketPreviewData["componentStatusRows"],
+  pattern: RegExp,
+) {
+  const row = rows.find((item) => pattern.test(item.component));
+
+  if (!row) {
+    return "Not listed in this service record";
+  }
+
+  return `${serviceRecordCopy(row.status)} - ${serviceRecordCopy(row.note)}`;
+}
+
+function isConditionOnlyRecord(data: Axis1PacketPreviewData) {
+  return (
+    data.serviceRecordRows.some(
+      ([label, value]) =>
+        /visit type/i.test(label) && /record condition|condition only/i.test(value),
+    ) ||
+    data.completedWork.some((item) => /condition-only/i.test(item))
+  );
+}
+
 function ServiceEvidenceRecord({
   data,
   transform,
@@ -368,39 +515,69 @@ function ServiceEvidenceRecord({
   const primaryOpenItem = getPrimaryOpenItem(data);
   const serviceDate = getRecordValue(data.packetHeader.quickFacts, ["Service date"], "Service date recorded");
   const location = getRecordValue(data.packetHeader.quickFacts, ["Location"], "Location recorded");
+  const serviceWindow = getRecordValue(data.serviceRecordRows, ["Service window"], serviceDate);
+  const lineServed = getRecordValue(data.systemIdentityRows, ["Line served"], "Main cookline");
+  const systemRef =
+    getRecordValue(data.systemIdentityRows, ["System"], "") ||
+    getRecordValue(data.packetHeader.quickFacts, ["System"], "Kitchen exhaust system");
   const reportId =
     getRecordValue(data.packetHeader.quickFacts, ["Report ID"], "") ||
     getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-MASKED-0414");
-  const nextWindow = getRecordValue(data.frequencyRows, ["Next service window"], "Next service window recorded");
-  const entireSystemAccessible = primaryOpenItem ? "No - blocked access recorded" : "Yes";
-  const entireSystemCleaned = primaryOpenItem ? "No - excluded area documented" : "Yes";
+  const nextWindow = getNextServiceWindow(data);
+  const recommendedInterval = getRecordValue(data.frequencyRows, ["Recommended interval"], "Interval recorded");
+  const blockedAreaRecorded = primaryOpenItem ? "Yes - see excluded area" : "No";
+  const reachablePathCompleted = primaryOpenItem
+    ? "Accessible sections completed; excluded area listed separately"
+    : "Accessible sections completed";
   const status = primaryOpenItem ? "Completed with documented exception" : "Completed";
   const serviceNotice =
     getRecordValue(data.closeoutRows, ["Label / notice ref"], "") ||
     getRecordValue(data.closeoutRows, ["Service label"], "Service label recorded");
+  const hasEvidencePhotos = data.proofPhotos.length > 0;
+  const completedAreas = componentList(data.componentStatusRows, isCompletedComponentStatus);
+  const excludedAreas = componentList(data.componentStatusRows, isExcludedComponentStatus);
+  const recordedOnlyAreas = componentList(data.componentStatusRows, (status) =>
+    isRecordedOnlyComponentStatus(status) && !isCompletedComponentStatus(status),
+  );
+  const ductStatus = componentStatusLine(data.componentStatusRows, /duct|plenum|access/i);
+  const fanStatus = componentStatusLine(data.componentStatusRows, /fan|roof/i);
+  const greaseStatus = componentStatusLine(data.componentStatusRows, /grease|containment/i);
+  const hasCompanyCredential = data.vendor.certification.trim().length > 0;
 
   const recordRows = [
-    ["Property / customer", data.packetHeader.title],
-    ["Service date", serviceDate],
-    ["Location", location],
-    ["System serviced", "Commercial kitchen exhaust system path"],
+    ["Record type", "Kitchen exhaust service evidence PDF"],
     ["Report ID", reportId],
+    ["Customer / property", data.packetHeader.title],
+    ["Service location", location],
+    ["System reference", systemRef],
+    ["Line served", lineServed],
+    ["Service date / window", serviceWindow],
+    ["Service provider", data.vendor.name],
+    ["Person performing work", data.vendor.technician],
     ["Service result", status],
+    ["Record basis", hasEvidencePhotos ? "Service record with attached field photos" : "Written service record; no photos attached"],
   ] as const;
 
-  const inspectionRows = [
-    ["Document type", "Service Evidence Record"],
-    ["Outcome classification", primaryOpenItem ? "Case B - completed with exception" : "Case A - completed / no exception"],
-    ["Areas cleaned", "Accessible hood, filters, plenum, and reachable duct path"],
-    ["Entire system accessible", entireSystemAccessible],
-    ["Entire system cleaned", entireSystemCleaned],
+  const serviceBoundaryRows = [
+    ["Document class", "Customer-retained service evidence record"],
+    ["Service outcome", primaryOpenItem ? "Completed with excluded area listed" : "Completed - no blocked area listed"],
+    ["Hood / filters", componentStatusLine(data.componentStatusRows, /hood|filter/i)],
+    ["Duct / access status", ductStatus],
+    ["Rooftop fan status", fanStatus],
+    ["Grease path status", greaseStatus],
+    ["Areas completed / cleaned", completedAreas],
+    ["Recorded only", recordedOnlyAreas],
+    ["Blocked / inaccessible area recorded", blockedAreaRecorded],
+    ["Reachable service path", reachablePathCompleted],
     ["Deficiencies / exceptions", primaryOpenItem ? transform(primaryOpenItem.issue) : "None recorded"],
-    ["Areas not cleaned / excluded", primaryOpenItem ? "Included - see inaccessible area record" : "No inaccessible area recorded"],
-    ["Before / after photo evidence", data.proofPhotos.length > 0 ? `Included - ${data.proofPhotos.length} photos` : "No photos attached"],
+    ["Areas not cleaned / excluded", excludedAreas],
+    ["Before / after photo evidence", hasEvidencePhotos ? `Included - ${data.proofPhotos.length} photos` : "No photos attached"],
     ["Service label / notice", serviceNotice],
     ["Record maintained on premises", "Customer to retain with kitchen exhaust service records"],
-    ["Owner / vendor copy retained", "Customer copy and vendor archive retained"],
-    ["Recommended cleaning frequency", nextWindow],
+    ["Service provider copy", "Customer copy and service provider archive retained"],
+    ["Recommended interval", recommendedInterval],
+    ["Next service window", nextWindow],
+    ["Reviewer note", "Manager, landlord, insurer, or AHJ may apply separate requirements"],
   ] as const;
 
   return (
@@ -414,21 +591,19 @@ function ServiceEvidenceRecord({
             <div>
               <SectionKicker>Service evidence record</SectionKicker>
               <h3 className="mt-3 font-display text-[1.95rem] font-bold leading-[0.92] tracking-[-0.06em] text-[#151515] sm:text-[2.55rem]">
-                Kitchen exhaust cleaning service evidence record.
+                Kitchen exhaust service record.
               </h3>
             </div>
             <span className="rounded-full border border-[#f3c0a2] bg-[#fff0e7] px-3 py-1.5 text-xs font-semibold text-[#a9431f]">
-              {primaryOpenItem ? "Access item recorded" : "Closed"}
+              {primaryOpenItem ? "Excluded area listed" : "No excluded area"}
             </span>
           </div>
           <p className="mt-4 text-sm leading-7 text-[#5f574f]">
-            Prepared as a vendor-issued service evidence record for customer
-            files, manager review, landlord, insurance, or
-            documentation requests. It records service company identity, person
-            performing the work, service date, proof references, accessibility status,
-            areas cleaned, areas not cleaned or excluded, deficiencies, service label
-            reference, and retained-copy details. It does not replace an AHJ inspection,
-            fire-system service, approval, or full code compliance certification.
+            Prepared as a retained service record for customer files, manager
+            review, landlord, insurance, or documentation requests. It identifies
+            the property, service provider, person performing work, service date,
+            system scope, component status, excluded areas, photo status, label
+            details, and retained-copy trail.
           </p>
           <div className="mt-5">
             <DenseLedger rows={recordRows.map(([label, value]) => [label, transform(value)] as const)} />
@@ -441,28 +616,35 @@ function ServiceEvidenceRecord({
         >
           <SectionKicker>Report sheet fields</SectionKicker>
           <h3 className="mt-3 font-display text-[1.55rem] font-bold leading-[0.96] tracking-[-0.055em] text-[#151515]">
-            Accessibility and scope are explicit.
+            Component scope, exclusions, and retained evidence are separated.
           </h3>
           <div className="mt-5">
-            <DenseLedger rows={inspectionRows} />
+            <DenseLedger rows={serviceBoundaryRows} />
           </div>
-          <div className="mt-5 grid gap-4 border-t border-[#ded7cf] pt-5 sm:grid-cols-2">
+          <div
+            className={cx(
+              "mt-5 grid gap-4 border-t border-[#ded7cf] pt-5",
+              hasCompanyCredential && "sm:grid-cols-2",
+            )}
+          >
             <div>
               <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8b8178]">
                 Technician
               </p>
               <p className="mt-2 text-sm font-semibold leading-6 text-[#151515]">
-                {data.vendor.technician}
+                {recordedValue(data.vendor.technician)}
               </p>
             </div>
-            <div>
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8b8178]">
-                Company credential
-              </p>
-              <p className="mt-2 text-sm font-semibold leading-6 text-[#151515]">
-                {data.vendor.certification || "Credential not supplied"}
-              </p>
-            </div>
+            {hasCompanyCredential ? (
+              <div>
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8b8178]">
+                  Company credential
+                </p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-[#151515]">
+                  {recordedValue(data.vendor.certification)}
+                </p>
+              </div>
+            ) : null}
           </div>
           <div className="mt-5 border-t border-[#ded7cf] pt-5">
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8b8178]">
@@ -470,7 +652,7 @@ function ServiceEvidenceRecord({
             </p>
             <div className="mt-5 h-px w-full bg-[#bfb4a8]" />
             <p className="mt-2 text-xs leading-5 text-[#746b62]">
-              {data.vendor.preparedBy || data.vendor.name} - electronically prepared service record
+              {recordedValue(data.vendor.preparedBy, data.vendor.name)} - electronically prepared service record
             </p>
           </div>
         </div>
@@ -492,6 +674,10 @@ function ServiceEvidenceControls({
     getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-MASKED-0414");
   const serviceDate = getRecordValue(data.packetHeader.quickFacts, ["Service date"], "Service date recorded");
   const location = getRecordValue(data.packetHeader.quickFacts, ["Location"], "Location recorded");
+  const serviceWindow = getRecordValue(data.serviceRecordRows, ["Service window"], serviceDate);
+  const systemRef =
+    getRecordValue(data.systemIdentityRows, ["System"], "") ||
+    getRecordValue(data.packetHeader.quickFacts, ["System"], "Kitchen exhaust system");
   const serviceNotice =
     getRecordValue(data.closeoutRows, ["Label / notice ref"], "") ||
     getRecordValue(data.closeoutRows, ["Service label"], "Service label recorded");
@@ -499,33 +685,42 @@ function ServiceEvidenceControls({
     getRecordValue(data.closeoutRows, ["Label posted"], "") ||
     getRecordValue(data.operationalChecks, ["Service label / notice status"], "Recorded");
   const nextDue = getRecordValue(data.closeoutRows, ["Next due"], "Next due recorded");
+  const hasEvidencePhotos = data.proofPhotos.length > 0;
 
   const documentControlRows = [
     ["Report ID", reportId],
+    ["Document title", "Kitchen exhaust service evidence record"],
     ["Prepared date", serviceDate],
-    ["Service date", serviceDate],
+    ["Service date / window", serviceWindow],
     ["Servicing company", data.vendor.name],
     ["Person performing work", data.vendor.technician],
-    ["Vendor archive ref", "Vendor archive retained"],
+    ["System reference", systemRef],
+    ["Service provider archive", "Retained"],
     ["Customer copy", "PDF service evidence record"],
-    ["Original photo archive", "Retained by vendor"],
+    ["Photo archive", hasEvidencePhotos ? "Retained by service provider" : "No photos attached"],
     ["Service label / sticker ref", serviceNotice],
   ] as const;
 
-  const propertyRows = [
+  const propertyRows = ([
     ["Customer / property", data.packetHeader.title],
     ["Service location", location],
-    ["Store / unit ID", getRecordValue(data.systemIdentityRows, ["System ID"], "Not supplied")],
-    ["Suite / area", getRecordValue(data.systemIdentityRows, ["Line served"], "Main cookline")],
-    ["Property manager", "Not supplied"],
-    ["Internal / claim ref", "Not supplied"],
-  ] as const;
+    ["System", systemRef],
+    ["Line / area served", getRecordValue(data.systemIdentityRows, ["Line served"], "Main cookline")],
+    ["Property manager", ""],
+    ["Customer reference", ""],
+  ] as Row[]).filter(([, value]) => value.trim().length > 0);
 
   const submissionUseRows = [
-    ["Suitable for", "Customer records; manager review; landlord, insurance, or documentation requests"],
-    ["Not suitable for", "Official inspection; code compliance certification; AHJ approval; fire suppression service"],
-    ["Evidence basis", "Vendor-provided service facts, route status, and photo evidence"],
-    ["Limitation", "Blocked or inaccessible areas are excluded until access is provided"],
+    ["Use for", "Customer records; manager review; landlord, insurance, or documentation requests"],
+    ["Does not authorize", "Separate corrective or follow-up work"],
+    ["Reviewer boundary", "Manager, landlord, insurer, or AHJ may apply separate requirements"],
+    [
+      "Record source",
+      hasEvidencePhotos
+        ? "Service facts, route status, and attached photos recorded by the service provider"
+        : "Service facts and route status recorded by the service provider; no photos attached",
+    ],
+    ["Scope limit", "Blocked or inaccessible areas are excluded until access is provided"],
     ["Premises copy", "Maintain this record with kitchen exhaust service records"],
   ] as const;
 
@@ -553,16 +748,16 @@ function ServiceEvidenceControls({
         ["Revisit condition", "Routine service window only"],
       ] as const);
   const requiredFormatRows = [
-    ["Identity", "Servicing company, person performing work, customer, location, date, report ID"],
-    ["NFPA 96 fields", "Date cleaned, company, worker, areas not cleaned, deficiencies, label ref"],
-    ["Evidence", "Areas cleaned, photo refs, retained archive, technician credential"],
-    ["Limits", "Not AHJ approval, not code certification, not fire-system service"],
+    ["Identity", "Provider, worker, customer, location, system, date, report ID"],
+    ["Scope", "Hood, filters, duct/access, fan, grease path, excluded areas"],
+    ["Evidence", "Photo status, component status, label ref, retained archive"],
+    ["Boundary", "Separate from corrective work and outside reviewer requirements"],
   ] as const;
 
   return (
     <section className="pdf-document-section service-evidence-controls border-b border-[#ded7cf] bg-white px-4 py-6 sm:px-8 sm:py-7 lg:px-10">
       <div className="mb-6 rounded-[18px] border border-[#ded7cf] bg-[#fbfaf7] px-4 py-4">
-        <SectionKicker>Evidence-record format check</SectionKicker>
+        <SectionKicker>Record completeness check</SectionKicker>
         <div className="mt-3 grid gap-3 md:grid-cols-4">
           {requiredFormatRows.map(([label, value]) => (
             <div key={label} className="min-w-0 border-t border-[#e7e0d8] pt-3 first:border-t-0 md:border-l md:border-t-0 md:pl-3 md:first:border-l-0 md:first:pt-3">
@@ -637,22 +832,22 @@ function OutputRoleBlock({
   customerFacing: boolean;
   serviceRecord: boolean;
 }) {
-  const recordName = customerFacing ? "report" : "packet";
+  const recordName = serviceRecord ? "PDF service evidence record" : "customer service link";
   const title = serviceRecord
     ? `Use this ${recordName} as service evidence for records requests.`
     : customerFacing
-      ? "Keep this link with your kitchen exhaust service records."
+      ? "Send this link when the customer needs the result and next step."
       : "Send this link when the customer needs to understand the visit.";
   const copy = serviceRecord
     ? `This ${recordName} summarizes the service date, work scope, photo evidence, inaccessible or not-serviced areas, findings, and next recommended service window for customer files, manager review, insurance, landlord, or documentation requests.`
     : customerFacing
-      ? "This link shows the cleaned scope, open items, proof photos, and next action without requiring another explanation call."
+      ? "This link shows the cleaned scope, action items, attached photos, and next action. Use the evidence PDF for retained evidence or outside record requests."
       : `This ${recordName} shows what was cleaned, what stayed open, what the photos prove, and what the customer should do next without waiting for another explanation call.`;
   const chips = serviceRecord
     ? ["Service record cover", "Report sheet fields", "Photo evidence appendix"]
     : customerFacing
-      ? ["Cleaned scope", "Open item visible", "Next action"]
-      : ["Readable in one pass", "Open item visible", "Reply path included"];
+      ? ["Cleaned scope", "Action item visible", "Evidence PDF separate"]
+      : ["Readable in one pass", "Action item visible", "Reply path included"];
 
   return (
     <section className="pdf-document-section border-b border-[#ded7cf] bg-white/72 px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
@@ -661,11 +856,11 @@ function OutputRoleBlock({
           <SectionKicker>
             {serviceRecord
               ? customerFacing
-                ? "Service record PDF"
-                : "Service record packet"
+                ? "Service evidence PDF"
+                : "Service evidence PDF"
               : customerFacing
-                ? "Customer proof link"
-                : "Customer-ready proof packet"}
+                ? "Customer service link"
+                : "Customer-ready service link"}
           </SectionKicker>
           <h3 className="mt-3 font-display text-[1.78rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.25rem]">
             {title}
@@ -708,6 +903,7 @@ function CustomerProofSnapshot({
   data: Axis1PacketPreviewData;
   transform: (value: string) => string;
 }) {
+  const conditionOnly = isConditionOnlyRecord(data);
   const primaryOpenItem = data.deficiencyRows[0] ?? null;
   const primaryAction = findActionValue(data.customerClose.actionItems, [
     /access action/i,
@@ -719,11 +915,15 @@ function CustomerProofSnapshot({
     /next visit window/i,
   ]);
   const openTitle =
-    data.scenario === "exception" && primaryOpenItem
+    conditionOnly && primaryOpenItem
+      ? transform(primaryOpenItem.issue)
+      : data.scenario === "exception" && primaryOpenItem
       ? transform(primaryOpenItem.issue)
       : "No open access item recorded.";
   const openCopy =
-    data.scenario === "exception" && primaryOpenItem
+    conditionOnly && primaryOpenItem
+      ? transform(primaryOpenItem.ownerAction)
+      : data.scenario === "exception" && primaryOpenItem
       ? transform(primaryOpenItem.ownerAction)
       : "Accessible service areas were closed and the next service window is ready to confirm.";
   const actionTitle = transform(data.customerClose.title);
@@ -736,14 +936,20 @@ function CustomerProofSnapshot({
 
   const rows = [
     {
-      label: "Completed today",
-      title: transform(data.summaryCards[0]?.title ?? "Accessible work completed."),
-      copy: transform(data.summaryCards[0]?.copy ?? data.packetHeader.copy),
+      label: conditionOnly ? "Recorded today" : "Completed today",
+      title: conditionOnly
+        ? "Condition recorded; no cleaning claimed."
+        : transform(data.summaryCards[0]?.title ?? "Accessible work completed."),
+      copy: conditionOnly
+        ? transform(data.completedWork[0] ?? data.packetHeader.copy)
+        : transform(data.summaryCards[0]?.copy ?? data.packetHeader.copy),
       icon: IconCircleCheckFilled,
-      tone: "success",
+      tone: conditionOnly ? "action" : "success",
     },
     {
-      label: data.scenario === "exception" ? "Not completed" : "Open item",
+      label: conditionOnly
+        ? "Recorded condition"
+        : data.scenario === "exception" ? "Action needed" : "No action needed",
       title: openTitle,
       copy: openCopy,
       icon: data.scenario === "exception" ? IconAlertTriangleFilled : IconCircleCheckFilled,
@@ -775,7 +981,7 @@ function CustomerProofSnapshot({
   return (
     <section className="pdf-document-section border-b border-[#ded7cf] bg-[#fbfaf7] px-4 py-6 sm:px-8 sm:py-7 lg:px-10">
       <div className="mb-5 max-w-3xl">
-        <SectionKicker>Customer proof summary</SectionKicker>
+        <SectionKicker>Customer summary</SectionKicker>
         <h3 className="mt-3 font-display text-[1.9rem] font-bold leading-[0.94] tracking-[-0.06em] text-[#151515] sm:text-[2.55rem]">
           What happened today and what to do next.
         </h3>
@@ -843,6 +1049,7 @@ function CustomerExhaustPathBlock({
   data: Axis1PacketPreviewData;
   transform: (value: string) => string;
 }) {
+  const conditionOnly = isConditionOnlyRecord(data);
   const hood = findRouteSegment(data.routeSegments, "HD-01");
   const filters = findRouteSegment(data.routeSegments, "FL-01");
   const plenum = findRouteSegment(data.routeSegments, "PL-01");
@@ -916,13 +1123,15 @@ function CustomerExhaustPathBlock({
         <div>
           <SectionKicker>Exhaust system path</SectionKicker>
           <h3 className="mt-3 font-display text-[1.85rem] font-bold leading-[0.94] tracking-[-0.06em] sm:text-[2.35rem]">
-            Not just the hood. The visit follows the grease exhaust line.
+            {conditionOnly
+              ? "Recorded condition only. Cleaning is not claimed."
+              : "Not just the hood. The visit follows the grease exhaust line."}
           </h3>
         </div>
         <p className="max-w-2xl text-sm leading-6 text-white/66 lg:justify-self-end">
-          The customer can see the cleaned hood line, filter reset, accessible duct path,
-          roof discharge record, and grease path note. Anything blocked stays visible
-          instead of being implied as finished.
+          {conditionOnly
+            ? "The customer can see the recorded condition and next action without mistaking this record for completed corrective work."
+            : "The customer can see the cleaned hood line, filter reset, accessible duct path, roof discharge record, and grease path note. Anything blocked stays visible instead of being implied as finished."}
         </p>
       </div>
 
@@ -1004,9 +1213,9 @@ function CustomerKeyProofPhotos({
     <section className="pdf-document-section border-b border-[#ded7cf] bg-white px-4 py-6 sm:px-8 sm:py-7 lg:px-10">
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
-          <SectionKicker>Key proof photos</SectionKicker>
+          <SectionKicker>Key field photos</SectionKicker>
           <h3 className="mt-3 font-display text-[1.75rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.2rem]">
-            The main before, after, and open-item proof.
+            The main before, after, and open-item photos.
           </h3>
         </div>
         <p className="max-w-md text-sm leading-6 text-[#746b62]">
@@ -1015,7 +1224,7 @@ function CustomerKeyProofPhotos({
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
-        {keyPhotos.map((photo) => {
+        {keyPhotos.map((photo, index) => {
           const tone = proofToneClasses(photo.tone);
 
           return (
@@ -1027,6 +1236,7 @@ function CustomerKeyProofPhotos({
                   fill
                   sizes="(min-width: 1024px) 28vw, (min-width: 768px) 30vw, 100vw"
                   className="object-cover"
+                  loading={index === 0 ? "eager" : "lazy"}
                   style={{
                     filter: tone.filter,
                     objectPosition: photo.position,
@@ -1070,7 +1280,7 @@ function CustomerReplyPathBlock({ data }: { data: Axis1PacketPreviewData }) {
         <div className="min-w-0">
           <SectionKicker>Reply path</SectionKicker>
           <h3 className="mt-3 font-display text-[1.55rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[1.95rem]">
-            Reply here to clarify an open item or schedule follow-up.
+            Reply here to clarify an action item or schedule follow-up.
           </h3>
         </div>
         <ContactStrip data={data} />
@@ -1093,6 +1303,7 @@ function OpenServiceItemBlock({
   }
 
   const primaryOpenItem = data.deficiencyRows[0];
+  const conditionOnly = isConditionOnlyRecord(data);
   const isAccessItem =
     /access|not cleaned|inaccessible|blocked/i.test(data.callout.eyebrow) ||
     /access|duct/i.test(primaryOpenItem.location);
@@ -1114,7 +1325,9 @@ function OpenServiceItemBlock({
               : "Recorded condition stays visible after the visit."}
           </h3>
           <p className="mt-3 max-w-xl text-sm leading-7 text-[#746b62]">
-            {serviceRecord
+            {conditionOnly
+              ? "The customer sees the recorded condition and the next action without treating it as completed corrective work."
+              : serviceRecord
               ? "The record separates completed work from inaccessible or not-serviced areas so a later reader does not mistake the full system as completed."
               : "The customer sees what stayed open, why it stayed open, and what action is needed instead of assuming the full system was completed."}
           </p>
@@ -1250,10 +1463,12 @@ function PhotoEvidence({
 export function Axis1PacketDocument({
   data,
   className,
+  heroHeadingLevel,
   variant = "vendor-sample",
   outputIntent = "customer-link",
   presentationMode = "standard",
   visibleSections,
+  editConfig,
 }: Axis1PacketDocumentProps) {
   const isCustomerReport = variant === "customer-report";
   const isServiceRecord = outputIntent === "service-record";
@@ -1262,13 +1477,15 @@ export function Axis1PacketDocument({
       <CustomerWebPacket
         data={data}
         className={className}
+        heroHeadingLevel={heroHeadingLevel}
         presentationMode={presentationMode}
         visibleSections={visibleSections}
+        editConfig={editConfig}
       />
     );
   }
 
-  const copy = isCustomerReport ? customerFacingCopy : (value: string) => value;
+  const copy = isServiceRecord ? serviceRecordCopy : (value: string) => value;
   const sections = {
     ...defaultSectionVisibility,
     ...visibleSections,
@@ -1276,8 +1493,8 @@ export function Axis1PacketDocument({
   const isShort = presentationMode === "short";
   const documentState =
     data.scenario === "exception"
-      ? "Open item visible"
-      : "Customer-ready closeout";
+      ? "Action item visible"
+      : "Ready for records";
   const documentReportId =
     getRecordValue(data.packetHeader.quickFacts, ["Report ID"], "") ||
     getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-MASKED-0414");
@@ -1299,7 +1516,7 @@ export function Axis1PacketDocument({
       "Prepared by technician",
       "Technician credential",
       "Dispatch",
-      "Approved on site",
+      "Reviewed on site",
       "On-site record",
       "Delivery record",
       "Record retention",
@@ -1312,12 +1529,16 @@ export function Axis1PacketDocument({
     ["Site contact", "Customer action", "Record location"].includes(label),
   );
   const customerCloseActionItems = mapRows(data.customerClose.actionItems, copy);
+  const displayedCustomerCloseActionItems = isServiceRecord
+    ? serviceRecordActionRows(customerCloseActionItems)
+    : customerCloseActionItems;
   const hasVendorContact =
     data.vendor.directLine.trim().length > 0 ||
     data.vendor.dispatch.trim().length > 0 ||
     data.vendor.certification.trim().length > 0 ||
     data.vendor.afterHours.trim().length > 0;
   const hasProofPhotos = data.proofPhotos.length > 0;
+  const conditionOnly = isConditionOnlyRecord(data);
   const showPhotoCoverage =
     sections.checklist && (!isCustomerReport || hasProofPhotos);
   const showPhotoEvidence =
@@ -1334,12 +1555,14 @@ export function Axis1PacketDocument({
     : "The usual vendor checklist becomes a clean customer record.";
   const componentStatusCopy = isCustomerReport
     ? "Use this list to see which parts of the exhaust system were cleaned, documented, or left for follow-up."
-    : "This is the premium-company layer: component status, proof reference, and customer-readable notes in one place.";
-  const photoCoverageTitle = isCustomerReport
-    ? "Photo proof attached."
-    : "Photos, label, and archive are accounted for.";
+    : "This is the premium-company layer: component status, evidence reference, and customer-readable notes in one place.";
+  const photoCoverageTitle = isServiceRecord
+    ? "Photo evidence attached."
+    : isCustomerReport
+      ? "Photos attached."
+      : "Photos, label, and archive are accounted for.";
   const photoEvidenceTitle = isCustomerReport
-    ? "Photos are organized as proof."
+    ? "Photos are organized as evidence."
     : "Photos are evidence, not a dump.";
   const serviceRecordProofPhotos = [
     data.proofPhotos.find((photo) => photo.tone === "before"),
@@ -1388,7 +1611,7 @@ export function Axis1PacketDocument({
 
             <div className="mt-7 max-w-3xl sm:mt-9">
               <SectionKicker>
-                {isServiceRecord ? "Service record" : "Customer proof"}
+                {isServiceRecord ? "Service evidence PDF" : "Customer service link"}
               </SectionKicker>
               <h2 className="mt-3 font-display text-[2.05rem] font-bold leading-[0.92] tracking-[-0.065em] text-[#151515] sm:text-[3.65rem]">
                 {data.packetHeader.title}
@@ -1419,8 +1642,8 @@ export function Axis1PacketDocument({
               <span className="rounded-full border border-[#ded7cf] bg-white/75 px-2.5 py-1 text-[11px] font-medium text-[#5f574f]">
                 {isCustomerReport
                   ? isServiceRecord
-                    ? "Service record PDF"
-                    : "Customer proof link"
+                    ? "Service evidence PDF"
+                    : "Customer service link"
                   : data.vendor.brandingApplied
                     ? "Branded vendor version"
                     : "Public sample shell"}
@@ -1522,7 +1745,7 @@ export function Axis1PacketDocument({
             <div className="min-w-0">
               {showPhotoCoverage ? (
                 <>
-                  <SectionKicker>{isCustomerReport ? "Proof attached" : "Proof coverage"}</SectionKicker>
+                  <SectionKicker>{isServiceRecord ? "Photo evidence" : isCustomerReport ? "Photos attached" : "Photo coverage"}</SectionKicker>
                   <h3 className="mt-3 font-display text-[1.72rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[2rem]">
                     {photoCoverageTitle}
                   </h3>
@@ -1555,7 +1778,7 @@ export function Axis1PacketDocument({
         >
           {showRouteEvidence ? (
             <div className="min-w-0">
-              <SectionKicker>Inspection route</SectionKicker>
+              <SectionKicker>Service route</SectionKicker>
               <h3 className="mt-3 font-display text-[1.72rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[2rem]">
                 The report follows the exhaust line.
               </h3>
@@ -1620,9 +1843,11 @@ export function Axis1PacketDocument({
         >
           {sections.routeDetail ? (
           <div className="min-w-0">
-            <SectionKicker>What was cleaned</SectionKicker>
+            <SectionKicker>{conditionOnly ? "What was recorded" : "What was cleaned"}</SectionKicker>
             <h3 className="mt-3 font-display text-[1.72rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[2rem]">
-              Cleaned areas and exceptions are not mixed.
+              {conditionOnly
+                ? "Recorded condition is separate from completed cleaning."
+                : "Cleaned areas and exceptions are not mixed."}
             </h3>
             <div className="mt-6 divide-y divide-[#e7e0d8] border-y border-[#ded7cf]">
               {scopeRows.map(([area, status, note]) => (
@@ -1643,7 +1868,7 @@ export function Axis1PacketDocument({
 
           <div className="min-w-0 space-y-7">
             <div>
-              <SectionKicker>Work finished today</SectionKicker>
+              <SectionKicker>{conditionOnly ? "Cleaning claim" : "Work finished today"}</SectionKicker>
               <div className="mt-4 divide-y divide-[#e7e0d8] border-y border-[#ded7cf]">
                 {data.completedWork.map((item) => (
                   <div key={item} className="grid grid-cols-[14px_minmax(0,1fr)] gap-3 py-3">
@@ -1752,7 +1977,7 @@ export function Axis1PacketDocument({
             </div>
             <p className="mt-4 text-sm leading-7 text-white/68">{copy(data.customerClose.copy)}</p>
             <dl className="mt-5 divide-y divide-white/10 border-y border-white/10">
-              {customerCloseActionItems.map(([label, value]) => (
+              {displayedCustomerCloseActionItems.map(([label, value]) => (
                 <div
                   key={label}
                   className="grid gap-1 py-3 text-sm sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] sm:gap-4"
@@ -1775,7 +2000,7 @@ export function Axis1PacketDocument({
             </h3>
             <p className="mt-3 text-sm leading-6 text-[#746b62]">{copy(data.customerClose.copy)}</p>
             <div className="mt-4">
-              <DenseLedger rows={customerCloseActionItems} />
+              <DenseLedger rows={displayedCustomerCloseActionItems} />
             </div>
           </div>
           ) : null}
@@ -1814,9 +2039,9 @@ export function Axis1PacketDocument({
 
           <div className="pdf-document-card packet-ack-card rounded-[24px] border border-[#ded7cf] bg-white/72 px-5 py-5 print:hidden">
             <SectionKicker>Customer file note</SectionKicker>
-            <h3 className="mt-3 font-display text-[1.62rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[1.9rem]">
-              The handoff has a record trail.
-            </h3>
+          <h3 className="mt-3 font-display text-[1.62rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[1.9rem]">
+              The service record has a clear trail.
+          </h3>
             <div className="mt-5">
               <DenseLedger rows={acknowledgementRows} />
             </div>
@@ -1826,15 +2051,17 @@ export function Axis1PacketDocument({
       {!isServiceRecord ? (
         <footer className="pdf-document-section service-record-footer border-t border-[#ded7cf] bg-[#f5f1ea] px-4 py-5 sm:px-8 lg:px-10">
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8b8178]">
-            Service evidence limitations
+            Service record limitations
           </p>
           <p className="mt-2 max-w-4xl text-xs leading-6 text-[#746b62]">
-            This {isCustomerReport ? "report" : "packet"} is a customer-facing
-            service communication and documentation aid prepared from vendor-provided
-            job information. It does not certify code compliance, replace an official
-            inspection or fire-system service, or guarantee approval by any authority
-            having jurisdiction. Blocked, inaccessible, concealed, or not-serviced
-            areas are excluded until access is provided and follow-up service is completed.
+            This service record summarizes this service visit from the service
+            provider&apos;s records. Use the evidence PDF as the retained evidence
+            copy for files, manager review, insurance, landlord, or documentation
+            requests. A manager, landlord, insurer, or reviewer may still apply
+            their own requirements, and separate corrective or follow-up work needs
+            a separate go-ahead.
+            Blocked, inaccessible, concealed, or not-serviced areas are excluded
+            until access is provided and follow-up service is completed.
           </p>
         </footer>
       ) : null}

@@ -1,0 +1,46 @@
+services:
+  app:
+    image: ${HOOD_IMAGE:?set HOOD_IMAGE}
+    restart: unless-stopped
+    environment:
+      APP_DATASOURCE_URL: ${APP_DATASOURCE_URL:?set APP_DATASOURCE_URL}
+      APP_DATASOURCE_DRIVER: ${APP_DATASOURCE_DRIVER:-org.postgresql.Driver}
+      APP_DATASOURCE_USERNAME: ${APP_DATASOURCE_USERNAME:?set APP_DATASOURCE_USERNAME}
+      APP_DATASOURCE_PASSWORD: ${APP_DATASOURCE_PASSWORD:?set APP_DATASOURCE_PASSWORD}
+      APP_HIBERNATE_DDL_AUTO: ${APP_HIBERNATE_DDL_AUTO:-validate}
+      GG_JTE_DEVELOPMENT_MODE: "false"
+      GG_JTE_USE_PRECOMPILED_TEMPLATES: "true"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      HOOD_SITE_BASE_URL: ${HOOD_SITE_BASE_URL:?set HOOD_SITE_BASE_URL}
+      HOOD_SITE_NAME: ${HOOD_SITE_NAME:-hood}
+      HOOD_SITE_SUPPORT_EMAIL: ${HOOD_SITE_SUPPORT_EMAIL:?set HOOD_SITE_SUPPORT_EMAIL}
+      HOOD_STORAGE_ROOT: /app/storage
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=75.0}
+      SPRING_H2_CONSOLE_ENABLED: "false"
+    volumes:
+      - hood-storage:/app/storage
+    networks:
+      - hood
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      APP_UPSTREAM: app:8080
+      HOOD_SITE_ADDR: ${HOOD_SITE_ADDR:?set HOOD_SITE_ADDR}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ${HOOD_CERT_ROOT:?set HOOD_CERT_ROOT}:/etc/letsencrypt:ro
+    networks:
+      - hood
+
+networks:
+  hood:
+
+volumes:
+  hood-storage:

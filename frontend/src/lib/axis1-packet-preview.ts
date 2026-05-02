@@ -1,8 +1,16 @@
-export type Axis1PacketBranding = "applied" | "neutral";
+﻿export type Axis1PacketBranding = "applied" | "neutral";
 export type Axis1PacketScenario = "exception" | "clean";
 
 type SummaryIcon = "status" | "action" | "next";
 type StatusTone = "before" | "after" | "issue" | "record";
+type CloseoutCtaPriority = "primary" | "secondary" | "tertiary" | "utility";
+type GeneratedOutputReadiness = "ready" | "needs_review" | "not_applicable";
+type VendorSendReadinessSeverity = "blocker" | "review" | "note";
+type ProofCoverageState =
+  | "captured"
+  | "not_captured"
+  | "not_applicable"
+  | "open";
 
 export type Axis1PacketPreviewData = {
   branding: Axis1PacketBranding;
@@ -97,6 +105,85 @@ export type Axis1PacketPreviewData = {
   acknowledgementRows: readonly [string, string][];
   scopeNote: string;
   sampleFooter: readonly [string, string][];
+  closeout?: {
+    outcomeType: string;
+    evidenceBasis: string;
+    claimLevel: string;
+    recordFormat: {
+      type: string;
+      label: string;
+      builderTitle: string;
+      builderCopy: string;
+      customerCopy: string;
+      recordBasis: string;
+      reason: string;
+    };
+    primaryStatusLabel: string;
+    basisLabel: string;
+    customerActionTitle: string;
+    customerActionCopy: string;
+    claimLimitCopy: string;
+    responsibilityCopy: string;
+    warnings: readonly string[];
+    generatedOutputs: ReadonlyArray<{
+      kind: string;
+      label: string;
+      readiness: GeneratedOutputReadiness;
+      reason?: string;
+      copy?: string;
+      ctaKind?: string;
+    }>;
+    vendorSendReadinessWarnings: ReadonlyArray<{
+      kind: string;
+      severity: VendorSendReadinessSeverity;
+      title: string;
+      copy: string;
+      customerCopy: string;
+      proofAreaId?: string;
+    }>;
+    ctas: ReadonlyArray<{
+      kind: string;
+      label: string;
+      href?: string;
+      priority: CloseoutCtaPriority;
+      enabled: boolean;
+      reason?: string;
+    }>;
+    primaryCta?: {
+      kind: string;
+      label: string;
+      href?: string;
+      priority: CloseoutCtaPriority;
+      enabled: boolean;
+      reason?: string;
+    };
+    proofCoverage: {
+      capturedCount: number;
+      recommendedCount: number;
+      requiredOpenCount: number;
+      label: string;
+      shortLabel: string;
+      items: ReadonlyArray<{
+        id: string;
+        label: string;
+        state: ProofCoverageState;
+        required: boolean;
+        proofId?: string;
+        customerCopy: string;
+        vendorReviewCopy: string;
+      }>;
+    };
+    coverageEducation: {
+      title: string;
+      summary: string;
+      items: ReadonlyArray<{
+        label: string;
+        copy: string;
+        state: "covered" | "recorded" | "action_required" | "not_claimed";
+      }>;
+      boundaryCopy: string;
+    };
+  };
 };
 
 const baseProofPhotos = [
@@ -129,7 +216,7 @@ const baseProofPhotos = [
     label: "Filters",
     title: "Baffle filters reset",
     caption: "Filters, tracks, and nearby grease collection points are documented where accessible.",
-    proofRole: "Filter-line proof",
+    proofRole: "Filter-line evidence",
     tone: "after",
     position: "50% 50%",
   },
@@ -140,7 +227,7 @@ const baseProofPhotos = [
     label: "Access",
     title: "Duct access condition",
     caption: "Reachable plenum and duct access are separated from anything blocked or not serviced.",
-    proofRole: "Access-path proof",
+    proofRole: "Access-path evidence",
     tone: "issue",
     position: "50% 50%",
   },
@@ -162,7 +249,7 @@ const baseProofPhotos = [
     label: "Record",
     title: "Grease path and containment",
     caption: "Removed buildup, drip path, and containment condition are recorded instead of only claimed.",
-    proofRole: "Grease-path proof",
+    proofRole: "Grease-path evidence",
     tone: "record",
     position: "50% 50%",
   },
@@ -210,7 +297,7 @@ export function getAxis1PacketPreviewData(options: {
         reviewPrompt: "review@summit.example",
         preparedBy: "Summit Hood Service Co. | SH-114",
         previewBlurb:
-          "Customer sees a same-day proof packet with vendor brand, service contact, credential, and record references already in place.",
+          "Customer sees a same-day customer link with vendor brand, service contact, credential, and record references already in place.",
         brandingApplied: true,
       }
     : {
@@ -238,7 +325,7 @@ export function getAxis1PacketPreviewData(options: {
     packetHeader: {
       title: "Masked restaurant group",
       copy:
-        "This proof packet shows what was cleaned today, what was not completed or recorded, the proof photos, and the next action.",
+        "This customer link shows what was cleaned today, what was not completed or recorded, attached photos, and the next action.",
       quickFacts: [
         ["Service date", "Apr 14, 2026"],
         ["Location", "Austin, TX"],
@@ -252,7 +339,7 @@ export function getAxis1PacketPreviewData(options: {
         ["Report ID", "HDS-MASKED-0414"],
       ],
       archiveNote:
-        "Customer sees the clear service report. Full image archive, raw technician notes, and internal QA detail stay retained in the office file.",
+        "Customer sees the clear customer link. Full image archive, raw technician notes, and internal QA detail stay retained in the office file.",
     },
     summaryCards: [
       {
@@ -291,10 +378,10 @@ export function getAxis1PacketPreviewData(options: {
       ["Site", "Masked Austin, TX"],
       ["System", "SYS-01 / main cookline hood line"],
       ["Line served", "Main Type I cookline"],
-      ["Packet coverage", "One report for one exhaust system"],
+      ["Customer link coverage", "One closeout record for one exhaust system"],
       ["Access basis", "Accessible hood, filters, plenum, duct access, fan / roof discharge, and grease path"],
       ["On-site diagram", "Matched to SYS-01 / main cookline line"],
-      ["Approved on site", "Store manager (masked)"],
+      ["Reviewed on site", "Store manager (masked)"],
     ],
     serviceRecordRows: [
       ["Service window", "Apr 14, 2026 | 01:10-03:05"],
@@ -322,8 +409,8 @@ export function getAxis1PacketPreviewData(options: {
           : "No deficiency record required in this sample",
       ],
       [
-        "Official inspection status",
-        "Not an AHJ inspection, approval, or code compliance certificate",
+        "Separate scope note",
+        "Separate trade work and follow-up authorization are outside this closeout record",
       ],
       ["Report ID", "HDS-MASKED-0414"],
     ],
@@ -332,7 +419,7 @@ export function getAxis1PacketPreviewData(options: {
         code: "HD-01",
         title: "Hood canopy",
         status: "Cleaned",
-        note: "Before / after proof P-01 and P-02",
+        note: "Before / after photos P-01 and P-02",
       },
       {
         code: "FL-01",
@@ -373,19 +460,19 @@ export function getAxis1PacketPreviewData(options: {
     proofPolicyRows: [
       [
         "What you are seeing",
-        "Shows curated customer proof tied to section references, not every raw image from the visit.",
+        "Shows curated customer record tied to section references, not every raw image from the visit.",
       ],
       [
         "What stays in office records",
-        "Full photo archive, raw technician notes, and QA detail stay retained outside the customer packet.",
+        "Full photo archive, raw technician notes, and QA detail stay retained outside this customer link.",
       ],
       [
-        "Open items stay visible",
+        "Action items stay visible",
         "Any blocked, inaccessible, or unworked section remains visible instead of being implied as finished.",
       ],
       [
-        "Not a separate trade report",
-        "Fire suppression inspection, repair approval, and design compliance review are outside this service record unless separately quoted.",
+        "Not separate trade work",
+        "Separate trade service and follow-up work are outside this service record unless separately quoted.",
       ],
     ],
     componentStatusRows: [
@@ -393,13 +480,13 @@ export function getAxis1PacketPreviewData(options: {
         component: "Hood canopy interior",
         status: "Cleaned",
         proof: "P-01 / P-02",
-        note: "Before and after proof attached to HD-01.",
+        note: "Before and after photos attached to HD-01.",
       },
       {
         component: "Baffle filters / tracks",
         status: "Removed + reset",
         proof: "P-03",
-        note: "Filters removed, cleaned, inspected, reinstalled; tracks and nearby grease collection points documented where accessible.",
+        note: "Filters removed, cleaned, checked, and reinstalled; tracks and nearby grease collection points documented where accessible.",
       },
       {
         component: "Plenum / reachable duct path",
@@ -449,7 +536,7 @@ export function getAxis1PacketPreviewData(options: {
       { item: "Full raw archive", proof: "Office file", status: "Retained" },
     ],
     scopeRows: [
-      ["HD-01 Hood canopy interior", "Cleaned", "Cleaned and tied to proof photos P-01 / P-02"],
+      ["HD-01 Hood canopy interior", "Cleaned", "Cleaned and tied to field photos P-01 / P-02"],
       ["FL-01 Filters / tracks", "Reset", "Baffle filters reset; tracks and grease collection points documented where accessible"],
       ["PL-01 Plenum / reachable duct path", "Reachable cleaned", "Reachable path cleaned and recorded"],
       [
@@ -467,10 +554,10 @@ export function getAxis1PacketPreviewData(options: {
       "Degreased and wiped accessible hood interior surfaces",
       "Removed and cleaned filter bank before reinstall",
       "Cleaned reachable plenum and duct-path surfaces",
-      "Documented visible system condition with section-linked evidence photos",
+      "Documented visible system condition with section-linked field photos",
       "Recorded fan housing, hinge/base, curb, roof discharge, and grease-containment condition for future follow-up",
       "Posted service label and exception notice at close-out",
-      "Prepared a same-day customer proof link with next-step guidance",
+      "Prepared a same-day customer link with next-step guidance",
     ],
     operationalChecks: [
       ["Cookline protection before wash", "Completed"],
@@ -481,8 +568,8 @@ export function getAxis1PacketPreviewData(options: {
       ["On-site exhaust diagram checked", "Matched to SYS-01"],
       ["Next service timing recorded", "Jul 8-13, 2026"],
       ["Service label / notice status", exceptionOpen ? "Posted with exception" : "Posted"],
-      ["Fire suppression inspection", "Separate scope"],
-      ["Repair work included", "Separate quote"],
+      ["Separate trade service", "Separate scope"],
+      ["Follow-up work included", "Separate quote"],
       [
         "Deficiency record required",
         exceptionOpen ? "Required - access item remains" : "Not required",
@@ -501,19 +588,19 @@ export function getAxis1PacketPreviewData(options: {
           eyebrow: "Access blocked / not cleaned",
           title: "Blocked access stays visible.",
           copy:
-            "Blocked access is shown directly instead of being buried in technician notes. The report stays defensible by saying what was cleaned, what was not accessible, and what the customer needs to clear next.",
+            "Blocked access is shown directly instead of being buried in technician notes. The customer link stays defensible by saying what was cleaned, what was not accessible, and what the customer needs to clear next.",
           tone: "issue",
         }
       : {
           eyebrow: "Service close-out",
           title: "No open access exception remains.",
           copy:
-            "Accessible sections were cleaned, documented, and closed without an open access exception at departure. The packet can move directly into record retention and next-cycle confirmation.",
+            "Accessible sections were cleaned, documented, and closed without an open access exception at departure. The customer link can move directly into record retention and next-cycle confirmation.",
           tone: "success",
         },
     notesSection: exceptionOpen
       ? {
-          label: "Open items + next steps",
+          label: "Action items + next steps",
           title: "Anything still open is listed here in plain language.",
         }
       : {
@@ -539,9 +626,9 @@ export function getAxis1PacketPreviewData(options: {
             whyItMatters:
               "If ignored, the condition can turn into grease escape, roof-condition complaints, or a harder fan-access discussion between cycles.",
             ownerAction:
-              "Approve a hinge and curb-line repair review now, or keep the condition on watch before the next service window.",
+              "Request a hinge and curb-line follow-up quote now, or keep the condition on watch before the next service window.",
             notice:
-              "Recorded from rooftop proof P-05. Repair is not included in this report.",
+              "Recorded from rooftop photo P-05. Follow-up work is not included in this service record.",
             status: "Review",
           },
           {
@@ -551,7 +638,7 @@ export function getAxis1PacketPreviewData(options: {
               "Grease escape or staining can create roof complaints even when the hood cleaning itself was completed.",
             ownerAction:
               "Approve containment review if staining grows, or keep the condition on the next-cycle watch list.",
-            notice: "Condition recorded from rooftop and grease-removal proof. Repair is not included in this report.",
+            notice: "Condition recorded from rooftop and grease-removal photo evidence. Follow-up work is not included in this service record.",
             status: "Review",
           },
         ]
@@ -562,7 +649,7 @@ export function getAxis1PacketPreviewData(options: {
             whyItMatters:
               "The customer can understand the service visit without another explanation call.",
             ownerAction:
-              "Retain this packet for records and confirm the next planned service window.",
+              "Retain this customer link for records and confirm the next planned service window.",
             notice: "Standard service label posted with next due date.",
             status: "Closed",
           },
@@ -570,10 +657,10 @@ export function getAxis1PacketPreviewData(options: {
             location: "RF-01 Rooftop record",
             issue: "Rooftop fan area was photographed and retained as part of the customer file.",
             whyItMatters:
-              "The record supports future repair discussion without forcing the office to reconstruct the visit later.",
+              "The record supports future quote discussion without forcing the office to reconstruct the visit later.",
             ownerAction:
-              "Request a repair review if the fan condition changes before the next cycle.",
-            notice: "Record-only note. No open repair item is required today.",
+              "Request a follow-up quote if the fan condition changes before the next cycle.",
+            notice: "Record-only note. No open follow-up item is required today.",
             status: "Monitor",
           },
           {
@@ -583,7 +670,7 @@ export function getAxis1PacketPreviewData(options: {
               "Rebook timing is explicit instead of disappearing into office follow-up or memory.",
             ownerAction:
               "Reply to confirm Jul 8-13, 2026 or request a different service window.",
-            notice: "Rebook cue is included in the same customer packet.",
+            notice: "Rebook cue is included in the same customer link.",
             status: "Needs reply",
           },
         ],
@@ -591,7 +678,7 @@ export function getAxis1PacketPreviewData(options: {
       ? {
           title: "Clear rear duct access, then reply.",
           copy:
-            "The proof link separates completed work from the blocked access area, so the next reply can confirm the access revisit.",
+            "The customer link separates completed work from the blocked access area, so the next reply can confirm the access revisit.",
           actionItems: [
             ["Access action", "Move stored items from rear duct access"],
             ["Access revisit", "After rear duct access is cleared"],
@@ -603,11 +690,11 @@ export function getAxis1PacketPreviewData(options: {
       : {
           title: "Reply to confirm the next service window.",
           copy:
-            "The proof link keeps the recommended service window visible while the visit is still fresh.",
+            "The customer link keeps the recommended service window visible while the visit is still fresh.",
           actionItems: [
             ["Next visit window", "Jul 8-13, 2026"],
             ["Reply or action", "Confirm next service"],
-            ["Optional follow-up", "Request repair review if condition changes"],
+            ["Optional follow-up", "Request follow-up quote if condition changes"],
           ],
         },
     closeoutRows: [
@@ -631,13 +718,13 @@ export function getAxis1PacketPreviewData(options: {
       ["Dispatch", vendor.dispatch],
       ["After-hours", vendor.afterHours],
       ["Follow-up contact", vendor.reviewPrompt],
-      ["Approved on site", "Store manager / masked"],
-      ["On-site record", "Keep this report with kitchen service records"],
+      ["Reviewed on site", "Store manager / masked"],
+      ["On-site record", "Keep this customer link with kitchen service records"],
       ["Customer link", "https://kitchenpermit.com/p/hds-masked-0414"],
-      ["Delivery record", "PDF service record emailed same day"],
-      ["Record retention", "Customer proof link sent / full vendor archive retained"],
+      ["Delivery record", "Evidence PDF emailed same day"],
+      ["Record retention", "Customer link sent / full vendor archive retained"],
       ["Next due", "Jul 13, 2026"],
-      ["Reply path", "Rebook confirmation or repair review reply"],
+      ["Reply path", "Rebook confirmation or follow-up quote reply"],
     ],
     acknowledgementRows: [
       ["Site contact", "Store manager / masked"],
@@ -645,14 +732,14 @@ export function getAxis1PacketPreviewData(options: {
       ["Customer action", exceptionOpen ? "Clear rear access and reply" : "Confirm next service window"],
       ["Vendor action", "Await reply or schedule follow-up"],
       ["Record location", "Keep with kitchen exhaust service records"],
-      ["Generated for", "Customer-facing service report"],
+      ["Generated for", "Customer-facing service link"],
     ],
     scopeNote:
-      "This packet covers accessible portions of this kitchen exhaust cleaning visit for one exhaust system. Fire suppression inspection, repair work, design compliance review, and concealed or inaccessible portions are not included unless separately quoted.",
+      "This customer link covers accessible portions of this kitchen exhaust cleaning visit for one exhaust system. Separate trade service, follow-up work, and concealed or inaccessible portions are not included unless separately quoted.",
     sampleFooter: [
       [
         "What the sample proves",
-        "The packet can explain scope, findings, blocked access, and next action in language the customer can actually use.",
+        "The customer link can explain scope, recorded conditions, blocked access, and next action in language the customer can actually use.",
       ],
       [
         "What stays paid",
@@ -660,7 +747,7 @@ export function getAxis1PacketPreviewData(options: {
       ],
       [
         "Why vendors care",
-        "The vendor gets a proof asset that reduces explanation work and makes premium service easier to justify.",
+        "The vendor gets a customer handoff asset that reduces explanation work and makes premium service easier to justify.",
       ],
     ],
   };

@@ -8,17 +8,14 @@ public class StartRequestForm {
     @NotBlank
     private String companyName;
 
-    @NotBlank
     private String contactName;
 
-    @Email
     @NotBlank
+    @Email
     private String email;
 
-    @NotBlank
     private String serviceArea;
 
-    @NotBlank
     private String productInterest;
 
     public String getCompanyName() {

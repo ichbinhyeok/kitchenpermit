@@ -5,7 +5,7 @@ export const axis1FieldPhotoSlots = [
     id: "hood-before",
     proofId: "P-01",
     systemRef: "HD-01",
-    label: "Before hood interior",
+    label: "Hood before",
     shortLabel: "Before",
     title: "Hood interior before clean",
     caption: "Field photo captured before work began.",
@@ -18,7 +18,7 @@ export const axis1FieldPhotoSlots = [
     id: "hood-after",
     proofId: "P-02",
     systemRef: "HD-01",
-    label: "After hood interior",
+    label: "Hood after",
     shortLabel: "After",
     title: "Hood interior after clean",
     caption: "Field photo captured after reachable surfaces were cleaned.",
@@ -31,11 +31,11 @@ export const axis1FieldPhotoSlots = [
     id: "filter-bank",
     proofId: "P-03",
     systemRef: "FL-01",
-    label: "Filter bank reset",
+    label: "Filter bank / tracks",
     shortLabel: "Filters",
     title: "Baffle filter reset",
-    caption: "Filters shown removed, cleaned, inspected, or returned to service.",
-    proofRole: "Section reset proof",
+    caption: "Filters shown removed, cleaned, checked, or returned to service.",
+    proofRole: "Section reset evidence",
     tone: "after",
     keywords: ["filter", "baffle", "filters", "fl"],
     required: false,
@@ -44,7 +44,7 @@ export const axis1FieldPhotoSlots = [
     id: "access-condition",
     proofId: "P-04",
     systemRef: "DK-02",
-    label: "Access / exception condition",
+    label: "Access condition",
     shortLabel: "Access",
     title: "Duct access condition",
     caption: "Access, blocked section, or exception condition tied to the report.",
@@ -57,7 +57,7 @@ export const axis1FieldPhotoSlots = [
     id: "rooftop-fan",
     proofId: "P-05",
     systemRef: "RF-01",
-    label: "Rooftop fan / hinge line",
+    label: "Rooftop fan",
     shortLabel: "Fan",
     title: "Rooftop fan line",
     caption: "Visible fan, hinge, curb, or rooftop condition tied to the report.",
@@ -70,11 +70,11 @@ export const axis1FieldPhotoSlots = [
     id: "grease-containment",
     proofId: "P-06",
     systemRef: "GC-01",
-    label: "Grease removed / containment",
+    label: "Grease path / containment",
     shortLabel: "Grease",
     title: "Grease removed / containment",
     caption: "Removed buildup, containment, or drip-path condition recorded.",
-    proofRole: "Residue removal proof",
+    proofRole: "Residue removal evidence",
     tone: "record",
     keywords: ["grease", "contain", "drip", "scrape", "residue", "gc"],
     required: false,
@@ -87,7 +87,7 @@ export const axis1FieldPhotoSlots = [
     shortLabel: "Label",
     title: "Service label / notice posted",
     caption: "Close-out label, exception notice, or next-due sticker captured.",
-    proofRole: "Close-out label proof",
+    proofRole: "Close-out label evidence",
     tone: "record",
     keywords: ["label", "sticker", "notice", "tag", "next", "due", "lbl"],
     required: false,
@@ -106,11 +106,19 @@ export type Axis1RecordType =
   | "access_issue_record";
 
 export type Axis1UploadedFieldPhoto = {
+  localId?: string;
   src: string;
   name: string;
   source: "bulk" | "manual";
   confidence: Axis1FieldPhotoConfidence;
   matchLabel: string;
+  assistSuggestionId?: string;
+  assistSource?: "mock" | "gemini";
+  assistConfidence?: number;
+  assistReason?: string;
+  assistSuggestedSlotId?: Axis1FieldPhotoSlotId | null;
+  needsVendorReview?: boolean;
+  vendorDecision?: "confirmed" | "edited" | "rejected" | "pending";
 };
 
 export type Axis1UploadedFieldPhotoState = Record<
@@ -151,10 +159,10 @@ export type Axis1RecordTypeMeta = {
 export const axis1RecordTypeMeta: Record<Axis1RecordType, Axis1RecordTypeMeta> = {
   photo_proof_packet: {
     type: "photo_proof_packet",
-    label: "Photo Proof Packet",
-    builderTitle: "Strong photo proof format",
+    label: "Full Photo Service Record",
+    builderTitle: "Full photo record format",
     builderCopy:
-      "Before/after and multiple exhaust-path photos are attached, so the packet can lead with visual proof.",
+      "Before/after and multiple exhaust-path photos are attached, so the customer link can show strong visual support while the PDF carries the evidence record.",
     customerCopy:
       "This record includes before/after service photos and supporting exhaust-path field photos.",
     recordBasis: "Vendor-confirmed service result with attached field photos",
@@ -164,19 +172,19 @@ export const axis1RecordTypeMeta: Record<Axis1RecordType, Axis1RecordTypeMeta> =
     label: "After-Cleaning Service Record",
     builderTitle: "After-photo record format",
     builderCopy:
-      "After photos are attached without a reliable before comparison, so the packet stays premium but does not force a false slider.",
+      "After photos are attached without a reliable before comparison, so the customer link stays formal without forcing a false comparison.",
     customerCopy:
       "After-cleaning field photos are attached for this service record. No before-photo comparison is included.",
     recordBasis: "Vendor-confirmed service result with after-cleaning field photos",
   },
   photo_supported_service_record: {
     type: "photo_supported_service_record",
-    label: "Photo-Supported Service Record",
-    builderTitle: "Photo-supported record format",
+    label: "Photo Service Record",
+    builderTitle: "Photo record format",
     builderCopy:
-      "Some field photos are attached. The output stays formal and separates service scope from photo coverage.",
+      "Some field photos are attached. The output stays formal and separates service scope from the areas shown in photos.",
     customerCopy:
-      "Attached field photos support this service record. Photo coverage may represent only the areas shown.",
+      "Attached field photos support this service record. Photos may represent only the areas shown.",
     recordBasis: "Vendor-confirmed service result with partial attached field photos",
   },
   service_closeout_record: {
@@ -184,7 +192,7 @@ export const axis1RecordTypeMeta: Record<Axis1RecordType, Axis1RecordTypeMeta> =
     label: "Service Closeout Record",
     builderTitle: "Written closeout record format",
     builderCopy:
-      "No field photos are attached. The output becomes a formal closeout record instead of a weak photo packet.",
+      "No field photos are attached. The output becomes a formal written closeout record instead of using photo-led language.",
     customerCopy:
       "This record summarizes the service provider closeout for this visit. Field photos are not attached to this link.",
     recordBasis: "Vendor-confirmed written closeout; no field photos attached",
@@ -276,129 +284,62 @@ export function selectAxis1RecordType(options: {
   return "photo_supported_service_record";
 }
 
-export function getAxis1AdaptiveRecordMeta(options: {
-  uploadedFieldPhotos: Partial<Record<Axis1FieldPhotoSlotId, Axis1UploadedFieldPhoto | null>>;
-  photoSlotResolutions: Partial<Record<Axis1FieldPhotoSlotId, Axis1PhotoSlotResolution>>;
-  extraPhotoCount?: number;
-  hasAccessIssue: boolean;
-}) {
-  const coverage = summarizeAxis1PhotoCoverage(
-    options.uploadedFieldPhotos,
-    options.photoSlotResolutions,
-    options.extraPhotoCount ?? 0,
-  );
-  const recordType = selectAxis1RecordType({
-    coverage,
-    hasAccessIssue: options.hasAccessIssue,
+const componentPhotoSlotRules: ReadonlyArray<{
+  pattern: RegExp;
+  slotIds: readonly Axis1FieldPhotoSlotId[];
+}> = [
+  { pattern: /hood canopy|hood interior/i, slotIds: ["hood-before", "hood-after"] },
+  { pattern: /filter|baffle/i, slotIds: ["filter-bank"] },
+  { pattern: /plenum|duct|access/i, slotIds: ["access-condition"] },
+  { pattern: /fan|roof/i, slotIds: ["rooftop-fan"] },
+  { pattern: /grease|containment|trough/i, slotIds: ["grease-containment"] },
+  { pattern: /label|notice/i, slotIds: ["service-label"] },
+];
+
+function slotIdsForRecordLabel(label: string) {
+  const rule = componentPhotoSlotRules.find((item) => item.pattern.test(label));
+
+  return rule?.slotIds ?? [];
+}
+
+function proofRefsForSlots(
+  slotIds: readonly Axis1FieldPhotoSlotId[],
+  uploadedFieldPhotos: Partial<Record<Axis1FieldPhotoSlotId, Axis1UploadedFieldPhoto | null>>,
+) {
+  return slotIds.flatMap((slotId) => {
+    if (!uploadedFieldPhotos[slotId]) {
+      return [];
+    }
+
+    const slot = axis1FieldPhotoSlots.find((item) => item.id === slotId);
+    return slot ? [slot.proofId] : [];
   });
-
-  return {
-    coverage,
-    recordType,
-    meta: axis1RecordTypeMeta[recordType],
-  };
 }
 
-function isAccessIssueData(data: Axis1PacketPreviewData) {
-  return data.routeSegments.some(
-    (segment) =>
-      /access|duct/i.test(`${segment.code} ${segment.title}`) &&
-      /blocked|inaccessible|not completed|open/i.test(segment.status),
-  );
-}
-
-function replaceOrAppendRow(
-  rows: readonly (readonly [string, string])[],
-  label: string,
-  value: string,
+function proofSummaryForSlots(
+  slotIds: readonly Axis1FieldPhotoSlotId[],
+  uploadedFieldPhotos: Partial<Record<Axis1FieldPhotoSlotId, Axis1UploadedFieldPhoto | null>>,
 ) {
-  const next = rows.filter(([currentLabel]) => currentLabel !== label);
+  const proofRefs = proofRefsForSlots(slotIds, uploadedFieldPhotos);
 
-  return [...next.map(([rowLabel, rowValue]) => [rowLabel, rowValue] as [string, string]), [label, value] as [string, string]];
+  if (proofRefs.length === 0) {
+    return "Service record";
+  }
+
+  if (proofRefs.length < slotIds.length) {
+    return `Partial: ${proofRefs.join(" / ")}`;
+  }
+
+  return proofRefs.join(" / ");
 }
 
-function appendUniquePolicyRows(
-  rows: Axis1PacketPreviewData["proofPolicyRows"],
-  meta: Axis1RecordTypeMeta,
-  coverage: Axis1PhotoCoverageSummary,
-): Axis1PacketPreviewData["proofPolicyRows"] {
-  const coverageDescription =
-    coverage.totalPhotos === 0
-      ? "No field photos are attached to this customer link."
-      : `${coverage.placedPhotos} field photo(s) attached${coverage.extraPhotos > 0 ? `; ${coverage.extraPhotos} extra photo(s) retained for review` : ""}.`;
-
-  return [
-    ...rows.filter(
-      ([label]) => label !== "Record format" && label !== "Record basis",
-    ),
-    ["Record format", meta.label],
-    ["Record basis", `${meta.recordBasis}. ${coverageDescription}`],
-  ];
-}
-
-function adaptRowsForRecordType(
-  data: Axis1PacketPreviewData,
-  meta: Axis1RecordTypeMeta,
-  coverage: Axis1PhotoCoverageSummary,
-) {
-  const basisNote = meta.customerCopy;
-  const replacePhotoReferences = (value: string) =>
-    value
-      .replace(/Proof is tied to P-01 and P-02\./g, "Work is recorded in this service record.")
-      .replace(/Linked to proof photos P-01 \/ P-02\./g, "Recorded in the service closeout.")
-      .replace(/Before and after proof attached to HD-01\./g, basisNote)
-      .replace(/proof photos P-01 \/ P-02/gi, "the service record")
-      .replace(/proof photos/gi, "field photos")
-      .replace(/proof is tied to/gi, "record is tied to");
-
-  return {
-    packetHeader: {
-      ...data.packetHeader,
-      copy:
-        meta.type === "photo_proof_packet"
-          ? data.packetHeader.copy
-          : `${data.systemIdentityRows.find(([label]) => label === "Line served")?.[1] ?? "Kitchen exhaust system"}. ${meta.customerCopy} The service result, open items, and next action stay listed in one customer-ready record.`,
-      quickFacts: replaceOrAppendRow(
-        replaceOrAppendRow(data.packetHeader.quickFacts, "Record format", meta.label),
-        "Record basis",
-        coverage.totalPhotos > 0
-          ? `${coverage.placedPhotos} attached field photo(s)`
-          : "Written service closeout",
-      ),
-    },
-    serviceRecordRows: replaceOrAppendRow(
-      replaceOrAppendRow(data.serviceRecordRows, "Record format", meta.label),
-      "Evidence basis",
-      meta.recordBasis,
-    ),
-    proofPolicyRows: appendUniquePolicyRows(data.proofPolicyRows, meta, coverage),
-    routeSegments: data.routeSegments.map((segment) => ({
-      ...segment,
-      note:
-        meta.type === "photo_proof_packet"
-          ? segment.note
-          : replacePhotoReferences(segment.note),
-    })),
-    scopeRows: data.scopeRows.map(
-      ([area, status, note]) =>
-        [
-          area,
-          status,
-          meta.type === "photo_proof_packet" ? note : replacePhotoReferences(note),
-        ] as [string, string, string],
-    ),
-    componentStatusRows: data.componentStatusRows.map((row) => ({
-      ...row,
-      proof:
-        meta.type === "service_closeout_record"
-          ? "Service record"
-          : row.proof,
-      note:
-        meta.type === "photo_proof_packet"
-          ? row.note
-          : replacePhotoReferences(row.note),
-    })),
-  };
+function removeStaticPhotoProofCopy(note: string) {
+  return note
+    .replace(" Linked to field photos P-01 / P-02.", "")
+    .replace(" Photo evidence is tied to P-01 and P-02.", "")
+    .replace(" Proof is tied to P-01 and P-02.", "")
+    .replace("Before and after photos attached to HD-01.", "Work recorded for this section.")
+    .trim();
 }
 
 export function buildAxis1PacketDataWithFieldPhotos(
@@ -407,25 +348,9 @@ export function buildAxis1PacketDataWithFieldPhotos(
   photoSlotResolutions: Partial<Record<Axis1FieldPhotoSlotId, Axis1PhotoSlotResolution>>,
 ): Axis1PacketPreviewData {
   const serviceLabelUpload = uploadedFieldPhotos["service-label"];
-  const adaptiveRecord = getAxis1AdaptiveRecordMeta({
-    uploadedFieldPhotos,
-    photoSlotResolutions,
-    hasAccessIssue: isAccessIssueData(data),
-  });
-  const rowAdaptations = adaptRowsForRecordType(
-    data,
-    adaptiveRecord.meta,
-    adaptiveRecord.coverage,
-  );
 
   return {
     ...data,
-    packetHeader: rowAdaptations.packetHeader,
-    serviceRecordRows: rowAdaptations.serviceRecordRows,
-    proofPolicyRows: rowAdaptations.proofPolicyRows,
-    routeSegments: rowAdaptations.routeSegments,
-    scopeRows: rowAdaptations.scopeRows,
-    componentStatusRows: rowAdaptations.componentStatusRows,
     proofPhotos: [
       ...data.proofPhotos.flatMap((photo) => {
         const slot = axis1FieldPhotoSlots.find((item) => item.proofId === photo.proofId);
@@ -459,13 +384,38 @@ export function buildAxis1PacketDataWithFieldPhotos(
               label: "Label",
               title: "Service label / notice posted",
               caption: `Close-out label or notice captured from the field file: ${serviceLabelUpload.name}.`,
-              proofRole: "Close-out label proof",
+              proofRole: "Close-out label evidence",
               tone: "record" as const,
               position: "50% 50%",
             },
           ]
         : []),
     ],
+    componentStatusRows: data.componentStatusRows.map((row) => {
+      const slotIds = slotIdsForRecordLabel(row.component);
+
+      if (slotIds.length === 0) {
+        return row;
+      }
+
+      return {
+        ...row,
+        proof: proofSummaryForSlots(slotIds, uploadedFieldPhotos),
+        note: removeStaticPhotoProofCopy(row.note),
+      };
+    }),
+    routeSegments: data.routeSegments.map((segment) => {
+      const slotIds = slotIdsForRecordLabel(`${segment.code} ${segment.title}`);
+
+      if (slotIds.length === 0) {
+        return segment;
+      }
+
+      return {
+        ...segment,
+        note: removeStaticPhotoProofCopy(segment.note),
+      };
+    }),
     photoCoverageRows: data.photoCoverageRows.map((row) => {
       const slot = axis1FieldPhotoSlots.find(
         (item) =>
@@ -499,14 +449,16 @@ export function buildAxis1PacketDataWithFieldPhotos(
       if (slot) {
         return {
           ...row,
-          status:
-            adaptiveRecord.meta.type === "service_closeout_record"
-              ? "Not photographed in this record"
-              : "Not attached",
+          status: "Not attached",
         };
       }
 
       return row;
     }),
+    scopeRows: data.scopeRows.map(([area, status, note]) => [
+      area,
+      status,
+      removeStaticPhotoProofCopy(note),
+    ]),
   };
 }

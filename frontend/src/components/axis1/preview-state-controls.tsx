@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type {
   Axis1PacketBranding,
   Axis1PacketScenario,
@@ -28,18 +28,20 @@ export function PreviewStateControls({
 }: PreviewStateControlsProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
   function pushState(next: {
     branding?: Axis1PacketBranding;
     scenario?: Axis1PacketScenario;
   }) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(window.location.search);
     params.set("branding", next.branding ?? branding);
     params.set("scenario", next.scenario ?? scenario);
     startTransition(() => {
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      window.setTimeout(() => {
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }, 0);
     });
   }
 
@@ -51,7 +53,7 @@ export function PreviewStateControls({
             Branding
           </p>
           <p className="text-xs leading-5 text-muted-foreground">
-            Public shell / branded packet
+            Public shell / branded customer link
           </p>
         </div>
         <SegmentedControl
@@ -74,7 +76,7 @@ export function PreviewStateControls({
       <div className="mt-4 space-y-2.5">
         <div className="flex items-center justify-between gap-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Packet state
+            Customer link state
           </p>
           <p className="text-xs leading-5 text-muted-foreground">
             Exception / clean close

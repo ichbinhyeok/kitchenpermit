@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local-only image fixture scrape for Axis 1 QA
+/public/axis1-test-photos/local-scrape/
+/public/axis1-test-photos/messy-synthetic/

@@ -1,11 +1,13 @@
-import type { MetadataRoute } from "next";
+﻿import type { MetadataRoute } from "next";
+
+export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "hood proof packet builder",
+    name: "hood customer link builder",
     short_name: "hood",
     description:
-      "Mobile-first hood proof packet builder for kitchen exhaust vendors.",
+      "Mobile-first hood customer link builder for kitchen exhaust vendors.",
     start_url: "/axis-1/tool",
     scope: "/",
     display: "standalone",
@@ -41,9 +43,9 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: "Create proof packet",
-        short_name: "Packet",
-        description: "Open the mobile hood proof packet builder.",
+        name: "Create customer link",
+        short_name: "Customer link",
+        description: "Open the mobile hood customer link builder.",
         url: "/axis-1/tool",
         icons: [
           {
@@ -54,9 +56,9 @@ export default function manifest(): MetadataRoute.Manifest {
         ],
       },
       {
-        name: "View sample proof packet",
+        name: "View sample customer link",
         short_name: "Sample",
-        description: "Open the customer-facing sample proof packet.",
+        description: "Open the customer-facing sample customer link.",
         url: "/p/sample-hood-cleaning",
         icons: [
           {

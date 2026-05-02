@@ -4,13 +4,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.containsString;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -21,38 +25,53 @@ class PublicStartControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void startPageShowsDirectEmailPath() throws Exception {
+    void startPageServesExportedFrontend() throws Exception {
         mockMvc.perform(get("/start"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("compliance@kitchenpermit.com")))
-                .andExpect(content().string(containsString("Prepare email draft")))
-                .andExpect(content().string(containsString("mailto:compliance@kitchenpermit.com")));
+                .andExpect(forwardedUrl("/start.html"));
+
+        assertStaticResourceContains(
+                "static/start.html",
+                "Request proof link setup.",
+                "No account or checkout yet.",
+                "Vendor setup request"
+        );
     }
 
     @Test
-    void startSubmissionRedirectsToSubmittedStep() throws Exception {
-        mockMvc.perform(post("/start")
-                        .param("companyName", "Austin Exhaust Co")
-                        .param("contactName", "Jamie Rivera")
-                        .param("email", "jamie@austinexhaust.example")
-                .param("serviceArea", "Austin metro")
-                .param("productInterest", "Axis 2"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/start/submitted?leadId=*"));
-    }
-
-    @Test
-    void submittedPageBuildsMailDraftToKitchenPermitMailbox() throws Exception {
-        mockMvc.perform(get("/start/submitted")
-                        .flashAttr("submittedCompanyName", "Austin Exhaust Co")
-                        .flashAttr("submittedContactName", "Jamie Rivera")
-                        .flashAttr("submittedEmail", "jamie@austinexhaust.example")
-                        .flashAttr("submittedProductInterest", "Axis 2")
-                        .flashAttr("submittedServiceArea", "Austin metro"))
+    void submittedPageServesStaticShellWithoutLeadId() throws Exception {
+        mockMvc.perform(get("/start/submitted"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Email draft ready.")))
-                .andExpect(content().string(containsString("mailto:compliance@kitchenpermit.com")))
-                .andExpect(content().string(containsString("Austin%20Exhaust%20Co")))
-                .andExpect(content().string(containsString("Open email draft")));
+                .andExpect(forwardedUrl("/start/submitted.html"));
+
+        assertStaticResourceContains(
+                "static/start/submitted.html",
+                "No inquiry id was provided.",
+                "Go to start",
+                "Review pricing"
+        );
+    }
+
+    @Test
+    void submittedPageServesStaticShellWithLeadId() throws Exception {
+        mockMvc.perform(get("/start/submitted").queryParam("leadId", "test-lead"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/start/submitted.html"));
+
+        assertStaticResourceContains(
+                "static/start/submitted.html",
+                "START // SUBMITTED",
+                "No inquiry id was provided."
+        );
+    }
+
+    private void assertStaticResourceContains(String resourcePath, String... fragments) throws IOException {
+        ClassPathResource resource = new ClassPathResource(resourcePath);
+        assertThat(resource.exists()).isTrue();
+
+        String body = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+        for (String fragment : List.of(fragments)) {
+            assertThat(body).contains(fragment);
+        }
     }
 }

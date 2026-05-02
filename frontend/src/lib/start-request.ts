@@ -1,4 +1,4 @@
-import { siteConfig } from "@/lib/site";
+﻿import { siteConfig } from "@/lib/site";
 
 export type StartRequestDraft = {
   companyName?: string;
@@ -15,7 +15,7 @@ function firstNonBlank(value: string | undefined, fallback: string) {
 }
 
 export function buildEmailDraftUrl(draft: StartRequestDraft) {
-  const productInterest = firstNonBlank(draft.productInterest, "Proof packet setup");
+  const productInterest = firstNonBlank(draft.productInterest, "Customer link setup");
   const companyName = firstNonBlank(draft.companyName, "Not provided");
   const contactName = firstNonBlank(draft.contactName, "Not provided");
   const email = firstNonBlank(draft.email, "Not provided");

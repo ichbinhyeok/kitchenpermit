@@ -1,17 +1,14 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
-import { getAxis1PacketPreviewData } from "@/lib/axis1-packet-preview";
+import { buildAxis1SampleProofData } from "@/lib/axis1-sample-packets";
 
 export const metadata: Metadata = {
-  title: "Sample Customer Proof Link",
+  title: "Sample Customer Link",
   description:
-    "A customer-facing kitchen exhaust proof link sample for restaurant operators after service.",
+    "A customer-facing kitchen exhaust customer link sample for restaurant operators after service.",
 };
 
-const reportData = getAxis1PacketPreviewData({
-  branding: "applied",
-  scenario: "exception",
-});
+const reportData = buildAxis1SampleProofData("blocked_access");
 
 export default function SampleHoodCleaningProofPage() {
   return (

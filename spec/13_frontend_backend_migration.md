@@ -239,8 +239,7 @@ Ship bar:
 ## 8.1 Runtime containers
 Recommended production runtime:
 
-- `frontend` container running Next.js
-- `backend` container running Spring Boot
+- `app` container running Spring Boot and serving exported Next.js assets
 - `proxy` container routing domain traffic
 
 ## 8.2 Local development
@@ -253,11 +252,12 @@ Recommended local setup:
 ## 8.3 Registry and server flow
 Locked deployment model:
 
-- GitHub Actions builds and pushes images
-- Oracle server pulls latest images
-- Docker Compose restarts the stack
+- GitHub Actions builds and pushes the app image
+- Oracle server pulls the latest app image
+- Docker Compose restarts the stack behind Nginx
 
-This preserves the current operator deployment habit while improving architecture clarity.
+This preserves the current operator deployment habit while keeping the frontend
+authoring experience in Next.js and the runtime authority in Spring.
 
 ---
 

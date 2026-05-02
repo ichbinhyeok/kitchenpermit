@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/marketing/page-header";
 import { Panel } from "@/components/ui/panel";
@@ -16,10 +16,10 @@ export default function PricingPage() {
       ...axis1Setup,
       label: "Axis 1 setup",
       summary:
-        "Customer-facing packet setup for service completion, proof-of-work clarity, and rebook posture.",
+        "Customer-facing service link setup for service completion, service clarity, and rebook posture.",
       bullets: [
         "Vendor header, contact block, and outward-facing narrative structure",
-        "HTML-first packet that can also export cleanly to PDF",
+        "HTML-first customer link that can also export cleanly to PDF",
         "Built to reduce rewriting after the service visit",
       ],
       featured: false,
@@ -40,7 +40,7 @@ export default function PricingPage() {
       ...bundle,
       label: "Bundle",
       summary:
-        "Both packet systems for vendors who want current-customer proof and new-sales support together.",
+        "Both packet systems for vendors who want current-customer record and new-sales support together.",
       bullets: [
         "Shared vendor language layer across Axis 1 and Axis 2",
         "Best entry point when the vendor wants retention and growth together",
@@ -66,7 +66,7 @@ export default function PricingPage() {
     <>
       <PageHeader
         label="PRICING // STARTING AT"
-        title="Commercial offers that match the actual MVP."
+        title="Pricing for customer links and sales lists."
         description="hood is not seat-based SaaS pricing. Public pricing should show the opening commercial frame, keep the offer legible, and avoid pretending recurring demand is already proven."
       />
       <section className="container-shell grid gap-6 pb-10 md:grid-cols-2 xl:grid-cols-4">

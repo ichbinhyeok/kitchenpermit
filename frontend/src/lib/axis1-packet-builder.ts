@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import {
   getAxis1PacketPreviewData,
   type Axis1PacketPreviewData,
@@ -19,7 +19,7 @@ export const axis1CadenceOptions = [
   {
     value: "90",
     label: "90 days",
-    copy: "Standard operating pattern for this sample packet.",
+    copy: "Standard operating pattern for this service handoff.",
   },
   {
     value: "120",
@@ -36,8 +36,8 @@ export const axis1ExceptionGroups = [
   },
   {
     value: "condition",
-    label: "Rooftop / condition review",
-    copy: "Use when the crew recorded a condition that should stay visible in the customer report.",
+    label: "Condition / follow-up note",
+    copy: "Use when the crew noted a condition that should stay visible in the customer record.",
   },
 ] as const;
 
@@ -58,7 +58,7 @@ export const axis1ExceptionOptions = [
     value: "panel-signage",
     group: "access",
     label: "Panel / signage issue",
-    copy: "Access panel or required signage was missing or non-conforming.",
+    copy: "Access panel or service signage was missing or not usable.",
   },
   {
     value: "unsafe-access",
@@ -87,8 +87,8 @@ export const axis1ExceptionOptions = [
   {
     value: "liquid-tight",
     group: "condition",
-    label: "Liquid-tight issue",
-    copy: "The exhaust system may not be liquid-tight at recorded points.",
+    label: "Possible leak point",
+    copy: "A possible leak point was noted for follow-up.",
   },
   {
     value: "grease-containment",
@@ -102,7 +102,7 @@ export const axis1FollowUpOptions = [
   {
     value: "none",
     label: "Record only",
-    copy: "Keep the condition in the packet without an open quote ask.",
+    copy: "Keep the condition in the service record without an open quote ask.",
   },
   {
     value: "monitor",
@@ -112,7 +112,7 @@ export const axis1FollowUpOptions = [
   {
     value: "quote",
     label: "Quote review",
-    copy: "Surface a repair-review path in the packet.",
+    copy: "Ask if the customer wants a follow-up quote.",
   },
 ] as const;
 
@@ -155,6 +155,7 @@ export const axis1BuilderSchema = z.object({
   summaryOverride: z.string().trim().max(260).optional().or(z.literal("")),
   customerActionOverride: z.string().trim().max(220).optional().or(z.literal("")),
   followUpOverride: z.string().trim().max(220).optional().or(z.literal("")),
+  recordNoteOverride: z.string().trim().max(220).optional().or(z.literal("")),
 });
 
 export type Axis1BuilderFormValues = z.infer<typeof axis1BuilderSchema>;
@@ -175,6 +176,7 @@ export const axis1BuilderDefaults: Axis1BuilderFormValues = {
   summaryOverride: "",
   customerActionOverride: "",
   followUpOverride: "",
+  recordNoteOverride: "",
 };
 
 type Axis1FreeReportSearchParams = Record<
@@ -210,6 +212,7 @@ export function buildAxis1FreeReportHref(values: Axis1BuilderFormValues) {
     ["so", values.summaryOverride],
     ["co", values.customerActionOverride],
     ["fo", values.followUpOverride],
+    ["ro", values.recordNoteOverride],
   ];
 
   optionalParams.forEach(([key, value]) => {
@@ -255,6 +258,7 @@ export function parseAxis1FreeReportSearchParams(
     summaryOverride: readSearchParam(params, "so") ?? "",
     customerActionOverride: readSearchParam(params, "co") ?? "",
     followUpOverride: readSearchParam(params, "fo") ?? "",
+    recordNoteOverride: readSearchParam(params, "ro") ?? "",
   };
 
   if (candidate.scenario === "exception" && candidate.exceptionKinds.length === 0) {
@@ -312,11 +316,11 @@ const exceptionDefinitions: Record<Axis1BuilderExceptionKind, ExceptionDefinitio
     group: "access",
     chipLabel: "Panel / signage issue",
     routeNote:
-      "The access panel or required service signage was not in a compliant condition during the visit.",
+      "The access panel or required service signage was not in serviceable condition during the visit.",
     issue:
       "The access panel or required service signage was missing or non-conforming.",
     whyItMatters:
-      "Poor access-panel condition creates repeat cleaning difficulty and can weaken future inspection or cleaning access.",
+      "Poor access-panel condition creates repeat cleaning difficulty and can weaken future manager review or cleaning access.",
     ownerAction:
       "Correct the panel or signage issue before the next standard service cycle.",
     notice: "Access-related condition remains open in the customer report.",
@@ -344,14 +348,14 @@ const exceptionDefinitions: Record<Axis1BuilderExceptionKind, ExceptionDefinitio
     group: "access",
     chipLabel: "Section open",
     routeNote:
-      "One section remained open and not cleaned at departure, and stays visible in the packet.",
+      "One section remained open and not cleaned at departure, and stays visible in the service record.",
     issue:
       "One grease-bearing section remained open and not cleaned at departure.",
     whyItMatters:
       "The customer report must show that the section remained open instead of implying the full path was completed.",
     ownerAction:
       "Approve a revisit once access or service conditions allow the section to be completed.",
-    notice: "Open section stays visible in the packet instead of being implied as complete.",
+    notice: "Open section stays visible in the service record instead of being implied as complete.",
     status: "Open",
     affectsAccess: true,
     location: "DK-02 Rear duct access panel",
@@ -366,8 +370,9 @@ const exceptionDefinitions: Record<Axis1BuilderExceptionKind, ExceptionDefinitio
     whyItMatters:
       "The condition may turn into a larger service or roof complaint if it is ignored between visits.",
     ownerAction:
-      "Approve a repair review if the rooftop condition should be quoted before the next cycle.",
-    notice: "Recorded from rooftop proof. Repair execution is not included in this packet.",
+      "Reply if you want a follow-up quote for the rooftop condition before the next cycle.",
+    notice:
+      "Recorded from rooftop photo evidence. Follow-up work is not included in this cleaning closeout.",
     status: "Action",
     affectsAccess: false,
     location: "RF-01 Rooftop fan area",
@@ -382,8 +387,9 @@ const exceptionDefinitions: Record<Axis1BuilderExceptionKind, ExceptionDefinitio
     whyItMatters:
       "Drive-condition issues can turn into airflow or equipment complaints before the next service window.",
     ownerAction:
-      "Approve a repair review if the recorded belt or pulley condition should be quoted.",
-    notice: "Recorded from rooftop proof. Repair execution is not included in this packet.",
+      "Reply if you want a follow-up quote for the recorded belt or pulley condition.",
+    notice:
+      "Recorded from rooftop photo evidence. Follow-up work is not included in this cleaning closeout.",
     status: "Action",
     affectsAccess: false,
     location: "RF-01 Rooftop fan area",
@@ -398,8 +404,9 @@ const exceptionDefinitions: Record<Axis1BuilderExceptionKind, ExceptionDefinitio
     whyItMatters:
       "A liquid-tight issue can turn into grease escape or roof-condition complaints between service cycles.",
     ownerAction:
-      "Approve a review if the recorded condition should be corrected or quoted.",
-    notice: "Recorded condition only. Repair execution is not included in this packet.",
+      "Reply if you want the recorded condition reviewed for a follow-up quote.",
+    notice:
+      "Recorded condition only. Follow-up work is not included in this cleaning closeout.",
     status: "Action",
     affectsAccess: false,
     location: "RF-01 Rooftop fan area",
@@ -414,8 +421,9 @@ const exceptionDefinitions: Record<Axis1BuilderExceptionKind, ExceptionDefinitio
     whyItMatters:
       "Containment issues can turn into leak, housekeeping, or roof-condition complaints before the next cycle.",
     ownerAction:
-      "Approve a containment review if the recorded condition should be corrected or quoted.",
-    notice: "Condition was recorded as part of service proof; correction is not included today.",
+      "Reply if you want the containment condition reviewed for a follow-up quote.",
+    notice:
+      "Condition was recorded as part of service evidence; follow-up work is not included today.",
     status: "Action",
     affectsAccess: false,
     location: "GC-01 Grease containment",
@@ -509,7 +517,7 @@ function buildCadenceBasis(cadence: Axis1BuilderCadence) {
     case "60":
       return "Current grease load supports a 60-day cycle with tighter follow-up than the standard route.";
     case "120":
-      return "Current use pattern still supports a 120-day cycle, but the next window should stay locked in the packet.";
+      return "Current use pattern still supports a 120-day cycle, but the next window should stay locked in the service record.";
     case "90":
     default:
       return "Current grease load and line volume support a 90-day cycle.";
@@ -598,7 +606,7 @@ function buildCustomerActionCopy(
 
   if (hasConditionFollowUp || followUpMode === "quote") {
     return followUpMode === "quote"
-      ? "Review the recorded condition and reply if you want a repair review before the next service window."
+      ? "Review the recorded condition and reply if you want a follow-up quote before the next service window."
       : `Review the recorded condition, then confirm the next service window: ${nextWindow}.`;
   }
 
@@ -652,7 +660,7 @@ function buildFollowUpCopy(
   );
 
   if (mode === "quote") {
-    return "Repair review can be quoted if this condition should be corrected before the next service.";
+    return "A follow-up quote can be requested if this condition should be reviewed before the next service.";
   }
 
   if (mode === "monitor") {
@@ -662,8 +670,8 @@ function buildFollowUpCopy(
   }
 
   return scenario === "exception"
-    ? "The report keeps the recorded condition visible even when no repair quote is being requested today."
-    : "The report keeps a record-only note so the office does not have to reconstruct the visit later.";
+    ? "The service record keeps the recorded condition visible even when no follow-up quote is being requested today."
+    : "The service record keeps a record-only note so the office does not have to reconstruct the visit later.";
 }
 
 function buildExceptionNote(kinds: Axis1BuilderExceptionKind[], note: string) {
@@ -703,8 +711,9 @@ function buildConditionResponse(
 
   return {
     ownerAction:
-      "No immediate correction is being requested today. Keep this condition in the service record.",
-    notice: "Recorded condition only. No separate repair path is being pushed in this report.",
+      "No immediate follow-up is being requested today. Keep this condition in the service record.",
+    notice:
+      "Recorded condition only. No separate follow-up path is being pushed in this report.",
     status: "Recorded",
   } as const;
 }
@@ -741,16 +750,16 @@ function buildConditionRows(
         "The recorded condition stays visible in the report so the next conversation starts from today's visit instead of memory.",
       ownerAction:
         followUpMode === "quote"
-          ? "Approve a repair review if the recorded condition should be quoted."
+          ? "Reply if you want a follow-up quote for the recorded condition."
           : followUpMode === "monitor"
             ? "Keep the condition on record and request review if it changes before the next cycle."
-            : "No immediate correction is being requested today. Keep the condition in the service record.",
+            : "No immediate follow-up is being requested today. Keep the condition in the service record.",
       notice:
         followUpMode === "quote"
-          ? "Optional repair-review path only. Repair execution is not included in this report."
+          ? "Optional follow-up quote path only. Follow-up work is not included in this report."
           : followUpMode === "monitor"
             ? "Recorded condition stays visible in the service report until the next cycle."
-            : "Recorded condition only. No separate repair path is being pushed in this report.",
+            : "Recorded condition only. No separate follow-up path is being pushed in this report.",
       status:
         followUpMode === "quote"
           ? "Action"
@@ -783,7 +792,7 @@ export function buildAxis1NeutralPacketData(
     reviewPrompt: "",
     preparedBy: "Technician / crew",
     previewBlurb:
-      "Free report output excludes vendor branding, phone, email, and hosted customer links.",
+      "Free handoff output excludes vendor branding, phone, email, and hosted delivery links.",
     brandingApplied: false,
   };
 
@@ -815,6 +824,9 @@ export function buildAxis1NeutralPacketData(
     values.followUpOverride ?? "",
     values.followUpNote ?? "",
   );
+  const recordNoteCopy = values.recordNoteOverride?.trim()
+    ? withTrailingPeriod(values.recordNoteOverride)
+    : "The evidence PDF is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work.";
   const exceptionNote = buildExceptionNote(selectedKinds, values.exceptionNote ?? "");
   const propertyTitle = values.propertyName.trim();
   const siteLabel = values.siteCity.trim();
@@ -874,12 +886,12 @@ export function buildAxis1NeutralPacketData(
     location: "Next service timing",
     issue: `Recommended next window: ${nextServiceWindow}.`,
     whyItMatters:
-      "The next service window stays explicit inside the same proof link so the customer can reply before the visit disappears into memory.",
+      "The next service window stays explicit inside the same handoff so the customer can reply before the visit disappears into memory.",
     ownerAction:
       scenario === "clean"
         ? `Reply to confirm the next service window: ${nextServiceWindow}.`
         : customerAction,
-    notice: "This timing is recorded in the proof link and the office file.",
+    notice: "This timing is recorded in the service handoff and office file.",
     status: scenario === "clean" ? "Action" : "Monitor",
   };
 
@@ -889,7 +901,7 @@ export function buildAxis1NeutralPacketData(
     vendor: freeVendor,
     packetHeader: {
       title: propertyTitle,
-      copy: `${systemLabel}. This proof link shows what was cleaned today, what was not completed or recorded, the proof photos, and the next action.`,
+      copy: `${systemLabel}. This service record shows what was cleaned today, what was not completed or recorded, attached photos, and the next action.`,
       quickFacts: [
         ["Service date", serviceDateLabel],
         ["Location", siteLabel],
@@ -898,7 +910,7 @@ export function buildAxis1NeutralPacketData(
         ["Report ID", "HDS-MASKED-0424"],
       ],
       archiveNote:
-        "Customer sees the clear service report. Full image archive and raw technician detail stay retained in the office file.",
+        "Customer sees the clear service link. Full image archive and raw technician detail stay retained in the office file.",
     },
     summaryCards: [
       {
@@ -928,12 +940,12 @@ export function buildAxis1NeutralPacketData(
       ["Site", siteLabel],
       ["System", `SYS-01 / ${systemLabel}`],
       ["Line served", systemLabel],
-      ["Report coverage", "One report for one exhaust system"],
-      ["Approved on site", authorizedBy],
+      ["Service record coverage", "One closeout handoff for one exhaust system"],
+      ["Reviewed on site", authorizedBy],
     ],
     serviceRecordRows: [
       ["Service window", `${serviceDateLabel} | ${values.serviceWindow.trim()}`],
-      ["Today's visit", "Kitchen exhaust cleaning report"],
+      ["Today's visit", "Kitchen exhaust cleaning closeout"],
       ["Technician", freeVendor.technician],
       ["Today's result", serviceResultTitle],
       [
@@ -954,8 +966,8 @@ export function buildAxis1NeutralPacketData(
       ],
       ["Why this timing", intervalBasis],
       [
-        "Official inspection status",
-        "Not evaluated by this report. Official inspection decisions are made by the applicable authority.",
+        "Separate scope note",
+        "Outside this closeout record. Separate trade work and follow-up authorization use their own process.",
       ],
       ["Report ID", "HDS-MASKED-0424"],
     ],
@@ -964,19 +976,19 @@ export function buildAxis1NeutralPacketData(
         code: "HD-01",
         title: "Hood canopy",
         status: "Completed",
-        note: `${completedWorkLines[0]} Proof is tied to P-01 and P-02.`,
+        note: `${completedWorkLines[0]} Photo evidence is tied to P-01 and P-02.`,
       },
       {
         code: "FL-01",
         title: "Filter bank",
         status: "Completed",
-        note: "Removed, cleaned, inspected, and returned to service.",
+        note: "Removed, cleaned, checked, and returned to service.",
       },
       {
         code: "PL-01",
         title: "Plenum / duct path",
         status: "Completed",
-        note: "Reachable path cleaned and documented in report scope.",
+        note: "Reachable path cleaned and documented in service scope.",
       },
       {
         code: "DK-02",
@@ -999,7 +1011,7 @@ export function buildAxis1NeutralPacketData(
       [
         "HD-01 Hood canopy interior",
         "Completed",
-        `${completedWorkLines[0]} Linked to proof photos P-01 / P-02.`,
+        `${completedWorkLines[0]} Linked to field photos P-01 / P-02.`,
       ],
       [
         "FL-01 Filter bank",
@@ -1039,7 +1051,7 @@ export function buildAxis1NeutralPacketData(
       ["Grease containment / drip area reviewed", "Yes"],
       ["Next service timing recorded", "Yes"],
       ["Service label status recorded", "Yes"],
-      ["Fire suppression inspection included", "No - separate scope"],
+      ["Separate trade service included", "No - separate scope"],
       [
         "Open-item notice required at close-out",
         scenario === "exception" && hasAccessException
@@ -1047,18 +1059,33 @@ export function buildAxis1NeutralPacketData(
           : "No - standard close-out",
       ],
     ],
+    frequencyRows: base.frequencyRows.map(([label, value]) => {
+      if (label === "Recommended interval") {
+        return [label, `${values.cadence}-day cycle`] as const;
+      }
+
+      if (label === "Next service window") {
+        return [label, nextServiceWindow] as const;
+      }
+
+      if (label === "Interval note") {
+        return [label, intervalBasis] as const;
+      }
+
+      return [label, value] as const;
+    }),
     callout:
       scenario === "exception"
         ? hasAccessException
             ? {
               eyebrow: "Inaccessible / not cleaned",
               title: "Access exception stays visible.",
-              copy: `${exceptionNote} The report keeps the issue explicit while still giving the customer one clear next step.`,
+              copy: `${exceptionNote} The service record keeps the issue explicit while still giving the customer one clear next step.`,
               tone: "issue",
             }
           : {
               eyebrow: "Recorded condition",
-              title: "The recorded condition stays visible in the report.",
+              title: "The recorded condition stays visible in the service record.",
               copy:
                 "The visit closes with one clear recorded condition instead of burying the issue in raw notes or separate emails.",
               tone: "issue",
@@ -1107,21 +1134,23 @@ export function buildAxis1NeutralPacketData(
                 ? "Clear the blocked area, then reply to schedule the revisit."
                 : "Review this condition and reply if you want it quoted.",
             copy:
-              "The proof link separates completed work from the open item so the next reply can be short and clear.",
+              "The service handoff separates completed work from the action item so the next reply can be short and clear.",
             actionItems: [
               ["Next visit window", nextServiceWindow],
               ["Reply or action", customerAction],
               ["Recorded note", followUpCopy],
+              ["Evidence PDF note", recordNoteCopy],
             ],
           }
         : {
           title: "Reply to confirm the next service window.",
           copy:
-              "The proof link keeps the recommended service window visible while the visit is still fresh.",
+              "The service handoff keeps the recommended service window visible while the visit is still fresh.",
             actionItems: [
               ["Next visit window", nextServiceWindow],
               ["Reply or action", customerAction],
               ["Recorded note", followUpCopy],
+              ["Evidence PDF note", recordNoteCopy],
             ],
           },
     closeoutRows: [
@@ -1148,14 +1177,14 @@ export function buildAxis1NeutralPacketData(
           : "Yes - next due date shown",
       ],
       ["Prepared by technician", freeVendor.preparedBy],
-      ["Approved on site", authorizedBy],
-      ["Delivery record", "PDF copy saved for customer records"],
-      ["Record retention", "Customer report and office archive retained"],
+      ["Reviewed on site", authorizedBy],
+      ["Delivery record", "Evidence PDF saved for customer records"],
+      ["Record retention", "Service handoff and office archive retained"],
       ["Next due", nextDue],
       ["Reply path", customerAction],
     ],
     scopeNote:
-      "This report covers this kitchen exhaust cleaning visit for one exhaust system. Fire suppression inspection and repair work are not included unless separately quoted.",
+      "This service record covers this kitchen exhaust cleaning visit for one exhaust system. Separate trade service and follow-up work are not included unless separately quoted.",
   };
 }
 
@@ -1169,8 +1198,8 @@ export function buildAxis1FreeSharedPacketData(
     proofPhotos: [],
     proofPolicyRows: [
       [
-        "Shared report",
-        "This link reproduces the written service report for this visit.",
+        "Shared service handoff",
+        "This link reproduces the written service record for this visit.",
       ],
       [
         "Field photos",
@@ -1178,20 +1207,22 @@ export function buildAxis1FreeSharedPacketData(
       ],
       [
         "Record copy",
-        "Use the PDF copy or service record for local photo files and archive.",
+        "Use the evidence PDF copy or service record for local photo files and archive.",
       ],
     ],
     componentStatusRows: data.componentStatusRows.map((row) => ({
       ...row,
       proof: "Service record",
       note: row.note
-        .replace(" Linked to proof photos P-01 / P-02.", "")
+        .replace(" Linked to field photos P-01 / P-02.", "")
+        .replace(" Photo evidence is tied to P-01 and P-02.", "")
         .replace(" Proof is tied to P-01 and P-02.", "")
         .replace("Before and after proof attached to HD-01.", "Work recorded for this section."),
     })),
     routeSegments: data.routeSegments.map((segment) => ({
       ...segment,
       note: segment.note
+        .replace(" Photo evidence is tied to P-01 and P-02.", " Work recorded for this section.")
         .replace(" Proof is tied to P-01 and P-02.", " Work recorded for this section.")
         .replace(" Exception remains tied to proof P-04.", " Exception remains tied to this service record."),
     })),
@@ -1204,13 +1235,14 @@ export function buildAxis1FreeSharedPacketData(
       area,
       status,
       note
-        .replace(" Linked to proof photos P-01 / P-02.", "")
+        .replace(" Linked to field photos P-01 / P-02.", "")
+        .replace(" Photo evidence is tied to P-01 and P-02.", "")
         .replace(" Proof is tied to P-01 and P-02.", ""),
     ] as const),
     closeoutRows: [
       ...data.closeoutRows.map(([label, value]): [string, string] => {
         if (label === "Delivery record") {
-          return [label, "Shared report link delivered"];
+          return [label, "Shared service handoff delivered"];
         }
 
         if (label === "Record retention") {

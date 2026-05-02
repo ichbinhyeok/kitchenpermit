@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button-link";
 import { siteConfig } from "@/lib/site";
 
@@ -21,7 +21,7 @@ export function SiteFooter() {
                 Manual request path
               </p>
               <p className="mt-3 max-w-2xl font-display text-3xl font-bold tracking-[-0.06em] text-white md:text-5xl">
-                The packet carries the value. The site just opens the deal cleanly.
+                The customer link carries the value. The site just opens the deal cleanly.
               </p>
             </div>
             <ButtonLink
@@ -39,9 +39,9 @@ export function SiteFooter() {
                 {siteConfig.name}
               </p>
               <p className="max-w-xl text-sm leading-7 text-white/62">
-                Industrial-grade packet system for kitchen exhaust vendors. Service
-                packets sharpen post-service trust. Sales lists sell live opportunity
-                before the first-touch packet helps close.
+                Industrial-grade customer links for kitchen exhaust vendors. Service
+                closeout links sharpen post-service trust. Sales lists sell live opportunity
+                before the first-touch sales packet helps close.
               </p>
             </div>
             <div className="space-y-3">

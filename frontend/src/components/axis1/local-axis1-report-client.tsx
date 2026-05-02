@@ -10,6 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { buildAxis1NeutralPacketData } from "@/lib/axis1-packet-builder";
+import {
+  applyAxis1CloseoutEngineToPacket,
+  evaluateAxis1Closeout,
+} from "@/lib/axis1-closeout-engine";
 import { buildAxis1PacketDataWithFieldPhotos } from "@/lib/axis1-field-photos";
 import {
   getAxis1LocalPacketHref,
@@ -19,6 +23,7 @@ import {
 
 type LocalAxis1ReportClientProps = {
   packetId: string;
+  outputIntent?: "customer-link" | "service-record";
 };
 
 const defaultSections: Axis1PacketDocumentSectionVisibility = {
@@ -33,7 +38,10 @@ function subscribeToLocalPacketStorage(onStoreChange: () => void) {
   return () => window.removeEventListener("storage", onStoreChange);
 }
 
-export function LocalAxis1ReportClient({ packetId }: LocalAxis1ReportClientProps) {
+export function LocalAxis1ReportClient({
+  packetId,
+  outputIntent = "customer-link",
+}: LocalAxis1ReportClientProps) {
   const record = useSyncExternalStore<Axis1LocalPacketRecord | null | undefined>(
     subscribeToLocalPacketStorage,
     () => readAxis1LocalPacket(packetId),
@@ -45,11 +53,25 @@ export function LocalAxis1ReportClient({ packetId }: LocalAxis1ReportClientProps
       return null;
     }
 
-    return buildAxis1PacketDataWithFieldPhotos(
+    if (record.packetData) {
+      return record.packetData;
+    }
+
+    const basePacket = buildAxis1PacketDataWithFieldPhotos(
       buildAxis1NeutralPacketData(record.values),
       record.uploadedFieldPhotos,
       record.photoSlotResolutions,
     );
+    const closeoutEngine = evaluateAxis1Closeout({
+      values: record.values,
+      outcomeSelected: true,
+      uploadedFieldPhotos: record.uploadedFieldPhotos,
+      unplacedPhotoCount: 0,
+      photoSlotResolutions: record.photoSlotResolutions,
+      links: record.links,
+    });
+
+    return applyAxis1CloseoutEngineToPacket(basePacket, closeoutEngine);
   }, [record]);
 
   function printReport() {
@@ -74,7 +96,7 @@ export function LocalAxis1ReportClient({ packetId }: LocalAxis1ReportClientProps
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success("Local packet link copied", {
+      toast.success("Local customer link copied", {
         description: "Works only in this browser until hosted storage is connected.",
       });
     } catch {
@@ -89,7 +111,7 @@ export function LocalAxis1ReportClient({ packetId }: LocalAxis1ReportClientProps
       <main className="min-h-screen bg-[#e9e1d7] px-3 py-4 text-[#151515] sm:px-5 sm:py-6 lg:py-8">
         <Panel className="mx-auto max-w-2xl px-6 py-6">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
-            Loading local packet
+            Loading local customer link
           </p>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
             Checking this browser for the saved report and local photos.
@@ -107,10 +129,10 @@ export function LocalAxis1ReportClient({ packetId }: LocalAxis1ReportClientProps
             <TriangleAlert className="h-5 w-5" />
           </div>
           <p className="mt-5 font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
-            Local packet unavailable
+            Local customer link unavailable
           </p>
           <h1 className="mt-3 font-display text-3xl font-bold tracking-[-0.06em] text-foreground">
-            This browser does not have the saved packet.
+            This browser does not have the saved customer link.
           </h1>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
             This is expected for the local test version. Photos are stored only
@@ -130,17 +152,19 @@ export function LocalAxis1ReportClient({ packetId }: LocalAxis1ReportClientProps
 
   const visibleSections = record.visibleSections ?? defaultSections;
   const photoCount = packetData.proofPhotos.length;
+  const isServiceRecord = outputIntent === "service-record";
 
   return (
     <main className="min-h-screen bg-[#e9e1d7] px-3 py-4 text-[#151515] sm:px-5 sm:py-6 lg:py-8 print:bg-white print:px-0 print:py-0">
       <div className="pdf-print-hide mx-auto mb-4 flex w-[min(1080px,100%)] flex-col gap-3 rounded-[22px] border border-black/8 bg-white/90 px-4 py-3 shadow-[0_18px_44px_rgba(17,17,17,0.08)] backdrop-blur md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#f26a21]">
-            Local photo link
+            {isServiceRecord ? "Evidence PDF" : "Local photo link"}
           </p>
           <p className="mt-1 text-sm font-semibold leading-6 text-foreground">
-            {photoCount} photo(s) attached. This link works in this browser only
-            until hosted storage is connected.
+            {isServiceRecord
+              ? "Print or save this evidence record as the retained PDF copy."
+              : `${photoCount} photo(s) attached. This link works in this browser only until hosted storage is connected.`}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -148,7 +172,9 @@ export function LocalAxis1ReportClient({ packetId }: LocalAxis1ReportClientProps
             type="button"
             variant="ghost"
             onClick={copyCurrentLink}
-            className="rounded-full border border-black/10 bg-white px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground hover:bg-white"
+            className={`rounded-full border border-black/10 bg-white px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground hover:bg-white ${
+              isServiceRecord ? "hidden" : ""
+            }`}
           >
             <Copy className="h-3.5 w-3.5" />
             Copy link
@@ -167,6 +193,7 @@ export function LocalAxis1ReportClient({ packetId }: LocalAxis1ReportClientProps
         <Axis1PacketDocument
           data={packetData}
           variant="customer-report"
+          outputIntent={outputIntent}
           presentationMode={record.presentationMode}
           visibleSections={visibleSections}
         />

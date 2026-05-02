@@ -5,3 +5,13 @@ jte-classes/
 storage/
 *.log
 src/main/resources/static/app.css
+
+# Local browser/test artifacts
+.playwright-mcp/
+artifacts/
+output/
+tmp/
+deploy/.env
+
+# Local scratch lists
+tmp*.txt

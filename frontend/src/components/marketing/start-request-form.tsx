@@ -1,24 +1,108 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { fetchApi } from "@/lib/api";
 import { buildEmailDraftUrl } from "@/lib/start-request";
 
 type InquiryCreateResponse = {
   id: string;
 };
 
+type StartRequestField =
+  | "companyName"
+  | "contactName"
+  | "email"
+  | "phone"
+  | "serviceArea"
+  | "productInterest"
+  | "notes";
+
+type StartRequestPayload = Record<StartRequestField, string>;
+type StartRequestFieldErrors = Partial<Record<StartRequestField, string>>;
+
+const requiredFieldOrder: StartRequestField[] = [
+  "companyName",
+  "contactName",
+  "email",
+  "serviceArea",
+];
+
+function validateStartRequest(payload: StartRequestPayload) {
+  const errors: StartRequestFieldErrors = {};
+
+  if (payload.companyName.length < 2) {
+    errors.companyName = "Enter the vendor or company name.";
+  }
+
+  if (payload.contactName.length < 2) {
+    errors.contactName = "Enter the primary contact.";
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+    errors.email = "Enter a working email address.";
+  }
+
+  if (payload.serviceArea.length < 2) {
+    errors.serviceArea = "Enter the market or service area.";
+  }
+
+  return errors;
+}
+
+function StartFieldError({
+  field,
+  errors,
+}: {
+  field: StartRequestField;
+  errors: StartRequestFieldErrors;
+}) {
+  const message = errors[field];
+
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <p id={`${field}-error`} className="text-xs font-medium leading-5 text-danger">
+      {message}
+    </p>
+  );
+}
+
 export function StartRequestForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<StartRequestFieldErrors>({});
+
+  function fieldClassName(field: StartRequestField, rounded = "rounded-[22px]") {
+    return `${rounded} border bg-white/86 px-4 py-3.5 text-foreground outline-none transition placeholder:text-muted-foreground/62 focus:border-[#111315] focus:bg-white focus:ring-4 focus:ring-[rgba(242,106,33,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111315] ${
+      fieldErrors[field]
+        ? "border-danger/60 ring-4 ring-[rgba(188,61,31,0.08)]"
+        : "border-border"
+    }`;
+  }
+
+  function clearFieldError(field: StartRequestField) {
+    if (!fieldErrors[field]) {
+      return;
+    }
+
+    setFieldErrors((current) => {
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage(null);
 
-    const formData = new FormData(event.currentTarget);
-    const payload = {
+    const formElement = event.currentTarget;
+    const formData = new FormData(formElement);
+    const payload: StartRequestPayload = {
       companyName: String(formData.get("companyName") ?? "").trim(),
       contactName: String(formData.get("contactName") ?? "").trim(),
       email: String(formData.get("email") ?? "").trim(),
@@ -27,11 +111,27 @@ export function StartRequestForm() {
       productInterest: String(formData.get("productInterest") ?? "").trim(),
       notes: String(formData.get("notes") ?? "").trim(),
     };
+    const validationErrors = validateStartRequest(payload);
+    const firstInvalidField = requiredFieldOrder.find((field) => validationErrors[field]);
+
+    if (firstInvalidField) {
+      setFieldErrors(validationErrors);
+      setErrorMessage("Complete the highlighted fields before sending the setup request.");
+      window.requestAnimationFrame(() => {
+        const input = formElement.elements.namedItem(firstInvalidField);
+        if (input instanceof HTMLElement) {
+          input.focus();
+        }
+      });
+      return;
+    }
+
+    setFieldErrors({});
 
     const fallbackEmailDraftUrl = buildEmailDraftUrl(payload);
 
     try {
-      const response = await fetch("/api/public/inquiries", {
+      const response = await fetchApi("/api/public/inquiries", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +161,7 @@ export function StartRequestForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5">
+    <form onSubmit={handleSubmit} className="grid gap-5" noValidate>
       <div className="grid gap-5 md:grid-cols-2">
         <label className="grid gap-2">
           <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
@@ -69,10 +169,14 @@ export function StartRequestForm() {
           </span>
           <input
             name="companyName"
-            required
-            className="rounded-[22px] border border-border bg-white/86 px-4 py-3.5 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(242,106,33,0.12)]"
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.companyName)}
+            aria-describedby={fieldErrors.companyName ? "companyName-error" : undefined}
+            onChange={() => clearFieldError("companyName")}
+            className={fieldClassName("companyName")}
             placeholder="Masked Vendor Co."
           />
+          <StartFieldError field="companyName" errors={fieldErrors} />
         </label>
         <label className="grid gap-2">
           <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
@@ -80,10 +184,14 @@ export function StartRequestForm() {
           </span>
           <input
             name="contactName"
-            required
-            className="rounded-[22px] border border-border bg-white/86 px-4 py-3.5 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(242,106,33,0.12)]"
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.contactName)}
+            aria-describedby={fieldErrors.contactName ? "contactName-error" : undefined}
+            onChange={() => clearFieldError("contactName")}
+            className={fieldClassName("contactName")}
             placeholder="Jordan Lee"
           />
+          <StartFieldError field="contactName" errors={fieldErrors} />
         </label>
       </div>
       <div className="grid gap-5 md:grid-cols-2">
@@ -94,10 +202,14 @@ export function StartRequestForm() {
           <input
             name="email"
             type="email"
-            required
-            className="rounded-[22px] border border-border bg-white/86 px-4 py-3.5 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(242,106,33,0.12)]"
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? "email-error" : undefined}
+            onChange={() => clearFieldError("email")}
+            className={fieldClassName("email")}
             placeholder="ops@vendor.com"
           />
+          <StartFieldError field="email" errors={fieldErrors} />
         </label>
         <label className="grid gap-2">
           <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
@@ -105,7 +217,7 @@ export function StartRequestForm() {
           </span>
           <input
             name="phone"
-            className="rounded-[22px] border border-border bg-white/86 px-4 py-3.5 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(242,106,33,0.12)]"
+            className={fieldClassName("phone")}
             placeholder="512-555-0100"
           />
         </label>
@@ -117,10 +229,14 @@ export function StartRequestForm() {
           </span>
           <input
             name="serviceArea"
-            required
-            className="rounded-[22px] border border-border bg-white/86 px-4 py-3.5 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(242,106,33,0.12)]"
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.serviceArea)}
+            aria-describedby={fieldErrors.serviceArea ? "serviceArea-error" : undefined}
+            onChange={() => clearFieldError("serviceArea")}
+            className={fieldClassName("serviceArea")}
             placeholder="Austin / San Antonio / DFW"
           />
+          <StartFieldError field="serviceArea" errors={fieldErrors} />
         </label>
         <label className="grid gap-2">
           <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
@@ -128,11 +244,11 @@ export function StartRequestForm() {
           </span>
           <select
             name="productInterest"
-            className="rounded-[22px] border border-border bg-white/86 px-4 py-3.5 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(242,106,33,0.12)]"
-            defaultValue="Proof packet setup"
+            className={fieldClassName("productInterest")}
+            defaultValue="Customer link setup"
           >
-            <option>Proof packet setup</option>
-            <option>Proof packet setup + sales lists</option>
+            <option>Customer link setup</option>
+            <option>Customer link setup + sales lists</option>
             <option>Sales lists</option>
           </select>
         </label>
@@ -144,8 +260,8 @@ export function StartRequestForm() {
         <textarea
           name="notes"
           rows={5}
-          className="rounded-[26px] border border-border bg-white/86 px-4 py-3.5 text-foreground outline-none transition focus:border-accent focus:ring-4 focus:ring-[rgba(242,106,33,0.12)]"
-          placeholder="Current service area, whether you want branded proof packets, customer link/PDF delivery, sales-list batches, or timing."
+          className={fieldClassName("notes", "rounded-[26px]")}
+          placeholder="Current service area, whether you want branded customer links, customer link/PDF delivery, sales-list batches, or timing."
         />
       </label>
       {errorMessage ? (

@@ -1,32 +1,32 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight, Flame } from "lucide-react";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
-import { getAxis1PacketPreviewData } from "@/lib/axis1-packet-preview";
+import {
+  axis1SampleProofVariants,
+  buildAxis1SampleProofData,
+} from "@/lib/axis1-sample-packets";
 
 export const metadata: Metadata = {
-  title: "Kitchen Exhaust Proof Packet Sample",
+  title: "Kitchen Exhaust Customer Link Sample",
   description:
-    "A public kitchen exhaust proof packet sample for vendors who want customer-readable proof after the hood cleaning visit.",
+    "A public kitchen exhaust customer link sample for vendors who want a customer-readable service record after the hood cleaning visit.",
 };
 
-const sampleData = getAxis1PacketPreviewData({
-  branding: "neutral",
-  scenario: "exception",
-});
+const sampleData = buildAxis1SampleProofData("blocked_access");
 
 const proofRows = [
   {
     label: "Customer read",
     title: "The operator sees what happened without decoding technician notes.",
-    copy: "Result, open item, photo proof, and next step stay in one readable sequence.",
+    copy: "Result, open item, photo evidence, and next step stay in one readable sequence.",
   },
   {
     label: "Vendor defense",
     title: "Blocked access is shown cleanly instead of being buried.",
-    copy: "The packet protects the vendor from implying a section was cleaned when it was not reachable.",
+    copy: "The customer link protects the vendor from implying a section was cleaned when it was not reachable.",
   },
   {
     label: "Paid setup",
@@ -38,15 +38,15 @@ const proofRows = [
 const handoffRows = [
   ["What was cleaned", "Readable scope, not a photo dump"],
   ["What stayed open", "Access issue remains visible"],
-  ["What proves it", "Section-linked image evidence"],
+  ["What supports it", "Section-linked photo evidence"],
   ["What happens next", "Reply path and next visit window"],
 ] as const;
 
 const setupRows = [
   ["Vendor identity", "Logo, office line, dispatch email, direct callback path"],
-  ["Technician context", "Tech ID, service reference, certificate or internal record"],
-  ["Delivery format", "Public link, branded PDF, and same-day customer handoff"],
-  ["Scenario coverage", "Clean-close packets and open-item packets"],
+  ["Technician context", "Tech ID, service reference, credential, or internal record"],
+  ["Delivery format", "Customer link, evidence PDF, and same-day customer handoff"],
+  ["Scenario coverage", "Clean, blocked-access, and condition-review customer links"],
 ] as const;
 
 const snapshotRows: ReadonlyArray<readonly [ReactNode, string]> = [
@@ -93,7 +93,7 @@ function ReportProofPlate() {
             Public sample shell
           </p>
           <h2 className="mt-3 max-w-sm font-display text-[2.05rem] font-bold leading-[0.92] tracking-[-0.055em]">
-            Same-day proof packet
+            Same-day customer link
           </h2>
         </div>
         <Flame className="h-5 w-5 shrink-0 text-[#f26a21]" strokeWidth={2} />
@@ -139,16 +139,16 @@ export default function SampleAxis1Page() {
                   Vendor-facing product sample
                 </p>
                 <h1 className="mt-8 max-w-[11ch] font-display text-[3.7rem] font-bold leading-[0.88] tracking-[-0.065em] text-white min-[390px]:text-[4.15rem] md:text-[6rem] xl:text-[6.7rem]">
-                  Proof your customer can read.
+                  A customer link your customer can read.
                 </h1>
                 <p className="mt-7 max-w-xl text-base leading-8 text-white/72 md:text-lg">
-                  A public sample of the customer-facing proof packet after a kitchen exhaust
-                  cleaning visit: cleaned areas, blocked access, photo proof, and the
+                  A public sample of the customer-facing service link after a kitchen exhaust
+                  cleaning visit: cleaned areas, blocked access, photo evidence, and the
                   next action.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <ActionLink href="#sample-report" tone="accent">
-                    View the packet
+                    View customer link
                   </ActionLink>
                   <ActionLink href="/p/sample-hood-cleaning" tone="light">
                     Open customer link
@@ -271,7 +271,7 @@ export default function SampleAxis1Page() {
               Vendor sample page
             </p>
             <h2 className="mt-4 font-display text-[2.6rem] font-bold leading-[0.92] tracking-[-0.06em] text-foreground md:text-[4.45rem]">
-              The proof packet structure, shown safely.
+              The customer link structure, shown safely.
             </h2>
           </div>
           <div className="space-y-5">
@@ -285,19 +285,55 @@ export default function SampleAxis1Page() {
                 href="/p/sample-hood-cleaning"
                 tone="dark"
               >
-                Open customer report
+                Open blocked-access link
+              </ActionLink>
+              <ActionLink
+                href="/p/sample-clean-closeout"
+                tone="outline"
+              >
+                Open clean link
+              </ActionLink>
+              <ActionLink
+                href="/p/sample-condition-review"
+                tone="outline"
+              >
+                Open condition link
               </ActionLink>
               <ActionLink
                 href="/exports/axis-1-packet?branding=applied&scenario=exception"
                 tone="outline"
               >
-                Open PDF preview
+                Open evidence PDF preview
               </ActionLink>
               <ActionLink href="/start" tone="accent">
                 Request setup
               </ActionLink>
             </div>
           </div>
+        </div>
+
+        <div className="mb-6 grid gap-3 md:grid-cols-3">
+          {axis1SampleProofVariants.map((variant) => (
+            <Link
+              key={variant.variant}
+              href={variant.path}
+              className="group min-w-0 border-y border-black/12 px-0 py-5 transition hover:border-[#f26a21] md:border-l md:border-y-0 md:px-5 md:first:border-l-0"
+            >
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8b8178]">
+                {variant.label}
+              </p>
+              <h3 className="mt-2 text-xl font-bold leading-tight tracking-[-0.045em] text-foreground">
+                {variant.title}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                {variant.copy}
+              </p>
+              <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#c8581e]">
+                Open customer link
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          ))}
         </div>
 
         <Axis1PacketDocument data={sampleData} />
@@ -328,7 +364,7 @@ export default function SampleAxis1Page() {
                   href="/p/sample-hood-cleaning"
                   tone="light"
                 >
-                  Customer report link
+                  Customer link
                 </ActionLink>
               </div>
             </div>

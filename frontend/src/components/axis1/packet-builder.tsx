@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -24,17 +24,23 @@ import {
   IconPhotoScan,
 } from "@tabler/icons-react";
 import {
+  CalendarClock,
   ChevronDown,
   ChevronUp,
+  ClipboardCheck,
   Copy,
   ExternalLink,
   Eye,
   FileDown,
+  FileText,
   GripVertical,
+  Link2,
   PencilLine,
   Plus,
+  ReceiptText,
   RotateCcw,
   Settings2,
+  ShieldCheck,
   Sparkles,
   TriangleAlert,
 } from "lucide-react";
@@ -44,6 +50,8 @@ import { toast } from "sonner";
 import {
   Axis1PacketDocument,
   type Axis1PacketDocumentSectionVisibility,
+  type CustomerWebPacketEditConfig,
+  type CustomerWebPacketEditTarget,
 } from "@/components/axis1/packet-document";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,6 +71,7 @@ import {
 } from "@/components/ui/segmented-control";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchApi } from "@/lib/api";
 import {
   axis1BuilderDefaults,
   axis1BuilderSchema,
@@ -74,16 +83,25 @@ import {
   type Axis1BuilderExceptionKind,
   type Axis1BuilderFormValues,
 } from "@/lib/axis1-packet-builder";
+import type { Axis1PacketPreviewData } from "@/lib/axis1-packet-preview";
 import {
   applyAxis1CloseoutEngineToPacket,
   evaluateAxis1Closeout,
+  type Axis1CloseoutLinks,
 } from "@/lib/axis1-closeout-engine";
+import {
+  axis1PhotoAssistLowConfidenceThreshold,
+  buildMockAxis1PhotoAssistSuggestions,
+  shouldKeepAxis1PhotoAssistSuggestionInReview,
+  type Axis1PhotoAssistInputPhoto,
+  type Axis1PhotoAssistResponse,
+  type Axis1PhotoAssistSuggestion,
+} from "@/lib/axis1-photo-assist";
 import {
   axis1FieldPhotoSlots as fieldPhotoSlots,
   buildAxis1PacketDataWithFieldPhotos,
   emptyAxis1FieldPhotoState,
   emptyAxis1PhotoSlotResolutions,
-  getAxis1AdaptiveRecordMeta,
   type Axis1FieldPhotoConfidence as FieldPhotoConfidence,
   type Axis1FieldPhotoSlotId as FieldPhotoSlotId,
   type Axis1PhotoSlotResolution as PhotoSlotResolution,
@@ -94,27 +112,27 @@ import { saveAxis1LocalPacket } from "@/lib/axis1-local-packet-store";
 const jobPatternPresets = [
   {
     id: "clean-close",
-    label: "Everything was completed",
-    title: "No open item",
-    copy: "Completed. Send proof and next visit window.",
+    label: "Completed",
+    title: "Completed",
+    copy: "Use when included work was completed and no customer action is needed.",
     scenario: "clean",
     exceptionKinds: [],
     followUpMode: "none",
   },
   {
     id: "blocked-access",
-    label: "Something was blocked",
-    title: "Cleaned reachable areas",
-    copy: "Some area was blocked or inaccessible.",
+    label: "Blocked / no access",
+    title: "Completed where reachable",
+    copy: "Use when the crew completed reachable work but one area stayed blocked or inaccessible.",
     scenario: "exception",
     exceptionKinds: ["blocked-storage"],
     followUpMode: "monitor",
   },
   {
     id: "condition-review",
-    label: "Something needs review",
-    title: "Completed, but flag it",
-    copy: "Done, but one condition should stay visible.",
+    label: "Condition found",
+    title: "Service done, condition noted",
+    copy: "Use when service is recorded and a condition should drive quote, revisit, or next-service follow-up.",
     scenario: "exception",
     exceptionKinds: ["rooftop-hinge-curb"],
     followUpMode: "quote",
@@ -129,17 +147,22 @@ const jobPatternPresets = [
   followUpMode: Axis1BuilderFormValues["followUpMode"];
 }>;
 
-type BuilderStep = "job" | "photos" | "report";
+type JobPatternPreset = (typeof jobPatternPresets)[number];
+type JobPatternId = JobPatternPreset["id"];
+
+type BuilderStep = "risk" | "scope" | "proof" | "confirm" | "next";
 type MobileSheetView = "photo-review" | "report-actions";
 type PacketPresentationMode = "standard" | "short";
 type ReportOutputMode = "link" | "pdf";
 type SetupNoticeAction = "copy-link" | "open-link" | "print-pdf";
+type CloseoutLinkFieldKey = keyof Axis1CloseoutLinks;
 type CustomerLineEditor =
   | "result"
   | "open-item"
   | "action"
   | "photo-record"
   | "timing";
+type CustomerLineEditorSurface = "draft" | "report" | "ready" | "preview";
 type UnplacedFieldPhoto = UploadedFieldPhoto & {
   id: string;
   suggestedSlotId: FieldPhotoSlotId | null;
@@ -149,6 +172,73 @@ type FieldPhotoSlot = (typeof fieldPhotoSlots)[number];
 type UploadedFieldPhotoState = Record<FieldPhotoSlotId, UploadedFieldPhoto | null>;
 type PhotoImportNotice = {
   tone: "success" | "warning" | "error";
+  message: string;
+};
+type JobOutcomeRecommendation = {
+  pattern: JobPatternPreset;
+  signalLabel: string;
+  reason: string;
+  confidence: "Default" | "Medium" | "High";
+};
+type RiskFlagId =
+  | "no-risk"
+  | "access-risk"
+  | "heavy-grease"
+  | "equipment-condition"
+  | "scope-unclear"
+  | "customer-expectation";
+type RiskFlag = {
+  id: RiskFlagId;
+  label: string;
+  copy: string;
+  tone: "clear" | "review";
+};
+type ScopeAreaId =
+  | "hood-filters"
+  | "duct-access"
+  | "rooftop-fan"
+  | "grease-path"
+  | "service-label";
+type VisitTypeId =
+  | "standard-hood"
+  | "hood-fan"
+  | "filter-only"
+  | "fan-only"
+  | "access-revisit"
+  | "condition-record";
+type ScopeStatus =
+  | "done-photo"
+  | "done-no-photo"
+  | "could-not-access"
+  | "condition-note"
+  | "not-done"
+  | "not-in-scope"
+  | "needs-review";
+type ScopeEvidence = "photo" | "written" | "none" | "unclear";
+type ScopeOverrideState = Partial<Record<ScopeAreaId, ScopeStatus>>;
+type ScopeAreaDefinition = {
+  id: ScopeAreaId;
+  label: string;
+  shortLabel: string;
+  copy: string;
+  slotIds: FieldPhotoSlotId[];
+  expectedByDefault: boolean;
+};
+type ScopeLedgerRow = ScopeAreaDefinition & {
+  status: ScopeStatus;
+  evidence: ScopeEvidence;
+  photoCount: number;
+  suggestedCount: number;
+  needsCheck: boolean;
+  reason: string;
+};
+type ScopeStatusOption = {
+  value: ScopeStatus;
+  label: string;
+  disabled?: boolean;
+};
+type PhotoAssistNotice = {
+  tone: "idle" | "success" | "warning" | "error";
   message: string;
 };
 type PreparedPhotoPreview =
@@ -166,9 +256,170 @@ const photoDragPrefix = "photo:";
 const extraPhotoDragPrefix = "extra-photo:";
 const photoTargetPrefix = "photo-target:";
 const maxPhotoPreviewDimension = 1600;
+const maxPhotoAssistDimension = 896;
+const photoAssistJpegQuality = 0.72;
 const maxPhotoImportBytes = 40 * 1024 * 1024;
 const maxBulkPhotoImportCount = 16;
 const smallPhotoFallbackBytes = 5 * 1024 * 1024;
+const scopeAreaCatalog = [
+  {
+    id: "hood-filters",
+    label: "Hood / filters",
+    shortLabel: "Hood",
+    copy: "Canopy, baffle filters, tracks, and reachable hood area.",
+    slotIds: ["hood-before", "hood-after", "filter-bank"],
+    expectedByDefault: true,
+  },
+  {
+    id: "duct-access",
+    label: "Duct / access path",
+    shortLabel: "Duct",
+    copy: "Reachable plenum, duct path, rear access, and blocked-access notes.",
+    slotIds: ["access-condition"],
+    expectedByDefault: true,
+  },
+  {
+    id: "rooftop-fan",
+    label: "Rooftop fan",
+    shortLabel: "Fan",
+    copy: "Fan bowl, hinge, curb, belt/pulley visibility, and rooftop condition.",
+    slotIds: ["rooftop-fan"],
+    expectedByDefault: true,
+  },
+  {
+    id: "grease-path",
+    label: "Grease path",
+    shortLabel: "Grease",
+    copy: "Removed grease, grease cups, containment, drip path, buckets, and roof grease trail.",
+    slotIds: ["grease-containment"],
+    expectedByDefault: true,
+  },
+  {
+    id: "service-label",
+    label: "Label / notice",
+    shortLabel: "Label",
+    copy: "Next-due sticker, service label, posted notice, or manager-facing record.",
+    slotIds: ["service-label"],
+    expectedByDefault: false,
+  },
+] as const satisfies ReadonlyArray<ScopeAreaDefinition>;
+
+const riskFlagCatalog = [
+  {
+    id: "no-risk",
+    label: "No risk noted",
+    copy: "Standard maintenance visit; no quote or access concern recorded yet.",
+    tone: "clear",
+  },
+  {
+    id: "access-risk",
+    label: "Access risk",
+    copy: "Panel, roof, duct, key, tenant, or manager access may block included work.",
+    tone: "review",
+  },
+  {
+    id: "heavy-grease",
+    label: "Heavy grease / initial clean",
+    copy: "Grease load may exceed normal maintenance pricing or time.",
+    tone: "review",
+  },
+  {
+    id: "equipment-condition",
+    label: "Fan / duct condition",
+    copy: "Fan, belt, hinge, curb, duct, or containment condition may need follow-up.",
+    tone: "review",
+  },
+  {
+    id: "scope-unclear",
+    label: "Scope unclear",
+    copy: "Customer expectation or included/excluded work needs a clear boundary.",
+    tone: "review",
+  },
+  {
+    id: "customer-expectation",
+    label: "Price / expectation risk",
+    copy: "Customer may compare full exhaust work to a cheaper visible-hood wipe.",
+    tone: "review",
+  },
+] as const satisfies ReadonlyArray<RiskFlag>;
+
+const visitTypePresets = [
+  {
+    id: "standard-hood",
+    label: "Standard",
+    title: "Hood cleaning",
+    copy: "Hood, duct, fan, and grease path expected.",
+    expectedAreaIds: [
+      "hood-filters",
+      "duct-access",
+      "rooftop-fan",
+      "grease-path",
+    ],
+  },
+  {
+    id: "hood-fan",
+    label: "Hood + fan",
+    title: "Full exhaust path",
+    copy: "Use when fan and duct were part of the visit.",
+    expectedAreaIds: [
+      "hood-filters",
+      "duct-access",
+      "rooftop-fan",
+      "grease-path",
+    ],
+  },
+  {
+    id: "filter-only",
+    label: "Filters only",
+    title: "Filter service",
+    copy: "Only hood/filter work is expected.",
+    expectedAreaIds: ["hood-filters"],
+  },
+  {
+    id: "fan-only",
+    label: "Fan only",
+    title: "Rooftop fan",
+    copy: "Fan and rooftop grease path only.",
+    expectedAreaIds: ["rooftop-fan", "grease-path"],
+  },
+  {
+    id: "access-revisit",
+    label: "Access revisit",
+    title: "Blocked area return",
+    copy: "Only the access path is expected.",
+    expectedAreaIds: ["duct-access"],
+  },
+  {
+    id: "condition-record",
+    label: "Condition only",
+    title: "Record condition",
+    copy: "No cleaning completion is assumed.",
+    expectedAreaIds: [],
+  },
+] as const satisfies ReadonlyArray<{
+  id: VisitTypeId;
+  label: string;
+  title: string;
+  copy: string;
+  expectedAreaIds: ScopeAreaId[];
+}>;
+
+function getVisitTypePreset(id: VisitTypeId) {
+  return (
+    visitTypePresets.find((preset) => preset.id === id) ??
+    visitTypePresets[0]
+  );
+}
+
+function toDisplaySentence(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
 
 function makePhotoDragId(slotId: FieldPhotoSlotId) {
   return `${photoDragPrefix}${slotId}`;
@@ -211,12 +462,815 @@ function isMobileViewport() {
   );
 }
 
+function scrollPacketWorkspaceBelowHeader(behavior: ScrollBehavior = "smooth") {
+  window.scrollTo({ top: 0, behavior });
+}
+
 function createLocalPhotoId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
 
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function isVendorConfirmedPhoto(photo: UploadedFieldPhoto | null | undefined) {
+  return (
+    Boolean(photo) &&
+    (photo?.confidence === "manual" ||
+      photo?.vendorDecision === "confirmed" ||
+      photo?.vendorDecision === "edited")
+  );
+}
+
+type FastConfirmPhotoCandidate = Partial<
+  Pick<
+    UploadedFieldPhoto,
+    | "assistConfidence"
+    | "assistSource"
+    | "assistSuggestedSlotId"
+    | "needsVendorReview"
+    | "vendorDecision"
+  >
+> & {
+  suggestedSlotId?: FieldPhotoSlotId | null;
+};
+
+function isFastConfirmableSuggestedPhoto(
+  photo: FastConfirmPhotoCandidate | null | undefined,
+) {
+  if (!photo || photo.vendorDecision !== "pending") {
+    return false;
+  }
+
+  return (
+    photo.assistSource === "gemini" &&
+    photo.needsVendorReview === false &&
+    typeof photo.assistConfidence === "number" &&
+    photo.assistConfidence >= axis1PhotoAssistLowConfidenceThreshold &&
+    Boolean(photo.assistSuggestedSlotId ?? photo.suggestedSlotId)
+  );
+}
+
+function buildConfirmedFieldPhotoState(
+  uploadedFieldPhotos: UploadedFieldPhotoState,
+): UploadedFieldPhotoState {
+  const confirmed = emptyFieldPhotoState();
+
+  fieldPhotoSlots.forEach((slot) => {
+    const photo = uploadedFieldPhotos[slot.id];
+
+    if (isVendorConfirmedPhoto(photo)) {
+      confirmed[slot.id] = photo;
+    }
+  });
+
+  return confirmed;
+}
+
+function createPhotoAssistMetadata(
+  suggestion: Axis1PhotoAssistSuggestion | null,
+): Partial<UploadedFieldPhoto> {
+  if (!suggestion) {
+    return {
+      vendorDecision: "confirmed",
+    };
+  }
+
+  return {
+    assistSuggestionId: suggestion.id,
+    assistSource: suggestion.source,
+    assistConfidence: suggestion.confidence,
+    assistReason: suggestion.reason,
+    assistSuggestedSlotId: suggestion.suggestedSlotId,
+    needsVendorReview: suggestion.needsVendorReview,
+    vendorDecision: suggestion.vendorDecision,
+  };
+}
+
+function getJobPatternById(id: JobPatternId): JobPatternPreset {
+  return jobPatternPresets.find((pattern) => pattern.id === id) ?? jobPatternPresets[0];
+}
+
+function getScopeStatusMeta(status: ScopeStatus) {
+  switch (status) {
+    case "done-photo":
+      return {
+        label: "Done + photo",
+        chip: "Photo",
+        className: "border-[#2c7a3f]/22 bg-[#f1f8ef] text-[#1f6330]",
+      };
+    case "done-no-photo":
+      return {
+        label: "Completed from notes",
+        chip: "Notes",
+        className: "border-[#f26a21]/20 bg-[#fff7ef] text-[#a94410]",
+      };
+    case "could-not-access":
+      return {
+        label: "Could not access",
+        chip: "Blocked",
+        className: "border-[#bc3d1f]/22 bg-[#fff1ed] text-[#9d2f18]",
+      };
+    case "condition-note":
+      return {
+        label: "Condition noted",
+        chip: "Note",
+        className: "border-[#7b5c1f]/22 bg-[#fff7d6] text-[#6b4b11]",
+      };
+    case "not-done":
+      return {
+        label: "Not done",
+        chip: "Open",
+        className: "border-[#bc3d1f]/22 bg-[#fff1ed] text-[#9d2f18]",
+      };
+    case "not-in-scope":
+      return {
+        label: "Separate / not this visit",
+        chip: "Separate",
+        className: "border-black/10 bg-white text-muted-foreground",
+      };
+    default:
+      return {
+        label: "Needs review",
+        chip: "Review",
+        className: "border-[#f26a21]/24 bg-[#fff2e8] text-[#a94410]",
+      };
+  }
+}
+
+function buildScopeStatusOptions(row: ScopeLedgerRow): ScopeStatusOption[] {
+  return [
+    ...(row.status === "needs-review"
+      ? [{ value: "needs-review" as const, label: "Needs review" }]
+      : []),
+    {
+      value: "done-photo",
+      label: "Completed + photo",
+      disabled: row.photoCount === 0,
+    },
+    {
+      value: "done-no-photo",
+      label: "Completed from notes",
+    },
+    {
+      value: "could-not-access",
+      label: "Blocked / no access",
+    },
+    {
+      value: "not-done",
+      label: "Not completed",
+    },
+    {
+      value: "condition-note",
+      label: "Condition noted",
+    },
+    {
+      value: "not-in-scope",
+      label: "Separate / not this visit",
+    },
+  ];
+}
+
+function buildScopeLedger(options: {
+  uploadedFieldPhotos: UploadedFieldPhotoState;
+  unplacedFieldPhotos: UnplacedFieldPhoto[];
+  overrides: ScopeOverrideState;
+  expectedAreaIds: ReadonlySet<ScopeAreaId>;
+}): ScopeLedgerRow[] {
+  return scopeAreaCatalog.map((area) => {
+    const expectedForVisit = options.expectedAreaIds.has(area.id);
+    const photoCount = area.slotIds.filter(
+      (slotId) => options.uploadedFieldPhotos[slotId],
+    ).length;
+    const suggestedCount = options.unplacedFieldPhotos.filter((photo) =>
+      photo.suggestedSlotId
+        ? (area.slotIds as readonly FieldPhotoSlotId[]).includes(
+            photo.suggestedSlotId,
+          )
+        : false,
+    ).length;
+    const hasPartialHoodProof =
+      area.id === "hood-filters" &&
+      (Boolean(options.uploadedFieldPhotos["hood-before"]) !==
+        Boolean(options.uploadedFieldPhotos["hood-after"]));
+    const defaultStatus: ScopeStatus = hasPartialHoodProof
+      ? "needs-review"
+      : area.id === "duct-access" && photoCount > 0
+        ? "needs-review"
+      : suggestedCount > 0 && photoCount === 0
+          ? "needs-review"
+          : photoCount > 0
+            ? "done-photo"
+            : expectedForVisit
+              ? "done-no-photo"
+              : "not-in-scope";
+    const status = options.overrides[area.id] ?? defaultStatus;
+    const evidence: ScopeEvidence =
+      status === "done-photo"
+        ? "photo"
+        : status === "needs-review"
+          ? "unclear"
+          : status === "done-no-photo" ||
+              status === "could-not-access" ||
+              status === "condition-note" ||
+              status === "not-done"
+            ? photoCount > 0
+              ? "photo"
+              : "written"
+            : "none";
+    const reason =
+      status === "needs-review"
+        ? hasPartialHoodProof
+          ? "Before/after support is incomplete. Confirm what should be shown."
+          : "AI found a possible match, but it needs vendor confirmation before the customer sees it."
+        : status === "done-no-photo"
+          ? "Assumed complete from the standard closeout; no field photo is attached for this area."
+          : status === "could-not-access"
+            ? "This area will be written as blocked or inaccessible, not as completed."
+            : status === "condition-note"
+              ? "This area stays visible as a follow-up condition, separate from completed cleaning."
+              : status === "not-done"
+                ? "This area will be listed as not completed if it matters to the customer."
+                : status === "not-in-scope"
+                  ? "This area stays out of the customer message."
+                  : "Photo support is attached for this area.";
+
+    return {
+      ...area,
+      expectedByDefault: expectedForVisit,
+      status,
+      evidence,
+      photoCount,
+      suggestedCount,
+      needsCheck:
+        status === "needs-review" ||
+        status === "could-not-access" ||
+        status === "condition-note" ||
+        status === "not-done",
+      reason,
+    };
+  });
+}
+
+function buildScopeOutcomeRecommendation(
+  rows: readonly ScopeLedgerRow[],
+  fallback: JobOutcomeRecommendation,
+): JobOutcomeRecommendation {
+  const accessRows = rows.filter(
+    (row) => row.status === "could-not-access" || row.status === "not-done",
+  );
+  const conditionRows = rows.filter((row) => row.status === "condition-note");
+
+  if (accessRows.length > 0) {
+    return {
+      pattern: getJobPatternById("blocked-access"),
+      signalLabel: "Scope issue detected",
+      reason: `${accessRows.map((row) => row.shortLabel).join(", ")} marked blocked or not completed in the scope check.`,
+      confidence: "High",
+    };
+  }
+
+  if (conditionRows.length > 0) {
+    return {
+      pattern: getJobPatternById("condition-review"),
+      signalLabel: "Condition note detected",
+      reason: `${conditionRows.map((row) => row.shortLabel).join(", ")} marked as a customer-visible condition.`,
+      confidence: "High",
+    };
+  }
+
+  return fallback;
+}
+
+const scopeOutputMeta: Record<
+  ScopeAreaId,
+  {
+    code: string;
+    routeTitle: string;
+    component: string;
+    coverageLabel: string;
+    coveredCopy: string;
+    recordedCopy: string;
+  }
+> = {
+  "hood-filters": {
+    code: "HD/FL",
+    routeTitle: "Hood canopy and filters",
+    component: "Hood canopy and filters",
+    coverageLabel: "Hood canopy and filters",
+    coveredCopy:
+      "Hood body, baffle filters, tracks, and nearby grease collection points were included in this visit.",
+    recordedCopy:
+      "Hood and filter condition stay visible in the record without implying missing photo proof.",
+  },
+  "duct-access": {
+    code: "PL/DK",
+    routeTitle: "Plenum, duct path, and access",
+    component: "Plenum, duct path, and access",
+    coverageLabel: "Reachable plenum, duct path, and access",
+    coveredCopy:
+      "Reachable plenum, duct path, and access points were included instead of stopping at the visible hood face.",
+    recordedCopy:
+      "Duct and access status stays visible so the customer can see whether the path was completed, blocked, or excluded.",
+  },
+  "rooftop-fan": {
+    code: "RF-01",
+    routeTitle: "Rooftop fan",
+    component: "Rooftop fan and roof discharge",
+    coverageLabel: "Rooftop fan and roof discharge",
+    coveredCopy:
+      "Rooftop fan, hinge/curb, belt/pulley visibility, and discharge-area status were included in the service record.",
+    recordedCopy:
+      "Fan, hinge, curb, belt/pulley visibility, and roof-discharge condition stay visible for future review.",
+  },
+  "grease-path": {
+    code: "GC-01",
+    routeTitle: "Grease path and containment",
+    component: "Grease path and containment",
+    coverageLabel: "Grease path and containment",
+    coveredCopy:
+      "Grease path, grease cups, containment, drip points, buckets, or roof grease trail were included in the service record.",
+    recordedCopy:
+      "Grease cup, containment, drip-path, or roof-grease condition stays visible so roof or housekeeping complaints do not depend on memory.",
+  },
+  "service-label": {
+    code: "LBL-01",
+    routeTitle: "Service label / notice",
+    component: "Service label / notice",
+    coverageLabel: "Service label / notice",
+    coveredCopy:
+      "Service label, next-due sticker, or notice status was included in the retained record.",
+    recordedCopy:
+      "Label or notice status stays visible for manager and outside record requests.",
+  },
+};
+
+function upsertDisplayRows(
+  rows: readonly (readonly [string, string])[],
+  additions: readonly (readonly [string, string])[],
+) {
+  const additionLabels = new Set(additions.map(([label]) => label));
+  return [
+    ...rows
+      .filter(([label]) => !additionLabels.has(label))
+      .map(([label, value]) => [label, value] as [string, string]),
+    ...additions.map(([label, value]) => [label, value] as [string, string]),
+  ];
+}
+
+function formatScopeAreaList(rows: readonly ScopeLedgerRow[], statuses: readonly ScopeStatus[]) {
+  const labels = rows
+    .filter(
+      (row) =>
+        statuses.includes(row.status) &&
+        !(row.id === "service-label" && row.status === "not-in-scope"),
+    )
+    .map((row) => scopeOutputMeta[row.id].coverageLabel);
+
+  return labels.length > 0 ? labels.join(", ") : "None recorded";
+}
+
+function scopeProofLabel(row: ScopeLedgerRow, data: Axis1PacketPreviewData) {
+  if (row.photoCount <= 0) {
+    return row.status === "not-in-scope" ? "Not in this visit" : "Service notes";
+  }
+
+  const attachedRefs: string[] = [];
+
+  row.slotIds.forEach((slotId) => {
+    const proofId = fieldPhotoSlots.find((slot) => slot.id === slotId)?.proofId;
+
+    if (proofId && data.proofPhotos.some((photo) => photo.proofId === proofId)) {
+      attachedRefs.push(proofId);
+    }
+  });
+
+  return attachedRefs.length > 0 ? attachedRefs.join(" / ") : "Attached field photo";
+}
+
+function scopeStatusLabel(row: ScopeLedgerRow) {
+  switch (row.status) {
+    case "done-photo":
+      return "Completed with photo";
+    case "done-no-photo":
+      return "Completed from notes";
+    case "could-not-access":
+      return "Not completed - inaccessible";
+    case "condition-note":
+      return "Recorded condition";
+    case "not-done":
+      return "Not completed";
+    case "not-in-scope":
+      return "Not in this visit";
+    case "needs-review":
+    default:
+      return "Needs review";
+  }
+}
+
+function scopeStatusForArea(rows: readonly ScopeLedgerRow[], areaId: ScopeAreaId) {
+  const row = rows.find((item) => item.id === areaId);
+  return row ? scopeStatusLabel(row) : "Not in this visit";
+}
+
+function scopeRowNote(row: ScopeLedgerRow, data: Axis1PacketPreviewData) {
+  const meta = scopeOutputMeta[row.id];
+  const proofLabel = scopeProofLabel(row, data);
+
+  switch (row.status) {
+    case "done-photo":
+      return `${meta.coveredCopy} Photo support: ${proofLabel}.`;
+    case "done-no-photo":
+      return `${meta.coveredCopy} Completed from service notes; no field photo is attached for this area.`;
+    case "could-not-access":
+      return `${meta.coverageLabel} could not be accessed during this visit and is excluded from the completed scope until access is clear.`;
+    case "condition-note":
+      return `${meta.recordedCopy} This is a recorded condition, not completed corrective work.`;
+    case "not-done":
+      return `${meta.coverageLabel} was not completed during this visit and is excluded from the completed scope.`;
+    case "not-in-scope":
+      return `${meta.coverageLabel} was not part of this service visit and is not claimed as completed.`;
+    case "needs-review":
+    default:
+      return `${meta.coverageLabel} needs vendor review before customer delivery.`;
+  }
+}
+
+function scopeCoverageState(
+  status: ScopeStatus,
+): NonNullable<Axis1PacketPreviewData["closeout"]>["coverageEducation"]["items"][number]["state"] {
+  if (status === "could-not-access" || status === "not-done" || status === "needs-review") {
+    return "action_required";
+  }
+
+  if (status === "condition-note") {
+    return "recorded";
+  }
+
+  if (status === "not-in-scope") {
+    return "not_claimed";
+  }
+
+  return "covered";
+}
+
+function conditionScopeAreaForKinds(
+  kinds: readonly Axis1BuilderExceptionKind[],
+): ScopeAreaId {
+  if (kinds.includes("grease-containment")) {
+    return "grease-path";
+  }
+
+  if (
+    kinds.some((kind) =>
+      ["rooftop-hinge-curb", "fan-belt-drive", "liquid-tight"].includes(kind),
+    )
+  ) {
+    return "rooftop-fan";
+  }
+
+  return "service-label";
+}
+
+function applyScopeLedgerToPacket(
+  data: Axis1PacketPreviewData,
+  rows: readonly ScopeLedgerRow[],
+  visitType: (typeof visitTypePresets)[number],
+): Axis1PacketPreviewData {
+  const conditionOnlyVisit = visitType.id === "condition-record";
+  const visibleRows = rows.filter((row) =>
+    conditionOnlyVisit
+      ? row.status !== "not-in-scope"
+      : row.id !== "service-label" || row.status !== "not-in-scope",
+  );
+  const completedRows = visibleRows.filter((row) =>
+    row.status === "done-photo" || row.status === "done-no-photo",
+  );
+  const openRows = visibleRows.filter((row) =>
+    row.status === "could-not-access" ||
+    row.status === "not-done" ||
+    row.status === "needs-review",
+  );
+  const recordedRows = visibleRows.filter((row) => row.status === "condition-note");
+  const notInScopeRows = visibleRows.filter((row) => row.status === "not-in-scope");
+  const excludedRows = conditionOnlyVisit ? openRows : [...openRows, ...notInScopeRows];
+  const completedAreas = completedRows.map((row) => scopeOutputMeta[row.id].coverageLabel).join(", ");
+  const excludedAreas = excludedRows
+    .map((row) => scopeOutputMeta[row.id].coverageLabel)
+    .join(", ");
+  const recordedAreas = recordedRows.map((row) => scopeOutputMeta[row.id].coverageLabel).join(", ");
+  const scopeSummary =
+    completedRows.length > 0
+      ? `Completed: ${completedAreas}.`
+      : conditionOnlyVisit
+        ? "Condition-only record. No cleaning completion is claimed from this visit."
+      : "No completed area is claimed from this visit.";
+  const exclusionSummary = excludedAreas
+    ? ` Not completed or not in scope: ${excludedAreas}.`
+    : conditionOnlyVisit
+      ? ""
+    : " No blocked, incomplete, or out-of-scope area is claimed as completed.";
+  const recordedSummary = recordedAreas ? ` Recorded for follow-up: ${recordedAreas}.` : "";
+  const recordBasisSummary =
+    data.proofPhotos.length > 0
+      ? " Photo status stays area-by-area."
+      : conditionOnlyVisit
+        ? " Written notes only; no field photos are attached."
+        : " This is a written service record, so photos are not implied.";
+  const scopeCopy = `${scopeSummary}${exclusionSummary}${recordedSummary}${recordBasisSummary}`;
+  const componentStatusRows = visibleRows.map((row) => ({
+    component: scopeOutputMeta[row.id].component,
+    status: scopeStatusLabel(row),
+    proof: scopeProofLabel(row, data),
+    note: scopeRowNote(row, data),
+  }));
+  const routeSegments = visibleRows.map((row) => ({
+    code: scopeOutputMeta[row.id].code,
+    title: scopeOutputMeta[row.id].routeTitle,
+    status: scopeStatusLabel(row),
+    note: scopeRowNote(row, data),
+  }));
+  const scopeRows: [string, string, string][] = visibleRows.map((row) => [
+    `${scopeOutputMeta[row.id].code} ${scopeOutputMeta[row.id].component}`,
+    scopeStatusLabel(row),
+    scopeRowNote(row, data),
+  ]);
+  const completedWork =
+    completedRows.length > 0
+      ? completedRows.map((row) => scopeRowNote(row, data))
+      : conditionOnlyVisit
+        ? ["No cleaning completion is claimed in this condition-only customer record."]
+      : ["No completed area is claimed in this customer record."];
+  const coverageItems = visibleRows.map((row) => ({
+    label: scopeOutputMeta[row.id].coverageLabel,
+    copy: scopeRowNote(row, data),
+    state: scopeCoverageState(row.status),
+  }));
+  const nextCloseout =
+    data.closeout
+      ? {
+          ...data.closeout,
+          coverageEducation: {
+            ...data.closeout.coverageEducation,
+            summary: scopeCopy,
+            items: coverageItems,
+            boundaryCopy: `${data.closeout.recordFormat.label}. ${scopeCopy}`,
+          },
+          claimLimitCopy: `${data.closeout.claimLimitCopy} ${exclusionSummary.trim()}`,
+        }
+      : data.closeout;
+
+  return {
+    ...data,
+    packetHeader: {
+      ...data.packetHeader,
+      copy: scopeCopy,
+      quickFacts: upsertDisplayRows(data.packetHeader.quickFacts, [
+        ["Visit type", visitType.title],
+        ["What this service covered", scopeCopy],
+        ["Areas completed", formatScopeAreaList(rows, ["done-photo", "done-no-photo"])],
+        ["Recorded for follow-up", formatScopeAreaList(rows, ["condition-note"])],
+        [
+          "Not completed / not in scope",
+          conditionOnlyVisit
+            ? "No cleaning scope claimed"
+            : formatScopeAreaList(rows, ["could-not-access", "not-done", "not-in-scope"]),
+        ],
+      ]),
+    },
+    summaryCards: data.summaryCards.map((card, index) =>
+      index === 0
+        ? {
+            ...card,
+            title:
+              completedRows.length > 0
+                ? "Completed areas are listed by scope."
+                : "No completed scope is claimed.",
+            copy: scopeCopy,
+          }
+        : card,
+    ),
+    serviceRecordRows: upsertDisplayRows(data.serviceRecordRows, [
+      ["Visit type", visitType.title],
+      ["What this service covered", scopeCopy],
+      ["Areas completed", formatScopeAreaList(rows, ["done-photo", "done-no-photo"])],
+      ["Recorded for follow-up", formatScopeAreaList(rows, ["condition-note"])],
+      [
+        "Not completed / not in scope",
+        conditionOnlyVisit
+          ? "No cleaning scope claimed"
+          : formatScopeAreaList(rows, ["could-not-access", "not-done", "not-in-scope"]),
+      ],
+    ]),
+    routeSegments,
+    componentStatusRows,
+    scopeRows,
+    completedWork,
+    operationalChecks: upsertDisplayRows(data.operationalChecks, [
+      ["Scope checked by area", "Yes"],
+      ["Hood / filters status", scopeStatusForArea(rows, "hood-filters")],
+      ["Duct / access status", scopeStatusForArea(rows, "duct-access")],
+      ["Rooftop fan status", scopeStatusForArea(rows, "rooftop-fan")],
+      ["Grease path status", scopeStatusForArea(rows, "grease-path")],
+    ]),
+    proofPolicyRows: upsertDisplayRows(data.proofPolicyRows, [
+      ["Scope by area", scopeCopy],
+      ["Photos and notes", recordBasisSummary.trim()],
+    ]),
+    closeoutRows: upsertDisplayRows(data.closeoutRows, [
+      ["Visit type", visitType.title],
+      ["Areas represented as completed", formatScopeAreaList(rows, ["done-photo", "done-no-photo"])],
+      ["Areas recorded for follow-up", formatScopeAreaList(rows, ["condition-note"])],
+      [
+        "Areas not completed / excluded",
+        conditionOnlyVisit
+          ? "No cleaning scope claimed"
+          : formatScopeAreaList(rows, ["could-not-access", "not-done", "not-in-scope"]),
+      ],
+    ]),
+    scopeNote: conditionOnlyVisit
+      ? `This service record is a condition-only record for this visit. ${scopeCopy}`
+      : `This service record covers this ${visitType.title.toLowerCase()} visit. ${scopeCopy}`,
+    closeout: nextCloseout,
+  };
+}
+
+function replaceFirstSummaryCard(
+  cards: Axis1PacketPreviewData["summaryCards"],
+  copy: string,
+): Axis1PacketPreviewData["summaryCards"] {
+  return cards.map((card, index) => (index === 0 ? { ...card, copy } : card));
+}
+
+function replaceActionSummaryCard(
+  cards: Axis1PacketPreviewData["summaryCards"],
+  copy: string,
+): Axis1PacketPreviewData["summaryCards"] {
+  return cards.map((card, index) => (index === 1 ? { ...card, copy } : card));
+}
+
+function applyCustomerTextOverridesToPacket(
+  data: Axis1PacketPreviewData,
+  options: {
+    result?: string;
+    openItem?: string;
+    action?: string;
+    recordNote?: string;
+  },
+): Axis1PacketPreviewData {
+  const resultLine = toDisplaySentence(options.result ?? "");
+  const openItemLine = toDisplaySentence(options.openItem ?? "");
+  const actionLine = toDisplaySentence(options.action ?? "");
+  const recordNoteLine = toDisplaySentence(options.recordNote ?? "");
+  let next = data;
+
+  if (resultLine) {
+    next = {
+      ...next,
+      packetHeader: {
+        ...next.packetHeader,
+        copy: resultLine,
+      },
+      summaryCards: replaceFirstSummaryCard(next.summaryCards, resultLine),
+    };
+  }
+
+  if (openItemLine) {
+    const openNote = /excluded from the completed scope|not listed as cleaned/i.test(openItemLine)
+      ? openItemLine
+      : `${openItemLine} This area is not listed as cleaned until the follow-up condition is cleared.`;
+
+    next = {
+      ...next,
+      summaryCards: replaceActionSummaryCard(next.summaryCards, openNote),
+      routeSegments: next.routeSegments.map((segment) =>
+        /access|duct|fan|roof|grease|containment/i.test(`${segment.title} ${segment.status}`) &&
+        /inaccessible|not completed|recorded|condition|review|open|action/i.test(segment.status)
+          ? { ...segment, note: openNote }
+          : segment,
+      ),
+      scopeRows: next.scopeRows.map(([area, status, note]) =>
+        /access|duct|fan|roof|grease|containment/i.test(area) &&
+        /inaccessible|not completed|recorded|condition|review|open|action/i.test(status)
+          ? [area, status, openNote]
+          : [area, status, note],
+      ),
+      componentStatusRows: next.componentStatusRows.map((row) =>
+        /access|duct|fan|roof|grease|containment/i.test(row.component) &&
+        /inaccessible|not completed|recorded condition|needs review|open|action/i.test(row.status)
+          ? { ...row, note: openNote }
+          : row,
+      ),
+      deficiencyRows: next.deficiencyRows.map((row, index) =>
+        index === 0 && /open|action|monitor|recorded|closed/i.test(row.status)
+          ? {
+              ...row,
+              issue: openItemLine,
+              whyItMatters: row.whyItMatters,
+            }
+          : row,
+      ),
+      closeout: next.closeout
+        ? {
+            ...next.closeout,
+            responsibilityCopy: openNote,
+          }
+        : next.closeout,
+    };
+  }
+
+  if (actionLine) {
+    next = {
+      ...next,
+      summaryCards: replaceActionSummaryCard(next.summaryCards, actionLine),
+      customerClose: {
+        ...next.customerClose,
+        copy: actionLine,
+        actionItems: upsertDisplayRows(next.customerClose.actionItems, [
+          ["Reply or action", actionLine],
+          ["Next action", actionLine],
+        ]),
+      },
+      closeoutRows: upsertDisplayRows(next.closeoutRows, [
+        ["Customer next action", actionLine],
+        ["Reply path", actionLine],
+      ]),
+      closeout: next.closeout
+        ? {
+            ...next.closeout,
+            customerActionCopy: actionLine,
+          }
+        : next.closeout,
+    };
+  }
+
+  if (recordNoteLine) {
+    next = {
+      ...next,
+      customerClose: {
+        ...next.customerClose,
+        actionItems: upsertDisplayRows(next.customerClose.actionItems, [
+          ["Evidence PDF note", recordNoteLine],
+          ["Evidence PDF", recordNoteLine],
+        ]),
+      },
+      serviceRecordRows: upsertDisplayRows(next.serviceRecordRows, [
+        ["Evidence note", recordNoteLine],
+      ]),
+      closeoutRows: upsertDisplayRows(next.closeoutRows, [
+        ["Evidence note", recordNoteLine],
+      ]),
+    };
+  }
+
+  return next;
+}
+
+function buildJobOutcomeRecommendation(options: {
+  uploadedFieldPhotos: UploadedFieldPhotoState;
+  unplacedFieldPhotos: UnplacedFieldPhoto[];
+  photoSlotResolutions: Record<FieldPhotoSlotId, PhotoSlotResolution>;
+}): JobOutcomeRecommendation {
+  const { uploadedFieldPhotos, unplacedFieldPhotos, photoSlotResolutions } = options;
+  const photosBySlot = new Map<FieldPhotoSlotId, UploadedFieldPhoto>();
+
+  fieldPhotoSlots.forEach((slot) => {
+    const photo = uploadedFieldPhotos[slot.id];
+
+    if (photo) {
+      photosBySlot.set(slot.id, photo);
+    }
+  });
+
+  unplacedFieldPhotos.forEach((photo) => {
+    if (photo.suggestedSlotId && !photosBySlot.has(photo.suggestedSlotId)) {
+      photosBySlot.set(photo.suggestedSlotId, photo);
+    }
+  });
+
+  const hasPhoto = photosBySlot.size > 0 || unplacedFieldPhotos.length > 0;
+  const hasSkippedCorePhoto =
+    photoSlotResolutions["hood-before"] !== "open" ||
+    photoSlotResolutions["hood-after"] !== "open";
+
+  if (hasPhoto) {
+    return {
+      pattern: getJobPatternById("clean-close"),
+      signalLabel: "Clean closeout default",
+      reason: "No access or condition cue was found, so the default closeout is ready.",
+      confidence: "Medium",
+    };
+  }
+
+  return {
+    pattern: getJobPatternById("clean-close"),
+    signalLabel: hasSkippedCorePhoto ? "Written record default" : "Vendor default",
+    reason: hasSkippedCorePhoto
+      ? "Photos were marked unavailable, so a written closeout is drafted by default."
+      : "No job evidence has been added yet, so the tool drafts the standard completed-service closeout.",
+    confidence: "Default",
+  };
 }
 
 function PhotoPlacementTarget({
@@ -266,11 +1320,15 @@ function PhotoPlacementRow({
   slot,
   uploaded,
   onMove,
+  onConfirmSuggestion,
+  onRejectSuggestion,
   mobilePickerMode = false,
 }: {
   slot: FieldPhotoSlot;
   uploaded: UploadedFieldPhoto;
   onMove: (fromSlotId: FieldPhotoSlotId, toSlotId: FieldPhotoSlotId) => void;
+  onConfirmSuggestion: (slotId: FieldPhotoSlotId) => void;
+  onRejectSuggestion: (slotId: FieldPhotoSlotId) => void;
   mobilePickerMode?: boolean;
 }) {
   const { attributes, isDragging, listeners, setNodeRef, transform } = useDraggable({
@@ -323,21 +1381,44 @@ function PhotoPlacementRow({
           <p className="text-sm font-semibold text-foreground">{slot.shortLabel}</p>
           <span
             className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
-              uploaded.confidence === "order"
+              !isVendorConfirmedPhoto(uploaded)
                 ? "border-[#ff6b1a]/24 bg-[#fff0e4] text-[#b94d11]"
                 : "border-black/10 bg-[#f6f1e8] text-muted-foreground"
             }`}
           >
-            {uploaded.confidence === "keyword"
-              ? "Filename match"
-              : uploaded.confidence === "order"
-                ? "Review order"
-                : "Manual"}
+            {isVendorConfirmedPhoto(uploaded)
+              ? uploaded.vendorDecision === "edited"
+                ? "Vendor edited"
+                : "Vendor confirmed"
+              : "Suggested"}
           </span>
         </div>
         <p className="mt-1 truncate text-xs leading-5 text-muted-foreground">
           {uploaded.name}
         </p>
+        {!isVendorConfirmedPhoto(uploaded) ? (
+          <div className="mt-2 rounded-[12px] border border-[#ff6b1a]/14 bg-[#fff7ef] px-2.5 py-2">
+            <p className="text-[11px] font-semibold leading-4 text-[#6f3b19]">
+              {uploaded.assistReason ?? uploaded.matchLabel}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => onConfirmSuggestion(slot.id)}
+                className="rounded-full bg-[#111315] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white"
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                onClick={() => onRejectSuggestion(slot.id)}
+                className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-foreground"
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        ) : null}
         {mobilePickerMode ? (
           <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-[#ff6b1a]">
             Change role below
@@ -425,11 +1506,19 @@ function ExtraPhotoRow({
         <div className="flex flex-wrap items-center gap-2">
           <p className="truncate text-sm font-semibold text-foreground">{photo.name}</p>
           <span className="rounded-full border border-[#ff6b1a]/20 bg-[#fff0e4] px-2 py-0.5 text-[10px] font-semibold text-[#b94d11]">
-            {photo.reason === "duplicate" ? "Same-label extra" : "Overflow"}
+            {photo.vendorDecision === "rejected"
+              ? "Rejected suggestion"
+              : photo.assistSource
+                ? "Suggested"
+                : photo.reason === "duplicate"
+                  ? "Same-label extra"
+                  : "Overflow"}
           </span>
         </div>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          {photo.suggestedSlotId
+          {photo.assistReason
+            ? photo.assistReason
+            : photo.suggestedSlotId
             ? `Looks like ${
                 fieldPhotoSlots.find((slot) => slot.id === photo.suggestedSlotId)
                   ?.shortLabel
@@ -490,6 +1579,8 @@ function PhotoPlacementReview({
   unplacedPhotos,
   onMove,
   onPlaceExtra,
+  onConfirmSuggestion,
+  onRejectSuggestion,
   mobileSheetMode = false,
 }: {
   uploadedPhotoSlots: FieldPhotoSlot[];
@@ -497,6 +1588,8 @@ function PhotoPlacementReview({
   unplacedPhotos: UnplacedFieldPhoto[];
   onMove: (fromSlotId: FieldPhotoSlotId, toSlotId: FieldPhotoSlotId) => void;
   onPlaceExtra: (photoId: string, toSlotId: FieldPhotoSlotId) => void;
+  onConfirmSuggestion: (slotId: FieldPhotoSlotId) => void;
+  onRejectSuggestion: (slotId: FieldPhotoSlotId) => void;
   mobileSheetMode?: boolean;
 }) {
   const [activeDrag, setActiveDrag] = useState<
@@ -521,7 +1614,7 @@ function PhotoPlacementReview({
     : activeExtra ?? null;
   const hasAnyPhoto = uploadedPhotoSlots.length > 0 || unplacedPhotos.length > 0;
   const orderMatchedCount = uploadedPhotoSlots.filter(
-    (slot) => uploadedFieldPhotos[slot.id]?.confidence === "order",
+    (slot) => !isVendorConfirmedPhoto(uploadedFieldPhotos[slot.id]),
   ).length;
 
   function handleDragStart(event: DragStartEvent) {
@@ -558,7 +1651,9 @@ function PhotoPlacementReview({
   if (!hasAnyPhoto) {
     return (
       <div className="px-4 py-4">
-        <p className="text-sm font-semibold text-foreground">No photos attached yet.</p>
+        <p className="text-sm font-semibold text-foreground">
+          No visit photos attached yet.
+        </p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
           Add a before/after photo or the rest of the phone batch, then correct
           mismatches here without starting over.
@@ -582,7 +1677,7 @@ function PhotoPlacementReview({
               <p className={labelClassName()}>Role reference</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 Use the role picker on each photo if the upload-order placement is wrong.
-                Before / after are core; the rest are recommended proof slots.
+                Before / after are core; the rest are recommended photo slots.
               </p>
             </>
           ) : null}
@@ -616,8 +1711,8 @@ function PhotoPlacementReview({
       {orderMatchedCount > 0 ? (
         <div className="mt-3 rounded-[16px] border border-[#ff6b1a]/18 bg-[#fff0e4] px-3 py-2">
           <p className="text-xs font-semibold leading-5 text-[#b94d11]">
-            {orderMatchedCount} phone-style photo(s) were placed by upload order only.
-            Review the role before sending the proof packet.
+            {orderMatchedCount} suggested photo role(s) still need vendor
+            confirmation before they appear in generated outputs.
           </p>
         </div>
       ) : null}
@@ -647,6 +1742,8 @@ function PhotoPlacementReview({
             slot={slot}
             uploaded={uploaded}
             onMove={onMove}
+            onConfirmSuggestion={onConfirmSuggestion}
+            onRejectSuggestion={onRejectSuggestion}
             mobilePickerMode={mobileSheetMode}
           />
         );
@@ -711,22 +1808,34 @@ function PhotoPlacementReview({
 
 const builderSteps = [
   {
-    value: "photos",
-    label: "Photos",
-    title: "Drop photos",
-    copy: "Upload all job photos or continue without them.",
+    value: "risk",
+    label: "Risk",
+    title: "Pre-quote risk",
+    copy: "What could cost time, access, or margin.",
   },
   {
-    value: "job",
-    label: "Result",
-    title: "Confirm result",
-    copy: "Pick the visit outcome and next action.",
+    value: "scope",
+    label: "Scope",
+    title: "Lock scope",
+    copy: "Included, excluded, blocked, or separate.",
   },
   {
-    value: "report",
-    label: "Send",
-    title: "Send packet",
-    copy: "Copy the customer link or save the PDF.",
+    value: "proof",
+    label: "Proof",
+    title: "Crew proof",
+    copy: "Photos optional; written proof allowed.",
+  },
+  {
+    value: "confirm",
+    label: "Confirm/Pay",
+    title: "Customer + payment proof",
+    copy: "Handoff, PDF, invoice proof.",
+  },
+  {
+    value: "next",
+    label: "Next",
+    title: "Next cleaning",
+    copy: "Revisit, quote, rebook, or monitor.",
   },
 ] as const satisfies ReadonlyArray<{
   value: BuilderStep;
@@ -753,11 +1862,11 @@ const packetSectionControls = [
   {
     key: "photos",
     label: "Photo section",
-    copy: "Customer-visible photo proof.",
+    copy: "Customer-visible photos.",
   },
   {
     key: "checklist",
-    label: "Proof checklist",
+    label: "Evidence checklist",
     copy: "What was documented and closed.",
   },
   {
@@ -792,6 +1901,80 @@ function findPacketRowValue(
   return rows.find(([rowLabel]) => rowLabel === label)?.[1] ?? fallback;
 }
 
+function normalizeCloseoutLinks(links: Axis1CloseoutLinks): Axis1CloseoutLinks {
+  return Object.fromEntries(
+    Object.entries(links)
+      .map(([key, value]) => [key, value?.trim()] as const)
+      .filter(([, value]) => Boolean(value)),
+  ) as Axis1CloseoutLinks;
+}
+
+function generatedOutputReadinessMeta(readiness: string) {
+  if (readiness === "ready") {
+    return {
+      label: "Ready",
+      className: "border-[#2c7a3f]/24 bg-[#f1f8ef] text-[#1f6330]",
+    };
+  }
+
+  if (readiness === "needs_review") {
+    return {
+      label: "Review",
+      className: "border-[#f26a21]/24 bg-[#fff2e8] text-[#a94410]",
+    };
+  }
+
+  return {
+    label: "N/A",
+    className: "border-black/10 bg-white text-muted-foreground",
+  };
+}
+
+function vendorWarningMeta(severity: string) {
+  if (severity === "blocker") {
+    return {
+      label: "Blocked",
+      className: "border-[#bc3d1f]/24 bg-[#fff1ed] text-[#9d2f18]",
+    };
+  }
+
+  if (severity === "review") {
+    return {
+      label: "Review",
+      className: "border-[#f26a21]/24 bg-[#fff2e8] text-[#a94410]",
+    };
+  }
+
+  return {
+    label: "Note",
+    className: "border-black/10 bg-white text-muted-foreground",
+  };
+}
+
+function GeneratedOutputIcon({ kind }: { kind: string }) {
+  if (kind === "customer_link") {
+    return <Link2 className="h-4 w-4" />;
+  }
+
+  if (kind === "evidence_pdf") {
+    return <FileDown className="h-4 w-4" />;
+  }
+
+  if (kind === "invoice_proof_summary" || kind === "payment_support_copy") {
+    return <ReceiptText className="h-4 w-4" />;
+  }
+
+  if (kind === "follow_up_quote_copy") {
+    return <FileText className="h-4 w-4" />;
+  }
+
+  if (kind === "revisit_copy" || kind === "next_service_copy") {
+    return <CalendarClock className="h-4 w-4" />;
+  }
+
+  return <ClipboardCheck className="h-4 w-4" />;
+}
+
 const textFieldLimits = {
   propertyName: 60,
   siteCity: 60,
@@ -803,6 +1986,7 @@ const textFieldLimits = {
   summaryOverride: 260,
   customerActionOverride: 220,
   followUpOverride: 220,
+  recordNoteOverride: 220,
 } as const;
 
 function CharacterCount({
@@ -881,7 +2065,7 @@ async function preparePhotoForPreview(file: File): Promise<PreparedPhotoPreview>
   if (!isLikelyImageFile(file)) {
     return {
       ok: false,
-      reason: "Only image files can be used in the proof packet.",
+      reason: "Only image files can be used in generated outputs.",
     };
   }
 
@@ -955,6 +2139,47 @@ async function preparePhotoForPreview(file: File): Promise<PreparedPhotoPreview>
   }
 }
 
+async function preparePhotoForAiAssist(dataUrl: string): Promise<string> {
+  if (!dataUrl.startsWith("data:image/")) {
+    return dataUrl;
+  }
+
+  try {
+    const image = await loadImageElement(dataUrl);
+    const sourceWidth = image.naturalWidth;
+    const sourceHeight = image.naturalHeight;
+
+    if (!sourceWidth || !sourceHeight) {
+      return dataUrl;
+    }
+
+    const scale = Math.min(
+      1,
+      maxPhotoAssistDimension / Math.max(sourceWidth, sourceHeight),
+    );
+    const targetWidth = Math.max(1, Math.round(sourceWidth * scale));
+    const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d", { alpha: false });
+
+    if (!context) {
+      return dataUrl;
+    }
+
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, targetWidth, targetHeight);
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    const compressed = canvas.toDataURL("image/jpeg", photoAssistJpegQuality);
+
+    return compressed.length < dataUrl.length ? compressed : dataUrl;
+  } catch {
+    return dataUrl;
+  }
+}
+
 const genericPhotoKeywords = new Set([
   "hood",
   "before",
@@ -1022,6 +2247,10 @@ function suggestPhotoSlot(
   confidence: FieldPhotoConfidence;
   matchLabel: string;
 } | null {
+  if (isGenericPhonePhotoName(fileName)) {
+    return null;
+  }
+
   const keywordMatch = findKeywordPhotoSlot(fileName);
 
   if (keywordMatch && !usedSlotIds.has(keywordMatch.id)) {
@@ -1071,55 +2300,97 @@ export function PacketBuilder() {
   const [unplacedFieldPhotos, setUnplacedFieldPhotos] = useState<UnplacedFieldPhoto[]>(
     [],
   );
+  const [visitTypeId, setVisitTypeId] =
+    useState<VisitTypeId>("standard-hood");
+  const [riskFlagIds, setRiskFlagIds] = useState<RiskFlagId[]>(["no-risk"]);
+  const [scopeOverrides, setScopeOverrides] = useState<ScopeOverrideState>({});
+  const [scopeAssumptionsAccepted, setScopeAssumptionsAccepted] = useState(false);
+  const [showScopeDetails, setShowScopeDetails] = useState(true);
   const [photoSlotResolutions, setPhotoSlotResolutions] =
     useState<Record<FieldPhotoSlotId, PhotoSlotResolution>>(
       emptyPhotoSlotResolutions,
     );
-  const [builderStep, setBuilderStep] = useState<BuilderStep>("photos");
+  const [builderStep, setBuilderStep] = useState<BuilderStep>("risk");
   const [packetPresentationMode, setPacketPresentationMode] =
     useState<PacketPresentationMode>("short");
   const [reportOutputMode, setReportOutputMode] =
     useState<ReportOutputMode>("link");
+  const [closeoutLinks, setCloseoutLinks] = useState<Axis1CloseoutLinks>({});
   const [packetSections, setPacketSections] =
     useState<Axis1PacketDocumentSectionVisibility>(shortPacketSections);
   const [showPacketDetails, setShowPacketDetails] = useState(false);
   const [showJobBasics, setShowJobBasics] = useState(false);
+  const [showTimingEditor, setShowTimingEditor] = useState(false);
   const [showExceptionDetails, setShowExceptionDetails] = useState(false);
   const [showAllPhotoSlots, setShowAllPhotoSlots] = useState(false);
   const [showProofDetails, setShowProofDetails] = useState(false);
   const [showWordingEditor, setShowWordingEditor] = useState(false);
   const [activeCustomerLineEditor, setActiveCustomerLineEditor] =
     useState<CustomerLineEditor>("result");
+  const [activeCustomerLineEditorSurface, setActiveCustomerLineEditorSurface] =
+    useState<CustomerLineEditorSurface | null>(null);
+  const [activePreviewEditTarget, setActivePreviewEditTarget] =
+    useState<CustomerWebPacketEditTarget | null>(null);
   const [hasJobOutcomeSelected, setHasJobOutcomeSelected] = useState(false);
+  const [autoDraftedJobPatternId, setAutoDraftedJobPatternId] =
+    useState<JobPatternId | null>(null);
   const [photoImportNotice, setPhotoImportNotice] =
     useState<PhotoImportNotice | null>(null);
+  const [photoAssistSuggestions, setPhotoAssistSuggestions] = useState<
+    Axis1PhotoAssistSuggestion[]
+  >([]);
+  const [photoAssistNotice, setPhotoAssistNotice] =
+    useState<PhotoAssistNotice | null>(null);
+  const [isPhotoAssistRunning, setIsPhotoAssistRunning] = useState(false);
   const [mobileSheet, setMobileSheet] = useState<MobileSheetView | null>(null);
   const [setupNoticeAction, setSetupNoticeAction] =
     useState<SetupNoticeAction | null>(null);
   const [showToolMenu, setShowToolMenu] = useState(false);
-  const isPhotoStep = builderStep === "photos";
+  const isProofStep = builderStep === "proof";
+  const isOutputStep = builderStep === "confirm" || builderStep === "next";
+  const isPhotoStep = isProofStep;
+  const uploadedFieldPhotosRef = useRef(uploadedFieldPhotos);
+  const unplacedFieldPhotosRef = useRef(unplacedFieldPhotos);
+
+  useEffect(() => {
+    uploadedFieldPhotosRef.current = uploadedFieldPhotos;
+  }, [uploadedFieldPhotos]);
+
+  useEffect(() => {
+    unplacedFieldPhotosRef.current = unplacedFieldPhotos;
+  }, [unplacedFieldPhotos]);
 
   useEffect(() => {
     const requestedStep = new URLSearchParams(window.location.search).get("step");
+    const normalizedStep =
+      requestedStep === "job"
+        ? "scope"
+        : requestedStep === "photos"
+          ? "proof"
+          : requestedStep === "report"
+            ? "confirm"
+            : requestedStep;
 
     if (
-      requestedStep === "job" ||
-      requestedStep === "photos" ||
-      requestedStep === "report"
+      normalizedStep === "risk" ||
+      normalizedStep === "scope" ||
+      normalizedStep === "proof" ||
+      normalizedStep === "confirm" ||
+      normalizedStep === "next"
     ) {
       const frame = window.requestAnimationFrame(() => {
-        const resolvedStep = requestedStep === "report" ? "job" : requestedStep;
+        const resolvedStep =
+          normalizedStep === "confirm" || normalizedStep === "next"
+            ? "scope"
+            : normalizedStep;
         setBuilderStep(resolvedStep);
         if (resolvedStep !== requestedStep) {
           const url = new URL(window.location.href);
           url.searchParams.set("step", resolvedStep);
           window.history.replaceState({}, "", url);
         }
-        if (window.matchMedia("(max-width: 767px)").matches) {
-          document
-            .getElementById("packet-builder-workspace")
-            ?.scrollIntoView({ block: "start", behavior: "smooth" });
-        }
+        scrollPacketWorkspaceBelowHeader();
+        window.setTimeout(() => scrollPacketWorkspaceBelowHeader("auto"), 90);
       });
 
       return () => window.cancelAnimationFrame(frame);
@@ -1127,8 +2398,13 @@ export function PacketBuilder() {
   }, []);
 
   const previewData = buildAxis1NeutralPacketData(values);
+  const confirmedUploadedFieldPhotos =
+    buildConfirmedFieldPhotoState(uploadedFieldPhotos);
   const uploadedProofCount = fieldPhotoSlots.filter(
     (slot) => uploadedFieldPhotos[slot.id],
+  ).length;
+  const confirmedUnplacedFieldPhotoCount = unplacedFieldPhotos.filter((photo) =>
+    isVendorConfirmedPhoto(photo),
   ).length;
   const totalFieldPhotoCount = uploadedProofCount + unplacedFieldPhotos.length;
   const skippedPhotoSlotCount = fieldPhotoSlots.filter(
@@ -1140,25 +2416,86 @@ export function PacketBuilder() {
   const requiredProofReadyCount = fieldPhotoSlots.filter(
     (slot) =>
       slot.required &&
-      (uploadedFieldPhotos[slot.id] || photoSlotResolutions[slot.id] !== "open"),
+      (confirmedUploadedFieldPhotos[slot.id] ||
+        photoSlotResolutions[slot.id] !== "open"),
   ).length;
   const missingRequiredSlots = fieldPhotoSlots.filter(
     (slot) =>
       slot.required &&
-      !uploadedFieldPhotos[slot.id] &&
+      !confirmedUploadedFieldPhotos[slot.id] &&
       photoSlotResolutions[slot.id] === "open",
   );
   const uploadedPhotoSlots = fieldPhotoSlots.filter(
     (slot) => uploadedFieldPhotos[slot.id],
   );
-  const orderMatchedPhotoCount = uploadedPhotoSlots.filter(
-    (slot) => uploadedFieldPhotos[slot.id]?.confidence === "order",
-  ).length;
-  const hasOrderMatchedPhotos = orderMatchedPhotoCount > 0;
+  const confirmedUploadedPhotoSlots = fieldPhotoSlots.filter((slot) =>
+    confirmedUploadedFieldPhotos[slot.id],
+  );
+  const vendorConfirmedPhotoCount = confirmedUploadedPhotoSlots.length;
+  const fastConfirmableUploadedPhotoIds = uploadedPhotoSlots.flatMap((slot) => {
+    const photo = uploadedFieldPhotos[slot.id];
+
+    return photo && isFastConfirmableSuggestedPhoto(photo)
+      ? [photo.localId ?? `slot:${slot.id}`]
+      : [];
+  });
+  const fastConfirmableUnplacedPhotoIds = unplacedFieldPhotos.flatMap((photo) =>
+    isFastConfirmableSuggestedPhoto(photo) && photo.suggestedSlotId
+      ? [photo.id]
+      : [],
+  );
+  const hasSuggestedPhotoRoles =
+    fastConfirmableUploadedPhotoIds.length + fastConfirmableUnplacedPhotoIds.length >
+    0;
+  const pendingPhotoAssistIds = new Set<string>();
+
+  uploadedPhotoSlots.forEach((slot) => {
+    const photo = uploadedFieldPhotos[slot.id];
+
+    if (photo && !isVendorConfirmedPhoto(photo)) {
+      pendingPhotoAssistIds.add(photo.localId ?? `slot:${slot.id}`);
+    }
+  });
+  unplacedFieldPhotos.forEach((photo) => {
+    if (photo.vendorDecision === "pending") {
+      pendingPhotoAssistIds.add(photo.id);
+    }
+  });
+  photoAssistSuggestions.forEach((suggestion) => {
+    if (suggestion.vendorDecision === "pending") {
+      pendingPhotoAssistIds.add(suggestion.photoId);
+    }
+  });
+
+  const pendingPhotoAssistCount = pendingPhotoAssistIds.size;
+  const hasPendingPhotoAssist = pendingPhotoAssistCount > 0;
   const hasProofWorkStarted = totalFieldPhotoCount > 0 || skippedPhotoSlotCount > 0;
   const shouldShowProofDetails = showProofDetails || showAllPhotoSlots;
-  const hasBeforePhoto = Boolean(uploadedFieldPhotos["hood-before"]);
-  const hasAfterPhoto = Boolean(uploadedFieldPhotos["hood-after"]);
+  const activeVisitType = getVisitTypePreset(visitTypeId);
+  const expectedScopeAreaIds = new Set<ScopeAreaId>(
+    activeVisitType.expectedAreaIds,
+  );
+  const activeVisitTypeScopeText =
+    activeVisitType.expectedAreaIds.length > 0
+      ? activeVisitType.expectedAreaIds
+          .map((areaId) => scopeAreaCatalog.find((area) => area.id === areaId)?.shortLabel)
+          .filter(Boolean)
+          .join(", ")
+      : "No cleaning area is assumed";
+  const selectedRiskFlags = riskFlagCatalog.filter((flag) =>
+    riskFlagIds.includes(flag.id),
+  );
+  const riskReviewFlags = selectedRiskFlags.filter((flag) => flag.id !== "no-risk");
+  const riskSummaryLabel =
+    riskReviewFlags.length > 0
+      ? `${riskReviewFlags.length} risk item(s)`
+      : "No risk noted";
+  const riskSummaryCopy =
+    riskReviewFlags.length > 0
+      ? riskReviewFlags.map((flag) => flag.label).join(", ")
+      : "Standard maintenance record; no pre-quote risk flagged.";
+  const hasBeforePhoto = Boolean(confirmedUploadedFieldPhotos["hood-before"]);
+  const hasAfterPhoto = Boolean(confirmedUploadedFieldPhotos["hood-after"]);
   const hasBeforeOnly = hasBeforePhoto && !hasAfterPhoto;
   const hasAfterOnly = hasAfterPhoto && !hasBeforePhoto;
   const openPhotoSlots = showAllPhotoSlots
@@ -1171,8 +2508,8 @@ export function PacketBuilder() {
       );
   const firstMissingSlots = missingRequiredSlots.slice(0, 4);
   const proofReadinessTitle =
-    hasOrderMatchedPhotos
-      ? `${orderMatchedPhotoCount} photo role(s) need review`
+    hasPendingPhotoAssist
+      ? `Review ${pendingPhotoAssistCount} suggested photo role(s)`
       : hasAfterOnly
         ? "After-only record is ready"
         : hasBeforeOnly
@@ -1183,16 +2520,16 @@ export function PacketBuilder() {
         ? "Drop photos, or continue without them"
         : `${missingRequiredSlots.length} core photo(s) still open`;
   const proofReadinessCopy =
-    hasOrderMatchedPhotos
-      ? "These were placed by order, not reliable labels. Review before sending."
+    hasPendingPhotoAssist
+      ? "For each photo: use the suggested role, pick another role, or leave it out. Unreviewed photos stay out of generated outputs."
       : hasAfterOnly
         ? "No before photo is attached. The packet will avoid a false before/after comparison."
         : hasBeforeOnly
           ? "No after photo is attached. Add one, or mark it not captured before continuing."
       : missingRequiredSlots.length === 0
-      ? "Core photos are ready. Continue to result, or add only helpful extras."
+      ? "Core photos are ready. Continue to scope/result, or add only helpful extras."
       : totalFieldPhotoCount === 0
-        ? "No photos is acceptable. The output becomes a written service record."
+        ? "Continue as a written service record when photos were not captured."
         : unplacedFieldPhotos.length > 0
           ? `${unplacedFieldPhotos.length} extra photo(s) waiting for a role.`
         : `Missing: ${firstMissingSlots.map((slot) => slot.shortLabel).join(", ")}.`;
@@ -1206,6 +2543,7 @@ export function PacketBuilder() {
   const selectedFollowUpOption =
     axis1FollowUpOptions.find((option) => option.value === values.followUpMode) ??
     axis1FollowUpOptions[1];
+  const isConditionOnlyVisit = visitTypeId === "condition-record";
   const activeJobPatternId =
     values.scenario === "clean"
       ? "clean-close"
@@ -1217,61 +2555,215 @@ export function PacketBuilder() {
   const activeJobPattern =
     jobPatternPresets.find((pattern) => pattern.id === activeJobPatternId) ??
     jobPatternPresets[1];
+  const inferredScopeOverrides: ScopeOverrideState = { ...scopeOverrides };
+
+  if (
+    hasJobOutcomeSelected &&
+    values.scenario === "exception" &&
+    selectedAccessCount > 0 &&
+    !inferredScopeOverrides["duct-access"]
+  ) {
+    inferredScopeOverrides["duct-access"] = "could-not-access";
+  }
+
+  if (
+    hasJobOutcomeSelected &&
+    values.scenario === "exception" &&
+    selectedConditionCount > 0
+  ) {
+    const conditionArea = conditionScopeAreaForKinds(values.exceptionKinds);
+
+    if (!inferredScopeOverrides[conditionArea]) {
+      inferredScopeOverrides[conditionArea] = "condition-note";
+    }
+  }
+
+  const scopeLedgerRows = buildScopeLedger({
+    uploadedFieldPhotos,
+    unplacedFieldPhotos,
+    overrides: inferredScopeOverrides,
+    expectedAreaIds: expectedScopeAreaIds,
+  });
+  const scopeAttentionRows = scopeLedgerRows.filter((row) => row.needsCheck);
+  const scopeNeedsReviewRows = scopeLedgerRows.filter(
+    (row) => row.status === "needs-review",
+  );
+  const scopeCustomerIssueRows = scopeLedgerRows.filter(
+    (row) =>
+      row.status === "could-not-access" ||
+      row.status === "condition-note" ||
+      row.status === "not-done",
+  );
+  const writtenOnlyScopeRows = scopeLedgerRows.filter(
+    (row) => row.expectedByDefault && row.status === "done-no-photo",
+  );
+  const scopeWrittenOnlyNeedsConfirmation =
+    hasJobOutcomeSelected &&
+    !isConditionOnlyVisit &&
+    writtenOnlyScopeRows.length > 0 &&
+    !scopeAssumptionsAccepted;
+  const scopePhotoEvidenceCount = scopeLedgerRows.filter(
+    (row) => row.photoCount > 0,
+  ).length;
+  const scopeCheckTitle =
+    !hasJobOutcomeSelected
+      ? "Pick result first"
+      : scopeNeedsReviewRows.length > 0
+      ? scopeNeedsReviewRows.length === 1
+        ? "1 area needs review"
+        : `${scopeNeedsReviewRows.length} areas need review`
+        : scopeCustomerIssueRows.length > 0
+          ? scopeCustomerIssueRows.length === 1
+            ? "1 exception will be shown"
+            : `${scopeCustomerIssueRows.length} exceptions will be shown`
+          : scopeWrittenOnlyNeedsConfirmation
+          ? scopePhotoEvidenceCount > 0
+            ? "Photo record with notes-only areas"
+            : "Confirm notes-based scope"
+          : "Ready to generate";
+  const visibleScopeRows = showScopeDetails ? scopeLedgerRows : scopeAttentionRows;
+  const photoJobOutcomeRecommendation = buildJobOutcomeRecommendation({
+    uploadedFieldPhotos,
+    unplacedFieldPhotos,
+    photoSlotResolutions,
+  });
+  const jobOutcomeRecommendation = buildScopeOutcomeRecommendation(
+    scopeLedgerRows,
+    photoJobOutcomeRecommendation,
+  );
+  const isAutoDraftedOutcome =
+    Boolean(autoDraftedJobPatternId) && autoDraftedJobPatternId === activeJobPatternId;
+  const engineCloseoutLinks = normalizeCloseoutLinks(closeoutLinks);
   const closeoutEngine = evaluateAxis1Closeout({
     values,
     outcomeSelected: hasJobOutcomeSelected,
-    uploadedFieldPhotos,
-    unplacedPhotoCount: unplacedFieldPhotos.length,
+    uploadedFieldPhotos: confirmedUploadedFieldPhotos,
+    unplacedPhotoCount: confirmedUnplacedFieldPhotoCount,
     photoSlotResolutions,
-  });
-  const adaptiveRecord = getAxis1AdaptiveRecordMeta({
-    uploadedFieldPhotos,
-    photoSlotResolutions,
-    extraPhotoCount: unplacedFieldPhotos.length,
-    hasAccessIssue: selectedAccessCount > 0,
+    links: engineCloseoutLinks,
   });
   const closeoutFormatLabel =
     !closeoutEngine.canGeneratePacket
       ? "Waiting for selected result"
-      : adaptiveRecord.recordType === "access_issue_record"
-      ? "Ready as customer action record"
-      : adaptiveRecord.recordType === "service_closeout_record"
-        ? "Ready as written service record"
-        : adaptiveRecord.recordType === "after_cleaning_record"
-          ? "Ready as after-photo record"
-          : adaptiveRecord.recordType === "photo_supported_service_record"
-            ? "Ready as photo-supported record"
-            : "Ready as photo proof packet";
-  const reportNeedsPhotoReview = hasOrderMatchedPhotos || unplacedFieldPhotos.length > 0;
+      : closeoutEngine.recordFormat.type === "access_issue_record"
+      ? "Job proof packet with access action"
+      : closeoutEngine.recordFormat.type === "service_closeout_record"
+        ? "Job proof packet from written record"
+        : closeoutEngine.recordFormat.type === "after_cleaning_record"
+          ? "Job proof packet from after photos"
+          : closeoutEngine.recordFormat.type === "photo_supported_service_record"
+            ? "Job proof packet from partial photos"
+            : "Job proof packet from photo record";
+  const reportNeedsPhotoReview = pendingPhotoAssistCount > 0 || unplacedFieldPhotos.length > 0;
+  const photoRolesNeedConfirmation = hasSuggestedPhotoRoles || hasPendingPhotoAssist;
+  const pendingPlacedPhotoSlots = uploadedPhotoSlots.filter((slot) => {
+    const photo = uploadedFieldPhotos[slot.id];
+
+    return Boolean(photo && !isVendorConfirmedPhoto(photo));
+  });
+  const firstPendingPlacedPhotoSlot = pendingPlacedPhotoSlots[0] ?? null;
+  const firstPendingPlacedPhoto = firstPendingPlacedPhotoSlot
+    ? uploadedFieldPhotos[firstPendingPlacedPhotoSlot.id]
+    : null;
+  const firstPendingExtraPhoto =
+    unplacedFieldPhotos.find((photo) => photo.vendorDecision === "pending") ??
+    null;
+  const firstPendingExtraSuggestedSlot = firstPendingExtraPhoto?.suggestedSlotId
+    ? fieldPhotoSlots.find(
+        (slot) => slot.id === firstPendingExtraPhoto.suggestedSlotId,
+      ) ?? null
+    : null;
+  const scopeNeedsConfirmation = scopeNeedsReviewRows.length > 0;
+  const sendReadinessBlockers = [
+    photoRolesNeedConfirmation
+      ? (pendingPhotoAssistCount || 1) === 1
+        ? "1 photo role: use, change role, or leave out"
+        : `${pendingPhotoAssistCount || 1} photo roles: use, change role, or leave out`
+      : null,
+    scopeNeedsReviewRows.length > 0
+      ? scopeNeedsReviewRows.length === 1
+        ? "1 area needs review: completed, blocked, or not included"
+        : `${scopeNeedsReviewRows.length} areas need review: completed, blocked, or not included`
+      : null,
+    scopeWrittenOnlyNeedsConfirmation
+      ? writtenOnlyScopeRows.length === 1
+        ? "1 notes-only area: confirm completed from service notes or change it"
+        : `${writtenOnlyScopeRows.length} notes-only areas: confirm completed from service notes or change them`
+      : null,
+  ].filter(Boolean) as string[];
+  const canPreviewProofLink =
+    closeoutEngine.canGeneratePacket &&
+    hasJobOutcomeSelected &&
+    sendReadinessBlockers.length === 0;
+  const previewBlockedBy =
+    photoRolesNeedConfirmation
+      ? "photos"
+      : scopeNeedsReviewRows.length > 0
+        ? "scope"
+        : scopeWrittenOnlyNeedsConfirmation
+          ? "notes"
+          : null;
+  const scopeNeedsWrittenRecordConfirmation =
+    builderStep === "scope" && previewBlockedBy === "notes";
+  const previewProofLinkLabel = !hasJobOutcomeSelected
+    ? "Pick result first"
+    : canPreviewProofLink
+      ? "Review packet"
+      : previewBlockedBy === "photos"
+        ? "Review photo roles"
+        : previewBlockedBy === "notes"
+          ? "Continue with written record"
+          : "Fix area status";
+  const reportStatusLabel = !closeoutEngine.canGeneratePacket
+    ? "Result required"
+    : canPreviewProofLink
+      ? "Ready to send"
+      : "Needs review";
   const mobileReportStatus =
     !closeoutEngine.canGeneratePacket
       ? {
           tone: "partial",
           title: "Pick the result first",
-          copy: closeoutEngine.blockingReason ?? "No packet is generated from sample defaults.",
+          copy: "Pick what happened before the job proof packet is generated.",
+        }
+      : sendReadinessBlockers.length > 0
+      ? {
+          tone: "review",
+          title: "Confirm before sending",
+          copy: sendReadinessBlockers[0] ?? "Review the remaining assumption.",
         }
       : reportNeedsPhotoReview
       ? {
           tone: "review",
           title: "Check photo roles before sending",
-          copy: "Placed by upload order only. Confirm roles before saving.",
+          copy: "Review AI photo matches first. They stay out until confirmed.",
         }
       : totalFieldPhotoCount === 0
         ? {
-            tone: "neutral",
-            title: "Ready without photos",
-            copy: "The packet can explain the visit. Add photos only if the crew captured them.",
+            tone: activeJobPatternId === "clean-close" ? "neutral" : "review",
+            title:
+              activeJobPatternId === "blocked-access"
+                ? "Ready with access action"
+                : activeJobPatternId === "condition-review"
+                  ? "Ready with condition note"
+                  : "Ready as written record",
+            copy:
+              activeJobPatternId === "blocked-access"
+                ? "The packet records reachable work completed and the blocked area still needing action."
+                : activeJobPatternId === "condition-review"
+                  ? "The packet records service completed with one condition kept visible."
+                  : "The packet can be built from written service notes. Add photos only if the crew captured them.",
           }
         : missingRequiredSlots.length > 0
           ? {
               tone: "partial",
-              title: "Sendable with partial proof",
-              copy: "Open slots stay out unless attached or intentionally marked.",
+          title: "Sendable with partial photo evidence",
+          copy: "Open slots stay out unless attached or intentionally marked.",
             }
           : {
               tone: "ready",
               title: "Ready to send",
-              copy: "Job result, proof, note, and next window are lined up.",
+              copy: "Job result, photo status, note, and next window are lined up.",
             };
   const mobileReportStatusClass =
     mobileReportStatus.tone === "ready"
@@ -1287,84 +2779,103 @@ export function PacketBuilder() {
         : "bg-[#f26a21] text-white";
   const mobileReportInlineActionLabel = reportNeedsPhotoReview
     ? "Review photo roles"
+    : reportOutputMode === "link"
+      ? "Copy handoff"
+      : "Save PDF";
+  const photoStepPrimaryLabel = photoRolesNeedConfirmation
+    ? hasSuggestedPhotoRoles
+      ? "Confirm photo roles"
+      : "Review photos"
+    : hasBeforeOnly || hasAfterOnly
+      ? shouldShowProofDetails
+        ? "Draft result"
+        : "Review missing core"
     : totalFieldPhotoCount === 0
-      ? "Add photos"
-      : "PDF options";
-  const builderStepIndex = Math.max(
-    0,
-    builderSteps.findIndex((step) => step.value === builderStep),
-  );
+      ? "Pick result"
+      : "Draft result";
+  const getBuilderStepMetric = (stepValue: BuilderStep) => {
+    if (stepValue === "risk") {
+      return riskSummaryLabel;
+    }
+
+    if (stepValue === "scope") {
+      return hasJobOutcomeSelected
+        ? activeJobPattern.label
+        : "Required";
+    }
+
+    if (stepValue === "proof") {
+      return totalFieldPhotoCount > 0
+        ? `${totalFieldPhotoCount} photos`
+        : "Optional";
+    }
+
+    if (stepValue === "next") {
+      if (activeJobPatternId === "blocked-access") {
+        return "Revisit";
+      }
+
+      if (activeJobPatternId === "condition-review") {
+        return values.followUpMode === "quote" ? "Quote" : "Monitor";
+      }
+
+      return `${selectedCadenceOption.label}`;
+    }
+
+    if (!closeoutEngine.canGeneratePacket) {
+      return "Locked";
+    }
+
+    if (sendReadinessBlockers.length > 0) {
+      return "Review";
+    }
+
+    return totalFieldPhotoCount > 0
+      ? `${uploadedProofCount} placed`
+      : "Ready";
+  };
   const mobilePrimaryActionLabel =
-    builderStep === "photos"
-      ? "Confirm result"
-    : builderStep === "job"
-        ? hasJobOutcomeSelected
-          ? "Preview packet"
-          : "Pick result first"
+    builderStep === "risk"
+      ? "Lock scope"
+    : builderStep === "proof"
+      ? photoStepPrimaryLabel
+    : builderStep === "scope"
+        ? !hasJobOutcomeSelected
+          ? "Choose result"
+          : previewBlockedBy === "notes"
+            ? "Next step"
+            : previewProofLinkLabel
+        : builderStep === "next"
+          ? "Finish cycle"
         : reportOutputMode === "link"
-          ? "Copy link"
+          ? "Copy handoff"
           : "Save PDF";
   const mobileSecondaryActionLabel =
-    builderStep === "photos"
+    builderStep === "proof"
         ? hasProofWorkStarted
           ? "Review photos"
-          : "Sample"
-      : builderStep === "job"
-        ? "Back to photos"
+          : "Risk"
+      : builderStep === "risk"
+        ? "Proof"
+      : builderStep === "scope"
+        ? "Add crew proof"
         : reportNeedsPhotoReview
           ? "Review photos"
           : "Options";
-  const mobileStepCaption =
-    builderStep === "photos"
-        ? totalFieldPhotoCount > 0
-          ? `${totalFieldPhotoCount} photo(s)`
-          : "Core if captured"
-      : builderStep === "job"
-        ? hasJobOutcomeSelected
-          ? activeJobPattern.label
-          : "Result required"
-        : values.customerActionOverride?.trim()
-          ? "Custom copy"
-          : "Generated copy";
-  const mobileStepHint =
-    builderStep === "photos"
-        ? hasOrderMatchedPhotos
-          ? "Review phone-order photo matches."
-        : totalFieldPhotoCount > 0
-            ? "Photos are attached. Review if needed."
-            : "No photos is acceptable."
-      : builderStep === "job"
-        ? hasJobOutcomeSelected
-          ? "Confirm the service result and next timing."
-          : "Choose what actually happened before a packet can be generated."
-        : reportOutputMode === "link"
-          ? "Check the customer link view, then copy or save PDF."
-          : "Check the service record PDF before saving.";
-  const photoStepPrimaryLabel = hasOrderMatchedPhotos
-    ? shouldShowProofDetails
-      ? "Confirm roles"
-      : "Review matches"
-    : hasBeforeOnly || hasAfterOnly
-      ? shouldShowProofDetails
-        ? "Continue with partial proof"
-        : "Review missing core"
-    : totalFieldPhotoCount === 0
-      ? "No photos today"
-      : "Next: confirm result";
-  const mobilePrimaryIsPrint = builderStep === "report" && reportOutputMode === "pdf";
+  const mobilePrimaryIsPrint = isOutputStep && reportOutputMode === "pdf";
   const reportOutputMeta =
     reportOutputMode === "link"
       ? {
-          label: "Customer proof link preview",
-          title: "Premium customer handoff",
-          copy: "Best for texting or emailing after the visit. It reduces confusion, shows open items, and gives the customer one clear reply path.",
-          badge: "Primary output",
+          label: "Customer handoff preview",
+          title: "Customer handoff from this job record",
+          copy: "Generated from the same proof coverage, result, and next action. Use it for text or email after the visit.",
+          badge: "Generated output",
         }
       : {
-          label: "Service record PDF preview",
-          title: "Archive and request-ready record",
-          copy: "Best for saving, attaching, printing, or answering later record requests. It is formatted as a service record, not a web page screenshot.",
-          badge: "Record output",
+          label: "Evidence record preview",
+          title: "Evidence PDF from this job record",
+          copy: "The retained document copy for archive, attachment, print, manager review, or outside record requests.",
+          badge: "Generated output",
         };
   const activePreviewPresentationMode =
     reportOutputMode === "pdf" ? packetPresentationMode : "standard";
@@ -1374,53 +2885,514 @@ export function PacketBuilder() {
     setupNoticeAction === "print-pdf"
       ? {
           eyebrow: "Before saving PDF",
-          title: "Free PDFs stay neutral.",
+          title: "Free evidence PDFs stay neutral.",
           actionLabel: "Continue to PDF",
-          copy: "This PDF will not show your logo, phone number, dispatch email, customer reply CTA, saved history, or hosted photo delivery.",
+          copy: "This PDF is the evidence record for files and requests. The free version will not show your logo, phone number, dispatch email, saved history, or hosted photo delivery.",
         }
       : setupNoticeAction === "open-link"
         ? {
             eyebrow: "Before opening link",
-            title: "Free local links stay neutral.",
+            title: "Free browser handoffs stay neutral.",
             actionLabel: "Continue to link",
-            copy: "This local test link includes the current photos in this browser only. Cross-device customer delivery still needs hosted storage and branded setup.",
+            copy: "This browser test handoff includes the current photos on this device only. Cross-device customer delivery still needs hosted storage and branded setup.",
           }
         : {
             eyebrow: "Before copying link",
-            title: "Free local links stay neutral.",
+            title: "Free browser handoffs stay neutral.",
             actionLabel: "Continue and copy",
-            copy: "This local test link includes the current photos in this browser only. Cross-device customer delivery still needs hosted storage and branded setup.",
+            copy: "This browser test handoff includes the current photos on this device only. Cross-device customer delivery still needs hosted storage and branded setup.",
           };
-  const previewPacket = applyAxis1CloseoutEngineToPacket(
+  const previewPacketWithPhotos = applyScopeLedgerToPacket(
     buildAxis1PacketDataWithFieldPhotos(
       previewData,
-      uploadedFieldPhotos,
+      confirmedUploadedFieldPhotos,
       photoSlotResolutions,
     ),
-    closeoutEngine,
+    scopeLedgerRows,
+    activeVisitType,
   );
+  const generatedPreviewPacket = applyScopeLedgerToPacket(
+    applyAxis1CloseoutEngineToPacket(
+      previewPacketWithPhotos,
+      closeoutEngine,
+    ),
+    scopeLedgerRows,
+    activeVisitType,
+  );
+  const previewPacket = applyCustomerTextOverridesToPacket(generatedPreviewPacket, {
+    result: values.summaryOverride,
+    openItem:
+      closeoutEngine.outcomeType === "blocked_access"
+        ? values.exceptionNote
+        : closeoutEngine.outcomeType === "condition_review"
+          ? values.followUpOverride || values.followUpNote
+          : values.followUpOverride,
+    action: values.customerActionOverride,
+    recordNote: values.recordNoteOverride,
+  });
+  const claimLevelLabel =
+    closeoutEngine.claimLevel === "photo_supported_record"
+      ? "Photo record"
+      : closeoutEngine.claimLevel === "partial_photo_record"
+        ? "Partial photo record"
+        : "Written service record";
+  const enginePrimaryCta =
+    closeoutEngine.primaryCta ??
+    closeoutEngine.ctas.find((cta) => cta.priority === "primary");
+  const enginePrimaryCtaLabel = enginePrimaryCta?.label ?? "Next step after result";
+  const enginePrimaryCtaStatus =
+    enginePrimaryCta?.enabled
+      ? "Connected"
+      : "Add a URL only if the button should open one.";
+  const closeoutLinkFields: Array<{
+    key: CloseoutLinkFieldKey;
+    label: string;
+    placeholder: string;
+    helper: string;
+    visible: boolean;
+  }> = [
+    {
+      key: "invoiceUrl",
+      label: "Invoice URL",
+      placeholder: "https://pay.example/invoice-123",
+      helper: "Clean closeout primary action.",
+      visible: closeoutEngine.outcomeType === "clean",
+    },
+    {
+      key: "paymentDueLabel",
+      label: "Amount label",
+      placeholder: "$1,250 due",
+      helper: "Optional label shown inside the invoice button.",
+      visible: closeoutEngine.outcomeType === "clean",
+    },
+    {
+      key: "reviewUrl",
+      label: "Review URL",
+      placeholder: "https://reviews.example/your-company",
+      helper: "Clean closeout secondary action.",
+      visible: closeoutEngine.outcomeType === "clean",
+    },
+    {
+      key: "nextServiceRequestUrl",
+      label:
+        closeoutEngine.outcomeType === "blocked_access"
+          ? "Revisit request URL"
+          : "Next-service URL",
+      placeholder: "mailto:dispatch@example.com?subject=Next%20hood%20service",
+      helper: "Used for rebook, revisit, or next-service confirmation.",
+      visible:
+        closeoutEngine.outcomeType === "clean" ||
+        closeoutEngine.outcomeType === "blocked_access" ||
+        closeoutEngine.outcomeType === "condition_review",
+    },
+    {
+      key: "followUpQuoteUrl",
+      label: "Quote request URL",
+      placeholder: "mailto:quotes@example.com?subject=Follow-up%20quote",
+      helper: "Condition-review primary action.",
+      visible:
+        closeoutEngine.outcomeType === "condition_review" &&
+        values.followUpMode === "quote",
+    },
+    {
+      key: "replyUrl",
+      label: "Reply URL or email",
+      placeholder: "mailto:dispatch@example.com",
+      helper: "Fallback path for access, condition, and questions.",
+      visible: closeoutEngine.canGeneratePacket,
+    },
+  ];
+  const visibleCloseoutLinkFields = closeoutLinkFields.filter((field) => field.visible);
+  const connectedCloseoutLinkCount = visibleCloseoutLinkFields.filter(
+    (field) => Boolean(engineCloseoutLinks[field.key]),
+  ).length;
+  const engineWarningLabel =
+    closeoutEngine.vendorSendReadinessWarnings.length > 0
+      ? closeoutEngine.vendorSendReadinessWarnings[0].copy
+      : "No private send check for the current inputs.";
+  const generatedOutputReadyCount = closeoutEngine.generatedOutputs.filter(
+    (output) => output.readiness === "ready",
+  ).length;
+  const generatedOutputReviewCount = closeoutEngine.generatedOutputs.filter(
+    (output) => output.readiness === "needs_review",
+  ).length;
+  const nextActionRows = [
+    {
+      label: "Schedule next cleaning",
+      state:
+        closeoutEngine.outcomeType === "clean" ? "ready" : "needs_review",
+      copy:
+        closeoutEngine.outcomeType === "clean"
+          ? `Use ${selectedCadenceOption.label.toLowerCase()} as the next-service window.`
+          : "Clear access or follow-up before using normal rebook copy.",
+    },
+    {
+      label: "Request revisit",
+      state:
+        closeoutEngine.outcomeType === "blocked_access" ? "ready" : "not_applicable",
+      copy:
+        closeoutEngine.outcomeType === "blocked_access"
+          ? "Blocked or incomplete area selected; revisit copy is available."
+          : "No revisit request is needed for the current result.",
+    },
+    {
+      label: "Send follow-up quote",
+      state:
+        closeoutEngine.outcomeType === "condition_review" &&
+        values.followUpMode === "quote"
+          ? "ready"
+          : "not_applicable",
+      copy:
+        closeoutEngine.outcomeType === "condition_review"
+          ? "Condition follow-up can become quote copy from this record."
+          : "No quoted condition is selected.",
+    },
+    {
+      label: "Monitor condition",
+      state:
+        closeoutEngine.outcomeType === "condition_review" &&
+        values.followUpMode !== "quote"
+          ? "ready"
+          : "not_applicable",
+      copy:
+        closeoutEngine.outcomeType === "condition_review"
+          ? "Keep the condition visible for the next service cycle."
+          : "No monitor-only condition is selected.",
+    },
+  ];
+  const reportDiagnosticCards = [
+    {
+      label: "Pre-quote risk",
+      value: riskSummaryLabel,
+      helper: riskSummaryCopy,
+      wideOnPhone: true,
+    },
+    {
+      label: "Result",
+      value: closeoutEngine.primaryStatusLabel,
+    },
+    {
+      label: "Record",
+      value: closeoutEngine.recordFormat.label,
+    },
+    {
+      label: "Claim basis",
+      value: claimLevelLabel,
+    },
+    {
+      label: "Proof coverage",
+      value: closeoutEngine.proofCoverage.shortLabel,
+    },
+    {
+      label: "Primary CTA",
+      value: enginePrimaryCtaLabel,
+      helper: enginePrimaryCtaStatus,
+      wideOnPhone: true,
+    },
+  ];
+  const reportHeadingText = builderStep === "next"
+    ? "Next cleaning and follow-up are ready."
+    : closeoutEngine.canGeneratePacket && canPreviewProofLink
+    ? "Customer confirmation and payment proof are ready."
+    : sendReadinessBlockers.length > 0
+      ? "Confirm before sending."
+      : "Pick a result before outputs are generated.";
+  function selectCustomerLineEditor(
+    editor: CustomerLineEditor,
+    surface: CustomerLineEditorSurface,
+  ) {
+    setActiveCustomerLineEditor(editor);
+    setActiveCustomerLineEditorSurface(surface);
+  }
+
+  function customerEditorForPreviewTarget(
+    target: CustomerWebPacketEditTarget,
+  ): CustomerLineEditor | null {
+    if (target === "result") {
+      return "result";
+    }
+
+    if (target === "openItem") {
+      return "open-item";
+    }
+
+    if (target === "action") {
+      return "action";
+    }
+
+    return null;
+  }
+
+  function selectPreviewEditTarget(target: CustomerWebPacketEditTarget) {
+    const editor = customerEditorForPreviewTarget(target);
+
+    setReportOutputMode("link");
+    setShowWordingEditor(false);
+    setActivePreviewEditTarget(target);
+
+    if (editor) {
+      selectCustomerLineEditor(editor, "preview");
+    } else {
+      setActiveCustomerLineEditorSurface("preview");
+    }
+  }
+
+  function openScopeEditorFromPreview() {
+    setActivePreviewEditTarget(null);
+    setActiveCustomerLineEditorSurface(null);
+    setReportOutputMode("link");
+    setShowScopeDetails(true);
+    selectBuilderStep("scope");
+
+    const scrollToScopeEditor = () => {
+      document
+        .querySelector("[data-axis-scope-review-panel]")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    window.setTimeout(scrollToScopeEditor, 120);
+    window.setTimeout(scrollToScopeEditor, 360);
+  }
+
+  function updatePreviewTextField(
+    field:
+      | "summaryOverride"
+      | "customerActionOverride"
+      | "followUpOverride"
+      | "recordNoteOverride"
+      | "exceptionNote"
+      | "followUpNote",
+    value: string,
+  ) {
+    form.setValue(field, value, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
+  function renderInlineCustomerLineEditor(
+    editor: CustomerLineEditor,
+    idPrefix: string,
+  ) {
+    if (editor === "result") {
+      return (
+        <div>
+          <label className={labelClassName()} htmlFor={`${idPrefix}SummaryOverride`}>
+            Customer result line
+          </label>
+          <textarea
+            id={`${idPrefix}SummaryOverride`}
+            rows={3}
+            className={fieldClassName()}
+            maxLength={textFieldLimits.summaryOverride}
+            placeholder={generatedPreviewPacket.summaryCards[0]?.copy}
+            {...form.register("summaryOverride")}
+          />
+          <div className="flex items-start justify-between gap-3">
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              Leave blank to keep the default line. If the covered area is wrong,
+              use Edit scope instead of only changing this sentence.
+            </p>
+            <CharacterCount
+              value={values.summaryOverride}
+              max={textFieldLimits.summaryOverride}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    if (editor === "open-item") {
+      const openItemNoteField =
+        selectedAccessCount > 0 ? "exceptionNote" : "followUpNote";
+      const openItemNoteId =
+        openItemNoteField === "exceptionNote"
+          ? `${idPrefix}ExceptionNote`
+          : `${idPrefix}FollowUpNote`;
+      const openItemNoteValue =
+        openItemNoteField === "exceptionNote"
+          ? values.exceptionNote
+          : values.followUpNote;
+      const openItemNoteLimit =
+        openItemNoteField === "exceptionNote"
+          ? textFieldLimits.exceptionNote
+          : textFieldLimits.followUpNote;
+
+      return (
+        <>
+          <div className="grid gap-2 md:grid-cols-3">
+            {jobPatternPresets.map((pattern) => {
+              const selected = activeJobPatternId === pattern.id;
+
+              return (
+                <button
+                  key={pattern.id}
+                  type="button"
+                  onClick={() => applyJobPattern(pattern)}
+                  className={`rounded-[16px] border px-3 py-3 text-left transition ${
+                    selected
+                      ? "border-[#f26a21]/45 bg-white"
+                      : "border-black/8 bg-white/55 hover:bg-white"
+                  }`}
+                >
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
+                    {pattern.label}
+                  </span>
+                  <span className="mt-1 block text-sm font-bold text-foreground">
+                    {pattern.title}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {values.scenario === "exception" ? (
+            <div>
+              <label className={labelClassName()} htmlFor={openItemNoteId}>
+                Optional detail note
+              </label>
+              <textarea
+                id={openItemNoteId}
+                rows={2}
+                className={fieldClassName()}
+                maxLength={openItemNoteLimit}
+                placeholder="Optional. Add the specific blocked area or condition if the default is too broad."
+                {...form.register(openItemNoteField)}
+              />
+              <CharacterCount
+                value={openItemNoteValue}
+                max={openItemNoteLimit}
+              />
+            </div>
+          ) : null}
+        </>
+      );
+    }
+
+    if (editor === "action") {
+      return (
+        <div>
+          <label className={labelClassName()} htmlFor={`${idPrefix}CustomerActionOverride`}>
+            Customer instruction
+          </label>
+          <textarea
+            id={`${idPrefix}CustomerActionOverride`}
+            rows={3}
+            className={fieldClassName()}
+            maxLength={textFieldLimits.customerActionOverride}
+            placeholder={findPacketRowValue(
+              generatedPreviewPacket.customerClose.actionItems,
+              "Reply or action",
+              generatedPreviewPacket.customerClose.copy,
+            )}
+            {...form.register("customerActionOverride")}
+          />
+          <div className="flex items-start justify-between gap-3">
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              This is the main next-action sentence the customer sees.
+            </p>
+            <CharacterCount
+              value={values.customerActionOverride}
+              max={textFieldLimits.customerActionOverride}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    if (editor === "photo-record") {
+      return (
+        <div className="rounded-[16px] border border-black/8 bg-white/70 px-4 py-4">
+          <p className={labelClassName()}>Photo record</p>
+          <p className="mt-2 text-sm font-bold leading-5 text-foreground">
+            {closeoutEngine.recordFormat.builderTitle}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            {closeoutEngine.recordFormat.builderCopy}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => selectBuilderStep("proof")}
+              className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
+            >
+              Open photo editor
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                fieldPhotoSlots.forEach((slot) => {
+                  if (!uploadedFieldPhotos[slot.id]) {
+                    setPhotoSlotResolution(slot.id, "not-captured");
+                  }
+                });
+              }}
+              className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground hover:bg-white"
+            >
+              Mark missing as not captured
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <p className={labelClassName()}>Next service timing</p>
+        <SegmentedControl
+          type="single"
+          value={values.cadence}
+          onValueChange={(value) => {
+            if (axis1CadenceOptions.some((option) => option.value === value)) {
+              form.setValue(
+                "cadence",
+                value as Axis1BuilderFormValues["cadence"],
+                {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                },
+              );
+            }
+          }}
+          className="mt-3 flex-wrap bg-white/72"
+        >
+          {axis1CadenceOptions.map((option) => (
+            <SegmentedControlItem key={option.value} value={option.value}>
+              {option.label}
+            </SegmentedControlItem>
+          ))}
+        </SegmentedControl>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+          {selectedCadenceOption.copy}
+        </p>
+      </div>
+    );
+  }
+
   const generatedCustomerLines = [
     {
       label: "Today's result",
       value: previewPacket.summaryCards[0]?.copy ?? previewPacket.packetHeader.copy,
-      source: values.summaryOverride?.trim() ? "Edited wording" : "Generated from selected result",
-      action: "Edit wording",
+      source: values.summaryOverride?.trim() ? "Edited by you" : "Default line",
+      action: "Edit line",
       editor: "result" as const,
-      onClick: () => setActiveCustomerLineEditor("result"),
     },
     {
-      label: values.scenario === "exception" ? "Open item" : "Closeout status",
-      value:
-        previewPacket.summaryCards[1]?.copy ??
-        previewPacket.deficiencyRows[0]?.issue ??
-        "No open access item recorded.",
-      source: values.scenario === "exception" ? "Shown to avoid confusion" : "Shown as closed",
-      action: "Edit result",
+      label:
+        values.scenario === "exception"
+          ? selectedAccessCount > 0
+            ? "Access note"
+            : "Follow-up note"
+          : "Closeout status",
+      value: closeoutEngine.responsibilityCopy,
+      source: values.scenario === "exception" ? "Shown to customer" : "Shown as closed",
+      action: "Edit line",
       editor: "open-item" as const,
-      onClick: () => setActiveCustomerLineEditor("open-item"),
     },
     {
-      label: "Customer action",
+      label: "Customer next step",
       value:
         findPacketRowValue(
           previewPacket.customerClose.actionItems,
@@ -1428,27 +3400,20 @@ export function PacketBuilder() {
           previewPacket.customerClose.copy,
         ) || previewPacket.customerClose.copy,
       source: values.customerActionOverride?.trim()
-        ? "Edited instruction"
-        : "Generated from selected next step",
-      action: "Edit wording",
+        ? "Edited by you"
+        : "Default next step",
+      action: "Edit line",
       editor: "action" as const,
-      onClick: () => setActiveCustomerLineEditor("action"),
     },
     {
       label: "Photo / record basis",
-      value:
-        findPacketRowValue(
-          previewPacket.proofPolicyRows,
-          "Record basis",
-          adaptiveRecord.meta.customerCopy,
-        ) || adaptiveRecord.meta.customerCopy,
+      value: closeoutEngine.proofCoverage.label,
       source:
         totalFieldPhotoCount > 0
-          ? `${uploadedProofCount} attached photo(s)`
-          : "No-photo closeout",
+          ? `${uploadedProofCount} attached photo(s) / ${claimLevelLabel}`
+          : "Written service record",
       action: "Edit photos",
       editor: "photo-record" as const,
-      onClick: () => setActiveCustomerLineEditor("photo-record"),
     },
     {
       label: "Next service",
@@ -1461,39 +3426,258 @@ export function PacketBuilder() {
       source: `${selectedCadenceOption.label} selected`,
       action: "Edit timing",
       editor: "timing" as const,
-      onClick: () => setActiveCustomerLineEditor("timing"),
     },
   ];
+  const customerShouldKnowOptions = [
+    {
+      label: "Completed",
+      pattern: getJobPatternById("clean-close"),
+      helper: "Included work completed; no customer action needed.",
+    },
+    {
+      label: "Blocked / no access",
+      pattern: getJobPatternById("blocked-access"),
+      helper: "One area needs access, revisit, or scope clarification.",
+    },
+    {
+      label: "Condition found",
+      pattern: getJobPatternById("condition-review"),
+      helper: "Condition should drive quote, revisit, or next-service follow-up.",
+    },
+  ];
+  const customerNoteField =
+    selectedAccessCount > 0 ? "exceptionNote" : "followUpNote";
+  const customerNoteValue =
+    customerNoteField === "exceptionNote"
+      ? values.exceptionNote
+      : values.followUpNote;
+  const customerNotePlaceholder =
+    selectedAccessCount > 0
+      ? "Optional. Example: rear duct panel blocked by stored boxes"
+      : "Optional. Example: rooftop fan hinge should be reviewed";
+  const primaryCustomerLines = generatedCustomerLines
+    .slice(0, 3)
+    .map((item, index) => {
+      if (index === 1 && values.scenario === "exception") {
+        const note = toDisplaySentence(customerNoteValue ?? "");
+
+        if (note) {
+          return {
+            ...item,
+            value: note,
+            source: "Typed note",
+          };
+        }
+      }
+
+      return item;
+    });
+  const previewOpenItemValue =
+    closeoutEngine.outcomeType === "blocked_access"
+      ? values.exceptionNote
+      : closeoutEngine.outcomeType === "condition_review"
+        ? values.followUpOverride
+        : values.followUpOverride;
+  const customerPreviewEditConfig: CustomerWebPacketEditConfig = {
+    enabled:
+      isOutputStep &&
+      reportOutputMode === "link" &&
+      closeoutEngine.canGeneratePacket,
+    activeTarget: activePreviewEditTarget,
+    fields: {
+      result: {
+        label: "Customer result line",
+        value: values.summaryOverride ?? "",
+        placeholder:
+          generatedPreviewPacket.summaryCards[0]?.copy ?? generatedPreviewPacket.packetHeader.copy,
+        maxLength: textFieldLimits.summaryOverride,
+        helper: "Blank keeps the generated service-result sentence.",
+        onChange: (value) => updatePreviewTextField("summaryOverride", value),
+      },
+      openItem: {
+        label:
+          closeoutEngine.outcomeType === "blocked_access"
+            ? "Access note"
+            : closeoutEngine.outcomeType === "condition_review"
+              ? "Condition note"
+              : "Closeout status note",
+        value: previewOpenItemValue ?? "",
+        placeholder:
+          closeoutEngine.outcomeType === "blocked_access"
+            ? customerNotePlaceholder
+            : closeoutEngine.outcomeType === "condition_review"
+              ? "Optional. Example: rooftop fan hinge should be reviewed before the next cycle."
+              : "Optional. Example: no open access issue remained at close-out.",
+        maxLength:
+          closeoutEngine.outcomeType === "blocked_access"
+            ? textFieldLimits.exceptionNote
+            : textFieldLimits.followUpOverride,
+        helper:
+          closeoutEngine.outcomeType === "blocked_access"
+            ? "This keeps the blocked area separate from completed work."
+            : closeoutEngine.outcomeType === "condition_review"
+              ? "This keeps the recorded condition visible without changing completed work."
+              : "This changes the closeout-status sentence, not the result title.",
+        onChange: (value) =>
+          updatePreviewTextField(
+            closeoutEngine.outcomeType === "blocked_access"
+              ? "exceptionNote"
+              : "followUpOverride",
+            value,
+          ),
+      },
+      action: {
+        label: "Customer instruction",
+        value: values.customerActionOverride ?? "",
+        placeholder:
+          findPacketRowValue(
+            generatedPreviewPacket.customerClose.actionItems,
+            "Reply or action",
+            generatedPreviewPacket.customerClose.copy,
+          ) || generatedPreviewPacket.customerClose.copy,
+        maxLength: textFieldLimits.customerActionOverride,
+        helper: "This is the main sentence telling the customer what to do next.",
+        onChange: (value) => updatePreviewTextField("customerActionOverride", value),
+      },
+      recordNote: {
+        label: "Record note body",
+        value: values.recordNoteOverride ?? "",
+        placeholder:
+          findPacketRowValue(
+            generatedPreviewPacket.customerClose.actionItems,
+            "Evidence PDF note",
+            "The evidence PDF is for manager, insurance, or documentation requests.",
+          ) || "The evidence PDF is for manager, insurance, or documentation requests.",
+        maxLength: textFieldLimits.recordNoteOverride,
+        helper: "This changes the evidence-PDF note shown in the customer handoff.",
+        onChange: (value) => updatePreviewTextField("recordNoteOverride", value),
+      },
+    },
+    onSelectTarget: selectPreviewEditTarget,
+    onEditScope: openScopeEditorFromPreview,
+    onClose: () => {
+      setActivePreviewEditTarget(null);
+      setActiveCustomerLineEditorSurface(null);
+    },
+  };
+  const selectedRecommendedOutcome =
+    hasJobOutcomeSelected &&
+    activeJobPatternId === jobOutcomeRecommendation.pattern.id;
+  const customerChoiceStatus = selectedRecommendedOutcome
+    ? isAutoDraftedOutcome
+      ? "Recommended applied"
+      : "Recommended accepted"
+    : hasJobOutcomeSelected
+      ? "Changed by you"
+      : "Pick one";
+  const customerChoiceReason =
+    selectedRecommendedOutcome
+      ? "The job record follows the recommended result. Change it only if the visit was different."
+      : !hasJobOutcomeSelected
+      ? totalFieldPhotoCount === 0
+        ? "No photos or result are confirmed yet. Pick what happened to build a written record."
+        : jobOutcomeRecommendation.reason
+      : "You changed the suggested answer. The job record now follows your selected result.";
 
   function resetBuilder() {
     form.reset(axis1BuilderDefaults);
     setHasJobOutcomeSelected(false);
+    setAutoDraftedJobPatternId(null);
     setUploadedFieldPhotos(emptyFieldPhotoState());
     setUnplacedFieldPhotos([]);
+    setVisitTypeId("standard-hood");
+    setRiskFlagIds(["no-risk"]);
+    setScopeOverrides({});
+    setScopeAssumptionsAccepted(false);
+    setShowScopeDetails(true);
+    setPhotoAssistSuggestions([]);
+    setPhotoAssistNotice(null);
     setPhotoSlotResolutions(emptyPhotoSlotResolutions());
     setPacketPresentationMode("short");
     setPacketSections(shortPacketSections);
-    selectBuilderStep("photos");
+    setCloseoutLinks({});
+    selectBuilderStep("risk");
     setShowPacketDetails(false);
     setShowAllPhotoSlots(false);
     setShowProofDetails(false);
+    setShowTimingEditor(false);
     setPhotoImportNotice(null);
     setMobileSheet(null);
     setShowWordingEditor(false);
     setActiveCustomerLineEditor("result");
+    setActiveCustomerLineEditorSurface(null);
+    setActivePreviewEditTarget(null);
     toast("Builder reset", {
-      description: "The sample report is back to the default visit.",
+      description: "The job proof packet draft is back to the default visit.",
     });
+  }
+
+  function focusScopeReviewPanel() {
+    window.setTimeout(() => {
+      document
+        .querySelector("[data-axis-scope-review-panel]")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  }
+
+  function handleJobPrimaryAction() {
+    if (!hasJobOutcomeSelected) {
+      toast.error("Pick today's result first.");
+      return;
+    }
+
+    if (previewBlockedBy === "notes") {
+      setScopeAssumptionsAccepted(true);
+      toast("Written record confirmed", {
+        description: "Notes-only areas will be treated as written service record, not photo proof.",
+      });
+      return;
+    }
+
+    if (previewBlockedBy === "photos") {
+      setShowProofDetails(true);
+      selectBuilderStep("proof");
+      return;
+    }
+
+    if (previewBlockedBy === "scope") {
+      setShowScopeDetails(true);
+      focusScopeReviewPanel();
+      return;
+    }
+
+    selectBuilderStep("confirm");
   }
 
   function selectBuilderStep(step: BuilderStep) {
     toast.dismiss();
+    let shouldFocusScopePanel = false;
 
-    if (step === "report" && !hasJobOutcomeSelected) {
+    if ((step === "confirm" || step === "next") && !hasJobOutcomeSelected) {
       toast.error("Pick today's result first.", {
-        description: "The tool will not create a packet from untouched sample defaults.",
+        description: "The tool will not create generated outputs from untouched defaults.",
       });
-      step = "job";
+      step = "scope";
+    }
+
+    if ((step === "confirm" || step === "next") && hasJobOutcomeSelected && sendReadinessBlockers.length > 0) {
+      if (photoRolesNeedConfirmation) {
+        setShowProofDetails(true);
+        toast.error("Confirm photo roles before sending.", {
+          description:
+            "Photo suggestions stay out of the packet until the vendor confirms them.",
+        });
+        step = "proof";
+      } else {
+        setShowScopeDetails(true);
+        shouldFocusScopePanel = true;
+        toast.error("Confirm the visit scope before sending.", {
+          description:
+            sendReadinessBlockers[0] ??
+            "The tool needs one vendor confirmation before outputs are ready.",
+        });
+        step = "scope";
+      }
     }
 
     setBuilderStep(step);
@@ -1503,27 +3687,33 @@ export function PacketBuilder() {
     url.searchParams.set("step", step);
     window.history.replaceState({}, "", url);
 
-    if (isMobileViewport()) {
-      window.requestAnimationFrame(() => {
-        document
-          .getElementById("packet-builder-workspace")
-          ?.scrollIntoView({ block: "start", behavior: "smooth" });
-      });
-    }
+    window.requestAnimationFrame(() => {
+      scrollPacketWorkspaceBelowHeader();
+      window.setTimeout(() => scrollPacketWorkspaceBelowHeader("auto"), 90);
+      if (shouldFocusScopePanel) {
+        focusScopeReviewPanel();
+      }
+    });
   }
 
   function handleMobilePrimaryAction() {
-    if (builderStep === "photos") {
-      selectBuilderStep("job");
+    if (builderStep === "risk") {
+      selectBuilderStep("scope");
       return;
     }
 
-    if (builderStep === "job") {
-      if (!hasJobOutcomeSelected) {
-        toast.error("Pick today's result first.");
-        return;
-      }
-      selectBuilderStep("report");
+    if (builderStep === "proof") {
+      proceedFromPhotoStep();
+      return;
+    }
+
+    if (builderStep === "scope") {
+      handleJobPrimaryAction();
+      return;
+    }
+
+    if (builderStep === "next") {
+      setMobileSheet("report-actions");
       return;
     }
 
@@ -1538,9 +3728,17 @@ export function PacketBuilder() {
   function requestFreeReportOutput(action: SetupNoticeAction) {
     if (!hasJobOutcomeSelected) {
       toast.error("Pick today's result first.", {
-        description: "The tool will not create a link or PDF from untouched sample defaults.",
+        description: "The tool will not create outputs from untouched defaults.",
       });
-      selectBuilderStep("job");
+      selectBuilderStep("scope");
+      return;
+    }
+
+    if (sendReadinessBlockers.length > 0) {
+      toast.error("Review needed before output.", {
+        description: sendReadinessBlockers[0],
+      });
+      selectBuilderStep("confirm");
       return;
     }
 
@@ -1578,12 +3776,14 @@ export function PacketBuilder() {
       values,
       uploadedFieldPhotos,
       photoSlotResolutions,
+      links: engineCloseoutLinks,
       presentationMode: packetPresentationMode,
       visibleSections: packetSections,
+      packetData: previewPacket,
     });
 
     if (!result.ok) {
-      toast.error("Could not save local packet", {
+      toast.error("Could not save browser handoff", {
         description: result.error,
       });
       return null;
@@ -1601,13 +3801,13 @@ export function PacketBuilder() {
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success("Local photo link copied", {
+      toast.success("Browser handoff copied", {
         description:
-          "Photos are included for this browser QA pass. Hosted storage is still required for real customer delivery.",
+          "Photos are included for this browser pass. Hosted storage is still required for real customer delivery.",
       });
     } catch {
       toast.error("Could not copy automatically", {
-        description: "Open the local packet link and copy the browser address.",
+        description: "Open the generated handoff and copy the browser address.",
       });
     }
   }
@@ -1646,19 +3846,52 @@ export function PacketBuilder() {
     }, 420);
   }
 
+  useEffect(() => {
+    const handleEvidencePdfRequest = (event: Event) => {
+      event.preventDefault();
+      toast.dismiss();
+      setBuilderStep("confirm");
+      setReportOutputMode("pdf");
+      setMobileSheet(null);
+
+      window.setTimeout(() => {
+        document.documentElement.classList.add("app-printing");
+
+        const clearPrintUiLock = () => {
+          document.documentElement.classList.remove("app-printing");
+        };
+
+        window.addEventListener("afterprint", clearPrintUiLock, { once: true });
+        window.print();
+        window.setTimeout(clearPrintUiLock, 900);
+      }, 160);
+    };
+
+    window.addEventListener("axis1:save-evidence-pdf", handleEvidencePdfRequest);
+
+    return () => {
+      window.removeEventListener("axis1:save-evidence-pdf", handleEvidencePdfRequest);
+    };
+  }, []);
+
   function handleMobileSecondaryAction() {
-    if (builderStep === "photos") {
+    if (builderStep === "proof") {
       if (hasProofWorkStarted) {
         openMobileSheet("photo-review");
         return;
       }
 
-      window.location.assign("/samples/axis-1");
+      selectBuilderStep("risk");
       return;
     }
 
-    if (builderStep === "job") {
-      selectBuilderStep("photos");
+    if (builderStep === "risk") {
+      selectBuilderStep("proof");
+      return;
+    }
+
+    if (builderStep === "scope") {
+      selectBuilderStep("proof");
       return;
     }
 
@@ -1692,7 +3925,7 @@ export function PacketBuilder() {
     if (values.scenario === "clean") {
       form.setValue(
         "summaryOverride",
-        "Service was completed today. No open item was recorded.",
+        "Service was completed today. No customer follow-up was recorded.",
         { shouldDirty: true, shouldValidate: true },
       );
       form.setValue(
@@ -1706,7 +3939,7 @@ export function PacketBuilder() {
         { shouldDirty: true, shouldValidate: true },
       );
       toast.success("Short wording applied", {
-        description: "The report now uses the compact customer copy.",
+        description: "The customer handoff now uses the compact copy.",
       });
       return;
     }
@@ -1723,11 +3956,11 @@ export function PacketBuilder() {
     );
     form.setValue(
       "followUpOverride",
-      "Open item stays on the report for follow-up.",
+      "The follow-up note stays on the customer handoff.",
       { shouldDirty: true, shouldValidate: true },
     );
     toast.success("Short wording applied", {
-      description: "The report now uses the compact customer copy.",
+      description: "The customer handoff now uses the compact copy.",
     });
   }
 
@@ -1744,8 +3977,12 @@ export function PacketBuilder() {
       shouldDirty: true,
       shouldValidate: true,
     });
+    form.setValue("recordNoteOverride", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
     toast("Recommended copy restored", {
-      description: "The report is back to the generated wording.",
+      description: "The customer handoff is back to the recommended wording.",
     });
   }
 
@@ -1757,6 +3994,356 @@ export function PacketBuilder() {
       ...current,
       [slotId]: resolution,
     }));
+  }
+
+  async function collectPhotoAssistInputs(
+    options: { onlyUnconfirmed?: boolean } = {},
+  ): Promise<Axis1PhotoAssistInputPhoto[]> {
+    const slottedPhotos = await Promise.all(
+      fieldPhotoSlots.flatMap((slot) => {
+        const photo = uploadedFieldPhotos[slot.id];
+
+        if (options.onlyUnconfirmed && isVendorConfirmedPhoto(photo)) {
+          return [];
+        }
+
+        return photo
+          ? [
+              (async () => ({
+                photoId: photo.localId ?? `slot:${slot.id}`,
+                fileName: photo.name,
+                dataUrl: await preparePhotoForAiAssist(photo.src),
+                currentSlotId: slot.id,
+              }))(),
+            ]
+          : [];
+      }),
+    );
+    const unplacedPhotos = await Promise.all(
+      unplacedFieldPhotos.flatMap((photo) =>
+        options.onlyUnconfirmed && isVendorConfirmedPhoto(photo)
+          ? []
+          : [
+              (async () => ({
+                photoId: photo.id,
+                fileName: photo.name,
+                dataUrl: await preparePhotoForAiAssist(photo.src),
+                currentSlotId: null,
+              }))(),
+            ],
+      ),
+    );
+
+    return [...slottedPhotos, ...unplacedPhotos];
+  }
+
+  function mergePhotoAssistSuggestions(
+    suggestions: readonly Axis1PhotoAssistSuggestion[],
+  ) {
+    const suggestionsByPhotoId = new Map(
+      suggestions.map((suggestion) => [suggestion.photoId, suggestion]),
+    );
+    const currentUploadedFieldPhotos = uploadedFieldPhotosRef.current;
+    const currentUnplacedFieldPhotos = unplacedFieldPhotosRef.current;
+    const slottedPhotoSuggestions = fieldPhotoSlots.flatMap((slot) => {
+      const photo = currentUploadedFieldPhotos[slot.id];
+      const photoId = photo?.localId ?? `slot:${slot.id}`;
+      const suggestion = suggestionsByPhotoId.get(photoId);
+
+      return photo && suggestion
+        ? [
+            {
+              slotId: slot.id,
+              photo,
+              photoId,
+              suggestion,
+            },
+          ]
+        : [];
+    });
+    const photosToReview = slottedPhotoSuggestions.filter(({ suggestion }) =>
+      shouldKeepAxis1PhotoAssistSuggestionInReview(suggestion),
+    );
+    const moveCandidates = slottedPhotoSuggestions
+      .filter(
+        ({ slotId, suggestion }) =>
+          !shouldKeepAxis1PhotoAssistSuggestionInReview(suggestion) &&
+          Boolean(suggestion.suggestedSlotId) &&
+          suggestion.suggestedSlotId !== slotId,
+      )
+      .sort((a, b) => b.suggestion.confidence - a.suggestion.confidence);
+    const photoMoves: Array<
+      (typeof slottedPhotoSuggestions)[number] & { toSlotId: FieldPhotoSlotId }
+    > = [];
+    const assignedMoveTargets = new Set<FieldPhotoSlotId>();
+
+    moveCandidates.forEach((item) => {
+      const toSlotId = item.suggestion.suggestedSlotId;
+
+      if (!toSlotId) {
+        return;
+      }
+
+      const targetPhoto = currentUploadedFieldPhotos[toSlotId];
+      const targetPhotoId = targetPhoto?.localId ?? `slot:${toSlotId}`;
+      const targetSuggestion = targetPhoto
+        ? suggestionsByPhotoId.get(targetPhotoId)
+        : undefined;
+      const targetWillBeCleared =
+        !targetPhoto ||
+        item.photoId === targetPhotoId ||
+        Boolean(targetSuggestion && targetSuggestion.suggestedSlotId !== toSlotId);
+
+      if (!assignedMoveTargets.has(toSlotId) && targetWillBeCleared) {
+        assignedMoveTargets.add(toSlotId);
+        photoMoves.push({ ...item, toSlotId });
+        return;
+      }
+
+      photosToReview.push(item);
+    });
+    const photoIdsToReview = new Set(
+      photosToReview.map((item) => item.photoId),
+    );
+    const photoIdsMovedToSlot = new Set(
+      photoMoves.map((item) => item.photoId),
+    );
+    const autoPlaceTargets = new Set<FieldPhotoSlotId>(
+      photoMoves.map((item) => item.toSlotId),
+    );
+    const unplacedAutoPlacements: Array<{
+      photo: UnplacedFieldPhoto;
+      suggestion: Axis1PhotoAssistSuggestion;
+      toSlotId: FieldPhotoSlotId;
+    }> = [];
+
+    currentUnplacedFieldPhotos.forEach((photo) => {
+      const suggestion = suggestionsByPhotoId.get(photo.id);
+      const toSlotId = suggestion?.suggestedSlotId;
+
+      if (
+        !suggestion ||
+        !toSlotId ||
+        shouldKeepAxis1PhotoAssistSuggestionInReview(suggestion) ||
+        currentUploadedFieldPhotos[toSlotId] ||
+        autoPlaceTargets.has(toSlotId)
+      ) {
+        return;
+      }
+
+      autoPlaceTargets.add(toSlotId);
+      unplacedAutoPlacements.push({
+        photo,
+        suggestion,
+        toSlotId,
+      });
+    });
+    const autoPlacedUnplacedPhotoIds = new Set(
+      unplacedAutoPlacements.map((item) => item.photo.id),
+    );
+
+    setPhotoAssistSuggestions((current) => {
+      const byPhotoId = new Map(
+        current.map((suggestion) => [suggestion.photoId, suggestion]),
+      );
+
+      suggestions.forEach((suggestion) => {
+        byPhotoId.set(suggestion.photoId, suggestion);
+      });
+
+      return Array.from(byPhotoId.values());
+    });
+    setUploadedFieldPhotos((current) => {
+      const next = { ...current };
+
+      fieldPhotoSlots.forEach((slot) => {
+        const photo = current[slot.id];
+        const suggestion = suggestionsByPhotoId.get(
+          photo?.localId ?? `slot:${slot.id}`,
+        );
+
+        if (photo && suggestion) {
+          const photoId = photo.localId ?? `slot:${slot.id}`;
+
+          if (photoIdsToReview.has(photoId) || photoIdsMovedToSlot.has(photoId)) {
+            next[slot.id] = null;
+            return;
+          }
+
+          next[slot.id] = {
+            ...photo,
+            matchLabel:
+              suggestion.source === "gemini"
+                ? "Suggested role - confirm"
+                : photo.matchLabel,
+            ...createPhotoAssistMetadata(suggestion),
+          };
+        }
+      });
+      photoMoves.forEach(({ photo, suggestion, toSlotId }) => {
+        next[toSlotId] = {
+          ...photo,
+          matchLabel:
+            suggestion.source === "gemini"
+              ? "Suggested role - confirm"
+              : photo.matchLabel,
+          ...createPhotoAssistMetadata(suggestion),
+        };
+      });
+      unplacedAutoPlacements.forEach(({ photo, suggestion, toSlotId }) => {
+        next[toSlotId] = {
+          localId: photo.id,
+          src: photo.src,
+          name: photo.name,
+          source: photo.source,
+          confidence: photo.confidence,
+          matchLabel:
+            suggestion.source === "gemini"
+              ? "Suggested role - confirm"
+              : photo.matchLabel,
+          ...createPhotoAssistMetadata(suggestion),
+        };
+      });
+
+      return next;
+    });
+    setUnplacedFieldPhotos((current) => {
+      const updated = current.flatMap((photo) => {
+        if (autoPlacedUnplacedPhotoIds.has(photo.id)) {
+          return [];
+        }
+
+        const suggestion = suggestionsByPhotoId.get(photo.id);
+
+        if (!suggestion) {
+          return [photo];
+        }
+
+        return [
+          {
+            ...photo,
+            suggestedSlotId: suggestion.suggestedSlotId,
+            matchLabel:
+              suggestion.source === "gemini"
+                ? suggestion.suggestedSlotId
+                  ? "Suggested role - confirm"
+                  : "Photo needs manual placement"
+              : photo.matchLabel,
+            ...createPhotoAssistMetadata(suggestion),
+          },
+        ];
+      });
+      const existingIds = new Set(updated.map((photo) => photo.id));
+      const additions = photosToReview.flatMap(
+        ({ photo, photoId, suggestion }) => {
+          const id = photo.localId ?? photoId;
+
+          return existingIds.has(id)
+            ? []
+            : [
+                {
+                  ...photo,
+                  id,
+                  reason: "overflow" as const,
+                  suggestedSlotId: suggestion.suggestedSlotId,
+                  matchLabel: suggestion.suggestedSlotId
+                    ? "Suggested a different role - review"
+                    : "Photo needs manual placement",
+                  assistSuggestedSlotId: suggestion.suggestedSlotId,
+                  assistReason: suggestion.reason,
+                  confidence: photo.confidence,
+                  ...createPhotoAssistMetadata(suggestion),
+                },
+              ];
+        },
+      );
+
+      return [...updated, ...additions];
+    });
+    if (photosToReview.length > 0) {
+      const movedCount = photosToReview.length;
+      toast("Photo Assist moved photo(s) to review", {
+        description: `${movedCount} photo(s) could not be safely filed into a photo role.`,
+      });
+    }
+  }
+
+  async function requestPhotoAssistForPhotos(
+    photos: readonly Axis1PhotoAssistInputPhoto[],
+    origin: "auto-upload" | "manual",
+  ) {
+    if (photos.length === 0) {
+      setPhotoAssistNotice({
+        tone: "warning",
+        message: "Add photos before using Photo Assist.",
+      });
+      return;
+    }
+
+    setIsPhotoAssistRunning(true);
+    setPhotoAssistNotice({
+      tone: "idle",
+      message:
+        origin === "auto-upload"
+          ? "Reading photo content. Phone filenames are normal."
+          : "Checking photo roles.",
+    });
+
+    try {
+      const response = await fetchApi("/api/axis1/photo-assist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ photos }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Photo Assist failed with HTTP ${response.status}`);
+      }
+
+      const data = (await response.json()) as Axis1PhotoAssistResponse;
+
+      mergePhotoAssistSuggestions(data.suggestions);
+      setPhotoAssistNotice({
+        tone: data.provider === "gemini" ? "success" : "warning",
+        message:
+          data.warning ??
+          (data.provider === "gemini"
+            ? "AI read the photos. Vendor confirmation is still required."
+            : "Review mode is ready. Vendor confirmation is required before output."),
+      });
+      setShowProofDetails(false);
+      setShowAllPhotoSlots(false);
+    } catch {
+      const suggestions = buildMockAxis1PhotoAssistSuggestions(photos);
+
+      mergePhotoAssistSuggestions(suggestions);
+      setPhotoAssistNotice({
+        tone: "warning",
+        message:
+          "Photo Assist could not read this set. Review the suggested roles carefully before sending.",
+      });
+      setShowProofDetails(false);
+      setShowAllPhotoSlots(false);
+    } finally {
+      setIsPhotoAssistRunning(false);
+    }
+  }
+
+  async function runGeminiPhotoAssist() {
+    const photos = await collectPhotoAssistInputs({ onlyUnconfirmed: true });
+
+    if (photos.length === 0) {
+      setPhotoAssistNotice({
+        tone: "success",
+        message:
+          "All usable photo roles are already confirmed. Add or replace a photo to run Photo Assist again.",
+      });
+      return;
+    }
+
+    await requestPhotoAssistForPhotos(photos, "manual");
   }
 
   async function handlePhotoUpload(
@@ -1797,19 +4384,21 @@ export function PacketBuilder() {
     setUploadedFieldPhotos((current) => ({
       ...current,
       [slotId]: {
+        localId: createLocalPhotoId(),
         src: result.src,
         name: file.name,
         source,
         confidence: "manual",
         matchLabel: "Manually placed",
+        vendorDecision: "confirmed",
       },
     }));
     setPhotoSlotResolution(slotId, "open");
-    setPhotoImportNotice(
+      setPhotoImportNotice(
       result.wasNormalized
         ? {
             tone: "success",
-            message: "Photo prepared for mobile PDF output.",
+            message: "Photo compressed to save storage and AI cost.",
           }
         : null,
     );
@@ -1821,8 +4410,8 @@ export function PacketBuilder() {
     }
     toast.success("Photo attached", {
       description: slot
-        ? `${slot.shortLabel} is ready for the proof packet.`
-        : "Photo is ready for the proof packet.",
+        ? `${slot.shortLabel} is ready for generated outputs.`
+        : "Photo is ready for generated outputs.",
     });
   }
 
@@ -1845,6 +4434,9 @@ export function PacketBuilder() {
       }
       return;
     }
+
+    setScopeAssumptionsAccepted(false);
+    setShowScopeDetails(false);
 
     const usedSlotIds = new Set<FieldPhotoSlotId>(
       fieldPhotoSlots
@@ -1885,7 +4477,7 @@ export function PacketBuilder() {
           confidence: keywordSlot ? "keyword" : "order",
           matchLabel: keywordSlot
             ? `Also matched ${keywordSlot.shortLabel}`
-            : "No empty role available",
+            : "Waiting for AI read",
           reason: keywordSlot ? "duplicate" : "overflow",
           suggestedSlotId: keywordSlot?.id ?? null,
         });
@@ -1901,6 +4493,7 @@ export function PacketBuilder() {
         const prepared = await preparePhotoForPreview(file);
 
         return {
+          id: createLocalPhotoId(),
           slotId: suggestion.slotId,
           src: prepared.ok ? prepared.src : null,
           name: file.name,
@@ -1929,12 +4522,47 @@ export function PacketBuilder() {
         };
       }),
     );
+    const photoAssistInputs = await Promise.all(
+      [
+        ...loaded.flatMap((item) =>
+          item.src
+            ? [
+                {
+                  photoId: item.id,
+                  fileName: item.name,
+                  dataUrl: item.src,
+                  currentSlotId: item.slotId,
+                },
+              ]
+            : [],
+        ),
+        ...loadedExtras.flatMap((item) =>
+          item.src
+            ? [
+                {
+                  photoId: item.id,
+                  fileName: item.name,
+                  dataUrl: item.src,
+                  currentSlotId: null,
+                },
+              ]
+            : [],
+        ),
+      ].map(async (photo): Promise<Axis1PhotoAssistInputPhoto> => ({
+        ...photo,
+        dataUrl: await preparePhotoForAiAssist(photo.dataUrl),
+      })),
+    );
     const loadedExtraPhotos: UnplacedFieldPhoto[] = loadedExtras.flatMap((item) =>
       item.src
         ? [
             {
               ...item,
               src: item.src,
+              vendorDecision: "pending",
+              needsVendorReview: true,
+              assistReason:
+                "AI is reading this photo content. Phone filenames are normal; confirm the role after the read finishes.",
             },
           ]
         : [],
@@ -1946,11 +4574,16 @@ export function PacketBuilder() {
       loaded.forEach((item) => {
         if (item.src) {
           next[item.slotId] = {
+            localId: item.id,
             src: item.src,
             name: item.name,
             source: "bulk",
             confidence: item.confidence,
             matchLabel: item.matchLabel,
+            vendorDecision: "pending",
+            needsVendorReview: true,
+            assistReason:
+              "AI is checking this suggested role against the image content before it appears in the output.",
           };
         }
       });
@@ -1972,12 +4605,8 @@ export function PacketBuilder() {
 
       return next;
     });
-    if (isMobileViewport()) {
-      setShowProofDetails(false);
-      setShowAllPhotoSlots(false);
-    } else {
-      setShowProofDetails(true);
-    }
+    setShowProofDetails(false);
+    setShowAllPhotoSlots(false);
     const loadedPhotoCount = loaded.filter((item) => item.src).length;
     const failedPhotoCount =
       loaded.filter((item) => item.error).length +
@@ -1987,14 +4616,11 @@ export function PacketBuilder() {
     const normalizedPhotoCount =
       loaded.filter((item) => item.src && item.wasNormalized).length +
       loadedExtras.filter((item) => item.src && item.wasNormalized).length;
-    const orderReviewCount = loaded.filter(
-      (item) => item.src && item.confidence === "order",
-    ).length;
     const noticeMessage =
       failedPhotoCount > 0
-        ? `${failedPhotoCount} photo/file(s) were skipped. Use JPEG/PNG if a field photo is missing.`
+        ? `${failedPhotoCount} file(s) were skipped. Use JPEG or PNG if a field photo is missing.`
         : normalizedPhotoCount > 0
-          ? `${normalizedPhotoCount} photo(s) were prepared for mobile PDF output.`
+          ? `${normalizedPhotoCount} photo(s) were compressed to save storage and AI cost.`
           : null;
 
     setPhotoImportNotice(
@@ -2009,25 +4635,32 @@ export function PacketBuilder() {
     if (isMobileViewport()) {
       toast.dismiss();
     } else if (failedPhotoCount > 0) {
-      toast.warning(`${failedPhotoCount} photo/file(s) skipped`, {
-        description: "Use JPEG/PNG if a field photo is missing from the report.",
-      });
-    } else if (orderReviewCount > 0) {
-      toast.warning(`${orderReviewCount} photo match(es) need review`, {
-        description: "Phone filenames were placed by upload order.",
+      toast.warning(`${failedPhotoCount} file(s) skipped`, {
+        description: "Use JPEG or PNG if a field photo is missing from the output.",
       });
     } else {
       toast.success(`${loadedPhotoCount} photo(s) added`, {
         description:
           loadedExtraPhotos.length > 0
             ? `${loadedExtraPhotos.length} extra photo(s) kept for review.`
-            : "Filename matches were applied automatically.",
+            : "Photo roles are ready for review.",
       });
+    }
+
+    if (photoAssistInputs.length > 0) {
+      void requestPhotoAssistForPhotos(photoAssistInputs, "auto-upload");
     }
   }
 
-  function applyJobPattern(pattern: (typeof jobPatternPresets)[number]) {
+  function applyJobPattern(
+    pattern: JobPatternPreset,
+    options: { autoDraft?: boolean } = {},
+  ) {
     setHasJobOutcomeSelected(true);
+    setAutoDraftedJobPatternId(options.autoDraft ? pattern.id : null);
+    setScopeAssumptionsAccepted(
+      visitTypeId === "condition-record" && pattern.id === "condition-review",
+    );
     form.setValue("scenario", pattern.scenario, {
       shouldDirty: true,
       shouldValidate: true,
@@ -2060,6 +4693,94 @@ export function PacketBuilder() {
       shouldDirty: true,
       shouldValidate: true,
     });
+    form.setValue("recordNoteOverride", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setShowWordingEditor(false);
+    setShowTimingEditor(false);
+    setShowExceptionDetails(false);
+    setActiveCustomerLineEditorSurface(null);
+    setActivePreviewEditTarget(null);
+  }
+
+  function toggleRiskFlag(flagId: RiskFlagId) {
+    setRiskFlagIds((current) => {
+      if (flagId === "no-risk") {
+        return ["no-risk"];
+      }
+
+      const withoutNoRisk = current.filter((id) => id !== "no-risk");
+
+      if (withoutNoRisk.includes(flagId)) {
+        const next = withoutNoRisk.filter((id) => id !== flagId);
+        return next.length > 0 ? next : ["no-risk"];
+      }
+
+      return [...withoutNoRisk, flagId];
+    });
+  }
+
+  function updateScopeAreaStatus(areaId: ScopeAreaId, status: ScopeStatus) {
+    const area = scopeAreaCatalog.find((item) => item.id === areaId);
+    const nextOverrides = {
+      ...scopeOverrides,
+      [areaId]: status,
+    };
+
+    setScopeOverrides(nextOverrides);
+
+    if (status === "could-not-access" || status === "not-done") {
+      applyJobPattern(getJobPatternById("blocked-access"));
+      form.setValue(
+        "exceptionNote",
+        `${area?.label ?? "One area"} could not be completed during this visit`,
+        {
+          shouldDirty: true,
+          shouldValidate: true,
+        },
+      );
+      return;
+    }
+
+    if (status === "condition-note") {
+      applyJobPattern(getJobPatternById("condition-review"));
+      form.setValue(
+        "followUpNote",
+        `${area?.label ?? "One area"} should stay visible for follow-up`,
+        {
+          shouldDirty: true,
+          shouldValidate: true,
+        },
+      );
+      return;
+    }
+
+    if (hasJobOutcomeSelected) {
+      const nextRows = buildScopeLedger({
+        uploadedFieldPhotos,
+        unplacedFieldPhotos,
+        overrides: nextOverrides,
+        expectedAreaIds: expectedScopeAreaIds,
+      });
+      const nextRecommendation = buildScopeOutcomeRecommendation(
+        nextRows,
+        photoJobOutcomeRecommendation,
+      );
+
+      applyJobPattern(nextRecommendation.pattern, { autoDraft: true });
+    }
+  }
+
+  function updateVisitType(nextVisitTypeId: VisitTypeId) {
+    setVisitTypeId(nextVisitTypeId);
+    setScopeOverrides({});
+    setScopeAssumptionsAccepted(
+      nextVisitTypeId === "condition-record" &&
+      hasJobOutcomeSelected &&
+      activeJobPatternId === "condition-review",
+    );
+    setShowScopeDetails(true);
   }
 
   function reassignPhoto(fromSlotId: FieldPhotoSlotId, toSlotId: FieldPhotoSlotId) {
@@ -2083,12 +4804,16 @@ export function PacketBuilder() {
           ...fromPhoto,
           confidence: "manual",
           matchLabel: `Moved to ${toSlot.shortLabel}`,
+          vendorDecision: "edited",
+          needsVendorReview: false,
         },
         [fromSlotId]: toPhoto
           ? {
               ...toPhoto,
               confidence: "manual",
               matchLabel: `Moved to ${fromSlot.shortLabel}`,
+              vendorDecision: "edited",
+              needsVendorReview: false,
             }
           : null,
       };
@@ -2106,7 +4831,151 @@ export function PacketBuilder() {
     });
   }
 
-  function confirmAutoPlacedPhotoRoles(nextStep: BuilderStep = "report") {
+  function confirmPhotoSuggestion(slotId: FieldPhotoSlotId) {
+    const slot = fieldPhotoSlots.find((item) => item.id === slotId);
+
+    setUploadedFieldPhotos((current) => {
+      const photo = current[slotId];
+
+      if (!photo) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [slotId]: {
+          ...photo,
+          confidence: "manual",
+          matchLabel: "Vendor confirmed",
+          vendorDecision: "confirmed",
+          needsVendorReview: false,
+        },
+      };
+    });
+    setPhotoAssistSuggestions((current) =>
+      current.map((suggestion) =>
+        suggestion.photoId ===
+        (uploadedFieldPhotos[slotId]?.localId ?? `slot:${slotId}`)
+          ? {
+              ...suggestion,
+              vendorDecision: "confirmed",
+              confirmedSlotId: slotId,
+            }
+          : suggestion,
+      ),
+    );
+    toast.success("Photo role confirmed", {
+      description: slot
+        ? `${slot.shortLabel} can now support the job packet.`
+        : "Photo can now support the job packet.",
+    });
+  }
+
+  function continueAfterPhotoDecisionIfReady() {
+    if (pendingPhotoAssistCount > 1) {
+      return;
+    }
+
+    selectBuilderStep("scope");
+  }
+
+  function rejectPhotoSuggestion(slotId: FieldPhotoSlotId) {
+    const slot = fieldPhotoSlots.find((item) => item.id === slotId);
+    const photo = uploadedFieldPhotos[slotId];
+
+    if (!photo) {
+      return;
+    }
+
+    setUploadedFieldPhotos((current) => ({
+      ...current,
+      [slotId]: null,
+    }));
+    setUnplacedFieldPhotos((current) => [
+      ...current,
+      {
+        ...photo,
+        id: photo.localId ?? createLocalPhotoId(),
+        reason: "overflow" as const,
+        suggestedSlotId: slotId,
+        confidence: "manual",
+        matchLabel: "Vendor rejected suggestion",
+        vendorDecision: "rejected",
+        needsVendorReview: false,
+      },
+    ]);
+    setPhotoAssistSuggestions((current) =>
+      current.map((suggestion) =>
+        suggestion.photoId === (photo.localId ?? `slot:${slotId}`)
+          ? {
+              ...suggestion,
+              vendorDecision: "rejected",
+              confirmedSlotId: undefined,
+            }
+          : suggestion,
+      ),
+    );
+    setPhotoSlotResolution(slotId, "open");
+    toast("Photo suggestion rejected", {
+      description: slot
+        ? `${slot.shortLabel} is open again. The photo stays in extras.`
+        : "The photo stays in extras.",
+    });
+  }
+
+  function confirmAutoPlacedPhotoRoles(nextStep: BuilderStep = "confirm") {
+    const occupiedSlotIds = new Set(
+      fieldPhotoSlots
+        .filter((slot) => uploadedFieldPhotos[slot.id])
+        .map((slot) => slot.id),
+    );
+    const fastConfirmedPhotoIds = new Set<string>();
+    const unplacedConfirmPlacements: Array<{
+      photo: UnplacedFieldPhoto;
+      toSlotId: FieldPhotoSlotId;
+    }> = [];
+
+    unplacedFieldPhotos.forEach((photo) => {
+      const toSlotId = photo.suggestedSlotId;
+
+      if (
+        !toSlotId ||
+        occupiedSlotIds.has(toSlotId) ||
+        !isFastConfirmableSuggestedPhoto(photo)
+      ) {
+        return;
+      }
+
+      occupiedSlotIds.add(toSlotId);
+      fastConfirmedPhotoIds.add(photo.id);
+      unplacedConfirmPlacements.push({
+        photo,
+        toSlotId,
+      });
+    });
+    const confirmedUnplacedPhotoIds = new Set(
+      unplacedConfirmPlacements.map(({ photo }) => photo.id),
+    );
+    fieldPhotoSlots.forEach((slot) => {
+      const photo = uploadedFieldPhotos[slot.id];
+
+      if (photo && isFastConfirmableSuggestedPhoto(photo)) {
+        fastConfirmedPhotoIds.add(photo.localId ?? `slot:${slot.id}`);
+      }
+    });
+    const slotPhotoIds = new Map([
+      ...fieldPhotoSlots.flatMap((slot) => {
+        const photo = uploadedFieldPhotos[slot.id];
+
+        return photo && isFastConfirmableSuggestedPhoto(photo)
+          ? [[photo.localId ?? `slot:${slot.id}`, slot.id] as const]
+          : [];
+      }),
+      ...unplacedConfirmPlacements.map(
+        ({ photo, toSlotId }) => [photo.localId ?? photo.id, toSlotId] as const,
+      ),
+    ]);
+
     setUploadedFieldPhotos((current) => {
       let changed = false;
       const next = { ...current };
@@ -2114,29 +4983,77 @@ export function PacketBuilder() {
       fieldPhotoSlots.forEach((slot) => {
         const photo = current[slot.id];
 
-        if (photo?.confidence === "order") {
+        if (photo && isFastConfirmableSuggestedPhoto(photo)) {
+          fastConfirmedPhotoIds.add(photo.localId ?? `slot:${slot.id}`);
           changed = true;
           next[slot.id] = {
             ...photo,
             confidence: "manual",
-            matchLabel: "Role confirmed",
+            matchLabel: "Vendor confirmed",
+            vendorDecision: "confirmed",
+            needsVendorReview: false,
           };
         }
       });
+      unplacedConfirmPlacements.forEach(({ photo, toSlotId }) => {
+        changed = true;
+        next[toSlotId] = {
+          localId: photo.localId ?? photo.id,
+          src: photo.src,
+          name: photo.name,
+          source: photo.source,
+          confidence: "manual",
+          matchLabel: "Vendor confirmed",
+          vendorDecision: "confirmed",
+          needsVendorReview: false,
+          assistSuggestionId: photo.assistSuggestionId,
+          assistSource: photo.assistSource,
+          assistConfidence: photo.assistConfidence,
+          assistReason: photo.assistReason,
+          assistSuggestedSlotId: photo.assistSuggestedSlotId,
+        };
+      });
 
       return changed ? next : current;
+    });
+    if (confirmedUnplacedPhotoIds.size > 0) {
+      setUnplacedFieldPhotos((current) =>
+        current.filter((photo) => !confirmedUnplacedPhotoIds.has(photo.id)),
+      );
+    }
+    setPhotoAssistSuggestions((current) =>
+      current.map((suggestion) => {
+        const confirmedSlotId = slotPhotoIds.get(suggestion.photoId);
+
+        return confirmedSlotId
+          ? {
+              ...suggestion,
+              vendorDecision: "confirmed",
+              confirmedSlotId,
+            }
+          : suggestion;
+      }),
+    );
+    if (pendingPhotoAssistCount > fastConfirmedPhotoIds.size) {
+      setShowProofDetails(true);
+      setShowAllPhotoSlots(true);
+      return;
+    }
+    toast("Photo roles confirmed", {
+      description:
+        "Confirmed photo roles are now included as proof. Job result still comes from your scope selection.",
     });
     selectBuilderStep(nextStep);
   }
 
   function proceedFromPhotoStep() {
-    if (hasOrderMatchedPhotos && !shouldShowProofDetails) {
-      setShowProofDetails(true);
-      return;
-    }
+    if (photoRolesNeedConfirmation) {
+      if (hasSuggestedPhotoRoles) {
+        confirmAutoPlacedPhotoRoles("scope");
+        return;
+      }
 
-    if (hasOrderMatchedPhotos) {
-      confirmAutoPlacedPhotoRoles("job");
+      setShowProofDetails(true);
       return;
     }
 
@@ -2145,7 +5062,34 @@ export function PacketBuilder() {
       return;
     }
 
-    selectBuilderStep("job");
+    selectBuilderStep("scope");
+  }
+
+  function dismissUnplacedPhoto(photoId: string) {
+    const photo = unplacedFieldPhotos.find((item) => item.id === photoId);
+    const relatedPhotoIds = new Set(
+      [photoId, photo?.localId].filter(Boolean) as string[],
+    );
+
+    setUnplacedFieldPhotos((current) =>
+      current.filter((item) => item.id !== photoId),
+    );
+    setPhotoAssistSuggestions((current) =>
+      current.map((suggestion) =>
+        relatedPhotoIds.has(suggestion.photoId)
+          ? {
+              ...suggestion,
+              vendorDecision: "rejected",
+              confirmedSlotId: undefined,
+            }
+          : suggestion,
+      ),
+    );
+    toast("Photo left out", {
+      description: photo
+        ? `${photo.name} will not be used in the packet.`
+        : "The photo will not be used in the packet.",
+    });
   }
 
   function placeUnplacedPhoto(photoId: string, toSlotId: FieldPhotoSlotId) {
@@ -2160,11 +5104,14 @@ export function PacketBuilder() {
     setUploadedFieldPhotos((current) => ({
       ...current,
       [toSlotId]: {
+        localId: photo.localId ?? photo.id,
         src: photo.src,
         name: photo.name,
         source: photo.source,
         confidence: "manual",
         matchLabel: `Moved to ${targetSlot.shortLabel}`,
+        vendorDecision: "edited",
+        needsVendorReview: false,
       },
     }));
     setUnplacedFieldPhotos((current) => [
@@ -2177,6 +5124,7 @@ export function PacketBuilder() {
               reason: "overflow" as const,
               suggestedSlotId: toSlotId,
               matchLabel: `Replaced from ${targetSlot.shortLabel}`,
+              vendorDecision: "pending" as const,
             },
           ]
         : []),
@@ -2193,13 +5141,15 @@ export function PacketBuilder() {
       className={
         isPhotoStep
           ? "min-h-svh scroll-mt-0 bg-[#101214] px-3 py-3 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white sm:px-4 md:px-5 md:py-5 md:pb-8"
-        : "workspace-shell scroll-mt-[5.75rem] pt-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pt-5 md:pb-20"
+          : isOutputStep
+            ? "workspace-shell scroll-mt-[6.5rem] pt-3 pb-[calc(13rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pt-6 md:pb-24"
+            : "workspace-shell scroll-mt-[6.5rem] pt-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pt-6 md:pb-20"
       }
     >
       {(
-        <div className="pdf-print-hide h-[82px] sm:h-[86px]">
+        <div className="pdf-print-hide mx-auto w-full max-w-[1180px] pb-3">
           <div
-            className="fixed left-3 right-3 top-3 z-50 mx-auto flex min-h-[58px] max-w-[1180px] items-center gap-2 rounded-full border border-white/10 bg-[#171a1d]/94 p-1.5 shadow-[0_14px_46px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:left-4 sm:right-4 sm:top-4 sm:min-h-[62px]"
+            className="flex min-h-[54px] items-center gap-2 rounded-full border border-white/10 bg-[#171a1d]/94 p-1.5 shadow-[0_14px_46px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:min-h-[58px]"
             data-axis-tool-header
           >
             <div className="flex min-w-0 shrink-0 items-center gap-2 px-1">
@@ -2220,18 +5170,7 @@ export function PacketBuilder() {
             </div>
             <div className="flex min-w-0 flex-1 items-center gap-1 rounded-full bg-black/18 p-1">
               {builderSteps.map((step, index) => {
-                const stepMetric =
-                  step.value === "job"
-                    ? values.scenario === "clean"
-                      ? "Clean"
-                      : "Exception"
-                    : step.value === "photos"
-                      ? totalFieldPhotoCount > 0
-                        ? `${totalFieldPhotoCount} photos`
-                        : "Core 2"
-                      : totalFieldPhotoCount > 0
-                        ? `${uploadedProofCount} placed`
-                        : "Ready";
+                const stepMetric = getBuilderStepMetric(step.value);
                 const selected = builderStep === step.value;
 
                 return (
@@ -2239,7 +5178,7 @@ export function PacketBuilder() {
                     key={step.value}
                     type="button"
                     onClick={() => selectBuilderStep(step.value)}
-                    className={`group flex h-10 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 text-center transition-all duration-200 sm:h-11 sm:justify-between sm:px-3 ${
+                    className={`group flex h-10 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-center transition-all duration-200 sm:h-11 sm:flex-row sm:justify-between sm:gap-1.5 sm:px-3 ${
                       selected
                         ? "bg-white text-[#111315] shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
                         : "bg-transparent text-white/38 opacity-70 hover:bg-white/[0.055] hover:text-white/70 hover:opacity-100"
@@ -2247,7 +5186,7 @@ export function PacketBuilder() {
                     data-axis-tool-step
                   >
                     <span
-                      className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-black ${
+                      className={`hidden h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-black min-[360px]:grid ${
                         selected
                           ? "bg-[#111315] text-white"
                           : "bg-white/[0.08] text-white/42"
@@ -2256,9 +5195,7 @@ export function PacketBuilder() {
                       {index + 1}
                     </span>
                     <span
-                      className={`min-w-0 truncate text-[11px] font-black uppercase tracking-[0.08em] ${
-                        selected ? "inline" : "hidden sm:inline"
-                      }`}
+                      className="min-w-0 whitespace-nowrap text-[9px] font-black uppercase tracking-[0.06em] sm:text-[11px] sm:tracking-[0.08em]"
                     >
                       {step.label}
                     </span>
@@ -2308,8 +5245,8 @@ export function PacketBuilder() {
       )}
       <div
         className={`grid min-w-0 gap-5 ${
-          builderStep === "report"
-            ? "xl:grid-cols-[minmax(0,0.78fr)_minmax(540px,1.22fr)]"
+          isOutputStep
+            ? "mx-auto w-full max-w-[1320px]"
             : isPhotoStep
               ? "mx-auto w-full max-w-[1180px]"
               : "mx-auto w-full max-w-[980px]"
@@ -2317,7 +5254,7 @@ export function PacketBuilder() {
       >
         <div
           className={`min-w-0 space-y-5 ${
-            builderStep === "report" ? "order-2 md:order-none" : ""
+            isOutputStep ? "hidden" : ""
           }`}
         >
           <Panel
@@ -2330,17 +5267,17 @@ export function PacketBuilder() {
             <div
               className="hidden"
             >
-              <p className={`${labelClassName()} hidden md:block ${builderStep === "photos" ? "sr-only" : ""}`}>
+              <p className={`${labelClassName()} hidden md:block ${builderStep === "proof" ? "sr-only" : ""}`}>
                 Hood closeout
               </p>
-              <h2 className={`mt-2 hidden font-display text-[1.2rem] font-bold leading-[0.96] tracking-[-0.055em] text-foreground md:block md:text-[1.38rem] ${builderStep === "photos" ? "sr-only" : ""}`}>
-                Make the customer packet.
+              <h2 className={`mt-2 hidden font-display text-[1.2rem] font-bold leading-[0.96] tracking-[-0.055em] text-foreground md:block md:text-[1.38rem] ${builderStep === "proof" ? "sr-only" : ""}`}>
+                Build the job proof packet.
               </h2>
-              <p className={`mt-2 hidden text-xs leading-5 text-muted-foreground md:block ${builderStep === "photos" ? "sr-only" : ""}`}>
-                Drop today&apos;s photos, confirm what happened, then copy the
-                customer link or save the PDF.
+              <p className={`mt-2 hidden text-xs leading-5 text-muted-foreground md:block ${builderStep === "proof" ? "sr-only" : ""}`}>
+                Pick what happened, confirm area status, then use the generated
+                customer, PDF, invoice, quote, revisit, and rebook outputs.
               </p>
-              <div className={`mt-3 hidden gap-2 md:grid md:grid-cols-3 xl:grid-cols-1 ${builderStep === "photos" ? "sr-only" : ""}`}>
+              <div className={`mt-3 hidden gap-2 md:grid md:grid-cols-3 xl:grid-cols-1 ${builderStep === "proof" ? "sr-only" : ""}`}>
                 {[
                   [
                     "Photos",
@@ -2364,7 +5301,7 @@ export function PacketBuilder() {
                   </div>
                 ))}
               </div>
-              <div className={`mt-3 hidden rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5 md:block xl:hidden ${builderStep === "photos" ? "sr-only" : ""}`}>
+              <div className={`mt-3 hidden rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5 md:block xl:hidden ${builderStep === "proof" ? "sr-only" : ""}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className={labelClassName()}>Current format</p>
@@ -2373,14 +5310,14 @@ export function PacketBuilder() {
                     </p>
                   </div>
                   <span className="rounded-full border border-[#f26a21]/20 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
-                    Auto
+                    Rules
                   </span>
                 </div>
               </div>
               <Tabs
                 value={builderStep}
                 onValueChange={(value) => selectBuilderStep(value as BuilderStep)}
-                className={builderStep === "photos" ? "hidden" : "mt-3"}
+                className={builderStep === "proof" ? "hidden" : "mt-3"}
               >
                 <TabsList
                   className={
@@ -2390,18 +5327,7 @@ export function PacketBuilder() {
                   }
                 >
                   {builderSteps.map((step, index) => {
-                    const stepMetric =
-                      step.value === "job"
-                        ? values.scenario === "clean"
-                          ? "Clean"
-                          : "Exception"
-                        : step.value === "photos"
-                          ? totalFieldPhotoCount > 0
-                            ? `${totalFieldPhotoCount} photos`
-                            : "Core 2"
-                          : totalFieldPhotoCount > 0
-                            ? `${uploadedProofCount} placed`
-                            : "Ready";
+                    const stepMetric = getBuilderStepMetric(step.value);
 
                     return (
                       <TabsTrigger
@@ -2414,7 +5340,7 @@ export function PacketBuilder() {
                         }`}
                       >
                         <span className="flex w-full min-w-0 items-center justify-between gap-2">
-                          <span className={`truncate text-[9px] font-bold uppercase tracking-[0.11em] text-muted-foreground group-data-[state=active]:text-[#ffb489] md:text-[10px] md:tracking-[0.14em] ${
+                          <span className={`whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.08em] text-muted-foreground group-data-[state=active]:text-[#ffb489] md:text-[10px] md:tracking-[0.14em] ${
                             isPhotoStep
                               ? "text-white/38 group-data-[state=active]:text-[#bc3d1f]"
                               : ""
@@ -2432,7 +5358,7 @@ export function PacketBuilder() {
                             {stepMetric}
                           </Badge>
                         </span>
-                        <span className="mt-1 truncate text-[13px] font-bold leading-4 tracking-[-0.03em]">
+                        <span className="mt-1 hidden truncate text-[13px] font-bold leading-4 tracking-[-0.03em] sm:block">
                           {step.title}
                         </span>
                         <span className={`mt-0.5 hidden text-[11px] font-medium leading-4 text-muted-foreground group-data-[state=active]:text-white/56 sm:block ${
@@ -2449,7 +5375,7 @@ export function PacketBuilder() {
               </Tabs>
               <motion.div
                 layout
-                className={`mt-3 rounded-[18px] border border-[#f26a21]/16 bg-[#fff7ef] px-3 py-2.5 md:hidden ${builderStep === "photos" ? "hidden" : ""}`}
+                className={`mt-3 rounded-[18px] border border-[#f26a21]/16 bg-[#fff7ef] px-3 py-2.5 md:hidden ${builderStep === "proof" ? "hidden" : ""}`}
               >
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-[#f26a21]" />
@@ -2462,52 +5388,216 @@ export function PacketBuilder() {
 
             <form className="mt-3 space-y-3">
               <div
-                className={`rounded-[22px] border border-black/8 bg-white px-3.5 py-4 md:px-4 ${
-                  builderStep === "job" ? "" : "hidden"
+                className={`rounded-[24px] border border-black/8 bg-white px-4 py-5 md:px-5 ${
+                  builderStep === "risk" ? "" : "hidden"
                 }`}
               >
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className={labelClassName()}>Result</p>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Pick what happened today. The packet writes the customer language.
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0">
+                    <p className={labelClassName()}>Pre-quote risk record</p>
+                    <h1
+                      className="mt-2 max-w-2xl text-2xl font-bold leading-[0.96] tracking-[-0.055em] text-foreground md:text-[2.65rem]"
+                      data-axis-tool-page-heading
+                    >
+                      Close this hood job cycle.
+                    </h1>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                      Start with the risk that can hurt margin, access, payment, or trust.
+                      Photos can help later, but this workflow begins with the job cycle:
+                      risk, scope, crew proof, customer confirmation, then next cleaning.
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Sparkles className="hidden h-4 w-4 text-accent sm:block" />
+                  <button
+                    type="button"
+                    onClick={() => selectBuilderStep("scope")}
+                    className="tool-action-btn tool-action-dark tool-action-mini shrink-0 justify-center"
+                  >
+                    Lock scope
+                    <IconArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="mt-5 grid gap-2 md:grid-cols-3">
+                  {riskFlagCatalog.map((flag) => {
+                    const selected = riskFlagIds.includes(flag.id);
+
+                    return (
+                      <button
+                        key={flag.id}
+                        type="button"
+                        onClick={() => toggleRiskFlag(flag.id)}
+                        className={`rounded-[18px] border px-4 py-3 text-left transition ${
+                          selected
+                            ? flag.tone === "clear"
+                              ? "border-[#2c7a3f]/26 bg-[#f1f8ef]"
+                              : "border-[#f26a21]/30 bg-[#fff7ef]"
+                            : "border-black/8 bg-[rgba(17,17,17,0.025)] hover:border-black/14 hover:bg-white"
+                        }`}
+                      >
+                        <span className="flex items-start justify-between gap-3">
+                          <span className="min-w-0">
+                            <span className="block text-sm font-bold text-foreground">
+                              {flag.label}
+                            </span>
+                            <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                              {flag.copy}
+                            </span>
+                          </span>
+                          {selected ? (
+                            <IconCircleCheck className="h-4 w-4 shrink-0 text-[#2c7a3f]" />
+                          ) : null}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-5 grid gap-2 md:grid-cols-5">
+                  {builderSteps.map((step, index) => (
                     <button
+                      key={`risk-spine-${step.value}`}
                       type="button"
-                      onClick={() => selectBuilderStep("report")}
-                      className="tool-action-btn tool-action-dark tool-action-mini hidden md:inline-flex"
+                      onClick={() => selectBuilderStep(step.value)}
+                      className={`rounded-[16px] border px-3 py-3 text-left transition ${
+                        builderStep === step.value
+                          ? "border-[#111315]/18 bg-[#111315] text-white"
+                          : "border-black/8 bg-[rgba(17,17,17,0.025)] text-foreground hover:bg-white"
+                      }`}
                     >
-                      <Eye className="h-3.5 w-3.5" />
-                      Send preview
+                      <span className="block text-[10px] font-bold uppercase tracking-[0.14em] opacity-65">
+                        {index + 1}. {step.label}
+                      </span>
+                      <span className="mt-1 block text-sm font-bold">
+                        {step.title}
+                      </span>
+                      <span className="mt-1 block text-[11px] leading-4 opacity-65">
+                        {step.copy}
+                      </span>
                     </button>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                className={`rounded-[22px] border border-black/8 bg-white px-3.5 py-4 md:px-4 ${
+                  builderStep === "scope" ? "" : "hidden"
+                }`}
+              >
+                <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
+                  <div className="min-w-0">
+                    <p className={labelClassName()}>Scope lock</p>
+                    {builderStep === "scope" ? (
+                      <h1
+                        className="mt-2 text-xl font-bold leading-tight tracking-[-0.045em] text-foreground"
+                        data-axis-tool-page-heading
+                      >
+                        {hasJobOutcomeSelected
+                          ? "Scope and result are locked."
+                          : "Lock the job scope."}
+                      </h1>
+                    ) : null}
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {hasJobOutcomeSelected
+                        ? "Confirm area status once. Every output is generated from this job record."
+                        : totalFieldPhotoCount === 0
+                          ? "Pick what happened. Without photos, the tool will not assume the visit was completed."
+                          : `${jobOutcomeRecommendation.pattern.label} is ready from ${jobOutcomeRecommendation.signalLabel.toLowerCase()}.`}
+                    </p>
+                  </div>
+                  {!scopeNeedsWrittenRecordConfirmation ? (
+                    <div className="flex items-center gap-2 md:shrink-0">
+                      <Sparkles className="hidden h-4 w-4 text-accent sm:block" />
+                      <button
+                        type="button"
+                        disabled={!hasJobOutcomeSelected}
+                        onClick={handleJobPrimaryAction}
+                        className={`tool-action-btn tool-action-mini inline-flex w-full justify-center md:w-auto ${
+                          canPreviewProofLink
+                            ? "tool-action-dark"
+                            : "bg-[#f26a21] text-white hover:bg-[#dc5f1d]"
+                        } ${!hasJobOutcomeSelected ? "cursor-not-allowed opacity-55" : ""
+                        }`}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        {hasJobOutcomeSelected ? "Open Confirm/Pay" : "Pick result first"}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 rounded-[20px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-4 py-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className={labelClassName()}>Included scope</p>
+                      <p className="mt-1 text-sm font-bold text-foreground">
+                        {activeVisitType.title}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        Expected in this packet: {activeVisitTypeScopeText}.
+                        Pick a narrower scope or change an area before outputs are generated.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                      {riskSummaryLabel}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {visitTypePresets.map((preset) => {
+                      const selected = preset.id === visitTypeId;
+
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => updateVisitType(preset.id)}
+                          className={`min-w-[142px] rounded-[16px] border px-3 py-2.5 text-left transition ${
+                            selected
+                              ? "border-[#f26a21]/35 bg-[#fff7ef]"
+                              : "border-black/8 bg-white hover:border-black/14"
+                          }`}
+                        >
+                          <span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                            {preset.label}
+                          </span>
+                          <span className="mt-1 block text-xs font-bold text-foreground">
+                            {preset.title}
+                          </span>
+                          <span className="mt-1 block text-[11px] leading-4 text-muted-foreground">
+                            {preset.copy}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div className="mt-4 rounded-[20px] border border-black/8 bg-[#111315] px-4 py-4 text-white">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ffb489]">
-                        What happened?
+                        What happened on site?
                       </p>
-                      <p className="mt-2 text-sm leading-6 text-white/62">
-                        Choose one. You can still edit details below.
+                    <p className="mt-2 text-sm leading-6 text-white/62">
+                        Pick the job result once. Axis 1 turns that confirmed
+                        record into customer handoff, evidence PDF, invoice proof,
+                        revisit, quote, and rebook copy.
                       </p>
                     </div>
                     <span className="rounded-full border border-white/14 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
-                      Auto wording
+                      {customerChoiceStatus}
                     </span>
                   </div>
                   <div className="mt-4 grid gap-2 md:grid-cols-3">
-                    {jobPatternPresets.map((pattern) => {
+                    {customerShouldKnowOptions.map((option) => {
+                      const pattern = option.pattern;
                       const selected =
                         hasJobOutcomeSelected && activeJobPatternId === pattern.id;
+                      const recommended =
+                        jobOutcomeRecommendation.pattern.id === pattern.id;
 
                       return (
                         <motion.button
-                          key={pattern.id}
+                          key={option.label}
                           type="button"
                           whileHover={{ y: -2 }}
                           whileTap={{ scale: 0.985 }}
@@ -2517,7 +5607,7 @@ export function PacketBuilder() {
                             damping: 30,
                           }}
                           onClick={() => applyJobPattern(pattern)}
-                          className={`rounded-[18px] border px-4 py-3 text-left transition md:min-h-[128px] ${
+                          className={`rounded-[18px] border px-4 py-3 text-left transition md:min-h-[118px] ${
                             selected
                               ? "border-[#ffb489]/45 bg-white text-[#111315]"
                               : "border-white/12 bg-white/[0.055] text-white hover:bg-white/[0.09]"
@@ -2530,7 +5620,7 @@ export function PacketBuilder() {
                                   selected ? "text-[#bc3d1f]" : "text-[#ffb489]"
                                 }`}
                               >
-                                {pattern.label}
+                                {option.label}
                               </p>
                               <p className="mt-1 text-sm font-bold tracking-[-0.02em]">
                                 {pattern.title}
@@ -2540,12 +5630,16 @@ export function PacketBuilder() {
                                   selected ? "text-[#5f574f]" : "text-white/55"
                                 }`}
                               >
-                                {pattern.copy}
+                                {option.helper}
                               </p>
                             </div>
                             {selected ? (
                               <span className="rounded-full bg-[#f26a21] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
-                                Active
+                                {selectedRecommendedOutcome ? "Applied" : "Selected"}
+                              </span>
+                            ) : recommended ? (
+                              <span className="rounded-full border border-[#ffb489]/30 bg-[#ffb489]/12 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#ffcfb5]">
+                                Recommended
                               </span>
                             ) : null}
                           </div>
@@ -2553,54 +5647,340 @@ export function PacketBuilder() {
                       );
                     })}
                   </div>
+                  <p className="mt-3 text-xs font-semibold leading-5 text-white/48">
+                    {isAutoDraftedOutcome || !hasJobOutcomeSelected
+                      ? "Why this result"
+                      : "Current result"}
+                    : {customerChoiceReason}
+                  </p>
+                  {hasJobOutcomeSelected && values.scenario === "exception" ? (
+                    <div className="mt-4 rounded-[16px] border border-white/10 bg-white/[0.07] px-3 py-3">
+                      <label
+                        className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-white/45"
+                        htmlFor="customerKnowNote"
+                      >
+                        Optional note
+                      </label>
+                      <textarea
+                        id="customerKnowNote"
+                        rows={2}
+                        className="mt-2 w-full rounded-[14px] border border-white/10 bg-black/18 px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-white/30 focus:border-[#ffb489]/55 focus:ring-2 focus:ring-[#ffb489]/15"
+                        maxLength={
+                          customerNoteField === "exceptionNote"
+                            ? textFieldLimits.exceptionNote
+                            : textFieldLimits.followUpNote
+                        }
+                        placeholder={customerNotePlaceholder}
+                        {...form.register(customerNoteField)}
+                      />
+                      <div className="mt-1 flex items-start justify-between gap-3">
+                        <p className="text-xs leading-5 text-white/42">
+                          Leave blank to keep the default record wording.
+                        </p>
+                        <CharacterCount
+                          value={customerNoteValue}
+                          max={
+                            customerNoteField === "exceptionNote"
+                              ? textFieldLimits.exceptionNote
+                              : textFieldLimits.followUpNote
+                          }
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+                  {hasJobOutcomeSelected && values.scenario === "exception" ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowExceptionDetails((current) => !current)}
+                      className="mt-3 rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/58"
+                    >
+                      {showExceptionDetails ? "Hide advanced details" : "Advanced details"}
+                    </button>
+                  ) : null}
+                </div>
+
+                {photoRolesNeedConfirmation ? (
+                  <div className="mt-4 rounded-[18px] border border-[#f26a21]/24 bg-[#fff7ef] px-4 py-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#a94410]">
+                          Photo needs one tap
+                        </p>
+                        <p className="mt-1 text-sm font-bold leading-5 text-foreground">
+                          {(pendingPhotoAssistCount || 1) === 1
+                            ? "1 photo role still needs your choice."
+                            : `${pendingPhotoAssistCount || 1} photo roles still need your choice.`}
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          Review photo matches before sending. They stay out of generated outputs until confirmed.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => selectBuilderStep("proof")}
+                        className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#111315] px-4 text-[10px] font-black uppercase tracking-[0.13em] text-white"
+                      >
+                        Review photo roles
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div
+                  data-axis-scope-review-panel
+                  className={`mt-4 overflow-hidden rounded-[18px] border bg-white ${
+                    scopeNeedsConfirmation
+                      ? "border-[#f26a21]/24"
+                      : "border-black/8"
+                  }`}
+                >
+                  <div
+                    className={`flex flex-wrap items-start justify-between gap-3 border-b px-4 py-3 ${
+                      scopeNeedsConfirmation
+                        ? "border-[#f0dfd1] bg-[#fff7ef]"
+                        : "border-black/8 bg-[rgba(17,17,17,0.025)]"
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <p className={labelClassName()}>Proof / area status</p>
+                      <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-foreground">
+                        {scopeCheckTitle}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {hasJobOutcomeSelected
+                          ? "Change hood, duct, fan, grease, or label status here. All outputs update from these area states."
+                          : "Pick what happened before confirming service notes or generating outputs."}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-[#2c7a3f]/18 bg-[#f1f8ef] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1f6330]">
+                        {scopePhotoEvidenceCount === 1
+                          ? "1 photo area"
+                          : `${scopePhotoEvidenceCount} photo areas`}
+                      </span>
+                      <span className="rounded-full border border-[#f26a21]/18 bg-[#fff7ef] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#a94410]">
+                        {writtenOnlyScopeRows.length === 1
+                          ? "1 notes-only area"
+                          : `${writtenOnlyScopeRows.length} notes-only areas`}
+                      </span>
+                      <span className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                        {activeVisitType.label}
+                      </span>
+                      {hasJobOutcomeSelected &&
+                      !scopeNeedsConfirmation &&
+                      !scopeWrittenOnlyNeedsConfirmation ? (
+                        <span className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                          Confirmed
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="space-y-3 px-3 py-3">
+                    {scopeWrittenOnlyNeedsConfirmation ? (
+                      <div className="rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#a94410]">
+                              {scopePhotoEvidenceCount > 0
+                                ? "Notes-only area"
+                                : "Notes-based record"}
+                            </p>
+                            <p className="mt-1 text-sm font-bold leading-5 text-foreground">
+                              {writtenOnlyScopeRows.map((row) => row.shortLabel).join(", ")}{" "}
+                              {writtenOnlyScopeRows.length === 1
+                                ? "has"
+                                : "have"} no photo.
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                              The packet will use service notes for these areas. Change any area that was blocked, skipped, or not part of this visit.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setScopeAssumptionsAccepted(true)}
+                            className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#111315] px-4 text-[10px] font-black uppercase tracking-[0.13em] text-white"
+                          >
+                            Use notes for missing proof
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                    {visibleScopeRows.length > 0 ? (
+                      <div className="grid gap-2">
+                        {visibleScopeRows.map((row) => {
+                          const statusMeta = getScopeStatusMeta(row.status);
+                          const statusOptions = buildScopeStatusOptions(row);
+
+                          return (
+                            <article
+                              key={row.id}
+                              className="rounded-[16px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-3 py-3"
+                            >
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="text-sm font-bold text-foreground">
+                                      {row.label}
+                                    </p>
+                                    <span
+                                      className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] ${statusMeta.className}`}
+                                    >
+                                      {statusMeta.label}
+                                    </span>
+                                  </div>
+                                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                    {row.reason}
+                                  </p>
+                                </div>
+                                <span className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                                  {row.evidence === "photo"
+                                    ? `${row.photoCount} photo`
+                                    : row.evidence === "written"
+                                      ? "Written only"
+                                      : row.evidence === "unclear"
+                                        ? "Unclear"
+                                  : "Separate"}
+                                </span>
+                              </div>
+                              <label className="mt-3 block">
+                                <span className="sr-only">Set {row.label} status</span>
+                                <select
+                                  value={row.status}
+                                  onChange={(event) =>
+                                    updateScopeAreaStatus(
+                                      row.id,
+                                      event.target.value as ScopeStatus,
+                                    )
+                                  }
+                                  className="h-10 w-full rounded-[14px] border border-black/10 bg-white px-3 text-xs font-bold text-foreground outline-none focus:border-[#f26a21]/45 focus:ring-2 focus:ring-[#f26a21]/12 sm:max-w-[260px]"
+                                >
+                                  {statusOptions.map((option) => (
+                                    <option
+                                      key={option.value}
+                                      value={option.value}
+                                      disabled={option.disabled}
+                                    >
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {scopeLedgerRows
+                          .filter((row) => row.status !== "not-in-scope")
+                          .slice(0, 4)
+                          .map((row) => {
+                            const statusMeta = getScopeStatusMeta(row.status);
+
+                            return (
+                              <div
+                                key={row.id}
+                                className="flex items-center justify-between gap-3 rounded-[14px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-3 py-2"
+                              >
+                                <span className="text-xs font-bold text-foreground">
+                                  {row.shortLabel}
+                                </span>
+                                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                                  {statusMeta.chip}
+                                </span>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowScopeDetails((current) => !current)}
+                        className="rounded-full border border-black/10 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground"
+                      >
+                        {showScopeDetails ? "Show less" : "Change an area"}
+                      </button>
+                      {!scopeNeedsConfirmation && !scopeWrittenOnlyNeedsConfirmation ? (
+                        <span className="rounded-full bg-[#111315] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
+                          Ready
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mt-4 overflow-hidden rounded-[18px] border border-[#f26a21]/18 bg-[#fff7ef]">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
                     <div className="min-w-0">
                       <p className={labelClassName()}>
-                        {hasJobOutcomeSelected ? "Customer draft" : "Customer draft locked"}
+                        {hasJobOutcomeSelected ? "Generated outputs" : "Outputs pending"}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         {hasJobOutcomeSelected
-                          ? "This is what the packet is writing from your selections."
-                          : "Pick what happened before the tool writes customer-facing result language."}
+                          ? "All outputs below come from this job record. Customer-safe wording is secondary to area status."
+                          : "Pick the job result before Axis 1 generates customer, PDF, invoice, quote, revisit, and rebook outputs."}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => selectBuilderStep("report")}
-                      disabled={!hasJobOutcomeSelected}
-                      className="rounded-full bg-[#111315] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white"
-                    >
-                      Full preview
-                    </button>
+                    {!scopeNeedsWrittenRecordConfirmation ? (
+                      <button
+                        type="button"
+                        onClick={handleJobPrimaryAction}
+                        disabled={!hasJobOutcomeSelected}
+                        className={`max-md:!hidden rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white disabled:cursor-not-allowed disabled:opacity-50 ${
+                          canPreviewProofLink
+                            ? "bg-[#111315]"
+                            : "bg-[#f26a21]"
+                        }`}
+                      >
+                        {hasJobOutcomeSelected ? previewProofLinkLabel : "Pick result first"}
+                      </button>
+                    ) : null}
                   </div>
                   {hasJobOutcomeSelected ? (
                     <div className="grid gap-2 p-3 md:grid-cols-3">
-                      {generatedCustomerLines.slice(0, 3).map((item) => (
-                        <button
+                      {primaryCustomerLines.map((item) => {
+                        const isEditing =
+                          activeCustomerLineEditor === item.editor &&
+                          activeCustomerLineEditorSurface === "draft";
+
+                        return (
+                        <article
                           key={item.label}
-                          type="button"
-                          onClick={item.onClick}
-                          className="rounded-[15px] border border-black/8 bg-white/72 px-3 py-3 text-left transition hover:border-[#f26a21]/24 hover:bg-white"
+                          className={`rounded-[15px] border bg-white/72 px-3 py-3 transition ${
+                            isEditing
+                              ? "border-[#f26a21]/35 bg-white"
+                              : "border-black/8 hover:border-[#f26a21]/24 hover:bg-white"
+                          }`}
                         >
-                          <span className="block text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
-                            {item.label}
-                          </span>
-                          <span className="mt-1.5 block text-sm font-bold leading-5 text-foreground">
-                            {item.value}
-                          </span>
-                          <span className="mt-2 inline-flex rounded-full border border-black/10 bg-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
-                            {item.action}
-                          </span>
-                        </button>
-                      ))}
+                          <button
+                            type="button"
+                            onClick={() => selectCustomerLineEditor(item.editor, "draft")}
+                            className="block w-full text-left"
+                          >
+                            <span className="block text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
+                              {item.label}
+                            </span>
+                            <span className="mt-1.5 block text-sm font-bold leading-5 text-foreground">
+                              {item.value}
+                            </span>
+                            <span className="mt-2 inline-flex rounded-full border border-black/10 bg-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+                              {isEditing ? "Editing" : item.action}
+                            </span>
+                          </button>
+                          {isEditing ? (
+                            <div className="mt-3 border-t border-black/8 pt-3">
+                              {renderInlineCustomerLineEditor(item.editor, "draft")}
+                            </div>
+                          ) : null}
+                        </article>
+                      );
+                    })}
                     </div>
                   ) : (
                     <div className="p-3">
                       <div className="rounded-[15px] border border-dashed border-black/15 bg-white/68 px-3 py-3 text-sm font-semibold leading-6 text-muted-foreground">
-                        No result, open item, or next-action sentence has been generated yet.
+                        Pick a result to fill the customer result, follow-up note, and next step.
                       </div>
                     </div>
                   )}
@@ -2698,29 +6078,39 @@ export function PacketBuilder() {
                         {selectedCadenceOption.label} window
                       </p>
                     </div>
-                    <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      Change only if needed
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowTimingEditor((current) => !current)}
+                      className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+                    >
+                      {showTimingEditor ? "Done" : "Change if needed"}
+                    </button>
                   </div>
-                  <SegmentedControl
-                    type="single"
-                    value={values.cadence}
-                    onValueChange={(value) => {
-                      if (axis1CadenceOptions.some((option) => option.value === value)) {
-                        form.setValue("cadence", value as Axis1BuilderFormValues["cadence"], {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                      }
-                    }}
-                    className="mt-3 flex-wrap"
-                  >
-                    {axis1CadenceOptions.map((option) => (
-                      <SegmentedControlItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SegmentedControlItem>
-                    ))}
-                  </SegmentedControl>
+                  {showTimingEditor ? (
+                    <SegmentedControl
+                      type="single"
+                      value={values.cadence}
+                      onValueChange={(value) => {
+                        if (axis1CadenceOptions.some((option) => option.value === value)) {
+                          form.setValue("cadence", value as Axis1BuilderFormValues["cadence"], {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                        }
+                      }}
+                      className="mt-3 flex-wrap"
+                    >
+                      {axis1CadenceOptions.map((option) => (
+                        <SegmentedControlItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SegmentedControlItem>
+                      ))}
+                    </SegmentedControl>
+                  ) : (
+                    <p className="mt-2 text-xs font-semibold leading-5 text-muted-foreground">
+                      Default next window selected. Change only when this visit needs a different schedule.
+                    </p>
+                  )}
                   <div className="mt-3 hidden rounded-[16px] border border-accent/25 bg-accent/[0.08] px-4 py-3">
                     <p className={labelClassName()}>
                       Selected cadence - {selectedCadenceOption.label}
@@ -2732,28 +6122,35 @@ export function PacketBuilder() {
                 </div>
                 <div
                   className={`mt-4 flex justify-end ${
-                    hasJobOutcomeSelected && values.scenario === "clean" ? "" : "hidden"
+                    hasJobOutcomeSelected &&
+                    values.scenario === "clean" &&
+                    !scopeNeedsWrittenRecordConfirmation
+                      ? ""
+                      : "hidden"
                   }`}
                 >
                   <button
                     type="button"
-                    onClick={() => selectBuilderStep("report")}
-                    className="rounded-full bg-[#111315] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
+                    onClick={() => selectBuilderStep("confirm")}
+                    className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white ${
+                      canPreviewProofLink ? "bg-[#111315]" : "bg-[#f26a21]"
+                    }`}
                   >
-                    Preview packet
+                    Continue to Confirm/Pay
                   </button>
                 </div>
               </div>
 
-              {builderStep === "job" &&
+              {builderStep === "scope" &&
               hasJobOutcomeSelected &&
-              values.scenario === "exception" ? (
+              values.scenario === "exception" &&
+              showExceptionDetails ? (
                 <div className="rounded-[22px] border border-black/8 bg-white px-4 py-4">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className={labelClassName()}>Open item defaults</p>
+                      <p className={labelClassName()}>Advanced details</p>
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        {selectedAccessCount} access / {selectedConditionCount} condition selected. Defaults are ready.
+                        Default details are already set from your result choice. Change them only if the blocked area or follow-up action is wrong.
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -2762,14 +6159,17 @@ export function PacketBuilder() {
                         onClick={() => setShowExceptionDetails((current) => !current)}
                         className="rounded-full border border-black/10 bg-[rgba(17,17,17,0.025)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground"
                       >
-                        {showExceptionDetails ? "Hide details" : "Edit details"}
+                        {showExceptionDetails ? "Hide details" : "Change details"}
                       </button>
                       <button
                         type="button"
-                        onClick={() => selectBuilderStep("report")}
-                        className="hidden rounded-full bg-[#111315] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white md:inline-flex"
+                        disabled={!hasJobOutcomeSelected}
+                        onClick={() => selectBuilderStep("confirm")}
+                        className={`hidden rounded-full bg-[#111315] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white md:inline-flex ${
+                          !hasJobOutcomeSelected ? "cursor-not-allowed opacity-55" : ""
+                        }`}
                       >
-                        Send preview
+                        Review link
                       </button>
                     </div>
                   </div>
@@ -2839,7 +6239,7 @@ export function PacketBuilder() {
                           </div>
 
                           <div className="mt-3 rounded-[16px] border border-black/8 bg-white px-4 py-3">
-                            <p className={labelClassName()}>Selected logic</p>
+                            <p className={labelClassName()}>Customer rule used</p>
                             <p className="mt-2 text-sm leading-6 text-foreground">
                               {selectedOptions.length > 0
                                 ? selectedOptions.map((option) => option.copy).join(" ")
@@ -2854,7 +6254,7 @@ export function PacketBuilder() {
                   <div className="mt-4 grid gap-4 md:grid-cols-2">
                     <div>
                       <label className={labelClassName()} htmlFor="exceptionNote">
-                        Short open-item note
+                        Short action note
                       </label>
                       <textarea
                         id="exceptionNote"
@@ -2874,7 +6274,7 @@ export function PacketBuilder() {
                         <div>
                           <p className={labelClassName()}>Condition response</p>
                           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                            This controls whether the report asks for review, monitor, or record-only language.
+                            This controls whether the customer note asks for review, monitor, or record-only language.
                           </p>
                         </div>
                       </div>
@@ -2933,13 +6333,19 @@ export function PacketBuilder() {
                     ) : null}
                   </AnimatePresence>
 
-                  <div className="mt-4 flex justify-end">
+                  <div
+                    className={`mt-4 justify-end ${
+                      scopeNeedsWrittenRecordConfirmation ? "hidden" : "flex"
+                    }`}
+                  >
                     <button
                       type="button"
-                      onClick={() => selectBuilderStep("report")}
-                      className="rounded-full bg-[#111315] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
+                      onClick={() => selectBuilderStep("confirm")}
+                      className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white ${
+                        canPreviewProofLink ? "bg-[#111315]" : "bg-[#f26a21]"
+                      }`}
                     >
-                      Preview packet
+                      Continue to Confirm/Pay
                     </button>
                   </div>
                 </div>
@@ -2947,23 +6353,43 @@ export function PacketBuilder() {
 
               <div
                 className={`rounded-[22px] border border-black/8 bg-white px-4 py-4 shadow-[0_14px_40px_rgba(17,17,17,0.05)] ${
-                  builderStep === "report" ? "" : "hidden"
+                  isOutputStep ? "" : "hidden"
                 }`}
               >
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
-                    <p className={labelClassName()}>Customer lines</p>
+                    <p className={labelClassName()}>Job proof packet</p>
                     <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.035em] text-foreground">
-                      Exact wording going into the packet.
+                      Review the packet queue before sending.
                     </p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      Use these cards only when the auto-written line needs a field correction.
+                      Outputs come from the same vendor-confirmed job record. Adjust customer-safe copy only when the field visit needs a correction.
                     </p>
                   </div>
                   <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#b94d11]">
                     <Sparkles className="h-3.5 w-3.5" />
-                    Auto-written
+                    Vendor packet
                   </span>
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                  {[
+                    ["Outputs ready", `${generatedOutputReadyCount}`],
+                    ["Need review", `${generatedOutputReviewCount}`],
+                    [
+                      "Send checks",
+                      `${closeoutEngine.vendorSendReadinessWarnings.length}`,
+                    ],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="rounded-[16px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2"
+                    >
+                      <p className={labelClassName()}>{label}</p>
+                      <p className="mt-1 text-lg font-black leading-none text-foreground">
+                        {value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
                 <button
                   type="button"
@@ -2971,7 +6397,7 @@ export function PacketBuilder() {
                   className="tool-action-btn tool-action-secondary tool-action-mini mt-3"
                 >
                   <Settings2 className="h-3.5 w-3.5" />
-                  Advanced details
+                  Record details
                   {showPacketDetails ? (
                     <ChevronUp className="h-3.5 w-3.5" />
                   ) : (
@@ -2979,230 +6405,59 @@ export function PacketBuilder() {
                   )}
                 </button>
 
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <div>
+                    <p className={labelClassName()}>Customer-safe copy</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      Customer lines stay calm; send checks remain private in this builder.
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Optional edit
+                  </span>
+                </div>
                 <div className="mt-4 grid gap-2 md:grid-cols-1 2xl:grid-cols-2">
-                  {generatedCustomerLines.map((item) => (
-                    <button
+                  {generatedCustomerLines.map((item) => {
+                    const isEditing =
+                      activeCustomerLineEditor === item.editor &&
+                      activeCustomerLineEditorSurface === "report";
+
+                    return (
+                    <article
                       key={item.label}
-                      type="button"
-                      onClick={item.onClick}
-                      className={`group min-w-0 rounded-[18px] border px-3 py-3 text-left transition hover:-translate-y-0.5 hover:border-[#f26a21]/24 hover:bg-[#fff7ef] hover:shadow-[0_14px_32px_rgba(17,19,21,0.07)] ${
-                        activeCustomerLineEditor === item.editor
+                      className={`group min-w-0 rounded-[18px] border px-3 py-3 transition hover:border-[#f26a21]/24 hover:bg-[#fff7ef] hover:shadow-[0_14px_32px_rgba(17,19,21,0.07)] ${
+                        isEditing
                           ? "border-[#f26a21]/35 bg-[#fff7ef]"
                           : "border-black/8 bg-[rgba(17,17,17,0.025)]"
                       }`}
                     >
-                      <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                        {item.label}
-                      </span>
-                      <span className="mt-1 block text-sm font-bold leading-5 text-foreground md:line-clamp-3">
-                        {item.value}
-                      </span>
-                      <span className="mt-2 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
-                        {item.source}
-                      </span>
-                      <span className="tool-edit-chip mt-2">
-                        <PencilLine className="h-3 w-3" />
-                        {item.action}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-4 overflow-hidden rounded-[20px] border border-[#f26a21]/18 bg-[#fff7ef]">
-                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
-                    <div className="min-w-0">
-                      <p className={labelClassName()}>Edit here</p>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        Changes update the customer preview below without leaving this step.
-                      </p>
-                    </div>
-                    <span className="rounded-full border border-[#f26a21]/20 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
-                      {generatedCustomerLines.find(
-                        (item) => item.editor === activeCustomerLineEditor,
-                      )?.label ?? "Selected line"}
-                    </span>
-                  </div>
-
-                  <div className="grid gap-4 px-4 py-4">
-                    {activeCustomerLineEditor === "result" ? (
-                      <div>
-                        <label className={labelClassName()} htmlFor="quickSummaryOverride">
-                          Today&apos;s result sentence
-                        </label>
-                        <textarea
-                          id="quickSummaryOverride"
-                          rows={3}
-                          className={fieldClassName()}
-                          maxLength={textFieldLimits.summaryOverride}
-                          placeholder={previewPacket.summaryCards[0]?.copy}
-                          {...form.register("summaryOverride")}
-                        />
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                            Leave blank to use the generated result sentence.
-                          </p>
-                          <CharacterCount
-                            value={values.summaryOverride}
-                            max={textFieldLimits.summaryOverride}
-                          />
+                      <button
+                        type="button"
+                        onClick={() => selectCustomerLineEditor(item.editor, "report")}
+                        className="block w-full text-left"
+                      >
+                        <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                          {item.label}
+                        </span>
+                        <span className="mt-1 block text-sm font-bold leading-5 text-foreground md:line-clamp-3">
+                          {item.value}
+                        </span>
+                        <span className="mt-2 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+                          {item.source}
+                        </span>
+                        <span className="tool-edit-chip mt-2">
+                          <PencilLine className="h-3 w-3" />
+                          {isEditing ? "Editing" : item.action}
+                        </span>
+                      </button>
+                      {isEditing ? (
+                        <div className="mt-3 border-t border-[#f0dfd1] pt-3">
+                          {renderInlineCustomerLineEditor(item.editor, "reportCard")}
                         </div>
-                      </div>
-                    ) : null}
-
-                    {activeCustomerLineEditor === "open-item" ? (
-                      <>
-                        <div className="grid gap-2 md:grid-cols-3">
-                          {jobPatternPresets.map((pattern) => {
-                            const selected = activeJobPatternId === pattern.id;
-
-                            return (
-                              <button
-                                key={pattern.id}
-                                type="button"
-                                onClick={() => applyJobPattern(pattern)}
-                                className={`rounded-[16px] border px-3 py-3 text-left transition ${
-                                  selected
-                                    ? "border-[#f26a21]/45 bg-white"
-                                    : "border-black/8 bg-white/55 hover:bg-white"
-                                }`}
-                              >
-                                <span className="block text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
-                                  {pattern.label}
-                                </span>
-                                <span className="mt-1 block text-sm font-bold text-foreground">
-                                  {pattern.title}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                        {values.scenario === "exception" ? (
-                          <div>
-                            <label className={labelClassName()} htmlFor="quickExceptionNote">
-                              Open-item note
-                            </label>
-                            <textarea
-                              id="quickExceptionNote"
-                              rows={2}
-                              className={fieldClassName()}
-                              maxLength={textFieldLimits.exceptionNote}
-                              placeholder="Optional. Tighten the blocked / inaccessible explanation."
-                              {...form.register("exceptionNote")}
-                            />
-                            <CharacterCount
-                              value={values.exceptionNote}
-                              max={textFieldLimits.exceptionNote}
-                            />
-                          </div>
-                        ) : null}
-                      </>
-                    ) : null}
-
-                    {activeCustomerLineEditor === "action" ? (
-                      <div>
-                        <label className={labelClassName()} htmlFor="quickCustomerActionOverride">
-                          Customer instruction
-                        </label>
-                        <textarea
-                          id="quickCustomerActionOverride"
-                          rows={3}
-                          className={fieldClassName()}
-                          maxLength={textFieldLimits.customerActionOverride}
-                          placeholder={findPacketRowValue(
-                            previewPacket.customerClose.actionItems,
-                            "Reply or action",
-                            previewPacket.customerClose.copy,
-                          )}
-                          {...form.register("customerActionOverride")}
-                        />
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                            This is the main next-action sentence the customer sees.
-                          </p>
-                          <CharacterCount
-                            value={values.customerActionOverride}
-                            max={textFieldLimits.customerActionOverride}
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {activeCustomerLineEditor === "photo-record" ? (
-                      <div className="rounded-[16px] border border-black/8 bg-white/70 px-4 py-4">
-                        <p className={labelClassName()}>Photo record</p>
-                        <p className="mt-2 text-sm font-bold leading-5 text-foreground">
-                          {adaptiveRecord.meta.builderTitle}
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                          {adaptiveRecord.meta.builderCopy}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => selectBuilderStep("photos")}
-                            className="rounded-full bg-[#111315] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
-                          >
-                            Open photo editor
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              fieldPhotoSlots.forEach((slot) => {
-                                if (!uploadedFieldPhotos[slot.id]) {
-                                  setPhotoSlotResolution(slot.id, "not-captured");
-                                }
-                              });
-                            }}
-                            className="rounded-full border border-black/10 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground hover:bg-white"
-                          >
-                            Mark missing as not captured
-                          </Button>
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {activeCustomerLineEditor === "timing" ? (
-                      <div>
-                        <p className={labelClassName()}>Next service timing</p>
-                        <SegmentedControl
-                          type="single"
-                          value={values.cadence}
-                          onValueChange={(value) => {
-                            if (
-                              axis1CadenceOptions.some(
-                                (option) => option.value === value,
-                              )
-                            ) {
-                              form.setValue(
-                                "cadence",
-                                value as Axis1BuilderFormValues["cadence"],
-                                {
-                                  shouldDirty: true,
-                                  shouldValidate: true,
-                                },
-                              );
-                            }
-                          }}
-                          className="mt-3 flex-wrap bg-white/72"
-                        >
-                          {axis1CadenceOptions.map((option) => (
-                            <SegmentedControlItem
-                              key={option.value}
-                              value={option.value}
-                            >
-                              {option.label}
-                            </SegmentedControlItem>
-                          ))}
-                        </SegmentedControl>
-                        <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                          {selectedCadenceOption.copy}
-                        </p>
-                      </div>
-                    ) : null}
-                  </div>
+                      ) : null}
+                    </article>
+                  );
+                })}
                 </div>
 
                 <AnimatePresence initial={false}>
@@ -3246,7 +6501,7 @@ export function PacketBuilder() {
               <div
                 id="field-photo-intake"
                 className={`overflow-hidden rounded-[30px] border border-white/10 bg-[#101214] px-3.5 py-4 text-white shadow-[0_28px_70px_rgba(17,17,17,0.24)] md:rounded-[34px] md:px-5 md:py-5 ${
-                  builderStep === "photos" ? "" : "hidden"
+                  builderStep === "proof" ? "" : "hidden"
                 } ${
                   isPhotoStep
                     ? "mt-2 min-h-[calc(100svh-96px)] border-white/12 bg-[radial-gradient(circle_at_18%_0%,rgba(255,180,137,0.12),transparent_30%),linear-gradient(180deg,#121416,#0d0f10)] shadow-[0_24px_80px_rgba(0,0,0,0.28)] md:mt-3 md:px-6 md:py-6"
@@ -3256,11 +6511,20 @@ export function PacketBuilder() {
                 <div className="flex items-start justify-between gap-5">
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                      Closeout start
+                      Optional proof
                     </p>
-                    <h3 className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]">
-                      Start the closeout.
-                    </h3>
+                    {builderStep === "proof" ? (
+                      <h1
+                        className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]"
+                        data-axis-tool-page-heading
+                      >
+                        Build job proof packet.
+                      </h1>
+                    ) : (
+                      <h2 className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]">
+                        Build job proof packet.
+                      </h2>
+                    )}
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-white/54 md:text-[14px] md:leading-6">
                       Add photos if the crew captured them, or continue with a
                       written service record.
@@ -3279,10 +6543,10 @@ export function PacketBuilder() {
                     stiffness: 360,
                     damping: 28,
                   }}
-                  className={`group relative mt-5 flex cursor-pointer items-center justify-between gap-4 overflow-hidden border border-dashed border-[#ffb489]/48 bg-[radial-gradient(circle_at_12%_0%,rgba(255,180,137,0.22),transparent_36%),radial-gradient(circle_at_86%_18%,rgba(255,255,255,0.1),transparent_24%),rgba(255,255,255,0.06)] px-5 transition hover:border-[#ffb489]/70 hover:bg-white/[0.09] ${
+                  className={`group relative mt-4 flex cursor-pointer items-center justify-between gap-3 overflow-hidden border border-dashed border-[#ffb489]/48 bg-[radial-gradient(circle_at_12%_0%,rgba(255,180,137,0.22),transparent_36%),radial-gradient(circle_at_86%_18%,rgba(255,255,255,0.1),transparent_24%),rgba(255,255,255,0.06)] px-4 transition hover:border-[#ffb489]/70 hover:bg-white/[0.09] sm:mt-5 sm:gap-4 sm:px-5 ${
                     hasProofWorkStarted
                       ? "min-h-[104px] rounded-[24px] py-4 sm:min-h-[112px] sm:px-6 sm:py-4"
-                      : "min-h-[220px] rounded-[32px] py-5 sm:min-h-[248px] sm:px-8 sm:py-7 xl:min-h-[266px]"
+                      : "min-h-[176px] rounded-[26px] py-4 sm:min-h-[248px] sm:rounded-[32px] sm:px-8 sm:py-7 xl:min-h-[266px]"
                   }`}
                   onDragOver={(event) => event.preventDefault()}
                   onDrop={(event) => {
@@ -3298,18 +6562,18 @@ export function PacketBuilder() {
                       className={`mt-3 font-bold text-white ${
                         hasProofWorkStarted
                           ? "text-2xl leading-[0.98] tracking-[-0.04em] sm:text-3xl"
-                          : "max-w-[11ch] text-[2.45rem] leading-[0.88] tracking-[-0.07em] sm:text-[3.55rem]"
+                          : "max-w-[14ch] text-[2rem] leading-[0.94] tracking-[-0.05em] sm:max-w-[11ch] sm:text-[3.55rem] sm:leading-[0.88] sm:tracking-[-0.07em]"
                       }`}
                     >
                       {hasProofWorkStarted ? "Add extra photos" : "Drop photos if you have them"}
                     </p>
-                    <p className="mt-4 max-w-md text-sm leading-6 text-white/58 md:text-[15px]">
+                    <p className="mt-3 max-w-md text-xs leading-5 text-white/58 sm:mt-4 sm:text-sm sm:leading-6 md:text-[15px]">
                       {hasProofWorkStarted
-                        ? "Drop only the missing or extra photos. The current packet stays intact."
+                        ? "Drop only the missing or extra photos. The current job record stays intact."
                         : "Before, after, fan, filter, access, label, and issue photos can all go in one batch."}
                     </p>
                     <div
-                      className={`mt-5 flex flex-wrap gap-2 ${
+                      className={`mt-4 flex flex-wrap gap-2 sm:mt-5 ${
                         hasProofWorkStarted ? "hidden" : ""
                       }`}
                     >
@@ -3334,16 +6598,17 @@ export function PacketBuilder() {
                     className={`grid shrink-0 place-items-center bg-white text-[#111315] shadow-[0_22px_54px_rgba(0,0,0,0.34)] ${
                       hasProofWorkStarted
                         ? "h-12 w-12 rounded-[20px] sm:h-14 sm:w-14"
-                        : "h-16 w-16 rounded-[26px] sm:h-20 sm:w-20"
+                        : "h-12 w-12 rounded-[20px] sm:h-20 sm:w-20 sm:rounded-[26px]"
                     }`}
                   >
-                    <IconCameraPlus className="h-8 w-8" />
+                    <IconCameraPlus className="h-6 w-6 sm:h-8 sm:w-8" />
                   </div>
                   <input
                     type="file"
                     accept="image/*"
                     multiple
                     data-photo-upload="bulk"
+                    aria-label="Upload job photos"
                     className="sr-only"
                     onChange={(event) => {
                       void handleBulkPhotoUpload(event.target.files);
@@ -3352,22 +6617,64 @@ export function PacketBuilder() {
                   />
                 </motion.label>
 
+                <div className="mt-4 rounded-[24px] border border-white/10 bg-white/[0.055] px-3 py-3 sm:px-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
+                        Visit type
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-white">
+                        {activeVisitType.title}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-white/50">
+                        {activeVisitType.copy}
+                      </p>
+                      <p className="mt-2 text-xs font-semibold leading-5 text-white/70">
+                        Expected in output: {activeVisitTypeScopeText}. If that is wrong, pick a narrower visit or change an area before sending.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-white/12 bg-black/14 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/54">
+                      This visit only
+                    </span>
+                  </div>
+                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {visitTypePresets.map((preset) => {
+                      const selected = preset.id === visitTypeId;
+
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => updateVisitType(preset.id)}
+                          className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-black uppercase tracking-[0.1em] transition ${
+                            selected
+                              ? "border-white bg-white text-[#111315]"
+                              : "border-white/12 bg-black/14 text-white/58 hover:bg-white/[0.08] hover:text-white"
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {!hasProofWorkStarted ? (
                   <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                     <button
                       type="button"
-                      onClick={() => selectBuilderStep("job")}
+                      onClick={proceedFromPhotoStep}
                       className="group flex min-h-[86px] items-center justify-between gap-4 rounded-[24px] border border-white/12 bg-white px-5 py-4 text-left text-[#111315] shadow-[0_18px_48px_rgba(0,0,0,0.28)] transition hover:-translate-y-0.5 hover:bg-white/95"
                     >
                       <span className="min-w-0">
                         <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-[#bc3d1f]">
-                          No photos?
+                          Photos not captured?
                         </span>
                         <span className="mt-1 block text-xl font-black tracking-[-0.045em]">
-                          Continue anyway
+                          Pick result
                         </span>
                         <span className="mt-1 block text-xs font-semibold leading-5 text-[#111315]/58">
-                          Build a written service record first.
+                          Choose completed, blocked, or condition noted before anything is sent.
                         </span>
                       </span>
                       <IconArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5" />
@@ -3377,7 +6684,7 @@ export function PacketBuilder() {
                         Next
                       </p>
                       <p className="mt-2 text-sm font-bold leading-5 text-white">
-                        Pick the result, then copy the customer link or save the PDF.
+                        No photos means no automatic completion claim. One tap picks what happened.
                       </p>
                     </div>
                   </div>
@@ -3469,6 +6776,7 @@ export function PacketBuilder() {
                           <input
                             type="file"
                             accept="image/*"
+                            aria-label={`Upload ${slot.shortLabel} photo`}
                             className="sr-only"
                             onChange={(event) => {
                               void handlePhotoUpload(
@@ -3493,7 +6801,7 @@ export function PacketBuilder() {
                     <div className="grid gap-4 px-4 py-4 sm:px-5 sm:py-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
                       <div className="min-w-0">
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                          Auto-sort result
+                          Photo role review
                         </p>
                         <p className="mt-2 text-2xl font-bold leading-[0.95] tracking-[-0.055em] text-white md:text-[2.35rem]">
                           {proofReadinessTitle}
@@ -3502,26 +6810,226 @@ export function PacketBuilder() {
                           {proofReadinessCopy}
                         </p>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 md:w-[310px]">
-                        {[
-                          ["Placed", `${uploadedProofCount}`],
-                          ["Extra", `${unplacedFieldPhotos.length}`],
-                          ["Core", `${requiredProofReadyCount}/${requiredProofCount}`],
-                        ].map(([label, value]) => (
-                          <div
-                            key={label}
-                            className="rounded-[18px] border border-white/10 bg-black/16 px-3 py-3 text-center"
+                      <div className="grid gap-2 md:w-[310px]">
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            ["Confirmed", `${vendorConfirmedPhotoCount}`],
+                            ["Suggested", `${pendingPhotoAssistCount}`],
+                            ["Extra", `${unplacedFieldPhotos.length}`],
+                          ].map(([label, value]) => (
+                            <div
+                              key={label}
+                              className="rounded-[18px] border border-white/10 bg-black/16 px-3 py-3 text-center"
+                            >
+                              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+                                {label}
+                              </p>
+                              <p className="mt-1 text-xl font-bold tracking-[-0.04em] text-white">
+                                {value}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        {hasSuggestedPhotoRoles ? (
+                          <button
+                            type="button"
+                            onClick={() => confirmAutoPlacedPhotoRoles("scope")}
+                            className="h-10 rounded-full bg-white px-4 text-[10px] font-black uppercase tracking-[0.13em] text-[#111315] shadow-[0_16px_38px_rgba(0,0,0,0.22)]"
                           >
-                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
-                              {label}
-                            </p>
-                            <p className="mt-1 text-xl font-bold tracking-[-0.04em] text-white">
-                              {value}
-                            </p>
-                          </div>
-                        ))}
+                            Confirm safe suggestions
+                          </button>
+                        ) : null}
                       </div>
                     </div>
+                    {firstPendingPlacedPhotoSlot && firstPendingPlacedPhoto ? (
+                      <div
+                        data-photo-one-tap-review="true"
+                        className="border-t border-white/8 bg-black/16 px-4 py-4 sm:px-5"
+                      >
+                        <div className="grid gap-3 rounded-[20px] border border-[#ffb489]/22 bg-[#ffb489]/10 p-3 md:grid-cols-[88px_minmax(0,1fr)_minmax(210px,260px)] md:items-center">
+                          <div
+                            className="h-24 overflow-hidden rounded-[16px] border border-white/12 bg-cover bg-center md:h-20"
+                            style={{
+                              backgroundImage: `url(${firstPendingPlacedPhoto.src})`,
+                            }}
+                            aria-label={`Suggested photo role: ${firstPendingPlacedPhoto.name}`}
+                          />
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffcfb5]">
+                              Review this photo
+                            </p>
+                            <p className="mt-1 text-lg font-black leading-tight tracking-[-0.04em] text-white">
+                              Use this as {firstPendingPlacedPhotoSlot.shortLabel}?
+                            </p>
+                            <p className="mt-2 text-xs leading-5 text-white/58">
+                              {firstPendingPlacedPhoto.assistReason ??
+                                firstPendingPlacedPhoto.matchLabel ??
+                                "AI suggested this role from the photo content. Confirm or change it before the customer sees it."}
+                            </p>
+                            <p className="mt-1 truncate text-[11px] font-semibold text-white/38">
+                              {firstPendingPlacedPhoto.name}
+                            </p>
+                          </div>
+                          <div className="grid gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                confirmPhotoSuggestion(firstPendingPlacedPhotoSlot.id);
+                                continueAfterPhotoDecisionIfReady();
+                              }}
+                              disabled={isPhotoAssistRunning}
+                              className="h-10 rounded-full bg-white px-3 text-[10px] font-black uppercase tracking-[0.13em] text-[#111315] shadow-[0_12px_28px_rgba(0,0,0,0.22)] disabled:cursor-not-allowed disabled:opacity-55"
+                            >
+                              {isPhotoAssistRunning
+                                ? "Reading photo"
+                                : `Use as ${firstPendingPlacedPhotoSlot.shortLabel}`}
+                            </button>
+                            <select
+                              defaultValue=""
+                              disabled={isPhotoAssistRunning}
+                              onChange={(event) => {
+                                const targetSlotId = event.target
+                                  .value as FieldPhotoSlotId | "";
+
+                                if (targetSlotId) {
+                                  reassignPhoto(
+                                    firstPendingPlacedPhotoSlot.id,
+                                    targetSlotId,
+                                  );
+                                  continueAfterPhotoDecisionIfReady();
+                                }
+
+                                event.currentTarget.value = "";
+                              }}
+                              className="h-10 rounded-full border border-white/14 bg-white/[0.08] px-3 text-xs font-bold text-white outline-none disabled:cursor-not-allowed disabled:opacity-55"
+                              aria-label={`Change role for ${firstPendingPlacedPhoto.name}`}
+                            >
+                              <option value="" className="text-[#111315]">
+                                Pick another role...
+                              </option>
+                              {fieldPhotoSlots.map((targetSlot) => (
+                                <option
+                                  key={targetSlot.id}
+                                  value={targetSlot.id}
+                                  disabled={targetSlot.id === firstPendingPlacedPhotoSlot.id}
+                                  className="text-[#111315]"
+                                >
+                                  {targetSlot.shortLabel}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                rejectPhotoSuggestion(firstPendingPlacedPhotoSlot.id);
+                                continueAfterPhotoDecisionIfReady();
+                              }}
+                              className="h-10 rounded-full border border-white/14 bg-white/[0.05] px-3 text-[10px] font-bold uppercase tracking-[0.13em] text-white/68 hover:bg-white/[0.09] hover:text-white"
+                            >
+                              Leave out of output
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : firstPendingExtraPhoto ? (
+                      <div
+                        data-photo-one-tap-review="true"
+                        className="border-t border-white/8 bg-black/16 px-4 py-4 sm:px-5"
+                      >
+                        <div className="grid gap-3 rounded-[20px] border border-[#ffb489]/22 bg-[#ffb489]/10 p-3 md:grid-cols-[88px_minmax(0,1fr)_minmax(210px,260px)] md:items-center">
+                          <div
+                            className="h-24 overflow-hidden rounded-[16px] border border-white/12 bg-cover bg-center md:h-20"
+                            style={{
+                              backgroundImage: `url(${firstPendingExtraPhoto.src})`,
+                            }}
+                            aria-label={`Photo waiting for review: ${firstPendingExtraPhoto.name}`}
+                          />
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffcfb5]">
+                              Review this photo
+                            </p>
+                            <p className="mt-1 text-lg font-black leading-tight tracking-[-0.04em] text-white">
+                              {firstPendingExtraSuggestedSlot
+                                ? `Use this as ${firstPendingExtraSuggestedSlot.shortLabel}?`
+                                : "Pick a role or leave it out."}
+                            </p>
+                            <p className="mt-2 text-xs leading-5 text-white/58">
+                              {firstPendingExtraPhoto.assistReason ??
+                                firstPendingExtraPhoto.matchLabel ??
+                                "Photo Assist could not safely place this photo. It stays out of the packet until you choose."}
+                            </p>
+                            <p className="mt-1 truncate text-[11px] font-semibold text-white/38">
+                              {firstPendingExtraPhoto.name}
+                            </p>
+                          </div>
+                          <div className="grid gap-2">
+                            {firstPendingExtraSuggestedSlot ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  placeUnplacedPhoto(
+                                    firstPendingExtraPhoto.id,
+                                    firstPendingExtraSuggestedSlot.id,
+                                  );
+                                  continueAfterPhotoDecisionIfReady();
+                                }}
+                                disabled={isPhotoAssistRunning}
+                                className="h-10 rounded-full bg-white px-3 text-[10px] font-black uppercase tracking-[0.13em] text-[#111315] shadow-[0_12px_28px_rgba(0,0,0,0.22)] disabled:cursor-not-allowed disabled:opacity-55"
+                              >
+                                {isPhotoAssistRunning
+                                  ? "Reading photo"
+                                  : `Use as ${firstPendingExtraSuggestedSlot.shortLabel}`}
+                              </button>
+                            ) : null}
+                            <select
+                              defaultValue=""
+                              disabled={isPhotoAssistRunning}
+                              onChange={(event) => {
+                                const targetSlotId = event.target
+                                  .value as FieldPhotoSlotId | "";
+
+                                if (targetSlotId) {
+                                  placeUnplacedPhoto(
+                                    firstPendingExtraPhoto.id,
+                                    targetSlotId,
+                                  );
+                                  continueAfterPhotoDecisionIfReady();
+                                }
+
+                                event.currentTarget.value = "";
+                              }}
+                              className="h-10 rounded-full border border-white/14 bg-white/[0.08] px-3 text-xs font-bold text-white outline-none disabled:cursor-not-allowed disabled:opacity-55"
+                              aria-label={`Assign ${firstPendingExtraPhoto.name} to a photo role`}
+                            >
+                              <option value="" className="text-[#111315]">
+                                {firstPendingExtraSuggestedSlot
+                                  ? "Pick another role..."
+                                  : "Choose role..."}
+                              </option>
+                              {fieldPhotoSlots.map((targetSlot) => (
+                                <option
+                                  key={targetSlot.id}
+                                  value={targetSlot.id}
+                                  className="text-[#111315]"
+                                >
+                                  {targetSlot.shortLabel}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                dismissUnplacedPhoto(firstPendingExtraPhoto.id);
+                                continueAfterPhotoDecisionIfReady();
+                              }}
+                              className="h-10 rounded-full border border-white/14 bg-white/[0.05] px-3 text-[10px] font-bold uppercase tracking-[0.13em] text-white/68 hover:bg-white/[0.09] hover:text-white"
+                            >
+                              Leave out of output
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                     {uploadedPhotoSlots.length > 0 ? (
                       <div className="border-y border-white/8 bg-black/12 px-4 py-3 sm:px-5">
                         <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -3546,11 +7054,9 @@ export function PacketBuilder() {
                                     {slot.shortLabel}
                                   </p>
                                   <p className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-white/42">
-                                    {uploaded.confidence === "keyword"
-                                      ? "High match"
-                                      : uploaded.confidence === "order"
-                                        ? "Review"
-                                        : "Manual"}
+                                    {isVendorConfirmedPhoto(uploaded)
+                                      ? "Vendor confirmed"
+                                      : "Suggested"}
                                   </p>
                                 </div>
                               </div>
@@ -3582,11 +7088,174 @@ export function PacketBuilder() {
                         </p>
                       </div>
                     ) : null}
-                    {hasOrderMatchedPhotos ? (
+                    {hasProofWorkStarted ? (
+                      <div className="mx-4 mt-3 rounded-[18px] border border-white/10 bg-black/14 px-3 py-3 sm:mx-5">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/42">
+                              Photo Assist
+                            </p>
+                            <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-white">
+                              {pendingPhotoAssistCount > 0
+                                ? `${pendingPhotoAssistCount} suggestion(s) need vendor confirmation`
+                                : `${vendorConfirmedPhotoCount} vendor-confirmed photo role(s)`}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-white/52">
+                              AI suggests what the photo shows. Confirming a role
+                              adds evidence; it does not create a customer exception.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void runGeminiPhotoAssist()}
+                            disabled={
+                              isPhotoAssistRunning || pendingPhotoAssistCount === 0
+                            }
+                            title={
+                              pendingPhotoAssistCount === 0
+                                ? "All usable photo roles are already confirmed."
+                                : "Read unconfirmed photos with AI."
+                            }
+                            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-white/14 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[#111315] disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            <Sparkles className="h-3.5 w-3.5" />
+                            {isPhotoAssistRunning ? "Checking" : "Run Photo Assist"}
+                          </button>
+                        </div>
+                        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                          {[
+                            ["Suggested", `${pendingPhotoAssistCount}`],
+                            ["Vendor confirmed", `${vendorConfirmedPhotoCount}`],
+                          ].map(([label, value]) => (
+                            <div
+                              key={label}
+                              className="rounded-[14px] border border-white/10 bg-white/[0.045] px-3 py-2"
+                            >
+                              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+                                {label}
+                              </p>
+                              <p className="mt-1 text-lg font-bold tracking-[-0.04em] text-white">
+                                {value}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        {photoAssistNotice ? (
+                          <p
+                            className={`mt-3 text-xs font-semibold leading-5 ${
+                              photoAssistNotice.tone === "error"
+                                ? "text-[#ffd2c7]"
+                                : photoAssistNotice.tone === "success"
+                                  ? "text-[#cfe9da]"
+                                  : "text-[#ffcfb5]"
+                            }`}
+                          >
+                            {photoAssistNotice.message}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {unplacedFieldPhotos.length > 0 ? (
+                      <div
+                        data-photo-review-queue="true"
+                        className="mx-4 mt-3 rounded-[18px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-3 sm:mx-5"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffcfb5]">
+                              Needs vendor review
+                            </p>
+                            <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-white">
+                              {unplacedFieldPhotos.length} photo(s) are not used yet
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-white/56">
+                              Assign a role only if the photo belongs in the job packet.
+                              Wrong, duplicate, or unclear photos can be left out.
+                            </p>
+                          </div>
+                          <span className="rounded-full border border-[#ffb489]/24 bg-black/16 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#ffcfb5]">
+                            Left out of packet
+                          </span>
+                        </div>
+                        <div className="mt-3 grid gap-2">
+                          {unplacedFieldPhotos.map((photo) => {
+                            const suggestedSlot = photo.suggestedSlotId
+                              ? fieldPhotoSlots.find(
+                                  (slot) => slot.id === photo.suggestedSlotId,
+                                )
+                              : null;
+
+                            return (
+                              <div
+                                key={photo.id}
+                                data-unplaced-photo-row="true"
+                                data-photo-name={photo.name}
+                                className="grid gap-3 rounded-[16px] border border-white/10 bg-black/18 px-3 py-3 sm:grid-cols-[64px_minmax(0,1fr)] sm:items-start"
+                              >
+                                <div
+                                  className="h-16 w-16 overflow-hidden rounded-[14px] border border-white/10 bg-cover bg-center"
+                                  style={{ backgroundImage: `url(${photo.src})` }}
+                                  aria-label={`Photo waiting for review: ${photo.name}`}
+                                />
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="max-w-full truncate text-sm font-bold text-white">
+                                      {photo.name}
+                                    </p>
+                                    <span className="rounded-full border border-[#ffb489]/24 bg-[#ffb489]/10 px-2 py-0.5 text-[10px] font-semibold text-[#ffcfb5]">
+                                      {suggestedSlot
+                                        ? `Suggested: ${suggestedSlot.shortLabel}`
+                                        : "No safe role"}
+                                    </span>
+                                  </div>
+                                  <p className="mt-1 text-xs leading-5 text-white/58">
+                                    {photo.assistReason ??
+                                      photo.matchLabel ??
+                                      "Review this photo before assigning it to a photo role."}
+                                  </p>
+                                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                                    <select
+                                      defaultValue=""
+                                      onChange={(event) => {
+                                        const targetSlotId = event.target
+                                          .value as FieldPhotoSlotId | "";
+
+                                        if (targetSlotId) {
+                                          placeUnplacedPhoto(photo.id, targetSlotId);
+                                        }
+
+                                        event.currentTarget.value = "";
+                                      }}
+                                      className="h-10 min-w-0 rounded-full border border-white/12 bg-white px-3 text-xs font-semibold text-[#111315] outline-none sm:w-[220px]"
+                                      aria-label={`Assign ${photo.name} to a photo role`}
+                                    >
+                                      <option value="">Assign role...</option>
+                                      {fieldPhotoSlots.map((targetSlot) => (
+                                        <option key={targetSlot.id} value={targetSlot.id}>
+                                          {targetSlot.shortLabel}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <button
+                                      type="button"
+                                      onClick={() => dismissUnplacedPhoto(photo.id)}
+                                      className="h-10 rounded-full border border-white/12 bg-white/[0.05] px-3 text-xs font-bold uppercase tracking-[0.12em] text-white/68 hover:bg-white/[0.09] hover:text-white"
+                                    >
+                                      Leave out
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+                    {hasSuggestedPhotoRoles ? (
                       <div className="mx-4 mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2 sm:mx-5">
                         <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
-                          Generic phone filenames detected. We sorted them by
-                          upload order, not by visual content.
+                          Suggested roles are waiting for vendor confirmation.
+                          They do not count in the packet until confirmed.
                         </p>
                       </div>
                     ) : null}
@@ -3594,7 +7263,7 @@ export function PacketBuilder() {
                       <div className="mx-4 mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2 sm:mx-5">
                         <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
                           {hasAfterOnly
-                            ? "After photo is present, but no before photo is attached. The packet will stay as an after-photo service record unless you add or mark the missing before photo."
+                            ? "After photo is present, but no before photo is attached. The packet will stay as an after-photo service note unless you add or mark the missing before photo."
                             : "Before photo is present, but no after photo is attached. Add an after photo or mark it not captured before sending."}
                         </p>
                       </div>
@@ -3610,16 +7279,16 @@ export function PacketBuilder() {
                           </p>
                         </div>
                         <Badge
-                          variant="outline"
-                          className="border-white/12 bg-white/[0.07] px-3 py-1 text-[10px] text-white/58"
-                        >
-                          {adaptiveRecord.coverage.totalPhotos > 0
-                            ? `${adaptiveRecord.coverage.placedPhotos} placed`
-                            : "Written closeout"}
-                        </Badge>
+                            variant="outline"
+                            className="border-white/12 bg-white/[0.07] px-3 py-1 text-[10px] text-white/58"
+                          >
+                            {totalFieldPhotoCount > 0
+                              ? `${vendorConfirmedPhotoCount} confirmed`
+                              : "Written closeout"}
+                          </Badge>
                       </div>
                       <p className="mt-2 text-xs leading-5 text-white/54">
-                        Photo roles are prepared. The customer-facing packet is finalized after the visit outcome is selected.
+                        Photo roles are prepared. Generated outputs are finalized after the visit outcome is selected.
                       </p>
                     </div>
                     <div className="mx-4 mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08] sm:mx-5">
@@ -3666,7 +7335,7 @@ export function PacketBuilder() {
                       </div>
                     ) : !hasProofWorkStarted ? (
                       <div className="mt-4 grid gap-2 sm:grid-cols-3 2xl:grid-cols-1">
-                        {["No photos? Continue", "Have photos? Upload", "Wrong match? Fix later"].map(
+                        {["Written record is okay", "Have photos? Upload", "Wrong match? Fix before sending"].map(
                           (item) => (
                             <div
                               key={item}
@@ -3683,10 +7352,10 @@ export function PacketBuilder() {
                         <Button
                           type="button"
                           size="sm"
-                          onClick={() => selectBuilderStep("report")}
+                          onClick={proceedFromPhotoStep}
                           className="hidden rounded-full bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#111315] hover:bg-white/90 md:inline-flex"
                         >
-                          Continue without photos
+                          Draft written message
                         </Button>
                       ) : null}
                       {hasProofWorkStarted ? (
@@ -3719,6 +7388,28 @@ export function PacketBuilder() {
                           {showAllPhotoSlots ? "Open only" : "All slots"}
                         </Button>
                       ) : null}
+                      {hasBeforePhoto && hasAfterPhoto && shouldShowProofDetails ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => reassignPhoto("hood-before", "hood-after")}
+                          className="rounded-full border border-white/12 bg-white/[0.04] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/66 hover:bg-white/[0.08] hover:text-white"
+                        >
+                          Swap before/after
+                        </Button>
+                      ) : null}
+                      {hasAfterOnly && shouldShowProofDetails ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => reassignPhoto("hood-after", "hood-before")}
+                          className="rounded-full border border-white/12 bg-white/[0.04] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/66 hover:bg-white/[0.08] hover:text-white"
+                        >
+                          This is before
+                        </Button>
+                      ) : null}
                       {hasAfterOnly && shouldShowProofDetails ? (
                         <Button
                           type="button"
@@ -3730,6 +7421,17 @@ export function PacketBuilder() {
                           className="rounded-full border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffcfb5] hover:bg-[#ffb489]/14 hover:text-[#ffcfb5]"
                         >
                           Mark before not captured
+                        </Button>
+                      ) : null}
+                      {hasBeforeOnly && shouldShowProofDetails ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => reassignPhoto("hood-before", "hood-after")}
+                          className="rounded-full border border-white/12 bg-white/[0.04] px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/66 hover:bg-white/[0.08] hover:text-white"
+                        >
+                          This is after
                         </Button>
                       ) : null}
                       {hasBeforeOnly && shouldShowProofDetails ? (
@@ -3758,7 +7460,7 @@ export function PacketBuilder() {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#cfe9da]">
-                          Mapped proof
+                          Mapped photos
                         </p>
                         <p className="mt-2 text-sm font-semibold text-white">
                           {uploadedPhotoSlots.length} photo(s) already placed
@@ -3792,16 +7494,14 @@ export function PacketBuilder() {
                                 <p className="text-sm font-semibold text-white">{slot.label}</p>
                                 <span
                                   className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
-                                    uploaded.confidence === "order"
+                                    !isVendorConfirmedPhoto(uploaded)
                                       ? "border-[#ffb489]/30 bg-[#ffb489]/10 text-[#ffcfb5]"
                                       : "border-[#b9d4c6]/30 bg-[#b9d4c6]/12 text-[#cfe9da]"
                                   }`}
                                 >
-                                  {uploaded.confidence === "keyword"
-                                    ? "High match"
-                                    : uploaded.confidence === "order"
-                                      ? "Review order"
-                                      : "Manual"}
+                                  {isVendorConfirmedPhoto(uploaded)
+                                    ? "Vendor confirmed"
+                                    : "Suggested"}
                                 </span>
                               </div>
                               <p className="mt-1 truncate text-xs leading-5 text-white/48">
@@ -3831,7 +7531,7 @@ export function PacketBuilder() {
                 {shouldShowProofDetails ? (
                   <div className="mt-5 overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.035]">
                   <div className="hidden grid-cols-[86px_minmax(0,1fr)_172px_220px] border-b border-white/10 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/38 xl:grid 2xl:hidden">
-                    <span>Proof</span>
+                    <span>Photo</span>
                     <span>Slot</span>
                     <span>Status</span>
                     <span className="text-right">Action</span>
@@ -3839,10 +7539,10 @@ export function PacketBuilder() {
                   {openPhotoSlots.length === 0 ? (
                     <div className="px-4 py-5">
                       <p className="text-sm font-semibold text-white">
-                        No open proof slots in the working view.
+                        No open photo slots in the working view.
                       </p>
                       <p className="mt-1 text-xs leading-5 text-white/52">
-                        Use Mapped proof to reassign photos, or show all slots if you need
+                        Use Mapped photos to reassign photos, or show all slots if you need
                         to replace a placed image.
                       </p>
                     </div>
@@ -3851,11 +7551,9 @@ export function PacketBuilder() {
                     const uploaded = uploadedFieldPhotos[slot.id];
                     const resolution = photoSlotResolutions[slot.id];
                     const slotStatus = uploaded
-                      ? uploaded.confidence === "manual"
-                        ? "Manual"
-                        : uploaded.confidence === "keyword"
-                          ? "High match"
-                          : "Review order"
+                      ? isVendorConfirmedPhoto(uploaded)
+                        ? "Vendor confirmed"
+                        : "Suggested"
                       : resolution === "not-captured"
                         ? "Not captured"
                       : resolution === "not-applicable"
@@ -3864,7 +7562,7 @@ export function PacketBuilder() {
                         ? "Missing"
                         : "Recommended";
                     const slotStatusClass = uploaded
-                      ? uploaded.confidence === "order"
+                      ? !isVendorConfirmedPhoto(uploaded)
                         ? "border-[#ffb489]/30 bg-[#ffb489]/10 text-[#ffcfb5]"
                         : "border-[#b9d4c6]/35 bg-[#b9d4c6]/12 text-[#cfe9da]"
                       : resolution !== "open"
@@ -3916,7 +7614,7 @@ export function PacketBuilder() {
                             {uploaded
                               ? `${uploaded.name} - ${uploaded.matchLabel}`
                               : resolution === "not-captured"
-                                ? "Marked not captured. The report will not show a sample image for this slot."
+                                ? "Marked not captured. The packet will not show a sample image for this slot."
                                 : resolution === "not-applicable"
                                   ? "Marked not applicable for this visit."
                               : slot.caption}
@@ -3931,6 +7629,28 @@ export function PacketBuilder() {
                           </Badge>
                         </div>
                         <div className="flex flex-wrap gap-2 xl:justify-end 2xl:justify-start">
+                          {uploaded && !isVendorConfirmedPhoto(uploaded) ? (
+                            <>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="xs"
+                                onClick={() => confirmPhotoSuggestion(slot.id)}
+                                className="rounded-full border border-[#b9d4c6]/28 bg-[#b9d4c6]/12 px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[#cfe9da] hover:bg-[#b9d4c6]/18 hover:text-[#cfe9da]"
+                              >
+                                Confirm
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="xs"
+                                onClick={() => rejectPhotoSuggestion(slot.id)}
+                                className="rounded-full border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[#ffcfb5] hover:bg-[#ffb489]/14 hover:text-[#ffcfb5]"
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          ) : null}
                           {uploaded ? (
                             <Button
                               type="button"
@@ -3987,6 +7707,7 @@ export function PacketBuilder() {
                             <input
                               type="file"
                               accept="image/*"
+                              aria-label={`Upload ${slot.shortLabel} photo`}
                               className="sr-only"
                               onChange={(event) => {
                                 void handlePhotoUpload(
@@ -4037,7 +7758,7 @@ export function PacketBuilder() {
 
               <div
                 className={`flex flex-col gap-3 sm:flex-row sm:flex-wrap ${
-                  builderStep === "report" ? "hidden" : "hidden"
+                  isOutputStep ? "hidden" : "hidden"
                 }`}
               >
                 <button
@@ -4070,8 +7791,8 @@ export function PacketBuilder() {
 
         <div
           className={`min-w-0 space-y-4 ${
-            builderStep === "report"
-              ? "order-1 md:order-none"
+            isOutputStep
+              ? ""
               : "hidden"
           }`}
         >
@@ -4079,173 +7800,152 @@ export function PacketBuilder() {
             <div className="pdf-print-hide flex flex-col gap-3 border-b border-border pb-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className={labelClassName()}>
-                  {closeoutEngine.canGeneratePacket ? "Ready to send" : "Result required"}
+                  {reportStatusLabel}
                 </p>
-                <h2 className="mt-3 font-display text-[1.38rem] font-bold leading-[1.02] tracking-[-0.045em] text-foreground md:text-[1.55rem] md:leading-[0.96] md:tracking-[-0.06em]">
-                  <span className="md:hidden">
-                    {closeoutEngine.canGeneratePacket
-                      ? "Choose the output."
-                      : "Pick what happened."}
-                  </span>
-                  <span className="hidden md:inline">
-                    {closeoutEngine.canGeneratePacket
-                      ? "Send the link or save the record."
-                      : "Choose a job result before output."}
-                  </span>
-                </h2>
+                {isOutputStep ? (
+                  <h1
+                    className="mt-3 font-display text-[1.38rem] font-bold leading-[1.02] tracking-[-0.045em] text-foreground md:text-[1.55rem] md:leading-[0.96] md:tracking-[-0.06em]"
+                    data-axis-tool-page-heading
+                  >
+                    {reportHeadingText}
+                  </h1>
+                ) : (
+                  <h2 className="mt-3 font-display text-[1.38rem] font-bold leading-[1.02] tracking-[-0.045em] text-foreground md:text-[1.55rem] md:leading-[0.96] md:tracking-[-0.06em]">
+                    {reportHeadingText}
+                  </h2>
+                )}
               </div>
               <div className="hidden rounded-[16px] border border-black/10 bg-[rgba(17,17,17,0.03)] px-4 py-3 md:block">
-                <p className={labelClassName()}>Current report mode</p>
+                <p className={labelClassName()}>What happens next</p>
                 <p className="mt-2 text-sm font-medium text-foreground">
                   {closeoutFormatLabel}:{" "}
                   {!closeoutEngine.canGeneratePacket
-                    ? "no customer link or PDF should be generated yet."
+                    ? "pick a result before sending."
+                    : sendReadinessBlockers.length > 0
+                      ? sendReadinessBlockers[0]
                     : values.scenario === "clean"
                       ? "completed result, customer note, and next visit window."
-                      : `${activeJobPattern.label.toLowerCase()} with customer action visible.`}
+                      : `${activeJobPattern.label.toLowerCase()} with follow-up action visible.`}
                 </p>
               </div>
             </div>
-            <div className="pdf-print-hide mt-4 rounded-[24px] border border-black/8 bg-[#111315] p-3 text-white shadow-[0_18px_56px_rgba(17,19,21,0.18)]">
-              <div className="grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)]">
-                <div className="rounded-[20px] border border-white/10 bg-white/[0.055] px-4 py-4">
-                  <div className="flex items-start gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[16px] bg-[#f26a21] text-white shadow-[0_12px_26px_rgba(242,106,33,0.26)]">
-                      <IconCircleCheck className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffb489]">
+            <div className="pdf-print-hide mt-4 hidden md:block">
+              <motion.section
+                layout
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="axis-proof-console"
+              >
+                <div className="axis-proof-console-header">
+                  <div className="axis-proof-console-title">
+                    <span className="axis-proof-console-mark">
+                      <ShieldCheck className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="axis-proof-eyebrow">
                         {closeoutEngine.canGeneratePacket
-                          ? "Draft from selected result"
-                          : "No output yet"}
-                      </p>
-                      <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] text-white">
+                          ? "Generated from selected result"
+                          : "Waiting on result confirmation"}
+                      </span>
+                      <span className="axis-proof-title">
                         {closeoutEngine.canGeneratePacket
-                          ? "Ready after the crew picks what happened."
-                          : "Pick what happened before generating output."}
-                      </h3>
-                      <p className="mt-2 text-xs leading-5 text-white/58">
+                          ? builderStep === "next"
+                            ? "Next cleaning / follow-up generated"
+                            : "Customer confirmation and payment proof generated"
+                          : "Select the job result to build the packet"}
+                      </span>
+                      <span className="axis-proof-subtitle">
                         {closeoutEngine.canGeneratePacket
-                          ? "This is generated from the selected job outcome and written service notes, not photo AI."
-                          : "The tool will not create a link or PDF from untouched sample defaults."}
-                      </p>
-                    </div>
+                          ? builderStep === "next"
+                            ? "Next cleaning, revisit, quote follow-up, and monitor copy are derived from the same vendor-confirmed job record."
+                            : "Customer handoff, evidence PDF, invoice proof, follow-up copy, and rebook copy are derived from this same vendor-confirmed job record."
+                          : "Outputs stay locked until the vendor confirms what happened. Photos can organize the record, but they do not decide the final claim."}
+                      </span>
+                    </span>
                   </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    {[
-                      [
-                        "Result",
-                        closeoutEngine.primaryStatusLabel,
-                      ],
-                      [
-                        "Photos",
-                        closeoutEngine.basisLabel,
-                      ],
-                      ["Next", `${selectedCadenceOption.label}`],
-                    ].map(([label, value]) => (
-                      <div
-                        key={label}
-                        className="rounded-[14px] border border-white/10 bg-black/18 px-3 py-2"
-                      >
-                        <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-white/38">
-                          {label}
-                        </p>
-                        <p className="mt-1 truncate text-xs font-bold text-white/86">
-                          {value}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="axis-proof-counts" aria-label="Output status">
+                    <span>
+                      <strong>{generatedOutputReadyCount}</strong>
+                      ready
+                    </span>
+                    <span>
+                      <strong>{generatedOutputReviewCount}</strong>
+                      review
+                    </span>
+                    <span>
+                      <strong>{closeoutEngine.vendorSendReadinessWarnings.length}</strong>
+                      checks
+                    </span>
                   </div>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2">
+
+                <div className="axis-proof-actionbar">
                   <button
                     type="button"
-                    disabled={!closeoutEngine.canGeneratePacket}
+                    disabled={!canPreviewProofLink}
                     onClick={() => {
                       setReportOutputMode("link");
                       requestFreeReportOutput("copy-link");
                     }}
-                    className={`tool-output-card group text-left ${
+                    className={`axis-proof-action axis-proof-action-primary ${
                       reportOutputMode === "link" ? "is-active" : ""
-                    } ${
-                      !closeoutEngine.canGeneratePacket
-                        ? "cursor-not-allowed opacity-55"
-                        : ""
                     }`}
                   >
-                    <span className="flex items-start justify-between gap-3">
-                      <span>
-                        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#b94d11]">
-                          Customer
-                        </span>
-                        <span className="mt-2 block text-xl font-black leading-none tracking-[-0.055em] text-[#111315]">
-                          Send customer link
-                        </span>
+                    <span className="axis-proof-action-icon">
+                      <Copy className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="axis-proof-action-label">
+                        Copy customer handoff
                       </span>
-                      <span className="tool-output-icon bg-[#f26a21] text-white">
-                        <Copy className="h-5 w-5" />
+                      <span className="axis-proof-action-copy">
+                        {canPreviewProofLink
+                          ? "Use the customer-safe handoff from this packet."
+                          : previewProofLinkLabel}
                       </span>
                     </span>
-                    <span className="mt-4 block text-sm leading-5 text-[#5f574f]">
-                      Best for text or email. Customer sees what was done, what is open, and what to do next.
-                    </span>
-                    <span className="tool-output-cta mt-4">
-                      Copy link
-                      <IconArrowRight className="h-4 w-4" />
-                    </span>
+                    <IconArrowRight className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
-                    disabled={!closeoutEngine.canGeneratePacket}
+                    disabled={!canPreviewProofLink}
                     onClick={() => {
                       setReportOutputMode("pdf");
                       requestFreeReportOutput("print-pdf");
                     }}
-                    className={`tool-output-card group text-left ${
+                    className={`axis-proof-action ${
                       reportOutputMode === "pdf" ? "is-active" : ""
-                    } ${
-                      !closeoutEngine.canGeneratePacket
-                        ? "cursor-not-allowed opacity-55"
-                        : ""
                     }`}
                   >
-                    <span className="flex items-start justify-between gap-3">
-                      <span>
-                        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#5f574f]">
-                          Record
-                        </span>
-                        <span className="mt-2 block text-xl font-black leading-none tracking-[-0.055em] text-[#111315]">
-                          Save record PDF
-                        </span>
-                      </span>
-                      <span className="tool-output-icon bg-[#111315] text-white">
-                        <FileDown className="h-5 w-5" />
-                      </span>
+                    <span className="axis-proof-action-icon">
+                      <FileDown className="h-4 w-4" />
                     </span>
-                    <span className="mt-4 block text-sm leading-5 text-[#5f574f]">
-                      Best for archive, landlord, corporate, insurance, or later proof requests.
-                    </span>
-                    <span className="tool-output-cta mt-4">
-                      Save PDF
-                      <IconArrowRight className="h-4 w-4" />
+                    <span className="min-w-0">
+                      <span className="axis-proof-action-label">
+                        Save evidence record
+                      </span>
+                      <span className="axis-proof-action-copy">
+                        Archive or attach the formal record.
+                      </span>
                     </span>
                   </button>
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-white/10 bg-white/[0.055] px-3 py-2.5">
-                <p className="min-w-0 text-xs leading-5 text-white/56">
-                  {closeoutEngine.canGeneratePacket
-                    ? "Need changes? Edit the exact customer lines. Advanced PDF sections stay under options."
-                    : closeoutEngine.blockingReason}
-                </p>
-                <div className="flex shrink-0 flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => setShowWordingEditor((current) => !current)}
-                    className="tool-action-btn tool-action-secondary tool-action-mini"
+                    className="axis-proof-action axis-proof-action-muted"
                   >
-                    <PencilLine className="h-3.5 w-3.5" />
-                    {showWordingEditor ? "Hide edits" : "Edit wording"}
+                    <span className="axis-proof-action-icon">
+                      <PencilLine className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="axis-proof-action-label">
+                        {showWordingEditor ? "Hide wording edits" : "Edit customer-safe copy"}
+                      </span>
+                      <span className="axis-proof-action-copy">
+                        Optional wording edits.
+                      </span>
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -4253,13 +7953,252 @@ export function PacketBuilder() {
                       setReportOutputMode("pdf");
                       setShowPacketDetails((current) => !current);
                     }}
-                    className="tool-action-btn tool-action-quiet tool-action-mini hidden md:inline-flex"
+                    className="axis-proof-action axis-proof-action-muted"
                   >
-                    <Settings2 className="h-3.5 w-3.5" />
-                    PDF options
+                    <span className="axis-proof-action-icon">
+                      <Settings2 className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="axis-proof-action-label">PDF sections</span>
+                      <span className="axis-proof-action-copy">
+                        Output layout only.
+                      </span>
+                    </span>
                   </button>
                 </div>
-              </div>
+
+                <div className="axis-proof-console-grid">
+                  <section className="axis-proof-panel axis-proof-basis-panel">
+                    <div className="axis-proof-panel-head">
+                      <p className="axis-proof-panel-label">Record basis</p>
+                      <p>{closeoutFormatLabel}</p>
+                    </div>
+                    <div className="axis-proof-basis-list">
+                      {reportDiagnosticCards.map((item) => (
+                        <div
+                          key={item.label}
+                          className={`axis-proof-basis-row ${
+                            item.wideOnPhone ? "is-primary" : ""
+                          }`}
+                        >
+                          <span>{item.label}</span>
+                          <strong>{item.value}</strong>
+                          {item.helper ? <small>{item.helper}</small> : null}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="axis-proof-panel">
+                    <div className="axis-proof-panel-head">
+                      <p className="axis-proof-panel-label">Job record areas</p>
+                      <p>Change status here; every generated output updates from the same record.</p>
+                    </div>
+                    <div className="grid gap-2">
+                      {scopeLedgerRows
+                        .filter((row) => row.status !== "not-in-scope")
+                        .map((row) => {
+                          const statusMeta = getScopeStatusMeta(row.status);
+                          const statusOptions = buildScopeStatusOptions(row);
+
+                          return (
+                            <label
+                              key={`report-${row.id}`}
+                              className="grid gap-2 rounded-[14px] border border-black/8 bg-white/72 px-3 py-2.5 text-[#111315]"
+                            >
+                              <span className="flex items-start justify-between gap-2">
+                                <span className="min-w-0">
+                                  <span className="block text-xs font-bold">
+                                    {row.label}
+                                  </span>
+                                  <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.11em] text-muted-foreground">
+                                    {row.evidence === "photo"
+                                      ? `${row.photoCount} photo`
+                                      : row.evidence === "written"
+                                        ? "Written only"
+                                        : row.evidence === "unclear"
+                                          ? "Needs review"
+                                          : "No output"}
+                                  </span>
+                                </span>
+                                <span
+                                  className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] ${statusMeta.className}`}
+                                >
+                                  {statusMeta.chip}
+                                </span>
+                              </span>
+                              <select
+                                value={row.status}
+                                onChange={(event) =>
+                                  updateScopeAreaStatus(
+                                    row.id,
+                                    event.target.value as ScopeStatus,
+                                  )
+                                }
+                                className="h-9 rounded-[12px] border border-black/10 bg-white px-2.5 text-[11px] font-bold text-foreground outline-none focus:border-[#f26a21]/45 focus:ring-2 focus:ring-[#f26a21]/12"
+                              >
+                                {statusOptions.map((option) => (
+                                  <option
+                                    key={option.value}
+                                    value={option.value}
+                                    disabled={option.disabled}
+                                  >
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                          );
+                        })}
+                    </div>
+                  </section>
+
+                  <section className="axis-proof-panel axis-proof-ledger-panel">
+                    <div className="axis-proof-panel-head">
+                      <p className="axis-proof-panel-label">Generated outputs</p>
+                      <p>One job record, multiple send/save/get-paid uses.</p>
+                    </div>
+                    <div className="axis-output-ledger">
+                      {closeoutEngine.generatedOutputs.map((output) => {
+                        const readinessMeta = generatedOutputReadinessMeta(output.readiness);
+
+                        return (
+                          <div
+                            key={output.kind}
+                            className="axis-output-row"
+                            data-readiness={output.readiness}
+                          >
+                            <span className="axis-output-icon">
+                              <GeneratedOutputIcon kind={output.kind} />
+                            </span>
+                            <span className="axis-output-copy">
+                              <strong>{output.label}</strong>
+                              {output.reason ? <small>{output.reason}</small> : null}
+                            </span>
+                            <span
+                              className={`axis-readiness-pill ${readinessMeta.className}`}
+                            >
+                              {readinessMeta.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  <section
+                    className="axis-proof-panel"
+                    style={builderStep === "next" ? { order: -1 } : undefined}
+                  >
+                    <div className="axis-proof-panel-head">
+                      <p className="axis-proof-panel-label">Next cleaning / follow-up</p>
+                      <p>Turns the same job record into rebook, revisit, quote, or monitor action.</p>
+                    </div>
+                    <div className="axis-output-ledger">
+                      {nextActionRows.map((item) => {
+                        const readinessMeta = generatedOutputReadinessMeta(item.state);
+
+                        return (
+                          <div
+                            key={item.label}
+                            className="axis-output-row"
+                            data-readiness={item.state}
+                          >
+                            <span className="axis-output-icon">
+                              <CalendarClock className="h-4 w-4" />
+                            </span>
+                            <span className="axis-output-copy">
+                              <strong>{item.label}</strong>
+                              <small>{item.copy}</small>
+                            </span>
+                            <span
+                              className={`axis-readiness-pill ${readinessMeta.className}`}
+                            >
+                              {readinessMeta.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  <aside className="axis-proof-panel axis-proof-warning-rail">
+                    <div className="axis-proof-panel-head">
+                      <p className="axis-proof-panel-label">Send check</p>
+                      <p>Private to the vendor; customer outputs use calm record language.</p>
+                    </div>
+                    <div className="axis-warning-lead">
+                      <TriangleAlert className="h-4 w-4" />
+                      <span>{engineWarningLabel}</span>
+                    </div>
+                    {closeoutEngine.vendorSendReadinessWarnings.length > 0 ? (
+                      <div className="axis-warning-list">
+                        {closeoutEngine.vendorSendReadinessWarnings.slice(0, 5).map((warning) => {
+                          const warningMeta = vendorWarningMeta(warning.severity);
+
+                          return (
+                            <div
+                              key={`${warning.kind}-${warning.proofAreaId ?? "record"}`}
+                              className="axis-warning-row"
+                            >
+                              <div>
+                                <strong>{warning.title}</strong>
+                                <small>{warning.copy}</small>
+                              </div>
+                              <span
+                                className={`axis-readiness-pill ${warningMeta.className}`}
+                              >
+                                {warningMeta.label}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </aside>
+                </div>
+
+                {closeoutEngine.canGeneratePacket ? (
+                  <div className="axis-proof-link-dock">
+                    <div className="axis-proof-link-dock-head">
+                      <div>
+                        <p className="axis-proof-panel-label">Optional action links</p>
+                        <p>Add URLs only when the packet button should open invoice, quote, schedule, or reply actions.</p>
+                      </div>
+                      <span>
+                        {connectedCloseoutLinkCount}/{visibleCloseoutLinkFields.length} filled
+                      </span>
+                    </div>
+                    <div className="axis-proof-link-grid">
+                      {visibleCloseoutLinkFields.map((field) => (
+                        <label key={field.key} className="axis-proof-link-field">
+                          <span>{field.label}</span>
+                          <input
+                            type="text"
+                            inputMode={field.key === "paymentDueLabel" ? "text" : "url"}
+                            value={closeoutLinks[field.key] ?? ""}
+                            onChange={(event) =>
+                              setCloseoutLinks((current) => ({
+                                ...current,
+                                [field.key]: event.target.value,
+                              }))
+                            }
+                            placeholder={field.placeholder}
+                          />
+                          <small>{field.helper}</small>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="axis-proof-local-note">
+                      Browser-only test link. Hosted delivery, branding, saved history, and cross-device access stay in setup.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="axis-proof-blocking-note">
+                    {closeoutEngine.blockingReason}
+                  </div>
+                )}
+              </motion.section>
             </div>
             <motion.div
               layout
@@ -4281,7 +8220,7 @@ export function PacketBuilder() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-70">
-                    Proof link check
+                    Job proof packet
                   </p>
                   <h3 className="mt-1 text-base font-bold leading-tight tracking-[-0.03em]">
                     {mobileReportStatus.title}
@@ -4291,36 +8230,186 @@ export function PacketBuilder() {
                   </p>
                 </div>
               </div>
+              <div className="mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3 text-[#111315]">
+                <div className="flex items-center justify-between gap-3 px-1 pb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                    Area status
+                  </p>
+                  <span className="rounded-full bg-[#111315] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
+                    Job record
+                  </span>
+                </div>
+                <div className="grid gap-2">
+                  {scopeLedgerRows
+                    .filter((row) => row.status !== "not-in-scope")
+                    .slice(0, 5)
+                    .map((row) => {
+                      const statusMeta = getScopeStatusMeta(row.status);
+                      const statusOptions = buildScopeStatusOptions(row);
+
+                      return (
+                        <label
+                          key={`mobile-report-${row.id}`}
+                          className="grid gap-2 rounded-[14px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2.5"
+                        >
+                          <span className="flex items-center justify-between gap-2">
+                            <span className="min-w-0 text-xs font-bold text-foreground">
+                              {row.shortLabel}
+                            </span>
+                            <span
+                              className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] ${statusMeta.className}`}
+                            >
+                              {statusMeta.chip}
+                            </span>
+                          </span>
+                          <select
+                            value={row.status}
+                            onChange={(event) =>
+                              updateScopeAreaStatus(
+                                row.id,
+                                event.target.value as ScopeStatus,
+                              )
+                            }
+                            className="h-9 rounded-[12px] border border-black/10 bg-white px-2.5 text-[11px] font-bold text-foreground outline-none focus:border-[#f26a21]/45 focus:ring-2 focus:ring-[#f26a21]/12"
+                          >
+                            {statusOptions.map((option) => (
+                              <option
+                                key={option.value}
+                                value={option.value}
+                                disabled={option.disabled}
+                              >
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      );
+                    })}
+                </div>
+              </div>
               <div className="mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    Ready wording
+                    Customer-safe copy
                   </p>
                   <span className="rounded-full bg-[#111315] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
                     {reportOutputMode === "link" ? "Link" : "PDF"}
                   </span>
                 </div>
+                <div className="grid gap-2">
+                  {generatedCustomerLines.slice(0, 3).map((item) => {
+                    const isEditing =
+                      activeCustomerLineEditor === item.editor &&
+                      activeCustomerLineEditorSurface === "ready";
+
+                    return (
+                      <div key={item.label}>
                   <button
                     type="button"
-                    onClick={() => setActiveCustomerLineEditor("result")}
+                          onClick={() => selectCustomerLineEditor(item.editor, "ready")}
                     className="group w-full rounded-[16px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2.5 text-left transition active:scale-[0.995]"
                   >
                     <span className="flex items-start justify-between gap-3">
                       <span className="text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
-                        Today&apos;s result
+                              {item.label}
                       </span>
                       <span className="tool-edit-chip shrink-0">
                         <PencilLine className="h-3 w-3" />
-                        Edit
+                              {isEditing ? "Adjusting" : "Adjust"}
                       </span>
                     </span>
                     <span className="mt-1.5 block text-xs font-semibold leading-5 text-foreground">
-                      {generatedCustomerLines[0]?.value}
+                            {item.value}
                     </span>
                     <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground/80">
-                      Other lines are included in the preview below.
+                            {item.source}
                     </span>
                   </button>
+                        {isEditing ? (
+                          <div className="mt-2 rounded-[14px] border border-black/8 bg-white px-3 py-3">
+                            {renderInlineCustomerLineEditor(item.editor, "ready")}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
+                <div className="flex items-center justify-between gap-3 px-1 pb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                    Generated outputs
+                  </p>
+                  <span className="rounded-full bg-[#111315] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
+                    {generatedOutputReadyCount} ready
+                  </span>
+                </div>
+                <div className="grid gap-2">
+                  {closeoutEngine.generatedOutputs.map((output) => {
+                    const readinessMeta = generatedOutputReadinessMeta(output.readiness);
+
+                    return (
+                      <div
+                        key={output.kind}
+                        className="rounded-[14px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="min-w-0 text-xs font-bold text-foreground">
+                            {output.label}
+                          </span>
+                          <span
+                            className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] ${readinessMeta.className}`}
+                          >
+                            {readinessMeta.label}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {closeoutEngine.vendorSendReadinessWarnings.length > 0 ? (
+                  <p className="mt-2 rounded-[14px] border border-[#f26a21]/20 bg-[#fff7ef] px-3 py-2 text-[11px] font-semibold leading-4 text-[#a94410]">
+                    {closeoutEngine.vendorSendReadinessWarnings[0].copy}
+                  </p>
+                ) : null}
+              </div>
+              <div className="mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
+                <div className="flex items-center justify-between gap-3 px-1 pb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                    Next actions
+                  </p>
+                  <span className="rounded-full bg-[#111315] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
+                    Follow-up
+                  </span>
+                </div>
+                <div className="grid gap-2">
+                  {nextActionRows.map((item) => {
+                    const readinessMeta = generatedOutputReadinessMeta(item.state);
+
+                    return (
+                      <div
+                        key={`mobile-${item.label}`}
+                        className="rounded-[14px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="min-w-0">
+                            <span className="block text-xs font-bold text-foreground">
+                              {item.label}
+                            </span>
+                            <span className="mt-1 block text-[11px] leading-4 text-muted-foreground">
+                              {item.copy}
+                            </span>
+                          </span>
+                          <span
+                            className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] ${readinessMeta.className}`}
+                          >
+                            {readinessMeta.label}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
               <SegmentedControl
                 type="single"
@@ -4333,28 +8422,23 @@ export function PacketBuilder() {
                 className="tool-segmented-control mt-3 rounded-full bg-white/72"
               >
                 <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-[11px]">
-                  Link view
+                  Handoff
                 </SegmentedControlItem>
                 <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-[11px]">
-                  Record PDF
+                  Evidence PDF
                 </SegmentedControlItem>
               </SegmentedControl>
               <div className="mt-2.5 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-[11px] leading-4 opacity-70">
                   {reportOutputMode === "link"
-                    ? "Copy opens an unbranded local report with the current photos in this browser."
-                    : "This is the service record for save/print."}
+                    ? "Copy creates a browser-only customer handoff from the current job record."
+                    : "This is the evidence PDF for save/print."}
                 </p>
                 <button
                   type="button"
                   onClick={() => {
                     if (reportNeedsPhotoReview) {
                       openMobileSheet("photo-review");
-                      return;
-                    }
-
-                    if (totalFieldPhotoCount === 0) {
-                      selectBuilderStep("photos");
                       return;
                     }
 
@@ -4367,9 +8451,7 @@ export function PacketBuilder() {
                   }}
                   className="tool-action-btn tool-action-dark tool-action-mini shrink-0"
                 >
-                  {totalFieldPhotoCount === 0 ? (
-                    <Plus className="h-3.5 w-3.5" />
-                  ) : reportOutputMode === "pdf" ? (
+                  {reportOutputMode === "pdf" ? (
                     <FileDown className="h-3.5 w-3.5" />
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
@@ -4380,24 +8462,24 @@ export function PacketBuilder() {
             </motion.div>
             <div
               className={`pdf-print-hide mt-4 hidden min-w-0 items-start gap-4 md:grid ${
-                builderStep === "report"
+                isOutputStep
                   ? ""
                   : "xl:grid-cols-[minmax(0,0.55fr)_minmax(0,1.45fr)]"
               }`}
             >
               <div
                 className={`rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4 ${
-                  builderStep === "report" ? "hidden" : ""
+                  isOutputStep ? "hidden" : ""
                 }`}
               >
-                {builderStep === "report" ? (
+                {isOutputStep ? (
                   <>
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
-                        <p className={labelClassName()}>Ready to send</p>
+                        <p className={labelClassName()}>{reportStatusLabel}</p>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
                           Review the customer link, then copy it or save the PDF.
-                          Edit wording only when the recommended copy feels off.
+                          The same customer-line edits update both link and PDF previews.
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -4417,36 +8499,55 @@ export function PacketBuilder() {
                     {!showWordingEditor ? (
                       <div className="mt-4 overflow-hidden rounded-[20px] border border-[#f26a21]/18 bg-[#fff7ef]">
                         <div className="border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
-                          <p className={labelClassName()}>Generated customer packet</p>
+                          <p className={labelClassName()}>Customer link</p>
                           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                            These are the exact customer-facing lines to check before sending.
+                            Built from your selected result. Send as-is, or edit one line.
                           </p>
                         </div>
                         <div className="grid gap-2 px-3 py-3">
-                          {generatedCustomerLines.map((item) => (
-                            <button
+                          {generatedCustomerLines.map((item) => {
+                            const isEditing =
+                              activeCustomerLineEditor === item.editor &&
+                              activeCustomerLineEditorSurface === "ready";
+
+                            return (
+                            <article
                               key={item.label}
-                              type="button"
-                              onClick={item.onClick}
-                              className="group rounded-[18px] border border-transparent bg-white/78 px-3 py-3 text-left transition hover:-translate-y-0.5 hover:border-[#f26a21]/24 hover:bg-white hover:shadow-[0_14px_32px_rgba(17,19,21,0.08)]"
+                              className={`group rounded-[18px] border px-3 py-3 transition hover:border-[#f26a21]/24 hover:bg-white hover:shadow-[0_14px_32px_rgba(17,19,21,0.08)] ${
+                                isEditing
+                                  ? "border-[#f26a21]/35 bg-white"
+                                  : "border-transparent bg-white/78"
+                              }`}
                             >
-                              <span className="flex items-start justify-between gap-3">
-                                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                                  {item.label}
+                              <button
+                                type="button"
+                                onClick={() => selectCustomerLineEditor(item.editor, "ready")}
+                                className="block w-full text-left"
+                              >
+                                <span className="flex items-start justify-between gap-3">
+                                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                                    {item.label}
+                                  </span>
+                                  <span className="tool-edit-chip shrink-0">
+                                    <PencilLine className="h-3 w-3" />
+                                    {isEditing ? "Editing" : item.action}
+                                  </span>
                                 </span>
-                                <span className="tool-edit-chip shrink-0">
-                                  <PencilLine className="h-3 w-3" />
-                                  {item.action}
+                                <span className="mt-1.5 block text-sm font-bold leading-5 text-foreground">
+                                  {item.value}
                                 </span>
-                              </span>
-                              <span className="mt-1.5 block text-sm font-bold leading-5 text-foreground">
-                                {item.value}
-                              </span>
-                              <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
-                                {item.source}
-                              </span>
-                            </button>
-                          ))}
+                                <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+                                  {item.source}
+                                </span>
+                              </button>
+                              {isEditing ? (
+                                <div className="mt-3 border-t border-[#f0dfd1] pt-3">
+                                  {renderInlineCustomerLineEditor(item.editor, "ready")}
+                                </div>
+                              ) : null}
+                            </article>
+                          );
+                        })}
                         </div>
                         <div className="flex flex-wrap gap-2 border-t border-[#f0dfd1] bg-white/62 px-4 py-3">
                           <Button
@@ -4475,7 +8576,7 @@ export function PacketBuilder() {
                             className="tool-action-btn tool-action-secondary tool-action-mini"
                           >
                             <PencilLine className="h-3.5 w-3.5" />
-                            Edit wording
+                            Edit customer-safe copy
                           </Button>
                         </div>
                       </div>
@@ -4484,9 +8585,9 @@ export function PacketBuilder() {
                         <div className="mt-4 rounded-[18px] border border-[#f26a21]/18 bg-[#fff7ef] px-4 py-3">
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <p className={labelClassName()}>Wording override</p>
+                              <p className={labelClassName()}>Edit customer line</p>
                               <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                                Change only these lines when needed. Everything else stays structured.
+                                Optional. Leave blank to keep the default line.
                               </p>
                             </div>
                             <Button
@@ -4548,7 +8649,7 @@ export function PacketBuilder() {
                       </div>
                       <div>
                         <label className={labelClassName()} htmlFor="previewFollowUpOverride">
-                          Recorded note
+                          Closeout status note
                         </label>
                         <textarea
                           id="previewFollowUpOverride"
@@ -4560,11 +8661,33 @@ export function PacketBuilder() {
                         />
                         <div className="flex items-start justify-between gap-3">
                           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                            Shows in: Recorded note / closeout detail.
+                            Shows in: Closeout status / condition detail.
                           </p>
                           <CharacterCount
                             value={values.followUpOverride}
                             max={textFieldLimits.followUpOverride}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={labelClassName()} htmlFor="previewRecordNoteOverride">
+                          Evidence PDF note
+                        </label>
+                        <textarea
+                          id="previewRecordNoteOverride"
+                          rows={2}
+                          className={fieldClassName()}
+                          maxLength={textFieldLimits.recordNoteOverride}
+                          placeholder="Optional. Replaces the record-note body under Evidence PDF."
+                          {...form.register("recordNoteOverride")}
+                        />
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            Shows in: Record note.
+                          </p>
+                          <CharacterCount
+                            value={values.recordNoteOverride}
+                            max={textFieldLimits.recordNoteOverride}
                           />
                         </div>
                       </div>
@@ -4576,18 +8699,18 @@ export function PacketBuilder() {
                   <div>
                     <p className={labelClassName()}>Live preview</p>
                     <h3 className="mt-2 font-display text-[1.35rem] font-bold leading-[0.95] tracking-[-0.055em] text-foreground">
-                      Review first. Change only the customer-facing lines.
+                      Review first. Change only the customer lines.
                     </h3>
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                      The report writes the wording from the job facts. If one
-                      sentence sounds wrong, edit the result, instruction, or
-                      recorded note before printing.
+                      Customer wording comes from the job facts. If one sentence
+                      sounds wrong, edit the result, instruction, or recorded
+                      note before printing.
                     </p>
                     <div className="mt-4 grid gap-2">
                       {[
                         ["Job", activeJobPattern.label],
                         [
-                          "Proof",
+                          "Photos",
                           `${uploadedProofCount} placed / ${unplacedFieldPhotos.length} extra`,
                         ],
                         ["Next", `${selectedCadenceOption.label} cadence`],
@@ -4603,7 +8726,7 @@ export function PacketBuilder() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => selectBuilderStep("report")}
+                      onClick={() => selectBuilderStep("confirm")}
                       className="mt-4 rounded-full bg-[#111315] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
                     >
                       Edit customer wording
@@ -4617,9 +8740,9 @@ export function PacketBuilder() {
                   <div>
                     <p className={labelClassName()}>Customer link vs PDF</p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Switch between the two outputs vendors need: a premium
-                      proof link for customer understanding and a service record
-                      PDF for archive or later requests.
+                      Switch between the two outputs vendors need: a customer
+                      handoff link for the next action and an evidence PDF for
+                      archive, submission, or later requests.
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-wrap justify-end gap-2">
@@ -4669,10 +8792,10 @@ export function PacketBuilder() {
                       className="tool-segmented-control rounded-full"
                     >
                       <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-xs">
-                        Proof link
+                        Customer link
                       </SegmentedControlItem>
                       <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-xs">
-                        Record PDF
+                        Evidence PDF
                       </SegmentedControlItem>
                     </SegmentedControl>
                     <div className="grid gap-2 md:grid-cols-2">
@@ -4680,12 +8803,12 @@ export function PacketBuilder() {
                         [
                           "Customer link",
                           "Primary output",
-                          "Premium web handoff - best for customer clarity, trust, open-item action, and rebook reply.",
+                          "Web handoff - best for customer clarity, follow-up items, and reply.",
                         ],
                         [
                           "PDF / print",
-                          "Record output",
-                          "Formal service record - best for archive, attachment, print, and later customer requests.",
+                          "Evidence output",
+                          "Formal evidence record - best for archive, attachment, print, and outside record requests.",
                         ],
                       ].map(([label, value, copy]) => {
                         const isActive =
@@ -4726,7 +8849,7 @@ export function PacketBuilder() {
                             Noindex, unbranded, local photo test.
                           </p>
                           <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
-                            This link stores the current packet and photos in
+                            This link stores the current customer link and photos in
                             this browser for QA. Hosted storage is still needed
                             before cross-device customer delivery.
                           </p>
@@ -4758,8 +8881,8 @@ export function PacketBuilder() {
                       <div className="min-w-0">
                         <p className={labelClassName()}>PDF detail options</p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          These switches control the service record PDF only.
-                          The customer proof link keeps the premium web layout.
+                          These switches control the evidence PDF only.
+                          The customer handoff keeps the web layout.
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
@@ -4777,13 +8900,13 @@ export function PacketBuilder() {
                             value="standard"
                             className="tool-segmented-item rounded-full text-xs"
                           >
-                            Full report
+                            Full PDF
                           </SegmentedControlItem>
                           <SegmentedControlItem
                             value="short"
                             className="tool-segmented-item rounded-full text-xs"
                           >
-                            Short report
+                            Short PDF
                           </SegmentedControlItem>
                         </SegmentedControl>
                       </div>
@@ -4835,35 +8958,29 @@ export function PacketBuilder() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-4 grid gap-3 md:grid-cols-4">
+                  <div className="mt-4 grid gap-3 md:grid-cols-5">
                   {[
                     [
-                      "Result",
-                      values.scenario === "clean"
-                        ? "Standard close-out copy"
-                        : values.exceptionKinds.length > 1
-                          ? `${values.exceptionKinds.length} recorded exceptions`
-                          : "1 recorded exception",
+                      "Record type",
+                      closeoutEngine.recordFormat.label,
                     ],
                     [
-                      "Customer action",
-                      values.customerActionOverride?.trim()
-                        ? "Manual wording applied"
-                        : "Auto-written from selections",
+                      "Record basis",
+                      claimLevelLabel,
                     ],
                     [
-                      "Recorded note",
-                      values.followUpOverride?.trim() || values.followUpNote?.trim()
-                        ? "Manual note active"
-                        : "Default recorded note",
+                      "Photo coverage",
+                      closeoutEngine.proofCoverage.shortLabel,
                     ],
                     [
-                      "Field proof",
-                      hasOrderMatchedPhotos
-                        ? `${uploadedProofCount} placed / ${orderMatchedPhotoCount} review`
-                        : totalFieldPhotoCount > 0
-                        ? `${uploadedProofCount} placed / ${unplacedFieldPhotos.length} extra`
-                        : "No photos attached",
+                      "Primary action",
+                      enginePrimaryCtaLabel,
+                    ],
+                    [
+                      "Record note",
+                      closeoutEngine.warnings.length > 0
+                        ? `${closeoutEngine.warnings.length} note(s)`
+                        : "No record note",
                     ],
                   ].map(([label, value]) => (
                     <div
@@ -4895,6 +9012,8 @@ export function PacketBuilder() {
                     unplacedPhotos={unplacedFieldPhotos}
                     onMove={reassignPhoto}
                     onPlaceExtra={placeUnplacedPhoto}
+                    onConfirmSuggestion={confirmPhotoSuggestion}
+                    onRejectSuggestion={rejectPhotoSuggestion}
                   />
                 </div>
               </div>
@@ -4911,7 +9030,7 @@ export function PacketBuilder() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className={labelClassName()}>
-                      {reportOutputMode === "link" ? "Customer preview" : "PDF preview"}
+                      {reportOutputMode === "link" ? "Customer handoff preview" : "Evidence record preview"}
                     </p>
                     <span className="rounded-full border border-[#f26a21]/20 bg-[#fff7ef] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
                       {reportOutputMeta.badge}
@@ -4935,10 +9054,10 @@ export function PacketBuilder() {
                   className="tool-segmented-control shrink-0 rounded-full md:w-[280px]"
                 >
                   <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-xs">
-                    Link view
+                    Handoff
                   </SegmentedControlItem>
                   <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-xs">
-                    Record PDF
+                    Evidence PDF
                   </SegmentedControlItem>
                 </SegmentedControl>
               </div>
@@ -4946,7 +9065,7 @@ export function PacketBuilder() {
                 className={`min-w-0 border bg-white ${
                   reportOutputMode === "pdf"
                     ? "tool-pdf-paper-shell mx-auto w-fit max-w-full overflow-x-auto rounded-[18px] border-black/12 p-0 shadow-[0_28px_90px_rgba(17,17,17,0.22)]"
-                    : "overflow-x-hidden rounded-[24px] border-black/10 p-2 md:p-3"
+                    : "tool-link-preview-shell overflow-x-auto rounded-[24px] border-black/10 p-2 md:p-3"
                 }`}
               >
                 <div
@@ -4961,9 +9080,10 @@ export function PacketBuilder() {
                     className={
                       reportOutputMode === "pdf"
                         ? "tool-pdf-document-preview"
-                        : undefined
+                        : "tool-link-document-preview"
                     }
                     variant="customer-report"
+                    heroHeadingLevel="h2"
                     outputIntent={
                       reportOutputMode === "pdf"
                         ? "service-record"
@@ -4971,6 +9091,7 @@ export function PacketBuilder() {
                     }
                     presentationMode={activePreviewPresentationMode}
                     visibleSections={activePreviewSections}
+                    editConfig={customerPreviewEditConfig}
                   />
                 </div>
               </div>
@@ -4992,7 +9113,7 @@ export function PacketBuilder() {
               <DrawerHeader className="px-4 pb-2 pt-4">
                 <DrawerTitle className="text-[1.45rem]">Review photo roles</DrawerTitle>
                 <DrawerDescription className="text-xs leading-5">
-                  Phone uploads are sorted by order. Change only the wrong roles.
+                  Phone filenames are ignored. Confirm the role, change it, or leave uncertain photos out.
                 </DrawerDescription>
               </DrawerHeader>
               <div className="min-h-0 overflow-y-auto px-3 pb-3">
@@ -5003,6 +9124,8 @@ export function PacketBuilder() {
                     unplacedPhotos={unplacedFieldPhotos}
                     onMove={reassignPhoto}
                     onPlaceExtra={placeUnplacedPhoto}
+                    onConfirmSuggestion={confirmPhotoSuggestion}
+                    onRejectSuggestion={rejectPhotoSuggestion}
                     mobileSheetMode
                   />
                 </div>
@@ -5019,17 +9142,17 @@ export function PacketBuilder() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (hasOrderMatchedPhotos) {
+                    if (hasSuggestedPhotoRoles) {
                       confirmAutoPlacedPhotoRoles();
                       return;
                     }
 
                     setMobileSheet(null);
-                    selectBuilderStep("report");
+                    selectBuilderStep("confirm");
                   }}
                   className="h-11 rounded-[16px] bg-[#111315] text-[11px] font-bold uppercase tracking-[0.12em] text-white"
                 >
-                  {hasOrderMatchedPhotos ? "Confirm roles" : "Preview packet"}
+                  {hasSuggestedPhotoRoles ? "Confirm suggested roles" : previewProofLinkLabel}
                 </button>
               </DrawerFooter>
             </>
@@ -5040,8 +9163,8 @@ export function PacketBuilder() {
               <DrawerHeader>
                 <DrawerTitle>PDF / print options</DrawerTitle>
                 <DrawerDescription>
-                  The proof link is the customer handoff. Print / save creates a
-                  service record PDF.
+                  The customer handoff is for delivery. Print / save creates the
+                  evidence PDF.
                 </DrawerDescription>
               </DrawerHeader>
               <div className="min-h-0 overflow-y-auto px-4 pb-4">
@@ -5058,17 +9181,17 @@ export function PacketBuilder() {
                     className="mt-3 w-full rounded-full"
                   >
                     <SegmentedControlItem value="standard" className="rounded-full text-xs">
-                      Full report
+                      Full PDF
                     </SegmentedControlItem>
                     <SegmentedControlItem value="short" className="rounded-full text-xs">
-                      Short report
+                      Short PDF
                     </SegmentedControlItem>
                   </SegmentedControl>
                   <div className="mt-3 rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5">
                     <p className="text-xs leading-5 text-muted-foreground">
-                      Free local links are noindex and unbranded. They include
-                      photos in this browser for QA; hosted storage is still
-                      required for real customer delivery.
+                      Free browser links are noindex and unbranded. They include
+                      photos in this browser; hosted storage is still required
+                      for real customer delivery.
                     </p>
                   </div>
                 </div>
@@ -5079,7 +9202,7 @@ export function PacketBuilder() {
                     className="tool-action-btn tool-action-primary h-11 px-3"
                   >
                     <Copy className="h-3.5 w-3.5" />
-                    Copy local link
+                    Copy handoff
                   </button>
                   <button
                     type="button"
@@ -5138,11 +9261,11 @@ export function PacketBuilder() {
                   type="button"
                   onClick={() => {
                     setMobileSheet(null);
-                    selectBuilderStep("photos");
+                    selectBuilderStep("proof");
                   }}
                   className="tool-action-btn tool-action-secondary h-12"
                 >
-                  Back to photos
+                  Back to proof photos
                 </button>
                 <button
                   type="button"
@@ -5199,13 +9322,13 @@ export function PacketBuilder() {
                 <div className="rounded-[18px] border border-black/8 bg-white px-4 py-3">
                   <p className={labelClassName()}>Free output</p>
                   <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
-                    Neutral customer packet, local preview, no placeholder contact blocks.
+                    Neutral customer handoff, browser-only photos, no placeholder contact blocks.
                   </p>
                 </div>
                 <div className="rounded-[18px] border border-[#f26a21]/22 bg-[#fff7ef] px-4 py-3">
                   <p className={labelClassName()}>Setup adds</p>
                   <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
-                    Logo, phone, dispatch email, reply CTA, saved photos, and history.
+                    Logo, phone, dispatch email, reply button, saved photos, and history.
                   </p>
                 </div>
               </div>
@@ -5243,65 +9366,18 @@ export function PacketBuilder() {
         initial={{ y: 18, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className={`pdf-print-hide fixed inset-x-3 bottom-3 z-40 border border-black/10 bg-white/94 shadow-[0_20px_70px_rgba(17,17,17,0.22)] backdrop-blur md:hidden ${
-          isPhotoStep ? "hidden" : ""
-        } ${
-          builderStep === "report" ? "rounded-[24px] p-2" : "rounded-[26px] p-2.5"
-        }`}
+        className="pdf-print-hide fixed inset-x-3 bottom-3 z-40 hidden rounded-[24px] border border-black/10 bg-white/94 p-2 shadow-[0_20px_70px_rgba(17,17,17,0.22)] backdrop-blur md:hidden"
         style={{
-          paddingBottom:
-            builderStep === "report"
-              ? "calc(0.5rem + env(safe-area-inset-bottom))"
-              : "calc(0.625rem + env(safe-area-inset-bottom))",
+          paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))",
         }}
       >
-        {builderStep === "report" ? null : (
-          <div className="mb-2 flex items-center justify-between gap-3 px-1">
-            <div className="min-w-0">
-              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                Step {builderStepIndex + 1} of {builderSteps.length}
-              </p>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={builderStep}
-                  initial={{ y: 5, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -5, opacity: 0 }}
-                  transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <p className="mt-0.5 truncate text-xs font-semibold text-foreground">
-                    {mobileStepCaption}
-                  </p>
-                  <p className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
-                    {mobileStepHint}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-            <div className="flex shrink-0 gap-1">
-              {builderSteps.map((step, index) => (
-                <motion.span
-                  key={step.value}
-                  layout
-                  className={`h-1.5 rounded-full transition-all ${
-                    index === builderStepIndex
-                      ? "w-6 bg-[#111315]"
-                      : index < builderStepIndex
-                        ? "w-2 bg-[#f26a21]"
-                        : "w-2 bg-black/14"
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
         <div className="grid grid-cols-[0.82fr_1.18fr] gap-2">
           <button
             type="button"
             onClick={handleMobileSecondaryAction}
             className="tool-action-btn tool-action-secondary h-12 px-3 active:scale-[0.99]"
           >
-            {builderStep === "report" ? (
+            {isOutputStep ? (
               <Settings2 className="h-4 w-4" />
             ) : totalFieldPhotoCount === 0 ? (
               <Eye className="h-4 w-4" />
@@ -5321,7 +9397,7 @@ export function PacketBuilder() {
           >
             {mobilePrimaryIsPrint ? (
               <FileDown className="h-4 w-4" />
-            ) : builderStep === "photos" ? (
+            ) : builderStep === "proof" ? (
               <Plus className="h-4 w-4" />
             ) : (
               <Copy className="h-4 w-4" />

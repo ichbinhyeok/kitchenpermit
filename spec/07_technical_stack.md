@@ -13,20 +13,29 @@ The hood MVP will use:
 - `Motion`: Framer Motion
 - `Icons`: Lucide
 - `Backend`: Spring Boot REST API
-- `Persistence`: SQLite-first structured storage + versioned schema migrations
+- `Persistence`: Supabase Postgres for hosted production data + versioned schema migrations
 - `Object storage`: Cloudflare R2 for normalized report photos and future PDF artifacts
 - `Outbound execution`: Smartlead
+- `Axis 1 AI Photo Assist provider`: Gemini API, default model `gemini-2.5-flash`
 - `Exports`: backend-owned HTML/PDF export pipeline
 
 This is the locked default stack for MVP.
 
-Cost lock:
-The MVP should not start with MySQL or PostgreSQL unless operational pressure
-proves that a server database is needed. SQLite is enough for early customer
-report links, vendor setup records, delivery tokens, and outbound analysis
-metadata when the app runs on one controlled server.
+Production data lock:
+Hosted customer history, share links, revoke/expiry state, and operator records
+should live in managed Postgres from the first real production cutover. For the
+current MVP path that means Supabase Postgres. A local file-backed database may
+still remain useful for isolated development or offline verification, but it is
+not the target production system.
 
 The product is no longer locked to `Spring MVC + JTE` as the browser-facing UI stack.
+
+Axis 1 AI Photo Assist provider rule:
+Gemini is the default live vision provider, but it must sit behind a
+provider-neutral adapter with mock/rule fallback. AI Photo Assist may organize
+photo suggestions only; it must not become the closeout engine, customer copy
+writer, compliance judge, or output generator. See
+`spec/22_axis1_ai_photo_assist_provider_lock.md`.
 
 ---
 
@@ -296,9 +305,8 @@ Reason:
 ## 8. Deployment posture
 Recommended runtime shape:
 
-- `frontend`: Next.js container
-- `backend`: Spring Boot container
-- `reverse proxy`: Nginx or Caddy
+- `app`: Spring Boot container serving `/api` and the exported Next.js frontend
+- `reverse proxy`: Nginx
 
 Deployment model:
 
@@ -307,18 +315,20 @@ Deployment model:
 - the Oracle server pulls and restarts with Docker Compose
 
 Locked rule:
-Keep deployment operationally simple, but do not collapse frontend and backend responsibilities back into one server-rendered template app.
+Keep deployment operationally simple. Public browser pages may ship as exported
+Next.js assets served by Spring, but domain logic and API authority stay in
+Spring rather than moving back into server templates.
 
 ---
 
 ## 9. When the stack should change again
 Changing away from this stack becomes reasonable only if:
 
-- the frontend becomes extremely static and no longer benefits from Next
+- request-time Next server features become product-critical again
 - the backend leaves the JVM ecosystem for a clear operational reason
 - export generation moves to a dedicated rendering service for scale
 - write volume, concurrent editing, team access, or reporting needs outgrow
-  a single SQLite file
+  the managed Postgres baseline
 
 Until then, this is the locked stack.
 
@@ -327,8 +337,8 @@ Until then, this is the locked stack.
 ## 9.1 Low-cost storage lock
 The MVP storage posture is:
 
-- `SQLite`: primary structured database for report metadata, share tokens,
-  vendor setup records, delivery status, and outbound/result analysis
+- `Supabase Postgres`: primary structured database for report metadata, share
+  tokens, vendor setup records, delivery status, and outbound/result analysis
 - `Cloudflare R2`: object storage for normalized report photos and future
   generated PDF artifacts
 - `CSV`: import/export and manual research exchange format only
@@ -338,17 +348,10 @@ CSV is not the source of truth for customer report links.
 Why:
 
 - customer links need revoke/expiry/status behavior
+- customer/vendor history is expected to be a paid feature
 - report records need stable IDs and share tokens
 - photos should not be stored in the SQL database
-- early volume does not justify MySQL/PostgreSQL operations
-
-Upgrade trigger:
-Move from SQLite to PostgreSQL only when one of these becomes true:
-
-- multiple backend instances need concurrent writes
-- customer history becomes a core paid feature
-- reporting queries become too heavy for the single-file database
-- backup/restore and audit requirements exceed the simple SQLite model
+- early volume is still small enough for Supabase free or low-cost tiers
 
 Object storage rule:
 Store only browser-normalized, compressed report images by default. Avoid storing
@@ -364,8 +367,8 @@ The hood MVP stack is:
 - `Component layer`: shadcn/ui
 - `Motion`: Framer Motion
 - `Icons`: Lucide
-- `Backend`: Spring Boot REST API
-- `Database`: SQLite-first
+- `Backend`: Spring Boot REST API serving exported Next.js assets
+- `Database`: Supabase Postgres
 - `Object storage`: Cloudflare R2
 - `Migrations`: versioned SQL migrations
 - `Outbound provider`: Smartlead

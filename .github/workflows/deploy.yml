@@ -1,0 +1,139 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: hood-production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Install npm dependencies
+        run: |
+          npm ci
+          npm --prefix frontend ci
+
+      - name: Build and test
+        run: ./gradlew --no-daemon test bootJar
+
+      - name: Compute image name
+        id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image.outputs.name }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ORACLE_SSH_KEY }}
+
+      - name: Add Oracle host to known_hosts
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT="${{ secrets.ORACLE_PORT }}"
+          if [ -z "$PORT" ]; then
+            PORT=22
+          fi
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "$PORT" -H "${{ secrets.ORACLE_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload deploy assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT="${{ secrets.ORACLE_PORT }}"
+          DEPLOY_DIR="${{ secrets.ORACLE_DEPLOY_PATH }}"
+
+          if [ -z "$PORT" ]; then
+            PORT=22
+          fi
+
+          if [ -z "$DEPLOY_DIR" ]; then
+            DEPLOY_DIR=/opt/hood
+          fi
+
+          ssh -p "$PORT" "${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}" "mkdir -p '$DEPLOY_DIR'"
+          scp -P "$PORT" deploy/compose.yaml deploy/nginx.conf.template "${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}:$DEPLOY_DIR/"
+
+      - name: Pull and restart on Oracle
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT="${{ secrets.ORACLE_PORT }}"
+          DEPLOY_DIR="${{ secrets.ORACLE_DEPLOY_PATH }}"
+          IMAGE_REF="${{ steps.image.outputs.name }}:latest"
+
+          if [ -z "$PORT" ]; then
+            PORT=22
+          fi
+
+          if [ -z "$DEPLOY_DIR" ]; then
+            DEPLOY_DIR=/opt/hood
+          fi
+
+          ssh -p "$PORT" "${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}" <<EOF
+          set -euo pipefail
+          cd "$DEPLOY_DIR"
+          test -f .env || { echo ".env is missing in $DEPLOY_DIR" >&2; exit 1; }
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          export HOOD_IMAGE="$IMAGE_REF"
+          docker compose -f compose.yaml --env-file .env pull
+          docker compose -f compose.yaml --env-file .env up -d --remove-orphans
+          docker logout ghcr.io
+          EOF

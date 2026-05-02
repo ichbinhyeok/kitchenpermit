@@ -1,5 +1,10 @@
-import { redirect } from "next/navigation";
+﻿import { ClientRedirect } from "@/components/navigation/client-redirect";
 
 export default function SampleHoodCleaningReportPage() {
-  redirect("/p/sample-hood-cleaning");
+  return (
+    <ClientRedirect
+      href="/p/sample-hood-cleaning"
+      copy="The report alias now lands on the sample customer-link route directly."
+    />
+  );
 }

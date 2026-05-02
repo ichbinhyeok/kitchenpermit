@@ -1,9 +1,11 @@
 import type { Axis1PacketDocumentSectionVisibility } from "@/components/axis1/packet-document";
+import type { Axis1CloseoutLinks } from "@/lib/axis1-closeout-engine";
 import type { Axis1BuilderFormValues } from "@/lib/axis1-packet-builder";
 import type {
   Axis1PhotoSlotResolutionState,
   Axis1UploadedFieldPhotoState,
 } from "@/lib/axis1-field-photos";
+import type { Axis1PacketPreviewData } from "@/lib/axis1-packet-preview";
 
 const localPacketStoragePrefix = "hood.axis1.local-packet.";
 const localPacketReadCache = new Map<
@@ -21,8 +23,10 @@ export type Axis1LocalPacketRecord = {
   values: Axis1BuilderFormValues;
   uploadedFieldPhotos: Axis1UploadedFieldPhotoState;
   photoSlotResolutions: Axis1PhotoSlotResolutionState;
+  links?: Axis1CloseoutLinks;
   presentationMode: "standard" | "short";
   visibleSections: Axis1PacketDocumentSectionVisibility;
+  packetData?: Axis1PacketPreviewData;
 };
 
 export type Axis1LocalPacketSaveInput = Omit<
@@ -54,7 +58,7 @@ function storageKey(id: string) {
 }
 
 export function getAxis1LocalPacketHref(id: string) {
-  return `/p/local/${encodeURIComponent(id)}`;
+  return `/p/local?packetId=${encodeURIComponent(id)}`;
 }
 
 function localStorageAvailable() {
@@ -86,7 +90,7 @@ export function saveAxis1LocalPacket(
     return {
       ok: false,
       error:
-        "The packet was too large for local browser storage. Try fewer photos or smaller image files.",
+        "The customer link was too large for local browser storage. Try fewer photos or smaller image files.",
     };
   }
 
