@@ -193,7 +193,7 @@ const vendorSets = [
     photos: [
       ["IMG_6701.jpg", "frontend/public/axis1-test-photos/clean-hood-before-after.jpg", "hood-before", ["hood-before", "hood-after", "filter-bank", "grease-containment"], true],
       ["IMG_6702.jpg", "frontend/public/axis1-test-photos/dirty-hood-filter-wide.jpg", "hood-before", ["hood-before", "filter-bank", "grease-containment"], true],
-      ["IMG_6703.jpg", "frontend/public/axis1-test-photos/clean-filter-after-wash.jpg", "hood-after", ["hood-after", "filter-bank"], true],
+      ["IMG_6703.jpg", "frontend/public/axis1-test-photos/clean-filter-after-wash.jpg", "filter-bank", ["hood-after", "filter-bank"], false],
       ["IMG_6704.jpg", "frontend/public/axis1-test-photos/grease-removed-bucket.jpg", "grease-containment", ["grease-containment"], true],
     ],
   },

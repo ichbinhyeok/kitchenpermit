@@ -89,17 +89,22 @@ async function startStaticServer() {
     );
   }
 
-  const baseUrl = `http://localhost:${defaultPort}`;
+  let selectedPort = defaultPort;
+  let baseUrl = `http://localhost:${selectedPort}`;
 
-  if (await canReachServer(baseUrl)) {
-    return { baseUrl, stop: async () => {} };
+  while (await canReachServer(baseUrl)) {
+    selectedPort += 1;
+    if (selectedPort > defaultPort + 50) {
+      throw new Error(`No free local port found from ${defaultPort} to ${defaultPort + 50}.`);
+    }
+    baseUrl = `http://localhost:${selectedPort}`;
   }
 
   const command = process.platform === "win32" ? "cmd.exe" : "npx";
   const args =
     process.platform === "win32"
-      ? ["/c", "npx", "serve@latest", "out", "-l", String(defaultPort)]
-      : ["serve@latest", "out", "-l", String(defaultPort)];
+      ? ["/c", "npx", "serve@latest", "out", "-l", String(selectedPort)]
+      : ["serve@latest", "out", "-l", String(selectedPort)];
   const child = spawn(command, args, {
     cwd: frontendDir,
     stdio: ["ignore", "ignore", "ignore"],

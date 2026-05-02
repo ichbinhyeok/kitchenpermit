@@ -35,7 +35,6 @@ import {
   FileText,
   GripVertical,
   Link2,
-  Menu as MenuIcon,
   PencilLine,
   Plus,
   ReceiptText,
@@ -54,6 +53,7 @@ import {
   type CustomerWebPacketEditConfig,
   type CustomerWebPacketEditTarget,
 } from "@/components/axis1/packet-document";
+import { Axis1BuilderHeader } from "@/components/axis1/axis1-builder-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -2521,8 +2521,6 @@ export function PacketBuilder() {
   const [mobileSheet, setMobileSheet] = useState<MobileSheetView | null>(null);
   const [setupNoticeAction, setSetupNoticeAction] =
     useState<SetupNoticeAction | null>(null);
-  const [showToolMenu, setShowToolMenu] = useState(false);
-  const toolMenuRef = useRef<HTMLDivElement | null>(null);
   const isProofStep = builderStep === "photos";
   const isOutputStep = builderStep === "outputs";
   const isPhotoStep = isProofStep;
@@ -2536,24 +2534,6 @@ export function PacketBuilder() {
   useEffect(() => {
     unplacedFieldPhotosRef.current = unplacedFieldPhotos;
   }, [unplacedFieldPhotos]);
-
-  useEffect(() => {
-    if (!showToolMenu) {
-      return;
-    }
-
-    function handleToolMenuKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setShowToolMenu(false);
-      }
-    }
-
-    document.addEventListener("keydown", handleToolMenuKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleToolMenuKeyDown);
-    };
-  }, [showToolMenu]);
 
   useEffect(() => {
     const requestedStep = new URLSearchParams(window.location.search).get("step");
@@ -3864,7 +3844,6 @@ export function PacketBuilder() {
 
     setBuilderStep(step);
     setMobileSheet(null);
-    setShowToolMenu(false);
 
     const url = new URL(window.location.href);
     url.searchParams.set("step", step);
@@ -5391,121 +5370,12 @@ export function PacketBuilder() {
             : "workspace-shell scroll-mt-[6.5rem] pt-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pt-6 md:pb-20"
       }
     >
-      {(
-        <div className="pdf-print-hide relative z-[120] mx-auto w-full max-w-[1180px] overflow-visible pb-3">
-          <div
-            className="relative overflow-visible flex min-h-[54px] items-center gap-2 rounded-full border border-white/10 bg-[#171a1d]/94 p-1.5 shadow-[0_14px_46px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:min-h-[58px]"
-            data-axis-tool-header
-          >
-            <div className="flex min-w-0 shrink-0 items-center gap-2 px-1">
-              <div
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white font-black tracking-[-0.06em] text-[#111315]"
-                data-axis-tool-brand-icon
-              >
-                H
-              </div>
-              <div className="hidden min-w-0 sm:block">
-                <p className="truncate text-sm font-black uppercase tracking-[-0.05em] text-white">
-                  Hood
-                </p>
-                <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-white/42">
-                  Closeout
-                </p>
-              </div>
-            </div>
-            <div className="flex min-w-0 flex-1 items-center gap-1 rounded-full bg-black/18 p-1">
-              {builderSteps.map((step, index) => {
-                const stepMetric = getBuilderStepMetric(step.value);
-                const selected = builderStep === step.value;
-
-                return (
-                  <button
-                    key={step.value}
-                    type="button"
-                    onClick={() => selectBuilderStep(step.value)}
-                    aria-label={step.label}
-                    className={`group flex h-10 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-center transition-all duration-200 sm:h-11 sm:flex-row sm:justify-between sm:gap-1.5 sm:px-3 ${
-                      selected
-                        ? "bg-white text-[#111315] shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
-                        : "bg-transparent text-white/38 opacity-70 hover:bg-white/[0.055] hover:text-white/70 hover:opacity-100"
-                    }`}
-                    data-axis-tool-step
-                  >
-                    <span
-                      className={`hidden h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-black min-[360px]:grid ${
-                        selected
-                          ? "bg-[#111315] text-white"
-                          : "bg-white/[0.08] text-white/42"
-                      }`}
-                    >
-                      {index + 1}
-                    </span>
-                    <span
-                      className="min-w-0 whitespace-nowrap text-[9px] font-black uppercase tracking-[0.06em] sm:text-[11px] sm:tracking-[0.08em]"
-                    >
-                      <span className="lg:hidden">{step.navLabel}</span>
-                      <span className="hidden lg:inline">{step.label}</span>
-                    </span>
-                    {selected ? (
-                      <span className="hidden whitespace-nowrap rounded-full border border-black/10 bg-[#111315]/5 px-2 py-0.5 text-[10px] font-bold text-[#111315]/58 md:inline-flex">
-                        {stepMetric}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="relative shrink-0" ref={toolMenuRef}>
-              <button
-                type="button"
-                onPointerDown={(event) => {
-                  event.stopPropagation();
-                  setShowToolMenu((current) => !current);
-                }}
-                onClick={(event) => {
-                  if (event.detail !== 0) {
-                    return;
-                  }
-
-                  setShowToolMenu((current) => !current);
-                }}
-                aria-label="Open tool menu"
-                className="inline-flex h-10 w-10 items-center justify-center gap-1 rounded-full border border-white/10 bg-white/[0.065] text-[11px] font-black uppercase tracking-[0.08em] text-white transition hover:bg-white/[0.09] sm:h-11 sm:w-auto sm:px-3 sm:tracking-[0.12em]"
-              >
-                <MenuIcon className="h-4 w-4 sm:hidden" />
-                <span className="hidden sm:inline">Menu</span>
-                <ChevronDown
-                  className={`hidden h-3.5 w-3.5 transition sm:block ${
-                    showToolMenu ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {showToolMenu ? (
-                <div
-                  onMouseDown={(event) => event.stopPropagation()}
-                  onTouchStart={(event) => event.stopPropagation()}
-                  className="absolute right-0 top-12 z-[160] w-44 overflow-hidden rounded-[18px] border border-white/10 bg-[#202326] p-1 shadow-[0_22px_70px_rgba(0,0,0,0.38)]"
-                >
-                  {[
-                    ["/samples/axis-1", "Sample"],
-                    ["/axis-1", "Product"],
-                    ["/start", "Setup"],
-                  ].map(([href, label]) => (
-                    <a
-                      key={href}
-                      href={href}
-                      onClick={() => setShowToolMenu(false)}
-                      className="block rounded-[14px] px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/68 hover:bg-white/[0.07] hover:text-white"
-                    >
-                      {label}
-                    </a>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      )}
+      <Axis1BuilderHeader
+        activeStep={builderStep}
+        getStepMetric={getBuilderStepMetric}
+        onSelectStep={selectBuilderStep}
+        steps={builderSteps}
+      />
       <div
         className={`grid min-w-0 gap-5 ${
           isOutputStep
