@@ -282,11 +282,19 @@ async function selectVisiblePhotoRole(page, roleValue) {
 }
 
 async function pickCompleted(page) {
-  await clickVisibleButton(page, /^COMPLETED|^Completed/);
+  const clicked = await clickVisibleButton(page, /^COMPLETED|^Completed/, { optional: true });
+  if (!clicked) {
+    await clickVisibleButton(page, /(^|\n)Review\b|Draft closeout|Pick result|Package/i, { waitMs: 250 });
+    await clickVisibleButton(page, /^COMPLETED|^Completed/);
+  }
 }
 
 async function pickCondition(page) {
-  await clickVisibleButton(page, "CONDITION FOUND");
+  const clicked = await clickVisibleButton(page, "CONDITION FOUND", { optional: true });
+  if (!clicked) {
+    await clickVisibleButton(page, /(^|\n)Review\b|Draft closeout|Pick result|Package/i, { waitMs: 250 });
+    await clickVisibleButton(page, "CONDITION FOUND");
+  }
 }
 
 async function pickVisitType(page, label) {
@@ -294,7 +302,7 @@ async function pickVisitType(page, label) {
 }
 
 async function confirmNotesIfNeeded(page) {
-  await clickVisibleButton(page, /(^|\n)USE NOTES FOR MISSING PROOF\b|(^|\n)USE NOTES\b|(^|\n)Use notes\b/i, {
+  await clickVisibleButton(page, /(^|\n)USE WRITTEN RECORD\b|(^|\n)USE RECORD\b|(^|\n)USE NOTES FOR MISSING PROOF\b|(^|\n)USE NOTES\b|(^|\n)Use notes\b/i, {
     optional: true,
     waitMs: 250,
   });
@@ -302,7 +310,7 @@ async function confirmNotesIfNeeded(page) {
 
 async function goToOutputs(page) {
   await confirmNotesIfNeeded(page);
-  await clickVisibleButton(page, /(^|\n)SEND\b|(^|\n)Send\b|Go to Send|Continue to Send|Open Send/i, { waitMs: 400 });
+  await clickVisibleButton(page, /(^|\n)OUTPUTS\b|(^|\n)Outputs\b|(^|\n)SEND\b|(^|\n)Send\b|Go to Outputs|Go to Send|Continue to Outputs|Continue to Send|Open Outputs|Open Send/i, { waitMs: 400 });
   const rows = await outputRows(page);
   assert(rows.length > 0, "Send page did not show generated output rows.");
   return rows;
@@ -687,10 +695,10 @@ async function assertMenuUsable(page) {
 
 async function assertToolIsCloseoutFirst(page) {
   const text = await bodyText(page);
-  assert(text.includes("Pick what happened"), "First screen does not lead with job result.");
-  assert(/job result/i.test(text), "First screen does not show compact result picker.");
-  assert(/declare/i.test(text), "First screen is not framed around declaration.");
-  assert(/photos optional|optional proof|photos and notes improve/i.test(text), "First screen does not keep photos optional.");
+  assert(/Add photos or a short note|Drop photos if you have them/i.test(text), "First screen does not lead with photos and notes.");
+  assert(/Draft closeout|Review written record/i.test(text), "First screen does not offer a low-effort path into review.");
+  assert(/photos|notes/i.test(text), "First screen is not framed around photos and notes.");
+  assert(/photos optional|saved even if not proof|no photos is okay/i.test(text), "First screen does not keep photos optional and non-threatening.");
   assert(!/\bRisk\b[\s\S]{0,80}\bScope\b[\s\S]{0,80}\bProof\b/i.test(text), "Old risk/scope/proof workflow leaked into primary flow.");
 }
 
@@ -784,7 +792,7 @@ const testCases = [
       const note = "fan access blocked by locked roof hatch";
       await page.goto(`${baseUrl}${basePath}?qa=deep-v02&step=photos`, { waitUntil: "networkidle" });
       await page.locator("#quickCloseoutNote").fill(note);
-      await clickVisibleButton(page, "Package");
+      await clickVisibleButton(page, /(^|\n)Review\b|Package/i);
       await pickCompleted(page);
       assert((await page.locator("#quickCloseoutNote").inputValue()) === note, "Quick note did not persist.");
       assert(
@@ -913,7 +921,7 @@ const testCases = [
       });
       assert(/saved, not claimed|extra evidence|saved as extra/i.test(text), "Uncertain photos were not visible as extra evidence candidates.");
       assert(!/photo role still needs your choice|Photo needs one tap|Use this as/i.test(text), "Photo dump still looked like mandatory classification work.");
-      await clickVisibleButton(page, /^Pick result|Package|Package closeout/i);
+      await clickVisibleButton(page, /^Draft closeout|(^|\n)Review\b|^Pick result|Package|Package closeout/i);
       await pickCompleted(page);
       await goToOutputs(page);
       assert(!/photo role still needs your choice|Photo needs one tap/i.test(await bodyText(page)), "Outputs were still gated by photo classification.");

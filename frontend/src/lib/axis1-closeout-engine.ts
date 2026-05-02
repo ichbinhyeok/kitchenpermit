@@ -2186,10 +2186,10 @@ function buildCustomerResultCopy(
 ) {
   if (caseType === "access_exception") {
     return evidenceBasis === "photo_record"
-      ? "Accessible areas were completed and an access exception remains open. Attached field photos support the completed work and recorded access issue."
+      ? "Reachable work was completed and an access exception remains open. Attached field photos support only the completed areas shown and the recorded access issue."
       : evidenceBasis === "partial_photos"
-        ? "Accessible areas were completed and an access exception remains open. Attached photos support only the areas shown."
-        : "Accessible areas were completed and an access exception remains open. This record is based on service notes; photos are not attached to this visit.";
+        ? "Reachable work was completed and an access exception remains open. Attached photos support only the areas shown."
+        : "Reachable work was completed and an access exception remains open. This record is based on service notes; photos are not attached to this visit.";
   }
 
   if (caseType === "condition_review") {

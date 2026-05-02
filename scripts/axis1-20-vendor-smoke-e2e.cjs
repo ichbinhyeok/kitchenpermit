@@ -181,15 +181,27 @@ async function goToScenario(page, baseUrl, vendorId, step = "photos") {
 }
 
 async function pickCompleted(page) {
-  await clickVisibleButton(page, /^COMPLETED|^Completed/);
+  const clicked = await clickVisibleButton(page, /^COMPLETED|^Completed/, { optional: true });
+  if (!clicked) {
+    await clickVisibleButton(page, /(^|\n)Review\b|Draft closeout|Pick result|Package/i, { waitMs: 250 });
+    await clickVisibleButton(page, /^COMPLETED|^Completed/);
+  }
 }
 
 async function pickBlocked(page) {
-  await clickVisibleButton(page, "BLOCKED / NO ACCESS");
+  const clicked = await clickVisibleButton(page, "BLOCKED / NO ACCESS", { optional: true });
+  if (!clicked) {
+    await clickVisibleButton(page, /(^|\n)Review\b|Draft closeout|Pick result|Package/i, { waitMs: 250 });
+    await clickVisibleButton(page, "BLOCKED / NO ACCESS");
+  }
 }
 
 async function pickCondition(page) {
-  await clickVisibleButton(page, "CONDITION FOUND");
+  const clicked = await clickVisibleButton(page, "CONDITION FOUND", { optional: true });
+  if (!clicked) {
+    await clickVisibleButton(page, /(^|\n)Review\b|Draft closeout|Pick result|Package/i, { waitMs: 250 });
+    await clickVisibleButton(page, "CONDITION FOUND");
+  }
 }
 
 async function pickVisitType(page, label) {
@@ -197,7 +209,7 @@ async function pickVisitType(page, label) {
 }
 
 async function confirmNotesIfNeeded(page) {
-  await clickVisibleButton(page, /(^|\n)USE NOTES FOR MISSING PROOF\b|(^|\n)USE NOTES\b|(^|\n)Use notes\b/i, {
+  await clickVisibleButton(page, /(^|\n)USE WRITTEN RECORD\b|(^|\n)USE RECORD\b|(^|\n)USE NOTES FOR MISSING PROOF\b|(^|\n)USE NOTES\b|(^|\n)Use notes\b/i, {
     optional: true,
     waitMs: 250,
   });
@@ -205,7 +217,7 @@ async function confirmNotesIfNeeded(page) {
 
 async function goToOutputs(page) {
   await confirmNotesIfNeeded(page);
-  await clickVisibleButton(page, /(^|\n)SEND\b|(^|\n)Send\b|Go to Send|Continue to Send|Open Send/i, { waitMs: 350 });
+  await clickVisibleButton(page, /(^|\n)OUTPUTS\b|(^|\n)Outputs\b|(^|\n)SEND\b|(^|\n)Send\b|Go to Outputs|Go to Send|Continue to Outputs|Continue to Send|Open Outputs|Open Send/i, { waitMs: 350 });
   const rows = await outputRows(page);
   assert(rows.length > 0, "Send page did not show generated output rows.");
   return rows;
@@ -381,7 +393,7 @@ const vendorScenarios = [
     run: async ({ page }) => {
       const note = "fan access blocked by locked roof hatch";
       await page.locator("#quickCloseoutNote").fill(note);
-      await clickVisibleButton(page, "Package");
+      await clickVisibleButton(page, /(^|\n)Review\b|Package/i);
       await pickCompleted(page);
       assert((await page.locator("#quickCloseoutNote").inputValue()) === note, "Quick note was lost after result.");
       let text = await bodyText(page);
@@ -399,7 +411,7 @@ const vendorScenarios = [
       );
       text = await bodyText(page);
       assert(text.includes("Blocked / no access: Rooftop fan and roof discharge"), "Quick note did not update customer-safe blocked copy.");
-      await clickVisibleButton(page, "Declare");
+      await clickVisibleButton(page, /(^|\n)Photos\b|Declare/i);
       assert((await page.locator("#quickCloseoutNote").inputValue()) === note, "Quick note was not editable on return.");
     },
   },
@@ -460,7 +472,7 @@ const vendorScenarios = [
       );
       const rows = await goToOutputs(page);
       assert(outputRow(rows, "Payment-support copy").readiness === "needs_review", "Payment support should need review.");
-      assert((await bodyText(page)).includes("Fan"), "Fan status not visible in closeout.");
+      assert(/fan/i.test(await bodyText(page)), "Fan status not visible in closeout.");
     },
   },
   {
@@ -590,7 +602,7 @@ const vendorScenarios = [
       const text = await bodyText(page);
       assert(/saved, not claimed|extra evidence|saved as extra/i.test(text), "Uncertain photo was not kept visible as extra evidence.");
       assert(!/Use this as Access\?|PHOTO NEEDS ONE TAP|photo role still needs your choice/i.test(text), "Uncertain photo still created mandatory sorting work.");
-      await clickVisibleButton(page, /^Pick result|Package|Package closeout/i);
+      await clickVisibleButton(page, /^Draft closeout|(^|\n)Review\b|^Pick result|Package|Package closeout/i);
       await pickCompleted(page);
       const rows = await goToOutputs(page);
       assert(rows.length > 0, "Outputs did not open after uncertain photo stayed unused.");
@@ -613,7 +625,7 @@ const vendorScenarios = [
       );
       await clickVisibleButton(page, /FIX PHOTO MATCHES|REVIEW PHOTOS|Fix photo matches|Review photos/i);
       await selectVisiblePhotoRole(page, "rooftop-fan");
-      await clickVisibleButton(page, "Declare");
+      await clickVisibleButton(page, /(^|\n)Photos\b|Declare/i);
       const text = await bodyText(page);
       assert(/Fan[\s\S]{0,40}VENDOR CONFIRMED|Fan[\s\S]{0,40}AI ATTACHED/i.test(text), "Corrected photo role was not attached as fan.");
       assert(/1 confirmed/i.test(text), "Corrected photo did not stay confirmed.");
@@ -625,7 +637,7 @@ const vendorScenarios = [
     step: "photos",
     run: async ({ page }) => {
       await uploadSlotPhoto(page, "Upload Before photo", "dirty-hood-filter-wide.jpg");
-      await clickVisibleButton(page, "Package");
+      await clickVisibleButton(page, /(^|\n)Review\b|Package/i);
       await pickCompleted(page);
       const text = await bodyText(page);
       assert(
@@ -640,7 +652,7 @@ const vendorScenarios = [
     step: "photos",
     run: async ({ page }) => {
       await uploadSlotPhoto(page, "Upload After photo", "clean-hood-before-after.jpg");
-      await clickVisibleButton(page, "Package");
+      await clickVisibleButton(page, /(^|\n)Review\b|Package/i);
       await pickCompleted(page);
       const text = await bodyText(page);
       assert(
@@ -670,7 +682,7 @@ const vendorScenarios = [
     run: async ({ page }) => {
       const note = "duct not part of this visit";
       await page.locator("#quickCloseoutNote").fill(note);
-      await clickVisibleButton(page, "PACKAGE");
+      await clickVisibleButton(page, /REVIEW|PACKAGE/i);
       await pickCompleted(page);
       assert((await page.locator("#quickCloseoutNote").inputValue()) === note, "Mobile quick note was lost.");
       assert((await bodyText(page)).includes("CUSTOMER-SAFE DRAFT"), "Mobile closeout preview missing.");
@@ -686,9 +698,9 @@ const vendorScenarios = [
         .slice(0, 8)
         .map((button) => button.text)
         .join("\n");
-      assert(stepText.includes("DECLARE"), "Declare step missing.");
-      assert(stepText.includes("PACKAGE"), "Package step missing.");
-      assert(stepText.includes("SEND"), "Send step missing.");
+      assert(stepText.includes("PHOTOS"), "Photos step missing.");
+      assert(stepText.includes("REVIEW"), "Review step missing.");
+      assert(stepText.includes("OUTPUTS"), "Outputs step missing.");
       assert(!/\bRISK\b|\bSCOPE\b|\bPROOF\b|CONFIRM\/PAY|\bNEXT\b/.test(stepText), "Old 5-step IA visible in primary nav.");
     },
   },

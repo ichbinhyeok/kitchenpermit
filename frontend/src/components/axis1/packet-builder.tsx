@@ -1993,22 +1993,22 @@ function PhotoPlacementReview({
 const builderSteps = [
   {
     value: "photos",
-    label: "Declare",
-    navLabel: "Declare",
-    title: "Declare what happened",
-    copy: "Pick result first; photos and notes are optional evidence.",
+    label: "Photos & notes",
+    navLabel: "Photos",
+    title: "Add photos and notes",
+    copy: "Drop job photos or one short note. Axis 1 drafts the closeout from there.",
   },
   {
     value: "review",
-    label: "Package",
-    navLabel: "Package",
-    title: "Package closeout",
-    copy: "Fix only wrong claims, areas, and next action.",
+    label: "Review closeout",
+    navLabel: "Review",
+    title: "Review AI draft",
+    copy: "Fix only wrong or uncertain parts in the preview.",
   },
   {
     value: "outputs",
-    label: "Send",
-    navLabel: "Send",
+    label: "Outputs",
+    navLabel: "Outputs",
     title: "Send / save / get paid",
     copy: "Link, PDF, invoice proof, and follow-up copy.",
   },
@@ -2689,7 +2689,7 @@ export function PacketBuilder() {
       : missingRequiredSlots.length === 0
       ? `${uploadedProofCount} proof photos`
       : totalFieldPhotoCount === 0
-        ? "Pick result, then add photos if available"
+        ? "No photos yet"
         : `${missingRequiredSlots.length} core photo(s) still open`;
   const proofReadinessCopy =
     hasPendingPhotoAssist
@@ -2699,7 +2699,7 @@ export function PacketBuilder() {
         : hasBeforeOnly
           ? "No after photo is attached. Add one, or mark it not captured before continuing."
       : missingRequiredSlots.length === 0
-      ? "Core photos are ready. Continue to package, or add only helpful extras."
+      ? "Core photos are ready. Continue to review, or add only helpful extras."
       : totalFieldPhotoCount === 0
         ? "Pick the result and continue as a written service record when photos were not captured."
         : unplacedFieldPhotos.length > 0
@@ -2781,7 +2781,7 @@ export function PacketBuilder() {
   ).length;
   const scopeCheckTitle =
     !hasJobOutcomeSelected
-      ? "Pick result first"
+      ? "Confirm result first"
       : scopeNeedsReviewRows.length > 0
       ? scopeNeedsReviewRows.length === 1
         ? "1 area needs review"
@@ -2891,42 +2891,42 @@ export function PacketBuilder() {
   const scopeNeedsWrittenRecordConfirmation =
     builderStep === "review" && previewBlockedBy === "notes";
   const previewProofLinkLabel = !hasJobOutcomeSelected
-    ? "Pick result first"
+    ? "Confirm result first"
     : canPreviewProofLink
-      ? "Go to Send"
+      ? "Go to Outputs"
       : previewBlockedBy === "notes"
         ? "Continue with written record"
         : "Fix area status";
   const reportStatusLabel = !closeoutEngine.canGeneratePacket
     ? "Result required"
     : readyToSendWithoutReview
-      ? "Ready to send"
+      ? "Ready"
       : customerOutputsReadyWithChecks
-        ? "Send packet ready"
+        ? "Outputs ready"
     : "Needs review";
   const mobileReportStatus =
     !closeoutEngine.canGeneratePacket
       ? {
           tone: "partial",
-          title: "Pick the result first",
-          copy: "Pick what happened before the closeout is generated.",
+          title: "Confirm the result first",
+          copy: "Confirm what happened before outputs are generated.",
         }
       : sendReadinessBlockers.length > 0
       ? {
           tone: "review",
-          title: "Confirm before sending",
+          title: "Confirm before outputs",
           copy: sendReadinessBlockers[0] ?? "Review the remaining assumption.",
         }
       : reportNeedsPhotoReview
       ? {
           tone: "review",
-          title: "Check photo roles before sending",
+          title: "Check photo roles before outputs",
           copy: "Review AI photo matches first. They stay out until confirmed.",
         }
     : customerOutputsReadyWithChecks
       ? {
           tone: "neutral",
-          title: "Send packet ready",
+          title: "Outputs ready",
           copy:
             closeoutEngine.generatedOutputs.find(
               (output) => output.readiness === "needs_review",
@@ -2934,7 +2934,7 @@ export function PacketBuilder() {
             closeoutEngine.vendorSendReadinessWarnings.find(
               (warning) => warning.severity !== "note",
             )?.copy ??
-            "Customer handoff and PDF are ready; review payment or send checks before using stronger claim language.",
+            "Customer handoff and PDF are ready; private payment checks stay inside the builder.",
         }
       : totalFieldPhotoCount === 0
         ? {
@@ -2950,7 +2950,7 @@ export function PacketBuilder() {
                 ? "The closeout records reachable work completed and the blocked area still needing action."
                 : activeJobPatternId === "condition-review"
                   ? "The closeout records service completed with one condition kept visible."
-                  : "The closeout can be packaged from written service notes. Add photos only if the crew captured them.",
+                  : "The closeout can be generated from written service notes. Add photos only if the crew captured them.",
           }
         : missingRequiredSlots.length > 0
           ? {
@@ -2982,14 +2982,14 @@ export function PacketBuilder() {
       : "Save PDF";
   const photoStepPrimaryLabel =
     hasJobOutcomeSelected
-      ? "Package closeout"
+      ? "Review closeout"
       : hasBeforeOnly || hasAfterOnly
       ? shouldShowProofDetails
-        ? "Pick result"
+        ? "Review closeout"
         : "Review missing core"
     : totalFieldPhotoCount === 0
-      ? "Pick result"
-      : "Pick result";
+      ? "Review closeout"
+      : "Review closeout";
   const getBuilderStepMetric = (stepValue: BuilderStep) => {
     if (stepValue === "photos") {
       return totalFieldPhotoCount > 0
@@ -3031,7 +3031,7 @@ export function PacketBuilder() {
     builderStep === "photos"
         ? hasProofWorkStarted
           ? "Photo tray"
-          : "Package"
+          : "Review"
       : builderStep === "review"
         ? "Add evidence"
         : reportNeedsPhotoReview
@@ -3184,7 +3184,7 @@ export function PacketBuilder() {
   const engineWarningLabel =
     closeoutEngine.vendorSendReadinessWarnings.length > 0
       ? closeoutEngine.vendorSendReadinessWarnings[0].copy
-      : "No private send check for the current inputs.";
+      : "No private output check for the current inputs.";
   const generatedOutputReadyCount = closeoutEngine.generatedOutputs.filter(
     (output) => output.readiness === "ready",
   ).length;
@@ -3269,11 +3269,11 @@ export function PacketBuilder() {
     ? "Send, save, and follow up from this closeout."
     : customerOutputsReadyWithChecks
       ? closeoutEngine.evidenceBasis === "no_photos"
-        ? "Customer written record is ready; review payment and send checks."
-        : "Customer link and PDF are ready; review payment and send checks."
+        ? "Customer written record is ready."
+        : "Customer link and PDF are ready."
       : sendReadinessBlockers.length > 0
-      ? "Confirm before sending."
-      : "Pick a result before the send packet is generated.";
+      ? "Confirm before outputs."
+      : "Confirm a result before outputs are generated.";
   function selectCustomerLineEditor(
     editor: CustomerLineEditor,
     surface: CustomerLineEditorSurface,
@@ -5535,15 +5535,15 @@ export function PacketBuilder() {
                       >
                         {hasJobOutcomeSelected
                           ? "Review the drafted closeout."
-                          : "Pick what happened."}
+                          : "Review the AI draft."}
                       </h1>
                     ) : null}
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       {hasJobOutcomeSelected
-                        ? "Fix only the wrong or uncertain parts. Link, PDF, invoice proof, and follow-up copy update together."
+                        ? "Read it like the customer will. Change only wrong statuses; every output updates together."
                         : totalFieldPhotoCount === 0
-                          ? "Pick what happened. Without photos, the tool will not assume the visit was completed."
-                          : `${jobOutcomeRecommendation.pattern.label} is ready from ${jobOutcomeRecommendation.signalLabel.toLowerCase()}.`}
+                          ? "No photos is okay. Confirm the result once so Axis 1 writes a safe service record."
+                          : `${jobOutcomeRecommendation.pattern.label} is drafted from ${jobOutcomeRecommendation.signalLabel.toLowerCase()}. Confirm it or change only the wrong part.`}
                     </p>
                   </div>
                   {!scopeNeedsWrittenRecordConfirmation ? (
@@ -5561,13 +5561,15 @@ export function PacketBuilder() {
                         }`}
                       >
                         <Eye className="h-3.5 w-3.5" />
-                      {hasJobOutcomeSelected ? "Open Send" : "Pick result first"}
+                      {hasJobOutcomeSelected ? "Open Outputs" : "Confirm result first"}
                       </button>
                     </div>
                   ) : null}
                 </div>
 
-                <div className="mt-4 rounded-[20px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-4 py-4">
+                <div className={`mt-4 rounded-[20px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-4 py-4 ${
+                  hasJobOutcomeSelected ? "hidden" : ""
+                }`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className={labelClassName()}>Visit coverage</p>
@@ -5613,16 +5615,18 @@ export function PacketBuilder() {
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-[20px] border border-black/8 bg-[#111315] px-4 py-4 text-white">
+                <div className={`mt-4 rounded-[20px] border border-black/8 bg-[#111315] text-white ${
+                  hasJobOutcomeSelected ? "px-3 py-3" : "px-4 py-4"
+                }`}>
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ffb489]">
-                        What happened on site?
+                        Confirm result
                       </p>
                     <p className="mt-2 text-sm leading-6 text-white/62">
-                        Pick the job result once. Axis 1 turns that confirmed
-                        record into customer handoff, evidence PDF, invoice proof,
-                        revisit, quote, and rebook copy.
+                        {hasJobOutcomeSelected
+                          ? "Result is set. Change only if the visit outcome is wrong."
+                          : "One tap sets the record basis. The closeout preview below is what the vendor should actually review."}
                       </p>
                     </div>
                     <span className="rounded-full border border-white/14 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
@@ -5649,7 +5653,9 @@ export function PacketBuilder() {
                             damping: 30,
                           }}
                           onClick={() => applyJobPattern(pattern)}
-                          className={`rounded-[18px] border px-4 py-3 text-left transition md:min-h-[118px] ${
+                          className={`rounded-[18px] border px-4 py-3 text-left transition ${
+                            hasJobOutcomeSelected ? "md:min-h-[78px]" : "md:min-h-[118px]"
+                          } ${
                             selected
                               ? "border-[#ffb489]/45 bg-white text-[#111315]"
                               : "border-white/12 bg-white/[0.055] text-white hover:bg-white/[0.09]"
@@ -5668,7 +5674,7 @@ export function PacketBuilder() {
                                 {pattern.title}
                               </p>
                               <p
-                                className={`mt-2 hidden text-xs leading-5 md:block ${
+                                className={`mt-2 ${hasJobOutcomeSelected ? "hidden" : "hidden md:block"} text-xs leading-5 ${
                                   selected ? "text-[#5f574f]" : "text-white/55"
                                 }`}
                               >
@@ -5743,7 +5749,7 @@ export function PacketBuilder() {
 
                 <div
                   data-axis-scope-review-panel
-                  className={`mt-4 overflow-hidden rounded-[18px] border bg-white ${
+                  className={`mt-4 overflow-hidden rounded-[18px] border bg-white shadow-[0_18px_42px_rgba(17,19,21,0.06)] ${
                     scopeNeedsConfirmation
                       ? "border-[#f26a21]/24"
                       : "border-black/8"
@@ -5757,14 +5763,14 @@ export function PacketBuilder() {
                     }`}
                   >
                     <div className="min-w-0">
-                      <p className={labelClassName()}>Closeout preview</p>
+                      <p className={labelClassName()}>Customer-style closeout preview</p>
                       <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-foreground">
                         {scopeCheckTitle}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         {hasJobOutcomeSelected
-                          ? "This reads like the customer preview, but the status chips edit the closeout underneath."
-                          : "Pick what happened before confirming service notes or generating outputs."}
+                          ? "Edit the status chips inside this preview. Customer link, PDF, invoice proof, payment copy, and follow-up copy all use the same record."
+                          : "Confirm the result above, then review the closeout preview instead of filling a report."}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -5856,12 +5862,12 @@ export function PacketBuilder() {
                       <div className="rounded-[16px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className={labelClassName()}>Extra photo evidence</p>
+                            <p className={labelClassName()}>Saved photos, not proof yet</p>
                             <p className="mt-1 text-sm font-bold leading-5 text-foreground">
                               {unplacedFieldPhotos.length} photo(s) are saved as extra evidence.
                             </p>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                              Customer outputs will not mention these photos. Attach one only if it supports the closeout area.
+                              They stay in the job record, but customer outputs will not use them as proof until you attach one to a closeout area.
                             </p>
                           </div>
                           <button
@@ -5901,9 +5907,9 @@ export function PacketBuilder() {
                             onClick={() => setScopeAssumptionsAccepted(true)}
                             className="inline-flex min-h-10 max-w-full items-center justify-center rounded-full bg-[#111315] px-4 py-2 text-center text-[10px] font-black uppercase leading-4 tracking-[0.08em] text-white sm:shrink-0 sm:tracking-[0.13em]"
                           >
-                            <span className="sm:hidden">Use notes</span>
+                            <span className="sm:hidden">Use record</span>
                             <span className="hidden sm:inline">
-                              Use notes for missing proof
+                              Use written record
                             </span>
                           </button>
                         </div>
@@ -6020,7 +6026,7 @@ export function PacketBuilder() {
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
                     <div className="min-w-0">
                       <p className={labelClassName()}>
-                        {hasJobOutcomeSelected ? "Send packet" : "Send packet pending"}
+                        {hasJobOutcomeSelected ? "Outputs ready" : "Outputs pending"}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         {hasJobOutcomeSelected
@@ -6039,7 +6045,7 @@ export function PacketBuilder() {
                             : "bg-[#f26a21]"
                         }`}
                       >
-                        {hasJobOutcomeSelected ? previewProofLinkLabel : "Pick result first"}
+                        {hasJobOutcomeSelected ? previewProofLinkLabel : "Confirm result first"}
                       </button>
                     ) : null}
                   </div>
@@ -6242,7 +6248,7 @@ export function PacketBuilder() {
                       canPreviewProofLink ? "bg-[#111315]" : "bg-[#f26a21]"
                     }`}
                   >
-                    Continue to Send
+                    Continue to Outputs
                   </button>
                 </div>
               </div>
@@ -6275,7 +6281,7 @@ export function PacketBuilder() {
                           !hasJobOutcomeSelected ? "cursor-not-allowed opacity-55" : ""
                         }`}
                       >
-                      Open Send
+                      Open Outputs
                       </button>
                     </div>
                   </div>
@@ -6451,7 +6457,7 @@ export function PacketBuilder() {
                         canPreviewProofLink ? "bg-[#111315]" : "bg-[#f26a21]"
                       }`}
                     >
-                      Continue to Send
+                      Continue to Outputs
                     </button>
                   </div>
                 </div>
@@ -6469,12 +6475,12 @@ export function PacketBuilder() {
                       Send, save, and get paid.
                     </p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      Send items come from the same vendor-confirmed closeout. Adjust customer-safe copy only when the field visit needs a correction.
+                      Customer link, PDF, invoice proof, payment, revisit, quote, and next-service copy come from the same closeout.
                     </p>
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#b94d11]">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Send packet
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#b94d11]">
+                      <Sparkles className="h-3.5 w-3.5" />
+                    Outputs
                   </span>
                 </div>
                 <div className="mt-4 grid gap-2 sm:grid-cols-3">
@@ -6482,7 +6488,7 @@ export function PacketBuilder() {
                     ["Ready", `${generatedOutputReadyCount}`],
                     ["Need review", `${generatedOutputReviewCount}`],
                     [
-                      "Send checks",
+                      "Private checks",
                       `${closeoutEngine.vendorSendReadinessWarnings.length}`,
                     ],
                   ].map(([label, value]) => (
@@ -6515,7 +6521,7 @@ export function PacketBuilder() {
                   <div>
                     <p className={labelClassName()}>Customer-safe copy</p>
                     <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      Customer lines stay calm; send checks remain private in this builder.
+                      Customer lines stay calm; private checks remain inside this builder.
                     </p>
                   </div>
                   <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -6617,22 +6623,22 @@ export function PacketBuilder() {
                 <div className="flex items-start justify-between gap-5">
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                      Declare
+                      Photos & notes
                     </p>
                     {builderStep === "photos" ? (
                       <h1
                         className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]"
                         data-axis-tool-page-heading
                       >
-                        Pick what happened.
+                        Add photos or a short note.
                       </h1>
                     ) : (
                       <h2 className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]">
-                        Pick what happened.
+                        Add photos or a short note.
                       </h2>
                     )}
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-white/54 md:text-[14px] md:leading-6">
-                      Choose the closeout result first. Photos and notes improve the record, but they are not a long form.
+                      Drop the phone photos if you have them. One short note is enough when photos are missing, blocked, or messy.
                     </p>
                   </div>
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] md:h-11 md:w-11">
@@ -6640,7 +6646,7 @@ export function PacketBuilder() {
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-[24px] border border-[#ffb489]/22 bg-white/[0.07] px-3 py-3 sm:px-4">
+                <div className="hidden">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
@@ -6721,7 +6727,7 @@ export function PacketBuilder() {
                 >
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffb489]">
-                      {hasProofWorkStarted ? "Add more" : "Optional proof"}
+                      {hasProofWorkStarted ? "Add more" : "Job photos"}
                     </p>
                     <p
                       className={`mt-3 font-bold text-white ${
@@ -6755,7 +6761,7 @@ export function PacketBuilder() {
                         variant="outline"
                         className="border-white/14 bg-white/[0.08] px-3 py-1 text-[11px] text-white/70"
                       >
-                        Sort later if needed
+                        Saved even if not proof
                       </Badge>
                     </div>
                   </div>
@@ -6803,7 +6809,7 @@ export function PacketBuilder() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                        Visit type
+                        What was included?
                       </p>
                       <p className="mt-1 text-sm font-bold text-white">
                         {activeVisitType.title}
@@ -6812,14 +6818,14 @@ export function PacketBuilder() {
                         {activeVisitType.copy}
                       </p>
                       <p className="mt-2 text-xs font-semibold leading-5 text-white/70">
-                        Expected in output: {activeVisitTypeScopeText}. If that is wrong, pick a narrower visit or change an area before sending.
+                        Leave standard unless this visit was filters-only, fan-only, access revisit, or condition-only.
                       </p>
                     </div>
                     <span className="rounded-full border border-white/12 bg-black/14 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/54">
                       This visit only
                     </span>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2 pb-1 sm:flex-nowrap sm:overflow-x-auto sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden">
+                  <div className="mt-3 flex flex-wrap gap-2 pb-1">
                     {visitTypePresets.map((preset) => {
                       const selected = preset.id === visitTypeId;
 
@@ -6850,13 +6856,13 @@ export function PacketBuilder() {
                     >
                       <span className="min-w-0">
                         <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-[#bc3d1f]">
-                          Photos not captured?
+                          Ready to review?
                         </span>
                         <span className="mt-1 block text-xl font-black tracking-[-0.045em]">
-                          Pick result
+                          Draft closeout
                         </span>
                         <span className="mt-1 block text-xs font-semibold leading-5 text-[#111315]/58">
-                          Choose completed, blocked, or condition only before anything is sent.
+                          Review what Axis 1 drafted, then fix only wrong or uncertain parts.
                         </span>
                       </span>
                       <IconArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5" />
@@ -6866,7 +6872,7 @@ export function PacketBuilder() {
                         Next
                       </p>
                       <p className="mt-2 text-sm font-bold leading-5 text-white">
-                        No photos means no automatic completion claim. One tap picks what happened.
+                        No photos is okay. The next screen creates a written record instead of claiming photo proof.
                       </p>
                     </div>
                   </div>
@@ -7040,7 +7046,7 @@ export function PacketBuilder() {
                           />
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffcfb5]">
-                              Optional proof attachment
+                              Optional photo attachment
                             </p>
                             <p className="mt-1 text-lg font-black leading-tight tracking-[-0.04em] text-white">
                               Use this as {firstPendingPlacedPhotoSlot.shortLabel}?
@@ -7130,7 +7136,7 @@ export function PacketBuilder() {
                           />
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffcfb5]">
-                              Optional proof attachment
+                              Optional photo attachment
                             </p>
                             <p className="mt-1 text-lg font-black leading-tight tracking-[-0.04em] text-white">
                               {firstPendingExtraSuggestedSlot
@@ -7541,7 +7547,7 @@ export function PacketBuilder() {
                           onClick={proceedFromPhotoStep}
                           className="hidden rounded-full bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#111315] hover:bg-white/90 md:inline-flex"
                         >
-                          Draft written message
+                          Review written record
                         </Button>
                       ) : null}
                       {hasProofWorkStarted ? (
@@ -8086,7 +8092,7 @@ export function PacketBuilder() {
                       </span>
                       <span className="axis-proof-action-copy">
                         {canPreviewProofLink
-                          ? "Use the customer-safe handoff from this closeout."
+                          ? "Customer link copy from this closeout."
                           : previewProofLinkLabel}
                       </span>
                     </span>
@@ -8111,49 +8117,17 @@ export function PacketBuilder() {
                         Save evidence record
                       </span>
                       <span className="axis-proof-action-copy">
-                        Archive or attach the formal record.
-                      </span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowWordingEditor((current) => !current)}
-                    className="axis-proof-action axis-proof-action-muted"
-                  >
-                    <span className="axis-proof-action-icon">
-                      <PencilLine className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="axis-proof-action-label">
-                        {showWordingEditor ? "Hide wording edits" : "Edit customer-safe copy"}
-                      </span>
-                      <span className="axis-proof-action-copy">
-                        Optional wording edits.
-                      </span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReportOutputMode("pdf");
-                      setShowPacketDetails((current) => !current);
-                    }}
-                    className="axis-proof-action axis-proof-action-muted"
-                  >
-                    <span className="axis-proof-action-icon">
-                      <Settings2 className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="axis-proof-action-label">PDF sections</span>
-                      <span className="axis-proof-action-copy">
-                        Output layout only.
+                        PDF record from the same closeout.
                       </span>
                     </span>
                   </button>
                 </div>
 
                 <div className="axis-proof-console-grid">
-                  <section className="axis-proof-panel axis-proof-basis-panel">
+                  <section
+                    className="axis-proof-panel axis-proof-basis-panel"
+                    style={{ display: "none" }}
+                  >
                     <div className="axis-proof-panel-head">
                       <p className="axis-proof-panel-label">Record basis</p>
                       <p>{closeoutFormatLabel}</p>
@@ -8265,8 +8239,8 @@ export function PacketBuilder() {
                     style={builderStep === "outputs" ? { order: -2 } : undefined}
                   >
                     <div className="axis-proof-panel-head">
-                      <p className="axis-proof-panel-label">Send items</p>
-                      <p>One closeout, multiple send/save/get-paid uses.</p>
+                      <p className="axis-proof-panel-label">Output items</p>
+                      <p>One closeout, multiple customer, PDF, payment, and follow-up uses.</p>
                     </div>
                     <div className="axis-output-ledger">
                       {closeoutEngine.generatedOutputs.map((output) => {
@@ -8335,9 +8309,12 @@ export function PacketBuilder() {
                     </div>
                   </section>
 
-                  <aside className="axis-proof-panel axis-proof-warning-rail">
+                  <aside
+                    className="axis-proof-panel axis-proof-warning-rail"
+                    style={{ display: "none" }}
+                  >
                     <div className="axis-proof-panel-head">
-                      <p className="axis-proof-panel-label">Send check</p>
+                      <p className="axis-proof-panel-label">Private check</p>
                       <p>Private to the vendor; customer outputs use calm record language.</p>
                     </div>
                     <div className="axis-warning-lead">
@@ -8372,7 +8349,7 @@ export function PacketBuilder() {
                 </div>
 
                 {closeoutEngine.canGeneratePacket ? (
-                  <div className="axis-proof-link-dock">
+                  <div className="axis-proof-link-dock hidden">
                     <div className="axis-proof-link-dock-head">
                       <div>
                         <p className="axis-proof-panel-label">Optional action links</p>
@@ -8551,7 +8528,7 @@ export function PacketBuilder() {
               <div className="order-2 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    Send items
+                    Output items
                   </p>
                   <span className="rounded-full bg-[#111315] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
                     {generatedOutputReadyCount} ready

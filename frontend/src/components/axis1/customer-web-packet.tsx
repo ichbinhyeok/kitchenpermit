@@ -1929,20 +1929,24 @@ export function CustomerWebPacket({
               ))}
             </div>
             <HeroHeading className="font-display mt-5 max-w-4xl text-[2.35rem] font-semibold leading-[0.92] tracking-[-0.07em] text-white min-[390px]:text-[2.5rem] sm:text-[4.15rem] sm:leading-[0.9] sm:tracking-[-0.075em] lg:text-[6rem]">
-              Service completed.
               {isBlockedAccessOutcome && openItems.length > 0 ? (
                 <>
-                  {" "}
+                  Reachable work completed.
                   <br />
                   <span className="text-[#ff7a1a]">{actionAreaHeadline}.</span>
                 </>
-              ) : isConditionReviewOutcome ? (
+              ) : (
                 <>
-                  {" "}
-                  <br />
-                  <span className="text-[#ff7a1a]">{conditionHeadline}.</span>
+                  Service completed.
+                  {isConditionReviewOutcome ? (
+                    <>
+                      {" "}
+                      <br />
+                      <span className="text-[#ff7a1a]">{conditionHeadline}.</span>
+                    </>
+                  ) : null}
                 </>
-              ) : null}
+              )}
             </HeroHeading>
             <p className="mt-5 hidden max-w-2xl text-base leading-7 text-white/72 lg:block">
               {resultSubcopy}
