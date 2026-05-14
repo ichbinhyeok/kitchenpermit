@@ -3,6 +3,7 @@
 import { Flame } from "lucide-react";
 import Link from "@/components/navigation/static-link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   HeaderBrandLink,
   HeaderChrome,
@@ -21,8 +22,38 @@ const navigation = [
   { href: "/login", label: "Login" },
 ];
 
+type HeaderAuthStatus = "checking" | "authenticated" | "anonymous";
+
 export function SiteHeader() {
   const pathname = usePathname();
+  const [authStatus, setAuthStatus] =
+    useState<HeaderAuthStatus>("checking");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/auth/session", {
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { authenticated?: boolean } | null) => {
+        if (!cancelled) {
+          setAuthStatus(data?.authenticated ? "authenticated" : "anonymous");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAuthStatus("anonymous");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function isActive(href: string) {
     if (href === "/") {
@@ -31,6 +62,10 @@ export function SiteHeader() {
 
     return pathname === href || pathname.startsWith(`${href}/`);
   }
+
+  const visibleNavigation = navigation.filter(
+    (item) => item.href !== "/login" || authStatus === "anonymous",
+  );
 
   return (
     <HeaderChrome tone="light" className="site-header">
@@ -42,7 +77,7 @@ export function SiteHeader() {
           tone="light"
         />
         <nav className="hidden items-center lg:flex lg:gap-5 xl:gap-7">
-          {navigation.map((item) => (
+          {visibleNavigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -68,7 +103,7 @@ export function SiteHeader() {
           tone="light"
           className="lg:hidden"
           items={[
-            ...navigation.map((item) => ({
+            ...visibleNavigation.map((item) => ({
               href: item.href,
               label: item.label,
               active: isActive(item.href),
