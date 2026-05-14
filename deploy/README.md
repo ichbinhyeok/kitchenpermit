@@ -55,6 +55,13 @@ Create these repository secrets:
 The workflow maps those Cloudflare secret names into Spring-friendly
 `HOOD_AXIS1_R2_*` environment variables inside the app container.
 
+For Supabase, use the transaction pooler URL on port `6543` with
+`prepareThreshold=0`, for example:
+
+```text
+jdbc:postgresql://aws-1-region.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0
+```
+
 Current production constants are written by the workflow itself:
 
 - base url: `https://kitchenpermit.com`
@@ -67,7 +74,8 @@ The workflow now mirrors `CarMoneyPit`:
 - builds and pushes `DOCKERHUB_USERNAME/kitchenpermit:latest`
 - SSHes into OCI
 - writes `~/deploy/hood/docker-compose.yml`
-- runs `docker compose pull && docker compose up -d`
+- stops the previous container, pulls the image, starts it, and verifies
+  `http://127.0.0.1:8810/`
 
 ## Manual deploy
 
