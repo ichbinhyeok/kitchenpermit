@@ -89,6 +89,9 @@ jobs:
                   - APP_DATASOURCE_DRIVER=org.postgresql.Driver
                   - APP_DATASOURCE_USERNAME=${{ secrets.APP_DATASOURCE_USERNAME }}
                   - APP_DATASOURCE_PASSWORD=${{ secrets.APP_DATASOURCE_PASSWORD }}
+                  - APP_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=2
+                  - APP_DATASOURCE_HIKARI_MINIMUM_IDLE=0
+                  - APP_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=30000
                   - APP_HIBERNATE_DDL_AUTO=validate
                   - HOOD_DATABASE_KEEPALIVE_ENABLED=true
                   - HOOD_DATABASE_KEEPALIVE_INITIAL_DELAY_MS=60000
@@ -125,6 +128,7 @@ jobs:
                       memory: 1024M
             EOF
 
+            docker compose down --remove-orphans || true
             docker compose pull
             docker compose up -d --remove-orphans
             sleep 20
