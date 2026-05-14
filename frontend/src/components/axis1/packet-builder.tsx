@@ -2600,6 +2600,33 @@ export function PacketBuilder({
   const isCompanyPlan = productPlan === "company";
   const loginNextPath = "/axis-1/tool?step=outputs&account=company";
   const loginHref = `/login?next=${encodeURIComponent(loginNextPath)}`;
+  const companyUpgradeHref = isAuthenticated ? "/company-version" : loginHref;
+  const companyUpgradeLabel = isAuthenticated
+    ? "Start company version"
+    : "Login";
+  const companyLockedStatusLabel =
+    authSessionStatus === "checking"
+      ? "Checking account"
+      : isAuthenticated
+        ? "Subscription required"
+        : "Login required";
+  const bannerStatusLabel = isCompanyFeatureRequested
+    ? companyLockedStatusLabel
+    : isCompanyPlan
+      ? "Company access active"
+      : isAuthenticated
+        ? "Logged in, free mode"
+        : productPolicy.statusLabel;
+  const paidFeatureHref = hasCompanyAccess
+    ? "/dashboard"
+    : isAuthenticated
+      ? "/company-version"
+      : loginHref;
+  const paidFeatureCtaLabel = hasCompanyAccess
+    ? "Open dashboard"
+    : isAuthenticated
+      ? "Start company version"
+      : "Login / subscribe";
   const uploadedFieldPhotosRef = useRef(uploadedFieldPhotos);
   const unplacedFieldPhotosRef = useRef(unplacedFieldPhotos);
   const loadedReportIdRef = useRef<string | null>(null);
@@ -3269,7 +3296,9 @@ export function PacketBuilder({
           actionLabel: "Continue to PDF",
           copy: isCompanyPlan
             ? "Company mode removes the watermark and saves this report to history."
-            : "Free output is allowed without login: it has no company logo/contact, stays watermarked, and is meant for testing. Login/subscription removes the watermark and saves report history.",
+            : isAuthenticated
+              ? "Free output has no company logo/contact, stays watermarked, and is meant for testing. The company version removes the watermark and saves report history."
+              : "Free output is allowed without login: it has no company logo/contact, stays watermarked, and is meant for testing. The company version removes the watermark and saves report history.",
         }
       : setupNoticeAction === "open-link"
         ? {
@@ -3280,7 +3309,9 @@ export function PacketBuilder({
             actionLabel: "Continue to link",
             copy: isCompanyPlan
               ? "Company mode creates a hosted service report link under your company name and saves the record to account history."
-              : "Free output is allowed without login: it creates a 7-day test link with no company logo/contact. Login/subscription unlocks live service report links under your company name.",
+              : isAuthenticated
+                ? "Free output creates a 7-day test link with no company logo/contact. The company version unlocks live service report links under your company name."
+                : "Free output is allowed without login: it creates a 7-day test link with no company logo/contact. The company version unlocks live service report links under your company name.",
           }
         : {
             eyebrow: "Before copying link",
@@ -3290,28 +3321,39 @@ export function PacketBuilder({
             actionLabel: "Continue and copy",
             copy: isCompanyPlan
               ? "Company mode copies the service report link under your company name and keeps the report in account history."
-              : "Free output is allowed without login: it copies a 7-day test link with no company logo/contact. Login/subscription unlocks live service report links and history.",
+              : isAuthenticated
+                ? "Free output copies a 7-day test link with no company logo/contact. The company version unlocks live service report links and history."
+                : "Free output is allowed without login: it copies a 7-day test link with no company logo/contact. The company version unlocks live service report links and history.",
           };
   const paidFeatureMeta =
     paidFeatureNotice === "branding"
       ? {
           eyebrow: "Company details are locked",
-          title: "Add your company name, phone, logo, and reply path after login.",
-          copy:
-            "The free builder stays neutral so vendors can test the report quickly. Login and an active subscription unlock saved company details from the dashboard.",
+          title: isAuthenticated
+            ? "Start the company version to save your company details."
+            : "Login and subscribe to save your company details.",
+          copy: isAuthenticated
+            ? "You are logged in. An active company subscription unlocks saved logo, report color, contact details, and dashboard defaults."
+            : "The free builder stays neutral so vendors can test the report quickly. Login and an active subscription unlock saved company details from the dashboard.",
         }
       : paidFeatureNotice === "history"
         ? {
             eyebrow: "History is locked",
-            title: "Saved reports belong in the company dashboard.",
-            copy:
-              "After login, completed service reports can be stored, searched, loaded back into the tool, and sorted by next recommended service date for follow-up.",
+            title: isAuthenticated
+              ? "Report history unlocks with the company version."
+              : "Saved reports belong in the company dashboard.",
+            copy: isAuthenticated
+              ? "An active company subscription stores completed service reports, keeps photos and links available, and lets you load past jobs back into the tool."
+              : "After login and an active subscription, completed service reports can be stored, searched, loaded back into the tool, and sorted by next recommended service date for follow-up.",
           }
         : {
             eyebrow: "Company version",
-            title: "Keep using the free builder, or login to unlock company output.",
-            copy:
-              "Free mode creates a neutral 7-day test link and watermarked PDF. Company mode adds your logo/contact, clean PDFs, live service report links while subscribed, saved defaults, and report history.",
+            title: isAuthenticated
+              ? "Keep using the free builder, or start the company version."
+              : "Keep using the free builder, or login to unlock company output.",
+            copy: isAuthenticated
+              ? "You are logged in. Free mode still creates a neutral 7-day test link and watermarked PDF. Company mode adds your logo/contact, clean PDFs, live service report links while subscribed, saved defaults, and report history."
+              : "Free mode creates a neutral 7-day test link and watermarked PDF. Company mode adds your logo/contact, clean PDFs, live service report links while subscribed, saved defaults, and report history.",
           };
   const previewPacketWithPhotos = applyScopeLedgerToPacket(
     buildAxis1PacketDataWithFieldPhotos(
@@ -5626,20 +5668,22 @@ export function PacketBuilder({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/72">
-              {isCompanyPlan ? (
+              {isCompanyPlan || isCompanyFeatureRequested ? (
                 <ShieldCheck className="h-3.5 w-3.5 text-[#ffb489]" />
               ) : (
                 <FileText className="h-3.5 w-3.5 text-[#ffb489]" />
               )}
-              {productPolicy.label}
+              {isCompanyFeatureRequested ? "Company version" : productPolicy.label}
             </span>
             <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/38">
-              {productPolicy.statusLabel}
+              {bannerStatusLabel}
             </span>
           </div>
           <p className="mt-2 text-sm font-semibold leading-6 text-white/78">
             {isCompanyFeatureRequested
-              ? "Company features are locked. Use the free builder now; login/subscription unlocks your logo/contact, clean PDF, live service report links, and history."
+              ? isAuthenticated
+                ? "You are logged in. Company output unlocks after an active subscription: saved logo/contact, clean PDF, live service report links, and history. You can still use the free builder now."
+                : "Company output needs login and an active subscription. Use the free builder now, or start the company version to unlock logo/contact, clean PDF, live service report links, and history."
               : isCompanyPlan
               ? `Company mode: ${companyProfile.companyName} details are applied. Reports save to history and stay live while subscribed.`
               : "Free builder: no login, no company logo/contact, 7-day test link, watermarked PDF, and no report history."}
@@ -5674,10 +5718,10 @@ export function PacketBuilder({
             );
           })}
           <a
-            href={hasCompanyAccess ? productPolicy.ctaHref : loginHref}
+            href={hasCompanyAccess ? productPolicy.ctaHref : companyUpgradeHref}
             className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#f26a21] px-3.5 text-[11px] font-black uppercase tracking-[0.11em] text-white transition hover:bg-[#dd5b17]"
           >
-            {hasCompanyAccess ? productPolicy.ctaLabel : "Login"}
+            {hasCompanyAccess ? productPolicy.ctaLabel : companyUpgradeLabel}
           </a>
         </div>
       </div>
@@ -9851,8 +9895,14 @@ export function PacketBuilder({
               <div className="mt-3 grid gap-2 sm:grid-cols-3">
                 {[
                   ["Free", "Unbranded 7-day link and watermarked PDF."],
-                  ["Login", "Save company defaults and return to past reports."],
-                  ["Subscribe", "Clean PDF, branded live service report links, and history."],
+                  [
+                    "Account",
+                    "Login identifies you, but company features still require a subscription.",
+                  ],
+                  [
+                    "Company version",
+                    "Saved company info, clean PDF, branded live service report links, and history.",
+                  ],
                 ].map(([label, copy]) => (
                   <div
                     key={label}
@@ -9875,10 +9925,10 @@ export function PacketBuilder({
                   Keep using free builder
                 </button>
                 <a
-                  href={isAuthenticated ? "/dashboard" : loginHref}
+                  href={paidFeatureHref}
                   className="inline-flex h-11 items-center justify-center rounded-[16px] bg-[#111315] px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-white"
                 >
-                  {isAuthenticated ? "Open dashboard" : "Login / subscribe"}
+                  {paidFeatureCtaLabel}
                 </a>
               </div>
             </motion.div>
@@ -9946,10 +9996,10 @@ export function PacketBuilder({
 
               <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <a
-                  href={isCompanyPlan || isAuthenticated ? "/dashboard" : loginHref}
+                  href={paidFeatureHref}
                   className="inline-flex h-11 items-center justify-center rounded-[16px] border border-black/10 bg-white px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground"
                 >
-                  {isCompanyPlan || isAuthenticated ? "Open dashboard" : "Login / subscribe"}
+                  {paidFeatureCtaLabel}
                 </a>
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
                   <button
