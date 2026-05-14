@@ -127,3 +127,9 @@ jobs:
 
             docker compose pull
             docker compose up -d --remove-orphans
+            sleep 20
+            docker compose ps
+            if ! curl -fsS --max-time 10 http://127.0.0.1:8810/ >/tmp/hood-health.html; then
+              docker compose logs --tail=160 app
+              exit 1
+            fi
