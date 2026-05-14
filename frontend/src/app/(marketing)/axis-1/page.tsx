@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import {
   ArrowRight,
   Check,
@@ -13,21 +13,21 @@ import { Panel } from "@/components/ui/panel";
 import { SectionLabel } from "@/components/ui/section-label";
 
 export const metadata: Metadata = {
-  title: "Customer Links for Existing Customers",
+  title: "Branded Service Reports for Hood Cleaning Jobs",
   description:
-    "Customer-ready service links for hood vendors that cut explanation calls, show the work clearly, and defend open items.",
+    "Branded service report links and inspection-ready PDFs for hood vendors after every cleaning job.",
 };
 
 const roleFrames = [
   {
     label: "Customer sees",
     copy:
-      "One readable customer link instead of a loose pile of photos, notes, and invoice fragments.",
+      "One branded service report link/PDF they can save with restaurant files.",
   },
   {
     label: "Vendor gets",
     copy:
-      "A same-day customer link that protects trust, premium positioning, and open-item defense.",
+      "A same-day service report that makes the job easier to trust, file, and defend.",
   },
 ] as const;
 
@@ -36,13 +36,13 @@ const whyItPays = [
     label: "Right after service",
     title: "Most vendors still make the customer guess what actually happened.",
     copy:
-      "Loose photos, note fragments, and invoice lines force the customer to decode the job or call back for clarification.",
+      "Loose photos and note fragments force the customer to decode the job or call back for clarification.",
   },
   {
     label: "When price gets compared",
-    title: "If the handoff feels sloppy, premium service feels overpriced.",
+    title: "If the report feels sloppy, premium service feels overpriced.",
     copy:
-      "A readable customer link makes the work look serious before anyone questions the price or the quality of the visit.",
+      "A branded service report link and PDF make the work look serious before anyone questions the price or the quality of the visit.",
   },
 ] as const;
 
@@ -62,6 +62,11 @@ const packetSections = [
       "Before-and-after photos support the link without turning into a giant image dump.",
   },
   {
+    title: "Inspection-ready PDF",
+    copy:
+      "The same record can be saved as a PDF for manager files, inspection folders, or documentation requests.",
+  },
+  {
     title: "What you need to do next",
     copy:
       "The customer sees the next action clearly instead of calling the office to ask what happens now.",
@@ -69,7 +74,7 @@ const packetSections = [
   {
     title: "Who to contact",
     copy:
-      "The customer link ends with a real contact path so the handoff does not feel improvised.",
+      "The service report ends with a real contact path so the customer record does not feel improvised.",
   },
 ] as const;
 
@@ -78,19 +83,19 @@ const packetFlow = [
     step: "01",
     title: "Finish the service event",
     copy:
-      "The visit closes with one customer link instead of scattered notes, photos, and invoice fragments.",
+      "The visit closes with one service report instead of scattered notes and loose photos.",
   },
   {
     step: "02",
-    title: "Send the customer link same day",
+    title: "Send the branded service report same day",
     copy:
-      "The customer sees what was done, what stayed open, and what to do next without a callback explanation.",
+      "The restaurant client sees what was done, what stayed open, what to do next, and the PDF they can save.",
   },
   {
     step: "03",
-    title: "Let the customer link carry the explanation",
+    title: "Let the service report carry the explanation",
     copy:
-      "That same link makes premium service look organized and keeps blocked-access or open-item defense inside the customer handoff.",
+      "That same link makes premium service look organized and keeps blocked-access or open-item defense inside the customer service report.",
   },
 ] as const;
 
@@ -126,23 +131,23 @@ const outcomes = [
     icon: Wrench,
   },
   {
-    title: "Premium handoff",
+    title: "Premium report",
     copy:
-      "Clear photos and open-item handling make higher-quality service feel worth the price.",
+      "A branded service report link and PDF make higher-quality service feel worth the price.",
     icon: Repeat2,
   },
 ] as const;
 
 const lockedRules = [
-  "The customer link is the product surface. Raw technician notes can exist internally, but they are not the customer deliverable.",
+  "The service report is the product surface. Raw technician notes can exist internally, but they are not the customer deliverable.",
   "Blocked or unworked items stay visible when they matter. Hiding them makes the page cleaner and the vendor less trustworthy.",
-  "The public sample proves that the handoff is readable. The paid setup is the real delivery system.",
+  "The public sample proves that the report is readable. The company version is the repeatable delivery system.",
 ] as const;
 
 const heroProofRows = [
-  ["Today's result", "Hood and reachable duct-path cleaning completed."],
-  ["Still open", "Rear panel blocked. Correction recommended before next cycle."],
-  ["Next step", "Confirm access correction or the next service window."],
+  ["Branded record", "Vendor logo, contact, job result, and PDF copy in one report."],
+  ["Inspection file", "Restaurant client can save the link/PDF with service reports."],
+  ["Next action", "Photos, open items, and the next service step stay clear."],
 ] as const;
 
 export default function Axis1Page() {
@@ -155,45 +160,50 @@ export default function Axis1Page() {
             <div className="space-y-5">
               <SectionLabel>FOR HOOD SERVICE VENDORS</SectionLabel>
               <div className="space-y-4">
-                <h1 className="font-display text-[clamp(2.65rem,13vw,5.1rem)] font-bold leading-[0.9] tracking-[-0.09em] text-foreground md:max-w-[10.5ch] md:text-[clamp(4.9rem,7.2vw,7rem)]">
-                  Turn hood job photos into a customer link.
+                <h1 className="font-display text-[clamp(2.65rem,12vw,5.1rem)] font-bold leading-[0.9] tracking-[-0.09em] text-foreground md:max-w-[11.4ch] md:text-[clamp(4.6rem,6.9vw,6.6rem)]">
+                  Send a branded service report after every hood cleaning job.
                 </h1>
                 <p className="max-w-2xl border-l border-border-strong pl-4 text-[15px] leading-[1.62] text-muted-foreground md:pl-5 md:text-lg md:leading-8">
-                  Your crew already takes photos. Your office should not have to
-                  rewrite them into a customer explanation after every hood
-                  cleaning visit.
+                  Restaurant clients get one clean link/PDF they can save for
+                  inspections, with photos, open items, and the next action.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <ButtonLink
-                  href="/axis-1/tool"
-                  withIcon
-                  className="w-full justify-between sm:w-auto sm:justify-center"
-                >
-                  Try neutral builder
-                </ButtonLink>
-                <ButtonLink
                   href="/samples/axis-1"
-                  variant="outline"
                   withIcon
                   className="w-full justify-between sm:w-auto sm:justify-center"
                 >
-                  Open public sample
+                  View sample report
                 </ButtonLink>
                 <ButtonLink
-                  href="/start"
+                  href="/company-version"
                   variant="outline"
                   withIcon
                   className="w-full justify-between sm:w-auto sm:justify-center"
                 >
-                  Request setup
+                  Start company version
                 </ButtonLink>
+              </div>
+              <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+                <a
+                  href="/company-version"
+                  className="inline-flex min-h-10 items-center text-accent underline-offset-4 transition hover:text-accent-strong hover:underline"
+                >
+                  See how this would look for my company
+                </a>
+                <a
+                  href="/axis-1/tool?account=free"
+                  className="inline-flex min-h-10 items-center text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline"
+                >
+                  Try the builder
+                </a>
               </div>
               <div className="hidden gap-2 sm:grid-cols-3 md:grid">
                 {[
-                  "Less photo-dump confusion",
-                  "No office rewrite",
-                  "Clear blocked-access record",
+                  "Branded service report",
+                  "Inspection-ready PDF",
+                  "Clear open-item record",
                 ].map((item) => (
                   <div
                     key={item}
@@ -211,10 +221,10 @@ export default function Axis1Page() {
                   <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
                     <div>
                       <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-muted-foreground">
-                        Same-day customer link
+                        Branded service report + PDF
                       </p>
                       <h2 className="mt-2 font-display text-3xl font-bold leading-[0.92] tracking-[-0.06em] md:text-4xl">
-                        Customer-readable handoff
+                        Restaurant-ready service report
                       </h2>
                     </div>
                     <div className="rounded-full bg-[rgba(242,106,33,0.1)] p-2">
@@ -248,7 +258,7 @@ export default function Axis1Page() {
                         Why vendors pay
                       </p>
                       <p className="mt-2 text-sm leading-6 text-white/72">
-                        The customer understands the job without another explanation call.
+                        The customer can understand the job and save the record for files.
                       </p>
                     </div>
                   </div>
@@ -268,7 +278,7 @@ export default function Axis1Page() {
             The customer should not need a callback to understand the job.
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/68 md:text-base md:leading-7">
-            The visit ends with one readable customer link that explains what was done,
+            The visit ends with one readable service report that explains what was done,
             what stayed open, and what the customer needs to do next.
           </p>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -291,15 +301,15 @@ export default function Axis1Page() {
             Why vendors buy it
           </p>
           <h2 className="mt-4 font-display text-[2.15rem] font-bold leading-[0.92] tracking-[-0.06em] text-foreground md:text-4xl">
-            The first value is fewer callbacks and a stronger premium handoff.
+            The first value is fewer callbacks and a stronger premium report.
           </h2>
           <div className="mt-5 grid gap-3">
             {[
-              "A customer link instead of raw note clutter",
+              "A service report instead of raw note clutter",
               "Less office time rewriting crew photos into customer explanations",
               "Blocked access and open items made visible without a follow-up explanation call",
-              "Premium service looks premium the moment the customer link lands",
-              "A public sample link that lets vendors show quality before setup",
+              "Premium service looks premium the moment the service report lands",
+              "A public sample link that lets vendors show quality before account creation",
             ].map((item) => (
               <div
                 key={item}
@@ -351,7 +361,7 @@ export default function Axis1Page() {
             What goes inside
           </p>
           <h2 className="mt-4 font-display text-[2.2rem] font-bold leading-[0.92] tracking-[-0.06em] text-foreground md:text-4xl">
-            One clean customer-link surface with photos, open items, and next action.
+            One clean service report surface with photos, open items, and next action.
           </h2>
           <div className="mt-5 grid gap-3">
             {packetSections.map((item) => (
@@ -373,7 +383,7 @@ export default function Axis1Page() {
             How vendors use it
           </p>
           <h2 className="mt-4 font-display text-[2.15rem] font-bold leading-[0.92] tracking-[-0.06em] md:text-4xl">
-            Finish the visit. Send the customer link. Let it carry the explanation.
+            Finish the visit. Send the service report. Let it carry the explanation.
           </h2>
           <div className="mt-5 grid gap-3">
             {packetFlow.map((item) => (
@@ -396,11 +406,11 @@ export default function Axis1Page() {
           </div>
           <div className="mt-5 rounded-[22px] border border-white/10 bg-[rgba(242,106,33,0.08)] px-4 py-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#ffb489]">
-              Locked rule
+              Service report rule
             </p>
             <p className="mt-3 text-sm leading-6 text-white">
-              In MVP, detailed internal notes can still exist, but the customer-facing
-              product is the readable customer link, not a raw back-office dump.
+              Keep internal notes behind the scenes. The restaurant should receive a
+              readable service report, not a raw back-office dump.
             </p>
           </div>
         </Panel>
@@ -414,11 +424,11 @@ export default function Axis1Page() {
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base md:leading-7">
               The sample page should prove that the customer can understand the job in
-              one pass, without replacing the paid setup and delivery workflow.
+              one pass, without replacing the company-version delivery workflow.
             </p>
           </div>
           <span className="hidden font-mono text-xs uppercase tracking-[0.28em] text-muted-foreground md:block">
-            SEND-READY HANDOFF
+            SEND-READY REPORT
           </span>
         </div>
         <Panel className="bg-white/78 px-5 py-5 md:px-6 md:py-6">
@@ -472,47 +482,50 @@ export default function Axis1Page() {
         <Panel className="grid gap-5 px-5 py-5 md:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] md:items-center md:px-6 md:py-6">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-accent">
-              Product + sample + request
+              Product + sample + pricing
             </p>
             <h2 className="mt-4 font-display text-[2.2rem] font-bold leading-[0.92] tracking-[-0.06em] text-foreground md:text-4xl">
-              Understand it here. Test it with the sample. Start setup when the value is obvious.
+              See the sample first. Test the builder free. Use the company version when it should carry your brand.
             </h2>
             <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base md:leading-7">
-              Public pricing starts at $149 for customer link setup. The free sample
-              is a shareable customer link. The paid version adds the send-ready link,
-              evidence PDF, vendor identity, and delivery workflow used after live jobs.
+              The free builder creates an unbranded 7-day test link and a
+              watermarked PDF. The $79/month company version adds your company logo/contact,
+              clean PDFs, live service report links, customer history, and
+              next-service follow-up.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-[0.78fr_1.22fr]">
             <div className="rounded-[24px] border border-border bg-[rgba(17,17,17,0.04)] px-5 py-5">
               <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                Starting at
+                Price
               </p>
               <p className="mt-2 font-display text-5xl font-bold tracking-[-0.06em] text-foreground">
-                $149
+                $79/mo
               </p>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Customer link setup
+                Company version
               </p>
             </div>
             <div className="rounded-[24px] border border-border bg-white px-5 py-5">
               <p className="text-sm leading-6 text-muted-foreground">
-                Includes the readable evidence structure, photo layout, and open-item
-                handling that make the service look serious right after the visit.
+                Company version is $79/month. Optional brand/report design help
+                starts at $249 when a vendor wants extra polish. Paid workflow
+                also saves customer/site history and a resend-ready message for
+                each report.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <ButtonLink href="/samples/axis-1" variant="outline" withIcon>
-                  Open public sample
+                  View sample report
                 </ButtonLink>
-                <ButtonLink href="/start" withIcon>
-                  Request setup
+                <ButtonLink href="/company-version" withIcon>
+                  Start company version
                 </ButtonLink>
               </div>
               <a
-                href="/samples/axis-1"
-                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-accent"
+                href="/axis-1/tool?account=free"
+                className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-accent"
               >
-                View the free customer link
+                Try the builder
                 <ArrowRight className="h-4 w-4" />
               </a>
             </div>

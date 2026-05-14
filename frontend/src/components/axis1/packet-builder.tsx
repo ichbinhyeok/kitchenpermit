@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -37,7 +37,6 @@ import {
   Link2,
   PencilLine,
   Plus,
-  ReceiptText,
   RotateCcw,
   Settings2,
   ShieldCheck,
@@ -112,7 +111,30 @@ import {
   type Axis1PhotoSlotResolution as PhotoSlotResolution,
   type Axis1UploadedFieldPhoto as UploadedFieldPhoto,
 } from "@/lib/axis1-field-photos";
-import { saveAxis1LocalPacket } from "@/lib/axis1-local-packet-store";
+import {
+  saveAxis1LocalPacket,
+  type Axis1LocalPacketSaveInput,
+} from "@/lib/axis1-local-packet-store";
+import {
+  applyAxis1CompanyProfileToPacketData,
+  defaultAxis1CompanyProfile,
+  readAxis1CompanyProfile,
+  saveAxis1CompanyProfile,
+  subscribeAxis1CompanyProfile,
+} from "@/lib/axis1-company-profile";
+import {
+  loadAxis1AccountEntitlements,
+  loadAxis1ServerReportForBuilder,
+  loadAxis1ServerCompanyProfile,
+  saveAxis1ServerReport,
+  type Axis1AccountEntitlements,
+} from "@/lib/axis1-server-storage";
+import {
+  getAxis1PlanSearchValue,
+  getAxis1ProductPlanPolicy,
+  normalizeAxis1ProductPlan,
+  type Axis1ProductPlan,
+} from "@/lib/axis1-product-policy";
 
 const jobPatternPresets = [
   {
@@ -160,7 +182,13 @@ type MobileSheetView = "photo-review" | "report-actions";
 type PacketPresentationMode = "standard" | "short";
 type ReportOutputMode = "link" | "pdf";
 type SetupNoticeAction = "copy-link" | "open-link" | "print-pdf";
-type CloseoutLinkFieldKey = keyof Axis1CloseoutLinks;
+type AuthSessionStatus = "checking" | "authenticated" | "anonymous";
+type PaidFeatureNotice = "company-plan" | "branding" | "history";
+type SavedReportLink = {
+  url: string;
+  storage: "server" | "local";
+  productPlan: Axis1ProductPlan;
+};
 type CustomerLineEditor =
   | "result"
   | "open-item"
@@ -312,7 +340,7 @@ const scopeAreaCatalog = [
 const riskFlagCatalog = [
   {
     id: "no-risk",
-    label: "Standard closeout",
+    label: "Standard service record",
     copy: "Standard maintenance visit; no quote or access note recorded yet.",
     tone: "clear",
   },
@@ -1393,15 +1421,15 @@ function applyCustomerTextOverridesToPacket(
       customerClose: {
         ...next.customerClose,
         actionItems: upsertDisplayRows(next.customerClose.actionItems, [
-          ["Evidence PDF note", recordNoteLine],
-          ["Evidence PDF", recordNoteLine],
+          ["PDF copy note", recordNoteLine],
+          ["Service report PDF", recordNoteLine],
         ]),
       },
       serviceRecordRows: upsertDisplayRows(next.serviceRecordRows, [
-        ["Evidence note", recordNoteLine],
+        ["PDF copy note", recordNoteLine],
       ]),
       closeoutRows: upsertDisplayRows(next.closeoutRows, [
-        ["Evidence note", recordNoteLine],
+        ["PDF copy note", recordNoteLine],
       ]),
     };
   }
@@ -1895,8 +1923,8 @@ function PhotoPlacementReview({
       {orderMatchedCount > 0 ? (
         <div className="mt-3 rounded-[16px] border border-[#ff6b1a]/18 bg-[#fff0e4] px-3 py-2">
           <p className="text-xs font-semibold leading-5 text-[#b94d11]">
-            {orderMatchedCount} photo(s) are saved as extra evidence.
-            Attach one only if it supports the closeout.
+            {orderMatchedCount} photo(s) are saved as extras.
+            Attach one only if it supports the report.
           </p>
         </div>
       ) : null}
@@ -1996,21 +2024,21 @@ const builderSteps = [
     label: "Photos & notes",
     navLabel: "Photos",
     title: "Add photos and notes",
-    copy: "Drop job photos or one short note. Axis 1 drafts the closeout from there.",
+    copy: "Drop job photos or one short note. The builder drafts a customer-ready service report from there.",
   },
   {
     value: "review",
-    label: "Review closeout",
+    label: "Review report",
     navLabel: "Review",
-    title: "Review AI draft",
+    title: "Review service summary",
     copy: "Fix only wrong or uncertain parts in the preview.",
   },
   {
     value: "outputs",
     label: "Outputs",
     navLabel: "Outputs",
-    title: "Send / save / get paid",
-    copy: "Link, PDF, invoice proof, and follow-up copy.",
+    title: "Preview link and PDF",
+    copy: "Check the service report link and PDF copy before using the paid company version.",
   },
 ] as const satisfies ReadonlyArray<{
   value: BuilderStep;
@@ -2042,7 +2070,7 @@ const packetSectionControls = [
   },
   {
     key: "checklist",
-    label: "Evidence checklist",
+    label: "Report checklist",
     copy: "What was documented and closed.",
   },
   {
@@ -2078,11 +2106,9 @@ function findPacketRowValue(
 }
 
 function normalizeCloseoutLinks(links: Axis1CloseoutLinks): Axis1CloseoutLinks {
-  return Object.fromEntries(
-    Object.entries(links)
-      .map(([key, value]) => [key, value?.trim()] as const)
-      .filter(([, value]) => Boolean(value)),
-  ) as Axis1CloseoutLinks;
+  const pdfHref = links.pdfHref?.trim();
+
+  return pdfHref ? { pdfHref } : {};
 }
 
 function generatedOutputReadinessMeta(readiness: string) {
@@ -2134,10 +2160,6 @@ function GeneratedOutputIcon({ kind }: { kind: string }) {
 
   if (kind === "evidence_pdf") {
     return <FileDown className="h-4 w-4" />;
-  }
-
-  if (kind === "invoice_proof_summary" || kind === "payment_support_copy") {
-    return <ReceiptText className="h-4 w-4" />;
   }
 
   if (kind === "follow_up_quote_copy") {
@@ -2241,7 +2263,7 @@ async function preparePhotoForPreview(file: File): Promise<PreparedPhotoPreview>
   if (!isLikelyImageFile(file)) {
     return {
       ok: false,
-      reason: "Only image files can be used in the customer link or PDF.",
+      reason: "Only image files can be used in the service report link or PDF.",
     };
   }
 
@@ -2450,7 +2472,33 @@ function suggestPhotoSlot(
     : null;
 }
 
-export function PacketBuilder() {
+function subscribeProductPlanSearch(callback: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  window.addEventListener("popstate", callback);
+
+  return () => {
+    window.removeEventListener("popstate", callback);
+  };
+}
+
+function readProductPlanSearch() {
+  if (typeof window === "undefined") {
+    return "free";
+  }
+
+  return normalizeAxis1ProductPlan(
+    new URLSearchParams(window.location.search).get("account"),
+  );
+}
+
+export function PacketBuilder({
+  initialProductPlan = "free",
+}: {
+  initialProductPlan?: Axis1ProductPlan;
+} = {}) {
   const form = useForm<Axis1BuilderFormValues>({
     resolver: zodResolver(axis1BuilderSchema),
     defaultValues: axis1BuilderDefaults,
@@ -2459,6 +2507,11 @@ export function PacketBuilder() {
   const watched = useWatch({
     control: form.control,
   });
+  const companyProfile = useSyncExternalStore(
+    subscribeAxis1CompanyProfile,
+    readAxis1CompanyProfile,
+    () => defaultAxis1CompanyProfile,
+  );
   const values = {
     ...axis1BuilderDefaults,
     ...watched,
@@ -2494,6 +2547,13 @@ export function PacketBuilder() {
   const [closeoutLinks, setCloseoutLinks] = useState<Axis1CloseoutLinks>({});
   const [packetSections, setPacketSections] =
     useState<Axis1PacketDocumentSectionVisibility>(shortPacketSections);
+  const productPlanFromUrl = useSyncExternalStore(
+    subscribeProductPlanSearch,
+    readProductPlanSearch,
+    () => initialProductPlan,
+  );
+  const [selectedProductPlan, setSelectedProductPlan] =
+    useState<Axis1ProductPlan | null>(null);
   const [showPacketDetails, setShowPacketDetails] = useState(false);
   const [showJobBasics, setShowJobBasics] = useState(false);
   const [showTimingEditor, setShowTimingEditor] = useState(false);
@@ -2521,11 +2581,145 @@ export function PacketBuilder() {
   const [mobileSheet, setMobileSheet] = useState<MobileSheetView | null>(null);
   const [setupNoticeAction, setSetupNoticeAction] =
     useState<SetupNoticeAction | null>(null);
+  const [paidFeatureNotice, setPaidFeatureNotice] =
+    useState<PaidFeatureNotice | null>(null);
+  const [authSessionStatus, setAuthSessionStatus] =
+    useState<AuthSessionStatus>("checking");
+  const [accountEntitlements, setAccountEntitlements] =
+    useState<Axis1AccountEntitlements | null>(null);
   const isProofStep = builderStep === "photos";
   const isOutputStep = builderStep === "outputs";
   const isPhotoStep = isProofStep;
+  const requestedProductPlan = selectedProductPlan ?? productPlanFromUrl;
+  const isAuthenticated = authSessionStatus === "authenticated";
+  const hasCompanyAccess = accountEntitlements?.companyAccess ?? false;
+  const isCompanyFeatureRequested =
+    requestedProductPlan === "company" && !hasCompanyAccess;
+  const productPlan = isCompanyFeatureRequested ? "free" : requestedProductPlan;
+  const productPolicy = getAxis1ProductPlanPolicy(productPlan);
+  const isCompanyPlan = productPlan === "company";
+  const loginNextPath = "/axis-1/tool?step=outputs&account=company";
+  const loginHref = `/login?next=${encodeURIComponent(loginNextPath)}`;
   const uploadedFieldPhotosRef = useRef(uploadedFieldPhotos);
   const unplacedFieldPhotosRef = useRef(unplacedFieldPhotos);
+  const loadedReportIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/auth/session", {
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { authenticated?: boolean } | null) => {
+        if (!cancelled) {
+          setAuthSessionStatus(data?.authenticated ? "authenticated" : "anonymous");
+        }
+
+        if (data?.authenticated) {
+          return loadAxis1AccountEntitlements()
+            .then((entitlements) => {
+              if (!cancelled) {
+                setAccountEntitlements(entitlements);
+              }
+
+              if (!entitlements.companyAccess) {
+                return undefined;
+              }
+
+              return loadAxis1ServerCompanyProfile()
+                .then((profile) => {
+                  if (!cancelled) {
+                    saveAxis1CompanyProfile(profile);
+                  }
+                })
+                .catch(() => undefined);
+            })
+            .catch(() => undefined);
+        }
+
+        if (!cancelled) {
+          setAccountEntitlements(null);
+        }
+        return undefined;
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAuthSessionStatus("anonymous");
+          setAccountEntitlements(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const reportId = new URLSearchParams(window.location.search)
+      .get("loadReport")
+      ?.trim();
+
+    if (!reportId || loadedReportIdRef.current === reportId) {
+      return;
+    }
+
+    loadedReportIdRef.current = reportId;
+    loadAxis1ServerReportForBuilder(reportId)
+      .then((report) => {
+        const payload = report.payload;
+
+        if (!payload?.values) {
+          throw new Error("Saved report payload is missing builder values.");
+        }
+
+        form.reset({
+          ...axis1BuilderDefaults,
+          ...payload.values,
+        });
+        setUploadedFieldPhotos(
+          payload.uploadedFieldPhotos ?? emptyFieldPhotoState(),
+        );
+        setUnplacedFieldPhotos([]);
+        setPhotoSlotResolutions(
+          payload.photoSlotResolutions ?? emptyPhotoSlotResolutions(),
+        );
+        setCloseoutLinks(payload.links ?? {});
+        setPacketPresentationMode(
+          payload.presentationMode === "standard" ? "standard" : "short",
+        );
+        setPacketSections(payload.visibleSections ?? shortPacketSections);
+        setHasJobOutcomeSelected(true);
+        setAutoDraftedJobPatternId(null);
+        setScopeAssumptionsAccepted(true);
+        setShowScopeDetails(false);
+        setSelectedProductPlan(report.productPlan);
+
+        if (payload.companyProfile) {
+          saveAxis1CompanyProfile(payload.companyProfile);
+        }
+
+        setBuilderStep("outputs");
+        const url = new URL(window.location.href);
+        url.searchParams.set("step", "outputs");
+        url.searchParams.set("account", report.productPlan);
+        url.searchParams.delete("loadReport");
+        window.history.replaceState({}, "", url);
+
+        toast.success("Report loaded into builder", {
+          description: "You can review, copy a fresh link, or save the PDF again.",
+        });
+      })
+      .catch(() => {
+        loadedReportIdRef.current = null;
+        toast.error("Could not load saved report", {
+          description: "Open the hosted report link, or create a fresh report from the builder.",
+        });
+      });
+  }, [form]);
 
   useEffect(() => {
     uploadedFieldPhotosRef.current = uploadedFieldPhotos;
@@ -2536,7 +2730,8 @@ export function PacketBuilder() {
   }, [unplacedFieldPhotos]);
 
   useEffect(() => {
-    const requestedStep = new URLSearchParams(window.location.search).get("step");
+    const initialSearchParams = new URLSearchParams(window.location.search);
+    const requestedStep = initialSearchParams.get("step");
     const normalizedStep =
       requestedStep === "job" || requestedStep === "scope"
         ? "review"
@@ -2661,7 +2856,7 @@ export function PacketBuilder() {
   const riskSummaryLabel =
     riskReviewFlags.length > 0
       ? `${riskReviewFlags.length} context flag(s)`
-      : "Standard closeout";
+      : "Standard service record";
   const riskSummaryCopy =
     riskReviewFlags.length > 0
       ? riskReviewFlags.map((flag) => flag.label).join(", ")
@@ -2685,17 +2880,17 @@ export function PacketBuilder() {
       : hasAfterOnly
         ? "After-only record is ready"
         : hasBeforeOnly
-          ? "Before-only photo needs closeout"
+          ? "Before-only photo needs review"
       : missingRequiredSlots.length === 0
-      ? `${uploadedProofCount} proof photos`
+      ? `${uploadedProofCount} service photos`
       : totalFieldPhotoCount === 0
         ? "No photos yet"
         : `${missingRequiredSlots.length} core photo(s) still open`;
   const proofReadinessCopy =
     hasPendingPhotoAssist
-      ? "Axis attaches only safe evidence. Other photos stay saved as extra evidence; customer copy will not mention them unless you attach a role."
+      ? "Only confirmed photos appear in the customer report. Other photos stay saved but are not mentioned."
       : hasAfterOnly
-        ? "No before photo is attached. The closeout will avoid a false before/after comparison."
+        ? "No before photo is attached. The report will avoid a false before/after comparison."
         : hasBeforeOnly
           ? "No after photo is attached. Add one, or mark it not captured before continuing."
       : missingRequiredSlots.length === 0
@@ -2793,7 +2988,7 @@ export function PacketBuilder() {
           : scopeWrittenOnlyNeedsConfirmation
           ? scopePhotoEvidenceCount > 0
             ? "Photo record with notes-only areas"
-            : "Confirm notes-based closeout"
+            : "Confirm written service record"
           : "Ready to generate";
   const visibleScopeRows = showScopeDetails ? scopeLedgerRows : scopeAttentionRows;
   const photoJobOutcomeRecommendation = buildJobOutcomeRecommendation({
@@ -2822,14 +3017,14 @@ export function PacketBuilder() {
     !closeoutEngine.canGeneratePacket
       ? "Waiting for selected result"
       : closeoutEngine.recordFormat.type === "access_issue_record"
-      ? "Closeout with access action"
+      ? "Access action record"
       : closeoutEngine.recordFormat.type === "service_closeout_record"
-        ? "Closeout from written record"
+        ? "Written service record"
         : closeoutEngine.recordFormat.type === "after_cleaning_record"
-          ? "Closeout from after photos"
+          ? "After-photo service record"
           : closeoutEngine.recordFormat.type === "photo_supported_service_record"
-            ? "Closeout from partial photos"
-            : "Closeout from photo record";
+            ? "Partial-photo service record"
+            : "Photo-supported service record";
   const reportNeedsPhotoReview = false;
   const pendingPlacedPhotoSlots = uploadedPhotoSlots.filter((slot) => {
     const photo = uploadedFieldPhotos[slot.id];
@@ -2934,7 +3129,7 @@ export function PacketBuilder() {
             closeoutEngine.vendorSendReadinessWarnings.find(
               (warning) => warning.severity !== "note",
             )?.copy ??
-            "Customer handoff and PDF are ready; private payment checks stay inside the builder.",
+          "Service report link and PDF are ready; private send checks stay inside the builder.",
         }
       : totalFieldPhotoCount === 0
         ? {
@@ -2947,15 +3142,15 @@ export function PacketBuilder() {
                   : "Ready as written record",
             copy:
               activeJobPatternId === "blocked-access"
-                ? "The closeout records reachable work completed and the blocked area still needing action."
+                ? "The report records reachable work completed and the blocked area still needing action."
                 : activeJobPatternId === "condition-review"
-                  ? "The closeout records service completed with one condition kept visible."
-                  : "The closeout can be generated from written service notes. Add photos only if the crew captured them.",
+                  ? "The report records service completed with one condition kept visible."
+                  : "The report can be generated from written service notes. Add photos only if the crew captured them.",
           }
         : missingRequiredSlots.length > 0
           ? {
               tone: "partial",
-          title: "Sendable with partial photo evidence",
+          title: "Sendable with partial photos",
           copy: "Open slots stay out unless attached or intentionally marked.",
             }
           : {
@@ -2976,20 +3171,20 @@ export function PacketBuilder() {
         ? "bg-[#111315] text-white"
         : "bg-[#f26a21] text-white";
   const mobileReportInlineActionLabel = reportNeedsPhotoReview
-    ? "Photo evidence"
+    ? "Photo tray"
     : reportOutputMode === "link"
-      ? "Copy handoff"
+    ? "Copy report link"
       : "Save PDF";
   const photoStepPrimaryLabel =
     hasJobOutcomeSelected
-      ? "Review closeout"
+      ? "Review report"
       : hasBeforeOnly || hasAfterOnly
       ? shouldShowProofDetails
-        ? "Review closeout"
-        : "Review missing core"
+        ? "Review report"
+        : "Review photos"
     : totalFieldPhotoCount === 0
-      ? "Review closeout"
-      : "Review closeout";
+      ? "Review report"
+      : "Review report";
   const getBuilderStepMetric = (stepValue: BuilderStep) => {
     if (stepValue === "photos") {
       return totalFieldPhotoCount > 0
@@ -3025,7 +3220,7 @@ export function PacketBuilder() {
             ? "Next step"
             : previewProofLinkLabel
         : reportOutputMode === "link"
-          ? "Copy handoff"
+        ? "Copy report link"
           : "Save PDF";
   const mobileSecondaryActionLabel =
     builderStep === "photos"
@@ -3033,7 +3228,7 @@ export function PacketBuilder() {
           ? "Photo tray"
           : "Review"
       : builderStep === "review"
-        ? "Add evidence"
+        ? "Add photos"
         : reportNeedsPhotoReview
           ? "Photo tray"
           : "Options";
@@ -3041,16 +3236,24 @@ export function PacketBuilder() {
   const reportOutputMeta =
     reportOutputMode === "link"
       ? {
-          label: "Customer handoff preview",
-          title: "Customer handoff from this closeout",
-          copy: "Generated from the same proof coverage, result, and next action. Use it for text or email after the visit.",
-          badge: "Generated output",
+          label: "Service report link preview",
+          title: isCompanyPlan
+            ? "Branded service report link from this job"
+            : "Unbranded test report link from this job",
+          copy: isCompanyPlan
+            ? "Company mode uses your saved company logo/contact and keeps hosted service report links live while subscribed."
+            : "Free mode creates an unbranded 7-day test link with no company logo/contact.",
+          badge: productPolicy.outputLabel,
         }
       : {
-          label: "Evidence record preview",
-          title: "Evidence PDF from this closeout",
-          copy: "The retained document copy for archive, attachment, print, manager review, or outside record requests.",
-          badge: "Generated output",
+          label: "Service report PDF preview",
+          title: isCompanyPlan
+            ? "Clean service report PDF from this job"
+            : "Watermarked service report PDF from this job",
+          copy: isCompanyPlan
+            ? "Company mode removes the free watermark for the retained customer and inspection copy."
+            : "Free mode keeps a visible watermark so vendors can evaluate the output before using it under their company name.",
+          badge: productPolicy.outputLabel,
         };
   const activePreviewPresentationMode =
     reportOutputMode === "pdf" ? packetPresentationMode : "standard";
@@ -3060,22 +3263,55 @@ export function PacketBuilder() {
     setupNoticeAction === "print-pdf"
       ? {
           eyebrow: "Before saving PDF",
-          title: "Save the current evidence PDF.",
+          title: isCompanyPlan
+            ? "Save the clean company service report PDF."
+            : "Save the current watermarked service report PDF.",
           actionLabel: "Continue to PDF",
-          copy: "This PDF uses the current closeout and avoids unconfirmed branding, contact, or hosted-photo claims.",
+          copy: isCompanyPlan
+            ? "Company mode removes the watermark and saves this report to history."
+            : "Free output is allowed without login: it has no company logo/contact, stays watermarked, and is meant for testing. Login/subscription removes the watermark and saves report history.",
         }
       : setupNoticeAction === "open-link"
         ? {
             eyebrow: "Before opening link",
-            title: "Open the local customer handoff.",
+            title: isCompanyPlan
+              ? "Open the company service report link."
+              : "Open the free test report link.",
             actionLabel: "Continue to link",
-            copy: "This handoff uses the current closeout on this device. Use hosted delivery when the customer needs cross-device access.",
+            copy: isCompanyPlan
+              ? "Company mode creates a hosted service report link under your company name and saves the record to account history."
+              : "Free output is allowed without login: it creates a 7-day test link with no company logo/contact. Login/subscription unlocks live service report links under your company name.",
           }
         : {
             eyebrow: "Before copying link",
-            title: "Copy the local customer handoff.",
+            title: isCompanyPlan
+              ? "Copy the company service report link."
+              : "Copy the free test report link.",
             actionLabel: "Continue and copy",
-            copy: "This handoff uses the current closeout on this device. Use hosted delivery when the customer needs cross-device access.",
+            copy: isCompanyPlan
+              ? "Company mode copies the service report link under your company name and keeps the report in account history."
+              : "Free output is allowed without login: it copies a 7-day test link with no company logo/contact. Login/subscription unlocks live service report links and history.",
+          };
+  const paidFeatureMeta =
+    paidFeatureNotice === "branding"
+      ? {
+          eyebrow: "Company details are locked",
+          title: "Add your company name, phone, logo, and reply path after login.",
+          copy:
+            "The free builder stays neutral so vendors can test the report quickly. Login and an active subscription unlock saved company details from the dashboard.",
+        }
+      : paidFeatureNotice === "history"
+        ? {
+            eyebrow: "History is locked",
+            title: "Saved reports belong in the company dashboard.",
+            copy:
+              "After login, completed service reports can be stored, searched, loaded back into the tool, and sorted by next recommended service date for follow-up.",
+          }
+        : {
+            eyebrow: "Company version",
+            title: "Keep using the free builder, or login to unlock company output.",
+            copy:
+              "Free mode creates a neutral 7-day test link and watermarked PDF. Company mode adds your logo/contact, clean PDFs, live service report links while subscribed, saved defaults, and report history.",
           };
   const previewPacketWithPhotos = applyScopeLedgerToPacket(
     buildAxis1PacketDataWithFieldPhotos(
@@ -3094,17 +3330,26 @@ export function PacketBuilder() {
     scopeLedgerRows,
     activeVisitType,
   );
-  const previewPacket = applyCustomerTextOverridesToPacket(generatedPreviewPacket, {
-    result: values.summaryOverride,
-    openItem:
-      closeoutEngine.outcomeType === "blocked_access"
-        ? values.exceptionNote
-        : closeoutEngine.outcomeType === "condition_review"
-          ? values.followUpOverride || values.followUpNote
-          : values.followUpOverride,
-    action: values.customerActionOverride,
-    recordNote: values.recordNoteOverride,
-  });
+  const customerTextPreviewPacket = applyCustomerTextOverridesToPacket(
+    generatedPreviewPacket,
+    {
+      result: values.summaryOverride,
+      openItem:
+        closeoutEngine.outcomeType === "blocked_access"
+          ? values.exceptionNote
+          : closeoutEngine.outcomeType === "condition_review"
+            ? values.followUpOverride || values.followUpNote
+            : values.followUpOverride,
+      action: values.customerActionOverride,
+      recordNote: values.recordNoteOverride,
+    },
+  );
+  const previewPacket = isCompanyPlan
+    ? applyAxis1CompanyProfileToPacketData(
+        customerTextPreviewPacket,
+        companyProfile,
+      )
+    : customerTextPreviewPacket;
   const claimLevelLabel =
     closeoutEngine.claimLevel === "photo_supported_record"
       ? "Photo record"
@@ -3118,69 +3363,7 @@ export function PacketBuilder() {
   const enginePrimaryCtaStatus =
     enginePrimaryCta?.enabled
       ? "Connected"
-      : "Add a URL only if the button should open one.";
-  const closeoutLinkFields: Array<{
-    key: CloseoutLinkFieldKey;
-    label: string;
-    placeholder: string;
-    helper: string;
-    visible: boolean;
-  }> = [
-    {
-      key: "invoiceUrl",
-      label: "Invoice URL",
-      placeholder: "https://pay.example/invoice-123",
-      helper: "Clean closeout primary action.",
-      visible: closeoutEngine.outcomeType === "clean",
-    },
-    {
-      key: "paymentDueLabel",
-      label: "Amount label",
-      placeholder: "$1,250 due",
-      helper: "Optional label shown inside the invoice button.",
-      visible: closeoutEngine.outcomeType === "clean",
-    },
-    {
-      key: "reviewUrl",
-      label: "Review URL",
-      placeholder: "https://reviews.example/your-company",
-      helper: "Clean closeout secondary action.",
-      visible: closeoutEngine.outcomeType === "clean",
-    },
-    {
-      key: "nextServiceRequestUrl",
-      label:
-        closeoutEngine.outcomeType === "blocked_access"
-          ? "Revisit request URL"
-          : "Next-service URL",
-      placeholder: "mailto:dispatch@example.com?subject=Next%20hood%20service",
-      helper: "Used for rebook, revisit, or next-service confirmation.",
-      visible:
-        closeoutEngine.outcomeType === "clean" ||
-        closeoutEngine.outcomeType === "blocked_access" ||
-        closeoutEngine.outcomeType === "condition_review",
-    },
-    {
-      key: "followUpQuoteUrl",
-      label: "Quote request URL",
-      placeholder: "mailto:quotes@example.com?subject=Follow-up%20quote",
-      helper: "Condition-review primary action.",
-      visible:
-        closeoutEngine.outcomeType === "condition_review" &&
-        values.followUpMode === "quote",
-    },
-    {
-      key: "replyUrl",
-      label: "Reply URL or email",
-      placeholder: "mailto:dispatch@example.com",
-      helper: "Fallback path for access, condition, and questions.",
-      visible: closeoutEngine.canGeneratePacket,
-    },
-  ];
-  const visibleCloseoutLinkFields = closeoutLinkFields.filter((field) => field.visible);
-  const connectedCloseoutLinkCount = visibleCloseoutLinkFields.filter(
-    (field) => Boolean(engineCloseoutLinks[field.key]),
-  ).length;
+      : "The report will use the company phone or reply email.";
   const engineWarningLabel =
     closeoutEngine.vendorSendReadinessWarnings.length > 0
       ? closeoutEngine.vendorSendReadinessWarnings[0].copy
@@ -3202,7 +3385,7 @@ export function PacketBuilder() {
           : "Clear access or follow-up before using normal rebook copy.",
     },
     {
-      label: "Request revisit",
+      label: "Schedule revisit after access is clear",
       state:
         closeoutEngine.outcomeType === "blocked_access" ? "ready" : "not_applicable",
       copy:
@@ -3237,7 +3420,7 @@ export function PacketBuilder() {
   ];
   const reportDiagnosticCards = [
     {
-      label: "Closeout context",
+      label: "Report context",
       value: riskSummaryLabel,
       helper: riskSummaryCopy,
       wideOnPhone: true,
@@ -3255,7 +3438,7 @@ export function PacketBuilder() {
       value: claimLevelLabel,
     },
     {
-      label: "Proof coverage",
+      label: "Photo coverage",
       value: closeoutEngine.proofCoverage.shortLabel,
     },
     {
@@ -3266,11 +3449,11 @@ export function PacketBuilder() {
     },
   ];
   const reportHeadingText = readyToSendWithoutReview
-    ? "Send, save, and follow up from this closeout."
+    ? "Send, save, and follow up from this service report."
     : customerOutputsReadyWithChecks
       ? closeoutEngine.evidenceBasis === "no_photos"
         ? "Customer written record is ready."
-        : "Customer link and PDF are ready."
+        : "Service report link and PDF are ready."
       : sendReadinessBlockers.length > 0
       ? "Confirm before outputs."
       : "Confirm a result before outputs are generated.";
@@ -3562,7 +3745,7 @@ export function PacketBuilder() {
           ? selectedAccessCount > 0
             ? "Access note"
             : "Follow-up note"
-          : "Closeout status",
+          : "Report status",
       value: closeoutEngine.responsibilityCopy,
       source: values.scenario === "exception" ? "Shown to customer" : "Shown as closed",
       action: "Edit line",
@@ -3677,7 +3860,7 @@ export function PacketBuilder() {
             ? "Access note"
             : closeoutEngine.outcomeType === "condition_review"
               ? "Condition note"
-              : "Closeout status note",
+              : "Report status note",
         value: previewOpenItemValue ?? "",
         placeholder:
           closeoutEngine.outcomeType === "blocked_access"
@@ -3694,7 +3877,7 @@ export function PacketBuilder() {
             ? "This keeps the blocked area separate from completed work."
             : closeoutEngine.outcomeType === "condition_review"
               ? "This keeps the recorded condition visible without changing completed work."
-              : "This changes the closeout-status sentence, not the result title.",
+              : "This changes the report-status sentence, not the result title.",
         onChange: (value) =>
           updatePreviewTextField(
             closeoutEngine.outcomeType === "blocked_access"
@@ -3722,11 +3905,11 @@ export function PacketBuilder() {
         placeholder:
           findPacketRowValue(
             generatedPreviewPacket.customerClose.actionItems,
-            "Evidence PDF note",
-            "The evidence PDF is for manager, insurance, or documentation requests.",
-          ) || "The evidence PDF is for manager, insurance, or documentation requests.",
+            "PDF copy note",
+            "The service report PDF is for manager, insurance, or documentation requests.",
+          ) || "The service report PDF is for manager, insurance, or documentation requests.",
         maxLength: textFieldLimits.recordNoteOverride,
-        helper: "This changes the evidence-PDF note shown in the customer handoff.",
+    helper: "This changes the PDF note shown in the service report link.",
         onChange: (value) => updatePreviewTextField("recordNoteOverride", value),
       },
     },
@@ -3749,12 +3932,12 @@ export function PacketBuilder() {
       : "Pick one";
   const customerChoiceReason =
     selectedRecommendedOutcome
-      ? "The closeout follows the recommended result. Change it only if the visit was different."
+      ? "The report follows the recommended result. Change it only if the visit was different."
       : !hasJobOutcomeSelected
       ? totalFieldPhotoCount === 0
         ? "No photos or result are confirmed yet. Pick what happened to build a written record."
         : jobOutcomeRecommendation.reason
-      : "You changed the suggested answer. The closeout now follows your selected result.";
+      : "You changed the suggested answer. The report now follows your selected result.";
 
   function resetBuilder() {
     form.reset(axis1BuilderDefaults);
@@ -3784,8 +3967,8 @@ export function PacketBuilder() {
     setActiveCustomerLineEditor("result");
     setActiveCustomerLineEditorSurface(null);
     setActivePreviewEditTarget(null);
-    toast("Closeout reset", {
-      description: "The closeout draft is back to the default visit.",
+    toast("Report reset", {
+      description: "The service summary is back to the default visit.",
     });
   }
 
@@ -3806,7 +3989,7 @@ export function PacketBuilder() {
     if (previewBlockedBy === "notes") {
       setScopeAssumptionsAccepted(true);
       toast("Written record confirmed", {
-        description: "Notes-only areas will be treated as written service record, not photo proof.",
+        description: "Notes-only areas will be treated as a written service record, without claiming missing photos.",
       });
       return;
     }
@@ -3837,7 +4020,7 @@ export function PacketBuilder() {
       toast.error("Confirm the area status before sending.", {
           description:
             sendReadinessBlockers[0] ??
-            "The closeout needs one area status confirmation before outputs are ready.",
+            "The report needs one area status confirmation before outputs are ready.",
       });
       step = "review";
     }
@@ -3856,6 +4039,33 @@ export function PacketBuilder() {
         focusScopeReviewPanel();
       }
     });
+  }
+
+  function selectProductPlan(nextPlan: Axis1ProductPlan) {
+    if (nextPlan === "company" && !hasCompanyAccess) {
+      setPaidFeatureNotice("company-plan");
+      setSetupNoticeAction(null);
+      return;
+    }
+
+    setSelectedProductPlan(nextPlan);
+    setSetupNoticeAction(null);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("account", getAxis1PlanSearchValue(nextPlan));
+    window.history.replaceState({}, "", url);
+
+    const nextPolicy = getAxis1ProductPlanPolicy(nextPlan);
+    toast.success(`${nextPolicy.label} preview selected`, {
+      description: nextPolicy.isPaid
+        ? "Company logo/contact, clean PDF, live service report links, and history are available in the company version."
+        : "This shows the public no-login builder limits.",
+    });
+  }
+
+  function requestPaidFeature(feature: PaidFeatureNotice) {
+    setPaidFeatureNotice(feature);
+    setSetupNoticeAction(null);
   }
 
   function handleMobilePrimaryAction() {
@@ -3914,27 +4124,30 @@ export function PacketBuilder() {
     setSetupNoticeAction(null);
 
     if (action === "copy-link") {
-      await copyLocalReportLink();
+      await copyReportLink();
       return;
     }
 
     if (action === "open-link") {
-      const shareUrl = saveCurrentLocalReportUrl();
+      const savedReport = await saveCurrentReportLink();
 
-      if (shareUrl) {
-        window.open(shareUrl, "_blank", "noopener,noreferrer");
+      if (savedReport) {
+        window.open(savedReport.url, "_blank", "noopener,noreferrer");
       }
 
       return;
     }
 
     if (action === "print-pdf") {
+      await saveCurrentReportLink({ quiet: true });
       window.setTimeout(printCustomerReport, 160);
     }
   }
 
-  function saveCurrentLocalReportUrl() {
-    const result = saveAxis1LocalPacket({
+  function buildReportSaveInput(): Axis1LocalPacketSaveInput {
+    return {
+      productPlan,
+      companyProfile: isCompanyPlan ? companyProfile : undefined,
       values,
       uploadedFieldPhotos,
       photoSlotResolutions,
@@ -3942,34 +4155,64 @@ export function PacketBuilder() {
       presentationMode: packetPresentationMode,
       visibleSections: packetSections,
       packetData: previewPacket,
-    });
+    };
+  }
+
+  async function saveCurrentReportLink(options?: { quiet?: boolean }) {
+    const input = buildReportSaveInput();
+
+    try {
+      const hostedResult = await saveAxis1ServerReport(input);
+      return {
+        url: new URL(hostedResult.href, window.location.origin).toString(),
+        storage: "server",
+        productPlan: hostedResult.productPlan,
+      } satisfies SavedReportLink;
+    } catch {
+      // Keep the builder usable in static dev mode or if hosted storage rejects an oversized payload.
+    }
+
+    const result = saveAxis1LocalPacket(input);
 
     if (!result.ok) {
-      toast.error("Could not save browser handoff", {
-        description: result.error,
-      });
+      if (!options?.quiet) {
+      toast.error("Could not save browser report link", {
+          description: result.error,
+        });
+      }
       return null;
     }
 
-    return new URL(result.href, window.location.origin).toString();
+    return {
+      url: new URL(result.href, window.location.origin).toString(),
+      storage: "local",
+      productPlan,
+    } satisfies SavedReportLink;
   }
 
-  async function copyLocalReportLink() {
-    const shareUrl = saveCurrentLocalReportUrl();
+  async function copyReportLink() {
+    const savedReport = await saveCurrentReportLink();
 
-    if (!shareUrl) {
+    if (!savedReport) {
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success("Browser handoff copied", {
-        description:
-          "Photos are included for this browser pass. Hosted storage is still required for real customer delivery.",
-      });
+      await navigator.clipboard.writeText(savedReport.url);
+      const isHosted = savedReport.storage === "server";
+      toast.success(
+        isHosted ? "Hosted service report link copied" : "Browser fallback link copied",
+        {
+          description: isHosted
+            ? savedReport.productPlan === "company"
+              ? "This branded report is saved to the account history."
+              : "This free test link is saved on the server and expires after 7 days."
+            : "The Spring storage API was not reachable, so this link only works in this browser.",
+        },
+      );
     } catch {
       toast.error("Could not copy automatically", {
-        description: "Open the generated handoff and copy the browser address.",
+        description: "Open the generated service report link and copy the browser address.",
       });
     }
   }
@@ -4096,7 +4339,7 @@ export function PacketBuilder() {
         { shouldDirty: true, shouldValidate: true },
       );
       toast.success("Short wording applied", {
-        description: "The customer handoff now uses the compact copy.",
+        description: "The service report link now uses the compact copy.",
       });
       return;
     }
@@ -4113,11 +4356,11 @@ export function PacketBuilder() {
     );
     form.setValue(
       "followUpOverride",
-      "The follow-up note stays on the customer handoff.",
+        "The follow-up note stays on the service report link.",
       { shouldDirty: true, shouldValidate: true },
     );
     toast.success("Short wording applied", {
-      description: "The customer handoff now uses the compact copy.",
+      description: "The service report link now uses the compact copy.",
     });
   }
 
@@ -4139,7 +4382,7 @@ export function PacketBuilder() {
       shouldValidate: true,
     });
     toast("Recommended copy restored", {
-      description: "The customer handoff is back to the recommended wording.",
+      description: "The service report link is back to the recommended wording.",
     });
   }
 
@@ -4332,8 +4575,8 @@ export function PacketBuilder() {
             matchLabel:
               suggestion.source === "gemini"
                 ? suggestion.needsVendorReview
-                  ? "Possible role - saved as extra evidence"
-                  : "AI attached evidence"
+                  ? "Possible role - saved as extra photo"
+                  : "AI attached photo"
                 : photo.matchLabel,
             ...createPhotoAssistMetadata(suggestion),
           };
@@ -4345,8 +4588,8 @@ export function PacketBuilder() {
           matchLabel:
             suggestion.source === "gemini"
               ? suggestion.needsVendorReview
-                ? "Possible role - saved as extra evidence"
-                : "AI attached evidence"
+                ? "Possible role - saved as extra photo"
+                : "AI attached photo"
               : photo.matchLabel,
           ...createPhotoAssistMetadata(suggestion),
         };
@@ -4361,8 +4604,8 @@ export function PacketBuilder() {
           matchLabel:
             suggestion.source === "gemini"
               ? suggestion.needsVendorReview
-                ? "Possible role - saved as extra evidence"
-                : "AI attached evidence"
+                ? "Possible role - saved as extra photo"
+                : "AI attached photo"
               : photo.matchLabel,
           ...createPhotoAssistMetadata(suggestion),
         };
@@ -4389,8 +4632,8 @@ export function PacketBuilder() {
             matchLabel:
               suggestion.source === "gemini"
                 ? suggestion.suggestedSlotId
-                  ? "Possible role - saved as extra evidence"
-                  : "No safe proof role found"
+                  ? "Possible role - saved as extra photo"
+                  : "No safe report role found"
               : photo.matchLabel,
             ...createPhotoAssistMetadata(suggestion),
           },
@@ -4410,8 +4653,8 @@ export function PacketBuilder() {
                   reason: "overflow" as const,
                   suggestedSlotId: suggestion.suggestedSlotId,
                   matchLabel: suggestion.suggestedSlotId
-                    ? "Possible role - saved as extra evidence"
-                    : "No safe proof role found",
+                    ? "Possible role - saved as extra photo"
+                    : "No safe report role found",
                   assistSuggestedSlotId: suggestion.suggestedSlotId,
                   assistReason: suggestion.reason,
                   confidence: photo.confidence,
@@ -4425,7 +4668,7 @@ export function PacketBuilder() {
     });
     if (photosToReview.length > 0) {
       const movedCount = photosToReview.length;
-      toast("Photo(s) saved as extra evidence", {
+      toast("Photo(s) saved as extras", {
         description: `${movedCount} photo(s) remain visible; customer outputs will not mention them unless you attach them.`,
       });
     }
@@ -4449,7 +4692,7 @@ export function PacketBuilder() {
       message:
         origin === "auto-upload"
           ? "Reading photo content. Phone filenames are normal."
-          : "Checking photo evidence.",
+          : "Checking job photos.",
     });
 
     if (!process.env.NEXT_PUBLIC_API_BASE_URL?.trim()) {
@@ -4459,7 +4702,7 @@ export function PacketBuilder() {
       setPhotoAssistNotice({
         tone: "warning",
         message:
-          "Local photo hints used filename and slot cues. Unclear photos stay saved as extra evidence unless attached.",
+          "Local photo hints used filename and slot cues. Unclear photos stay saved as extras unless attached.",
       });
       setShowProofDetails(false);
       setShowAllPhotoSlots(false);
@@ -4488,8 +4731,8 @@ export function PacketBuilder() {
         message:
           data.warning ??
           (data.provider === "gemini"
-            ? "AI read the photos. Clear evidence is attached; uncertain photos stay saved as extra evidence."
-            : "Photo hints are ready. Unclear photos stay saved as extra evidence."),
+            ? "AI read the photos. Clear matches are attached; uncertain photos stay saved as extras."
+            : "Photo hints are ready. Unclear photos stay saved as extras."),
       });
       setShowProofDetails(false);
       setShowAllPhotoSlots(false);
@@ -4500,7 +4743,7 @@ export function PacketBuilder() {
       setPhotoAssistNotice({
         tone: "warning",
         message:
-          "Photo Assist could not read this set. Continue as a written closeout; attach photos only if they help.",
+          "Photo Assist could not read this set. Continue as a written report; attach photos only if they help.",
       });
       setShowProofDetails(false);
       setShowAllPhotoSlots(false);
@@ -4516,7 +4759,7 @@ export function PacketBuilder() {
       setPhotoAssistNotice({
         tone: "success",
         message:
-          "All usable photo evidence is already attached. Add or replace a photo to run Photo Assist again.",
+          "All usable photos are already attached. Add or replace a photo to run Photo Assist again.",
       });
       return;
     }
@@ -4588,8 +4831,8 @@ export function PacketBuilder() {
     }
     toast.success("Photo attached", {
       description: slot
-        ? `${slot.shortLabel} is ready for the customer link and PDF.`
-        : "Photo is ready for the customer link and PDF.",
+      ? `${slot.shortLabel} is ready for the service report link and PDF.`
+      : "Photo is ready for the service report link and PDF.",
     });
   }
 
@@ -4761,7 +5004,7 @@ export function PacketBuilder() {
             vendorDecision: "pending",
             needsVendorReview: true,
             assistReason:
-              "Axis saved this as extra evidence. Attach it only if it supports this closeout.",
+              "Axis saved this as an extra photo. Attach it only if it supports this report.",
           };
         }
       });
@@ -4820,8 +5063,8 @@ export function PacketBuilder() {
       toast.success(`${loadedPhotoCount} photo(s) added`, {
         description:
           loadedExtraPhotos.length > 0
-            ? `${loadedExtraPhotos.length} extra photo(s) kept visible as extra evidence.`
-            : "Photo evidence is ready. Unclear photos stay saved as extra evidence.",
+            ? `${loadedExtraPhotos.length} extra photo(s) kept visible outside the customer report.`
+            : "Job photos are ready. Unclear photos stay saved as extras.",
       });
     }
 
@@ -5092,8 +5335,8 @@ export function PacketBuilder() {
     );
     toast.success("Photo role confirmed", {
       description: slot
-        ? `${slot.shortLabel} can now support the closeout.`
-        : "Photo can now support the closeout.",
+        ? `${slot.shortLabel} can now support the report.`
+        : "Photo can now support the report.",
     });
   }
 
@@ -5260,11 +5503,11 @@ export function PacketBuilder() {
           : suggestion;
       }),
     );
-    toast("Photo evidence attached", {
+    toast("Photos attached", {
       description:
         pendingPhotoAssistCount > fastConfirmedPhotoIds.size
-          ? "Clear photo roles are now proof. Uncertain photos remain saved as extra evidence."
-          : "Confirmed photo roles are now included as proof. Job result still comes from your area status selection.",
+          ? "Clear photo roles are now included. Uncertain photos remain saved as extras."
+          : "Confirmed photo roles are now included. Job result still comes from your area status selection.",
     });
     selectBuilderStep(nextStep);
   }
@@ -5300,8 +5543,8 @@ export function PacketBuilder() {
     );
     toast("Photo left out", {
       description: photo
-        ? `${photo.name} will not be used in the closeout.`
-        : "The photo will not be used in the closeout.",
+        ? `${photo.name} will not be used in the report.`
+        : "The photo will not be used in the report.",
     });
   }
 
@@ -5377,6 +5620,68 @@ export function PacketBuilder() {
         steps={builderSteps}
       />
       <div
+        className="pdf-print-hide mx-auto mb-4 grid w-full max-w-[1180px] gap-3 rounded-[24px] border border-white/10 bg-[#15181b]/92 px-3.5 py-3 text-white shadow-[0_18px_54px_rgba(0,0,0,0.24)] backdrop-blur md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:px-4"
+        data-axis-plan-banner
+      >
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/72">
+              {isCompanyPlan ? (
+                <ShieldCheck className="h-3.5 w-3.5 text-[#ffb489]" />
+              ) : (
+                <FileText className="h-3.5 w-3.5 text-[#ffb489]" />
+              )}
+              {productPolicy.label}
+            </span>
+            <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/38">
+              {productPolicy.statusLabel}
+            </span>
+          </div>
+          <p className="mt-2 text-sm font-semibold leading-6 text-white/78">
+            {isCompanyFeatureRequested
+              ? "Company features are locked. Use the free builder now; login/subscription unlocks your logo/contact, clean PDF, live service report links, and history."
+              : isCompanyPlan
+              ? `Company mode: ${companyProfile.companyName} details are applied. Reports save to history and stay live while subscribed.`
+              : "Free builder: no login, no company logo/contact, 7-day test link, watermarked PDF, and no report history."}
+          </p>
+          {isCompanyPlan ? (
+            <p className="mt-1 text-xs font-semibold leading-5 text-white/42">
+              {companyProfile.directLine} / {companyProfile.dispatchEmail}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap gap-2 md:justify-end">
+          {(["free", "company"] as const).map((plan) => {
+            const planPolicy = getAxis1ProductPlanPolicy(plan);
+            const active = productPlan === plan;
+            const locked = plan === "company" && !hasCompanyAccess;
+
+            return (
+              <button
+                key={plan}
+                type="button"
+                onClick={() => selectProductPlan(plan)}
+                className={`inline-flex min-h-10 items-center justify-center rounded-full px-3 text-[11px] font-black uppercase tracking-[0.11em] transition ${
+                  active
+                    ? "bg-white text-[#111315]"
+                    : locked
+                      ? "border border-[#ffb489]/20 bg-[#ffb489]/10 text-[#ffd7bd] hover:bg-[#ffb489]/16"
+                      : "border border-white/10 bg-white/[0.045] text-white/58 hover:bg-white/[0.09] hover:text-white"
+                }`}
+              >
+                {locked ? `${planPolicy.shortLabel} locked` : planPolicy.shortLabel}
+              </button>
+            );
+          })}
+          <a
+            href={hasCompanyAccess ? productPolicy.ctaHref : loginHref}
+            className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#f26a21] px-3.5 text-[11px] font-black uppercase tracking-[0.11em] text-white transition hover:bg-[#dd5b17]"
+          >
+            {hasCompanyAccess ? productPolicy.ctaLabel : "Login"}
+          </a>
+        </div>
+      </div>
+      <div
         className={`grid min-w-0 gap-5 ${
           isOutputStep
             ? "mx-auto w-full max-w-[1320px]"
@@ -5401,14 +5706,14 @@ export function PacketBuilder() {
               className="hidden"
             >
               <p className={`${labelClassName()} hidden md:block ${builderStep === "photos" ? "sr-only" : ""}`}>
-                Hood closeout
+                Hood report
               </p>
               <h2 className={`mt-2 hidden font-display text-[1.2rem] font-bold leading-[0.96] tracking-[-0.055em] text-foreground md:block md:text-[1.38rem] ${builderStep === "photos" ? "sr-only" : ""}`}>
-                Build the closeout.
+                Build the service report.
               </h2>
               <p className={`mt-2 hidden text-xs leading-5 text-muted-foreground md:block ${builderStep === "photos" ? "sr-only" : ""}`}>
                 Pick what happened, confirm area status, then use the generated
-                customer, PDF, invoice, quote, revisit, and rebook outputs.
+                customer report link, PDF, follow-up, revisit, and next-service outputs.
               </p>
               <div className={`mt-3 hidden gap-2 md:grid md:grid-cols-3 xl:grid-cols-1 ${builderStep === "photos" ? "sr-only" : ""}`}>
                 {[
@@ -5513,7 +5818,7 @@ export function PacketBuilder() {
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-[#f26a21]" />
                   <span className="text-[11px] font-semibold leading-4 text-foreground">
-                    Local preview. Add delivery links only when invoice, quote, or schedule buttons should open actions.
+                    Local preview. Customer actions use the company phone or reply email from the report.
                   </span>
                 </div>
               </motion.div>
@@ -5527,15 +5832,15 @@ export function PacketBuilder() {
               >
                 <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
                   <div className="min-w-0">
-                    <p className={labelClassName()}>Review closeout</p>
+                    <p className={labelClassName()}>Review report</p>
                     {builderStep === "review" ? (
                       <h1
                         className="mt-2 text-xl font-bold leading-tight tracking-[-0.045em] text-foreground"
                         data-axis-tool-page-heading
                       >
                         {hasJobOutcomeSelected
-                          ? "Review the drafted closeout."
-                          : "Review the AI draft."}
+                          ? "Review the service report."
+                          : "Review the service summary."}
                       </h1>
                     ) : null}
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -5577,7 +5882,7 @@ export function PacketBuilder() {
                         {activeVisitType.title}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        Expected in this closeout: {activeVisitTypeScopeText}.
+                        Expected in this report: {activeVisitTypeScopeText}.
                         Pick narrower coverage or change an area before sending.
                       </p>
                     </div>
@@ -5626,7 +5931,7 @@ export function PacketBuilder() {
                     <p className="mt-2 text-sm leading-6 text-white/62">
                         {hasJobOutcomeSelected
                           ? "Result is set. Change only if the visit outcome is wrong."
-                          : "One tap sets the record basis. The closeout preview below is what the vendor should actually review."}
+                          : "One tap sets the record basis. The report preview below is what the vendor should actually review."}
                       </p>
                     </div>
                     <span className="rounded-full border border-white/14 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
@@ -5763,14 +6068,14 @@ export function PacketBuilder() {
                     }`}
                   >
                     <div className="min-w-0">
-                      <p className={labelClassName()}>Customer-style closeout preview</p>
+                      <p className={labelClassName()}>Customer-style report preview</p>
                       <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-foreground">
                         {scopeCheckTitle}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         {hasJobOutcomeSelected
-                          ? "Edit the status chips inside this preview. Customer link, PDF, invoice proof, payment copy, and follow-up copy all use the same record."
-                          : "Confirm the result above, then review the closeout preview instead of filling a report."}
+                  ? "Edit the status chips inside this preview. Service report link, PDF, follow-up, revisit, and next-service copy all use the same record."
+                          : "Confirm the result above, then review the report preview instead of filling a form."}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -5802,7 +6107,7 @@ export function PacketBuilder() {
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                              Customer-safe draft
+                              Customer-ready copy
                             </p>
                             <p className="mt-2 text-sm font-bold leading-5">
                               {previewPacket.summaryCards[0]?.copy ?? previewPacket.packetHeader.copy}
@@ -5862,12 +6167,12 @@ export function PacketBuilder() {
                       <div className="rounded-[16px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className={labelClassName()}>Saved photos, not proof yet</p>
+                            <p className={labelClassName()}>Saved photos, not used yet</p>
                             <p className="mt-1 text-sm font-bold leading-5 text-foreground">
-                              {unplacedFieldPhotos.length} photo(s) are saved as extra evidence.
+                              {unplacedFieldPhotos.length} photo(s) are saved outside the customer report.
                             </p>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                              They stay in the job record, but customer outputs will not use them as proof until you attach one to a closeout area.
+                              They stay in the job record, but customer outputs will not mention them until you attach one to a service area.
                             </p>
                           </div>
                           <button
@@ -5899,7 +6204,7 @@ export function PacketBuilder() {
                                 : "have"} no photo.
                             </p>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                              The closeout will use service notes for these areas. Change any area that was blocked, skipped, or not part of this visit.
+                              The report will use service notes for these areas. Change any area that was blocked, skipped, or not part of this visit.
                             </p>
                           </div>
                           <button
@@ -6030,8 +6335,8 @@ export function PacketBuilder() {
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         {hasJobOutcomeSelected
-                          ? "Everything below comes from this closeout. Customer-safe wording follows area status."
-                          : "Pick the job result before Axis 1 generates customer, PDF, invoice, quote, revisit, and rebook copy."}
+                          ? "Everything below comes from this service record. Customer-safe wording follows area status."
+                          : "Pick the job result before Axis 1 generates the customer report link, PDF, follow-up, revisit, and next-service copy."}
                       </p>
                     </div>
                     {!scopeNeedsWrittenRecordConfirmation ? (
@@ -6470,12 +6775,12 @@ export function PacketBuilder() {
               >
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
-                    <p className={labelClassName()}>Closeout</p>
+                    <p className={labelClassName()}>Service report</p>
                     <p className="mt-2 text-lg font-bold leading-tight tracking-[-0.035em] text-foreground">
-                      Send, save, and get paid.
+                      Send the report, save the PDF, and follow up.
                     </p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      Customer link, PDF, invoice proof, payment, revisit, quote, and next-service copy come from the same closeout.
+                Service report link, PDF, revisit, quote, and next-service copy come from the same service record.
                     </p>
                   </div>
                     <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#b94d11]">
@@ -6630,15 +6935,15 @@ export function PacketBuilder() {
                         className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]"
                         data-axis-tool-page-heading
                       >
-                        Add photos or a short note.
+                        Create the restaurant-ready hood cleaning report.
                       </h1>
                     ) : (
                       <h2 className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]">
-                        Add photos or a short note.
+                        Create the restaurant-ready hood cleaning report.
                       </h2>
                     )}
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-white/54 md:text-[14px] md:leading-6">
-                      Drop the phone photos if you have them. One short note is enough when photos are missing, blocked, or messy.
+                      Add job photos if you have them. One short note is enough when the crew needs a clean report link and PDF for the restaurant.
                     </p>
                   </div>
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] md:h-11 md:w-11">
@@ -6740,7 +7045,7 @@ export function PacketBuilder() {
                     </p>
                     <p className="mt-3 max-w-md text-xs leading-5 text-white/58 sm:mt-4 sm:text-sm sm:leading-6 md:text-[15px]">
                       {hasProofWorkStarted
-                        ? "Drop only the missing or extra photos. The current closeout stays intact."
+                        ? "Drop only the missing or extra photos. The current report stays intact."
                         : "Before, after, fan, filter, access, label, and issue photos can all go in one batch."}
                     </p>
                     <div
@@ -6761,7 +7066,7 @@ export function PacketBuilder() {
                         variant="outline"
                         className="border-white/14 bg-white/[0.08] px-3 py-1 text-[11px] text-white/70"
                       >
-                        Saved even if not proof
+                        Saved with report
                       </Badge>
                     </div>
                   </div>
@@ -6859,10 +7164,10 @@ export function PacketBuilder() {
                           Ready to review?
                         </span>
                         <span className="mt-1 block text-xl font-black tracking-[-0.045em]">
-                          Draft closeout
+                          Review report
                         </span>
                         <span className="mt-1 block text-xs font-semibold leading-5 text-[#111315]/58">
-                          Review what Axis 1 drafted, then fix only wrong or uncertain parts.
+                          Review the service summary, then fix only wrong or uncertain parts.
                         </span>
                       </span>
                       <IconArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5" />
@@ -6872,7 +7177,7 @@ export function PacketBuilder() {
                         Next
                       </p>
                       <p className="mt-2 text-sm font-bold leading-5 text-white">
-                        No photos is okay. The next screen creates a written record instead of claiming photo proof.
+                        No photos is okay. The next screen creates a written record without claiming missing photos.
                       </p>
                     </div>
                   </div>
@@ -6989,7 +7294,7 @@ export function PacketBuilder() {
                     <div className="grid gap-4 px-4 py-4 sm:px-5 sm:py-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
                       <div className="min-w-0">
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                          Photo evidence
+                          Job photos
                         </p>
                         <p className="mt-2 text-2xl font-bold leading-[0.95] tracking-[-0.055em] text-white md:text-[2.35rem]">
                           {proofReadinessTitle}
@@ -7054,7 +7359,7 @@ export function PacketBuilder() {
                             <p className="mt-2 text-xs leading-5 text-white/58">
                               {firstPendingPlacedPhoto.assistReason ??
                                 firstPendingPlacedPhoto.matchLabel ??
-                                "Axis was not sure enough to use this as proof. Attach it only if it supports the closeout."}
+                                "This photo was not assigned automatically. Use it only if it supports the report."}
                             </p>
                             <p className="mt-1 truncate text-[11px] font-semibold text-white/38">
                               {firstPendingPlacedPhoto.name}
@@ -7146,7 +7451,7 @@ export function PacketBuilder() {
                             <p className="mt-2 text-xs leading-5 text-white/58">
                               {firstPendingExtraPhoto.assistReason ??
                                 firstPendingExtraPhoto.matchLabel ??
-                                "Axis was not sure enough to use this as proof. It stays visible here unless you attach it."}
+                                "This photo was not assigned automatically. It stays saved unless you attach it."}
                             </p>
                             <p className="mt-1 truncate text-[11px] font-semibold text-white/38">
                               {firstPendingExtraPhoto.name}
@@ -7289,7 +7594,7 @@ export function PacketBuilder() {
                             </p>
                             <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-white">
                               {pendingPhotoAssistCount > 0
-                                ? `${pendingPhotoAssistCount} photo(s) saved as extra evidence`
+                                ? `${pendingPhotoAssistCount} photo(s) saved as extra photos`
                                 : `${vendorConfirmedPhotoCount} vendor-confirmed photo role(s)`}
                             </p>
                             <p className="mt-1 text-xs leading-5 text-white/52">
@@ -7317,7 +7622,7 @@ export function PacketBuilder() {
                         <div className="mt-3 grid gap-2 sm:grid-cols-2">
                           {[
                             ["Extra saved", `${pendingPhotoAssistCount}`],
-                            ["Used as proof", `${vendorConfirmedPhotoCount}`],
+                            ["Used in report", `${vendorConfirmedPhotoCount}`],
                           ].map(([label, value]) => (
                             <div
                               key={label}
@@ -7355,7 +7660,7 @@ export function PacketBuilder() {
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffcfb5]">
-                              Extra evidence
+                              Extra photos
                             </p>
                             <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-white">
                               {unplacedFieldPhotos.length} photo(s) saved, not claimed
@@ -7403,7 +7708,7 @@ export function PacketBuilder() {
                                   <p className="mt-1 text-xs leading-5 text-white/58">
                                     {photo.assistReason ??
                                       photo.matchLabel ??
-                                      "Axis was not confident enough to use this photo as proof automatically."}
+                                      "The tool was not confident enough to assign this photo automatically."}
                                   </p>
                                   <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                                     <select
@@ -7446,7 +7751,7 @@ export function PacketBuilder() {
                     {hasSuggestedPhotoRoles ? (
                       <div className="mx-4 mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2 sm:mx-5">
                         <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
-                          Clear AI attachments can support the closeout. You can still
+                          Clear photo attachments can support the report. You can still
                           correct a role before sending.
                         </p>
                       </div>
@@ -7455,7 +7760,7 @@ export function PacketBuilder() {
                       <div className="mx-4 mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2 sm:mx-5">
                         <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
                           {hasAfterOnly
-                            ? "After photo is present, but no before photo is attached. The closeout will stay as an after-photo service note unless you add or mark the missing before photo."
+                            ? "After photo is present, but no before photo is attached. The report will stay as an after-photo service note unless you add or mark the missing before photo."
                             : "Before photo is present, but no after photo is attached. Add an after photo or mark it not captured before sending."}
                         </p>
                       </div>
@@ -7476,11 +7781,11 @@ export function PacketBuilder() {
                           >
                             {totalFieldPhotoCount > 0
                               ? `${vendorConfirmedPhotoCount} confirmed`
-                              : "Written closeout"}
+                              : "Written record"}
                           </Badge>
                       </div>
                       <p className="mt-2 text-xs leading-5 text-white/54">
-                        Photo evidence is prepared. Outputs are finalized after the visit outcome is selected.
+                        Photos are prepared. Outputs are finalized after the visit outcome is selected.
                       </p>
                     </div>
                     <div className="mx-4 mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08] sm:mx-5">
@@ -7810,7 +8115,7 @@ export function PacketBuilder() {
                             {uploaded
                               ? `${uploaded.name} - ${uploaded.matchLabel}`
                               : resolution === "not-captured"
-                                ? "Marked not captured. The closeout will not show a sample image for this slot."
+                                ? "Marked not captured. The report will not show a sample image for this slot."
                                 : resolution === "not-applicable"
                                   ? "Marked not applicable for this visit."
                               : slot.caption}
@@ -7926,8 +8231,9 @@ export function PacketBuilder() {
                   <div className="flex items-start gap-3">
                     <IconCircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-[#ffb489]" />
                     <p className="text-xs leading-5 text-white/58">
-                      Photos stay local in this preview. Use hosted delivery only
-                      when the customer needs cross-device access.
+                      {isCompanyPlan
+                        ? "Company mode applies saved company info and saves hosted reports to history."
+                        : "Free preview output has no company logo/contact and is limited. Use the company version for live delivery under your name."}
                     </p>
                   </div>
                 </div>
@@ -7977,7 +8283,7 @@ export function PacketBuilder() {
                   className="rounded-full bg-[#f26a21] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white hover:bg-[#d95d1d]"
                 >
                   <Copy className="h-4 w-4" />
-                  Copy local link
+                  Copy report link
                 </Button>
               </div>
             </form>
@@ -8045,12 +8351,12 @@ export function PacketBuilder() {
                       </span>
                       <span className="axis-proof-title">
                         {closeoutEngine.canGeneratePacket
-                          ? "Customer proof, payment, and follow-up outputs generated"
-                          : "Select the job result to build the closeout"}
+                          ? "Customer report, PDF, and follow-up outputs generated"
+                          : "Select the job result to build the report"}
                       </span>
                       <span className="axis-proof-subtitle">
                         {closeoutEngine.canGeneratePacket
-                          ? "Customer handoff, evidence PDF, invoice proof, payment copy, revisit or quote copy, and next-service text are derived from this same vendor-confirmed closeout."
+                          ? "Service report link, PDF copy, revisit or quote copy, and next-service text are derived from this same vendor-confirmed service record."
                           : "Outputs stay locked until the vendor confirms what happened. Photos can organize the record, but they do not decide the final claim."}
                       </span>
                     </span>
@@ -8088,11 +8394,11 @@ export function PacketBuilder() {
                     </span>
                     <span className="min-w-0">
                       <span className="axis-proof-action-label">
-                        Copy customer handoff
+                          Copy report link
                       </span>
                       <span className="axis-proof-action-copy">
                         {canPreviewProofLink
-                          ? "Customer link copy from this closeout."
+                          ? "Service report link copy from this service record."
                           : previewProofLinkLabel}
                       </span>
                     </span>
@@ -8114,10 +8420,10 @@ export function PacketBuilder() {
                     </span>
                     <span className="min-w-0">
                       <span className="axis-proof-action-label">
-                        Save evidence record
+                        Save service report PDF
                       </span>
                       <span className="axis-proof-action-copy">
-                        PDF record from the same closeout.
+                        PDF record from the same service record.
                       </span>
                     </span>
                   </button>
@@ -8150,8 +8456,8 @@ export function PacketBuilder() {
 
                   <section className="axis-proof-panel">
                     <div className="axis-proof-panel-head">
-                      <p className="axis-proof-panel-label">Closeout areas</p>
-                      <p>Change status here; every output updates from the same closeout.</p>
+                      <p className="axis-proof-panel-label">Service areas</p>
+                      <p>Change status here; every output updates from the same service record.</p>
                     </div>
                     {quickCloseoutNoteNeedsPlacement && quickCloseoutNoteSignal ? (
                       <div
@@ -8240,7 +8546,7 @@ export function PacketBuilder() {
                   >
                     <div className="axis-proof-panel-head">
                       <p className="axis-proof-panel-label">Output items</p>
-                      <p>One closeout, multiple customer, PDF, payment, and follow-up uses.</p>
+                      <p>One service record, multiple customer, PDF, revisit, quote, and next-service uses.</p>
                     </div>
                     <div className="axis-output-ledger">
                       {closeoutEngine.generatedOutputs.map((output) => {
@@ -8279,7 +8585,7 @@ export function PacketBuilder() {
                   >
                     <div className="axis-proof-panel-head">
                       <p className="axis-proof-panel-label">Next cleaning / follow-up</p>
-                      <p>Turns the same closeout into rebook, revisit, quote, or monitor action.</p>
+                      <p>Turns the same service record into rebook, revisit, quote, or monitor action.</p>
                     </div>
                     <div className="axis-output-ledger">
                       {nextActionRows.map((item) => {
@@ -8348,46 +8654,11 @@ export function PacketBuilder() {
                   </aside>
                 </div>
 
-                {closeoutEngine.canGeneratePacket ? (
-                  <div className="axis-proof-link-dock hidden">
-                    <div className="axis-proof-link-dock-head">
-                      <div>
-                        <p className="axis-proof-panel-label">Optional action links</p>
-                        <p>Add URLs only when the output button should open invoice, quote, schedule, or reply actions.</p>
-                      </div>
-                      <span>
-                        {connectedCloseoutLinkCount}/{visibleCloseoutLinkFields.length} filled
-                      </span>
-                    </div>
-                    <div className="axis-proof-link-grid">
-                      {visibleCloseoutLinkFields.map((field) => (
-                        <label key={field.key} className="axis-proof-link-field">
-                          <span>{field.label}</span>
-                          <input
-                            type="text"
-                            inputMode={field.key === "paymentDueLabel" ? "text" : "url"}
-                            value={closeoutLinks[field.key] ?? ""}
-                            onChange={(event) =>
-                              setCloseoutLinks((current) => ({
-                                ...current,
-                                [field.key]: event.target.value,
-                              }))
-                            }
-                            placeholder={field.placeholder}
-                          />
-                          <small>{field.helper}</small>
-                        </label>
-                      ))}
-                    </div>
-                    <p className="axis-proof-local-note">
-                      Local preview link. Use hosted delivery when this needs to work across devices.
-                    </p>
-                  </div>
-                ) : (
+                {!closeoutEngine.canGeneratePacket ? (
                   <div className="axis-proof-blocking-note">
                     {closeoutEngine.blockingReason}
                   </div>
-                )}
+                ) : null}
               </motion.section>
             </div>
             <motion.div
@@ -8410,7 +8681,7 @@ export function PacketBuilder() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-70">
-                    Closeout
+                    Service report
                   </p>
                   <h3 className="mt-1 text-base font-bold leading-tight tracking-[-0.03em]">
                     {mobileReportStatus.title}
@@ -8426,7 +8697,7 @@ export function PacketBuilder() {
                     Area status
                   </p>
                   <span className="rounded-full bg-[#111315] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
-                    Closeout
+                    Report
                   </span>
                 </div>
                 <div className="grid gap-2">
@@ -8623,17 +8894,21 @@ export function PacketBuilder() {
                 className="tool-segmented-control order-6 mt-3 rounded-full bg-white/72"
               >
                 <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-[11px]">
-                  Handoff
+                  Report link
                 </SegmentedControlItem>
                 <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-[11px]">
-                  Evidence PDF
+                  Service report PDF
                 </SegmentedControlItem>
               </SegmentedControl>
               <div className="order-7 mt-2.5 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-[11px] leading-4 opacity-70">
                   {reportOutputMode === "link"
-                    ? "Copy creates a local customer handoff from the current closeout."
-                    : "This is the evidence PDF for save/print."}
+                    ? isCompanyPlan
+                      ? "Copy creates a branded service report link from this service record."
+                      : "Copy creates an unbranded 7-day test report link from this service record."
+                    : isCompanyPlan
+                      ? "Company PDFs are clean copies without the free watermark."
+                      : "Free builder PDFs are watermarked test copies."}
                 </p>
                 <button
                   type="button"
@@ -8679,7 +8954,7 @@ export function PacketBuilder() {
                       <div>
                         <p className={labelClassName()}>{reportStatusLabel}</p>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          Review the customer link, then copy it or save the PDF.
+                          Review the service report link, then copy it or save the PDF.
                           The same customer-line edits update both link and PDF previews.
                         </p>
                       </div>
@@ -8700,7 +8975,7 @@ export function PacketBuilder() {
                     {!showWordingEditor ? (
                       <div className="mt-4 overflow-hidden rounded-[20px] border border-[#f26a21]/18 bg-[#fff7ef]">
                         <div className="border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
-                          <p className={labelClassName()}>Customer link</p>
+                          <p className={labelClassName()}>Service report link</p>
                           <p className="mt-1 text-xs leading-5 text-muted-foreground">
                             Built from your selected result. Send as-is, or edit one line.
                           </p>
@@ -8758,7 +9033,7 @@ export function PacketBuilder() {
                             className="tool-action-btn tool-action-primary tool-action-mini"
                           >
                             <Copy className="h-3.5 w-3.5" />
-                            Copy customer link
+                      Copy report link
                           </Button>
                           <Button
                             type="button"
@@ -8850,7 +9125,7 @@ export function PacketBuilder() {
                       </div>
                       <div>
                         <label className={labelClassName()} htmlFor="previewFollowUpOverride">
-                          Closeout status note
+                          Report status note
                         </label>
                         <textarea
                           id="previewFollowUpOverride"
@@ -8862,7 +9137,7 @@ export function PacketBuilder() {
                         />
                         <div className="flex items-start justify-between gap-3">
                           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                            Shows in: Closeout status / condition detail.
+                            Shows in: Report status / condition detail.
                           </p>
                           <CharacterCount
                             value={values.followUpOverride}
@@ -8872,14 +9147,14 @@ export function PacketBuilder() {
                       </div>
                       <div>
                         <label className={labelClassName()} htmlFor="previewRecordNoteOverride">
-                          Evidence PDF note
+                          PDF copy note
                         </label>
                         <textarea
                           id="previewRecordNoteOverride"
                           rows={2}
                           className={fieldClassName()}
                           maxLength={textFieldLimits.recordNoteOverride}
-                          placeholder="Optional. Replaces the record-note body under Evidence PDF."
+                          placeholder="Optional. Replaces the record-note body under the service report PDF."
                           {...form.register("recordNoteOverride")}
                         />
                         <div className="flex items-start justify-between gap-3">
@@ -8939,10 +9214,10 @@ export function PacketBuilder() {
               <div className="hidden rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className={labelClassName()}>Customer link vs PDF</p>
+                    <p className={labelClassName()}>Service report link vs PDF</p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       Switch between the two outputs vendors need: a customer
-                      handoff link for the next action and an evidence PDF for
+                      service report link for the next action and a PDF copy for
                       archive, submission, or later requests.
                     </p>
                   </div>
@@ -8954,7 +9229,7 @@ export function PacketBuilder() {
                       className="tool-action-btn tool-action-primary tool-action-mini"
                     >
                       <Copy className="h-3.5 w-3.5" />
-                      Copy local link
+                      Copy report link
                     </Button>
                     <Button
                       type="button"
@@ -8993,27 +9268,27 @@ export function PacketBuilder() {
                       className="tool-segmented-control rounded-full"
                     >
                       <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-xs">
-                        Customer link
+                        Service report link
                       </SegmentedControlItem>
                       <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-xs">
-                        Evidence PDF
+                        Service report PDF
                       </SegmentedControlItem>
                     </SegmentedControl>
                     <div className="grid gap-2 md:grid-cols-2">
                       {[
                         [
-                          "Customer link",
+                          "Service report link",
                           "Primary output",
-                          "Web handoff - best for customer clarity, follow-up items, and reply.",
+                          "Web report - best for customer clarity, follow-up items, and reply.",
                         ],
                         [
                           "PDF / print",
-                          "Evidence output",
-                          "Formal evidence record - best for archive, attachment, print, and outside record requests.",
+                          "PDF copy",
+                          "Formal service report PDF - best for archive, attachment, print, and outside record requests.",
                         ],
                       ].map(([label, value, copy]) => {
                         const isActive =
-                          (label === "Customer link" && reportOutputMode === "link") ||
+                          (label === "Service report link" && reportOutputMode === "link") ||
                           (label === "PDF / print" && reportOutputMode === "pdf");
 
                         return (
@@ -9022,7 +9297,7 @@ export function PacketBuilder() {
                           key={label}
                           onClick={() =>
                             setReportOutputMode(
-                              label === "Customer link" ? "link" : "pdf",
+                              label === "Service report link" ? "link" : "pdf",
                             )
                           }
                           className={`rounded-[18px] border px-3 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(17,19,21,0.08)] ${
@@ -9045,14 +9320,18 @@ export function PacketBuilder() {
                     <div className="rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-3">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">
-                          <p className={labelClassName()}>Free share link</p>
+                          <p className={labelClassName()}>
+                            {isCompanyPlan ? "Company service report link" : "Free test link"}
+                          </p>
                           <p className="mt-1 text-sm font-bold tracking-[-0.03em] text-foreground">
-                            Noindex, unbranded, local photo test.
+                            {isCompanyPlan
+                              ? "Useful for sending the branded report and keeping it in history."
+                              : "Useful for trying the report before a company version."}
                           </p>
                           <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
-                            This link stores the current customer link and photos in
-                            this browser for QA. Hosted storage is still needed
-                            before cross-device customer delivery.
+                            {isCompanyPlan
+                              ? "This saves the current service report as a hosted branded link in account history."
+                              : "This saves an unbranded 7-day test link with no company logo/contact."}
                           </p>
                         </div>
                         <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
@@ -9082,8 +9361,8 @@ export function PacketBuilder() {
                       <div className="min-w-0">
                         <p className={labelClassName()}>PDF detail options</p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          These switches control the evidence PDF only.
-                          The customer handoff keeps the web layout.
+                          These switches control the service report PDF only.
+                          The service report link keeps the web layout.
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
@@ -9231,7 +9510,7 @@ export function PacketBuilder() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className={labelClassName()}>
-                      {reportOutputMode === "link" ? "Customer handoff preview" : "Evidence record preview"}
+                      {reportOutputMode === "link" ? "Service report link preview" : "Service report PDF preview"}
                     </p>
                     <span className="rounded-full border border-[#f26a21]/20 bg-[#fff7ef] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
                       {reportOutputMeta.badge}
@@ -9243,6 +9522,51 @@ export function PacketBuilder() {
                   <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground md:max-w-xl">
                     {reportOutputMeta.copy}
                   </p>
+                  <div className="mt-2 grid gap-1 text-[11px] font-semibold leading-4 text-muted-foreground">
+                    <p>
+                      <span className="text-foreground">Current mode:</span>{" "}
+                      {productPolicy.brandingPolicy}; {productPolicy.linkPolicy};{" "}
+                      {productPolicy.pdfPolicy}; {productPolicy.historyPolicy}.
+                    </p>
+                    <p>
+                      <span className="text-foreground">
+                        {isCompanyPlan ? "Company version:" : "Upgrade unlocks:"}
+                      </span>{" "}
+                      {isCompanyPlan
+                        ? "saved branding, clean PDF, live report links while subscribed, and account history."
+                        : "saved company details, clean PDF, live service report links while subscribed, and report history."}
+                    </p>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isAuthenticated) {
+                          selectProductPlan("company");
+                          return;
+                        }
+
+                        requestPaidFeature("branding");
+                      }}
+                      className="inline-flex min-h-9 items-center justify-center rounded-full border border-[#f26a21]/24 bg-[#fff7ef] px-3 text-[10px] font-black uppercase tracking-[0.13em] text-[#b94d11] transition hover:bg-[#ffe9d8]"
+                    >
+                      {isAuthenticated ? "Use saved company info" : "Add company info"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isAuthenticated) {
+                          window.location.href = "/dashboard";
+                          return;
+                        }
+
+                        requestPaidFeature("history");
+                      }}
+                      className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-[10px] font-black uppercase tracking-[0.13em] text-foreground transition hover:bg-[#fbf7ef]"
+                    >
+                      Report history
+                    </button>
+                  </div>
                 </div>
                 <SegmentedControl
                   type="single"
@@ -9255,10 +9579,10 @@ export function PacketBuilder() {
                   className="tool-segmented-control shrink-0 rounded-full md:w-[280px]"
                 >
                   <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-xs">
-                    Handoff
+                    Report link
                   </SegmentedControlItem>
                   <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-xs">
-                    Evidence PDF
+                    Service report PDF
                   </SegmentedControlItem>
                 </SegmentedControl>
               </div>
@@ -9272,7 +9596,7 @@ export function PacketBuilder() {
                 <div
                   className={
                     reportOutputMode === "pdf"
-                      ? "tool-pdf-document-stage flex min-w-0 justify-center"
+                      ? "tool-pdf-document-stage relative flex min-w-0 justify-center"
                       : "min-w-0"
                   }
                 >
@@ -9289,6 +9613,11 @@ export function PacketBuilder() {
                       reportOutputMode === "pdf"
                         ? "service-record"
                         : "customer-link"
+                    }
+                    watermarkLabel={
+                      reportOutputMode === "pdf" && !isCompanyPlan
+                        ? productPolicy.watermarkLabel
+                        : undefined
                     }
                     presentationMode={activePreviewPresentationMode}
                     visibleSections={activePreviewSections}
@@ -9312,9 +9641,9 @@ export function PacketBuilder() {
           {mobileSheet === "photo-review" ? (
             <>
               <DrawerHeader className="px-4 pb-2 pt-4">
-                <DrawerTitle className="text-[1.45rem]">Photo evidence</DrawerTitle>
+                <DrawerTitle className="text-[1.45rem]">Job photos</DrawerTitle>
                 <DrawerDescription className="text-xs leading-5">
-                  Phone filenames are ignored. Attach uncertain photos only when they support this closeout.
+                  Phone filenames are ignored. Attach uncertain photos only when they support this report.
                 </DrawerDescription>
               </DrawerHeader>
               <div className="min-h-0 overflow-y-auto px-3 pb-3">
@@ -9364,8 +9693,8 @@ export function PacketBuilder() {
               <DrawerHeader>
                 <DrawerTitle>PDF / print options</DrawerTitle>
                 <DrawerDescription>
-                  The customer handoff is for delivery. Print / save creates the
-                  evidence PDF.
+                  The service report link is for delivery. Print / save creates the
+                  service report PDF.
                 </DrawerDescription>
               </DrawerHeader>
               <div className="min-h-0 overflow-y-auto px-4 pb-4">
@@ -9390,8 +9719,9 @@ export function PacketBuilder() {
                   </SegmentedControl>
                   <div className="mt-3 rounded-[16px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-2.5">
                     <p className="text-xs leading-5 text-muted-foreground">
-                      Local links use the closeout in this browser. Use hosted
-                      delivery when the customer needs cross-device access.
+                      {isCompanyPlan
+                        ? "Company mode saves this service report as a hosted branded link and account history record."
+                        : "Free mode creates an unbranded 7-day test link. Browser-only fallback is used only if the API is unreachable."}
                     </p>
                   </div>
                 </div>
@@ -9402,7 +9732,7 @@ export function PacketBuilder() {
                     className="tool-action-btn tool-action-primary h-11 px-3"
                   >
                     <Copy className="h-3.5 w-3.5" />
-                    Copy handoff
+                    Copy report link
                   </button>
                   <button
                     type="button"
@@ -9465,7 +9795,7 @@ export function PacketBuilder() {
                   }}
                   className="tool-action-btn tool-action-secondary h-12"
                 >
-                  Back to proof photos
+                  Back to service photos
                 </button>
                 <button
                   type="button"
@@ -9481,6 +9811,81 @@ export function PacketBuilder() {
         </DrawerContent>
       </Drawer>
       <AnimatePresence>
+        {paidFeatureNotice ? (
+          <motion.div
+            className="pdf-print-hide fixed inset-0 z-50 grid place-items-end bg-[#111315]/42 px-3 py-3 backdrop-blur-sm sm:place-items-center sm:px-5"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="paid-feature-notice-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
+          >
+            <button
+              type="button"
+              className="absolute inset-0 cursor-default"
+              aria-label="Close paid feature notice"
+              onClick={() => setPaidFeatureNotice(null)}
+            />
+            <motion.div
+              initial={{ y: 22, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 18, opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="relative w-full max-w-[560px] overflow-hidden rounded-[28px] border border-white/14 bg-[#fbf8f3] p-4 shadow-[0_34px_100px_rgba(17,19,21,0.34)] sm:p-5"
+            >
+              <div className="rounded-[22px] border border-black/8 bg-white px-4 py-4 sm:px-5 sm:py-5">
+                <p className={labelClassName()}>{paidFeatureMeta.eyebrow}</p>
+                <h2
+                  id="paid-feature-notice-title"
+                  className="mt-2 font-display text-[1.85rem] font-bold leading-[0.92] tracking-[-0.065em] text-foreground sm:text-[2.25rem]"
+                >
+                  {paidFeatureMeta.title}
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  {paidFeatureMeta.copy}
+                </p>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                {[
+                  ["Free", "Unbranded 7-day link and watermarked PDF."],
+                  ["Login", "Save company defaults and return to past reports."],
+                  ["Subscribe", "Clean PDF, branded live service report links, and history."],
+                ].map(([label, copy]) => (
+                  <div
+                    key={label}
+                    className="rounded-[18px] border border-black/8 bg-white px-4 py-3"
+                  >
+                    <p className={labelClassName()}>{label}</p>
+                    <p className="mt-2 text-xs font-semibold leading-5 text-foreground">
+                      {copy}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="button"
+                  onClick={() => setPaidFeatureNotice(null)}
+                  className="h-11 rounded-[16px] border border-black/10 bg-[#f6f1e8] px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground"
+                >
+                  Keep using free builder
+                </button>
+                <a
+                  href={isAuthenticated ? "/dashboard" : loginHref}
+                  className="inline-flex h-11 items-center justify-center rounded-[16px] bg-[#111315] px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-white"
+                >
+                  {isAuthenticated ? "Open dashboard" : "Login / subscribe"}
+                </a>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+      <AnimatePresence>
         {setupNoticeAction ? (
           <motion.div
             className="pdf-print-hide fixed inset-0 z-50 grid place-items-end bg-[#111315]/42 px-3 py-3 backdrop-blur-sm sm:place-items-center sm:px-5"
@@ -9495,7 +9900,7 @@ export function PacketBuilder() {
             <button
               type="button"
               className="absolute inset-0 cursor-default"
-              aria-label="Close setup notice"
+              aria-label="Close output notice"
               onClick={() => setSetupNoticeAction(null)}
             />
             <motion.div
@@ -9522,23 +9927,29 @@ export function PacketBuilder() {
                 <div className="rounded-[18px] border border-black/8 bg-white px-4 py-3">
                   <p className={labelClassName()}>Current output</p>
                   <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
-                    Customer handoff and PDF use only the current closeout record.
+                    {isCompanyPlan
+                      ? "This report link uses your company info and saves to account history. The PDF copy stays clean for restaurant inspection files."
+                      : "Free builder output has no company logo/contact, stays watermarked, and saves as a 7-day test link when the API is available."}
                   </p>
                 </div>
                 <div className="rounded-[18px] border border-[#f26a21]/22 bg-[#fff7ef] px-4 py-3">
-                  <p className={labelClassName()}>Hosted delivery adds</p>
+                  <p className={labelClassName()}>
+                    {isCompanyPlan ? "Included with company" : "Company version adds"}
+                  </p>
                   <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
-                    Logo, phone, dispatch email, reply button, saved photos, and history.
+                    {isCompanyPlan
+                      ? "Saved company info, live report links, clean PDFs, customer history, and next-service follow-up."
+                      : "Logo, phone, clean PDF, live service report links while subscribed, saved photos, and customer history."}
                   </p>
                 </div>
               </div>
 
               <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <a
-                  href="/start"
+                  href={isCompanyPlan || isAuthenticated ? "/dashboard" : loginHref}
                   className="inline-flex h-11 items-center justify-center rounded-[16px] border border-black/10 bg-white px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground"
                 >
-                  Request setup
+                  {isCompanyPlan || isAuthenticated ? "Open dashboard" : "Login / subscribe"}
                 </a>
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
                   <button
@@ -9566,7 +9977,7 @@ export function PacketBuilder() {
         initial={{ y: 18, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="pdf-print-hide fixed inset-x-3 bottom-3 z-40 hidden rounded-[24px] border border-black/10 bg-white/94 p-2 shadow-[0_20px_70px_rgba(17,17,17,0.22)] backdrop-blur md:hidden"
+        className="pdf-print-hide fixed inset-x-3 bottom-3 z-40 rounded-[24px] border border-black/10 bg-white/94 p-2 shadow-[0_20px_70px_rgba(17,17,17,0.22)] backdrop-blur md:hidden"
         style={{
           paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))",
         }}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   IconAlertTriangleFilled,
@@ -37,6 +37,15 @@ import {
 } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  HeaderBrandLink,
+  HeaderChrome,
+  HeaderMobileMenu,
+  type HeaderMobileMenuItem,
+  headerNavLinkClass,
+  headerPrimaryActionClass,
+  headerSecondaryActionClass,
+} from "@/components/header-chrome";
 import type { Axis1PacketPreviewData } from "@/lib/axis1-packet-preview";
 
 type CustomerWebPacketSectionVisibility = {
@@ -97,13 +106,61 @@ function cx(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function hexToRgb(hex: string) {
+  const normalized = /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex.slice(1) : "f26a21";
+
+  return {
+    r: Number.parseInt(normalized.slice(0, 2), 16),
+    g: Number.parseInt(normalized.slice(2, 4), 16),
+    b: Number.parseInt(normalized.slice(4, 6), 16),
+  };
+}
+
+function hexToRgba(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgb(hex);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function accentTextColor(hex: string) {
+  const { r, g, b } = hexToRgb(hex);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+  return luminance > 0.58 ? "#111315" : "#ffffff";
+}
+
+function mixWithWhite(hex: string, whiteAmount = 0.54) {
+  const { r, g, b } = hexToRgb(hex);
+  const mix = (value: number) =>
+    Math.round(value * (1 - whiteAmount) + 255 * whiteAmount)
+      .toString(16)
+      .padStart(2, "0");
+
+  return `#${mix(r)}${mix(g)}${mix(b)}`;
+}
+
+function accentVariables(hex: string) {
+  return {
+    "--axis1-vendor-accent": hex,
+    "--axis1-vendor-accent-contrast": accentTextColor(hex),
+    "--axis1-vendor-accent-highlight": mixWithWhite(hex, 0.24),
+    "--axis1-vendor-accent-soft": mixWithWhite(hex),
+    "--axis1-vendor-accent-tint": hexToRgba(hex, 0.14),
+    "--axis1-vendor-accent-glow": hexToRgba(hex, 0.24),
+    "--axis1-vendor-accent-border": hexToRgba(hex, 0.34),
+  } as CSSProperties;
+}
+
 function customerCopy(value: string) {
   return value
+    .replace(/\bservice handoff and office archive retained\b/gi, "Customer copy and service provider archive retained")
+    .replace(/\bService service record\b/g, "Customer copy")
+    .replace(/\bservice service record\b/g, "customer copy")
     .replace(/\boffice archive\b/gi, "service archive")
     .replace(/\boffice file\b/gi, "service file")
     .replace(/\boffice records\b/gi, "service records")
     .replace(/\bthe office\b/gi, "the service team")
-    .replace(/\bproof link\b/gi, "customer link")
+    .replace(/\bproof link\b/gi, "service report link")
     .replace(/\bcustomer proof\b/gi, "customer record")
     .replace(/\bcustomer-side correction\b/gi, "customer action")
     .replace(/\bvendor-provided\b/gi, "service-provider recorded")
@@ -123,13 +180,13 @@ function customerCopy(value: string) {
     .replaceAll("open item", "area needing action")
     .replaceAll("Exception shown", "Needs action")
     .replaceAll("Full raw archive", "Full service archive")
-    .replaceAll("PDF packet", "evidence PDF")
+    .replaceAll("PDF packet", "PDF copy")
     .replaceAll("sample packet", "service visit")
     .replaceAll("Sample packet", "Service visit")
-    .replaceAll("outside the customer packet", "outside this customer link")
-    .replaceAll("outside the Customer packet", "outside this customer link")
-    .replaceAll("customer packet", "customer service link")
-    .replaceAll("Customer packet", "Customer service link")
+    .replaceAll("outside the customer packet", "outside this service report link")
+    .replaceAll("outside the Customer packet", "outside this service report link")
+    .replaceAll("customer packet", "service report link")
+    .replaceAll("Customer packet", "Service report link")
     .replaceAll("Office note", "Record note")
     .replace(/no field-photo proof is attached/gi, "photo evidence is not attached to this visit")
     .replace(/without attached field photos/gi, "based on service notes instead of attached photos")
@@ -145,12 +202,12 @@ function compactCtaLabel(value: string) {
 function mobileCtaLabel(value: string, hasOpenAccessItem = false) {
   const compact = compactCtaLabel(value);
 
-  if (hasOpenAccessItem || /access/i.test(compact)) {
-    return "Reply for access";
+  if (/^call\b/i.test(compact)) {
+    return "Call vendor";
   }
 
-  if (/pay invoice/i.test(compact)) {
-    return "Pay invoice";
+  if (hasOpenAccessItem || /access/i.test(compact)) {
+    return "Reply after clearing access";
   }
 
   if (/quote/i.test(compact)) {
@@ -162,6 +219,177 @@ function mobileCtaLabel(value: string, hasOpenAccessItem = false) {
   }
 
   return compact;
+}
+
+function phoneFallbackCtaLabel(value: string, hasOpenAccessItem = false) {
+  const compact = compactCtaLabel(value);
+
+  if (hasOpenAccessItem || /access/i.test(compact)) {
+    return "Call after clearing access";
+  }
+
+  if (/quote/i.test(compact)) {
+    return "Call about follow-up quote";
+  }
+
+  if (/next service|next cleaning|schedule|rebook|confirm/i.test(compact)) {
+    return "Call to confirm next service";
+  }
+
+  return "Call service provider";
+}
+
+function CustomerReportHeader({
+  data,
+  primaryCtaLabel,
+  compactPrimaryCtaLabel,
+  primaryCtaHref,
+  primaryCtaEnabled,
+  pdfServiceRecordHref,
+  onEvidencePdfAction,
+  hasVendorPhone,
+}: {
+  data: Axis1PacketPreviewData;
+  primaryCtaLabel: string;
+  compactPrimaryCtaLabel: string;
+  primaryCtaHref?: string;
+  primaryCtaEnabled: boolean;
+  pdfServiceRecordHref: string | null;
+  onEvidencePdfAction: () => void;
+  hasVendorPhone: boolean;
+}) {
+  const navItems = [
+    ["#summary", "Summary"],
+    data.proofPhotos.length > 0 ? ["#proof-story", "Photos"] : null,
+    ["#record", "Record"],
+    ["#contact", "Contact"],
+  ].filter(Boolean) as Array<[string, string]>;
+  const mobileMenuItems = [
+    ...navItems.map(([href, label]) => ({ href, label })),
+    pdfServiceRecordHref
+      ? { href: pdfServiceRecordHref, label: "Open PDF copy" }
+      : { label: "Save PDF copy", onSelect: onEvidencePdfAction },
+    hasVendorPhone
+      ? {
+          href: `tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`,
+          label: "Call service provider",
+        }
+      : null,
+    primaryCtaHref && primaryCtaEnabled
+      ? {
+          href: primaryCtaHref,
+          label: compactPrimaryCtaLabel,
+          kind: "primary" as const,
+        }
+      : null,
+  ].filter(Boolean) as HeaderMobileMenuItem[];
+  const headerVendorBrandColor =
+    data.vendor.brandColor && /^#[0-9A-Fa-f]{6}$/.test(data.vendor.brandColor)
+      ? data.vendor.brandColor
+      : "#f26a21";
+
+  return (
+    <HeaderChrome
+      tone="dark"
+      containerClassName="mx-auto w-full max-w-[1180px]"
+      shellClassName="flex-wrap px-2 py-1.5 sm:px-4"
+    >
+      <HeaderBrandLink
+        href="#report-top"
+        ariaLabel="Back to report top"
+        icon={
+          data.vendor.logoUrl ? (
+            <Image
+              src={data.vendor.logoUrl}
+              alt=""
+              width={40}
+              height={40}
+              className="h-full w-full object-contain p-1.5"
+            />
+          ) : (
+            <span className="text-sm font-semibold">{data.vendor.initials}</span>
+          )
+        }
+        title={data.vendor.name}
+        subtitle="Service report link"
+        tone="dark"
+        className="max-w-[220px] lg:max-w-[260px]"
+        markClassName={
+          data.vendor.logoUrl
+            ? "customer-report-logo-mark"
+            : "customer-report-brand-mark"
+        }
+      />
+
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+        <nav
+          className="hidden min-w-0 flex-1 gap-1 lg:flex lg:flex-none lg:overflow-visible"
+          aria-label="Service report sections"
+        >
+          {navItems.map(([href, label]) => (
+            <a
+              key={href}
+              href={href}
+              className={headerNavLinkClass("dark")}
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="hidden shrink-0 items-center gap-2 xl:flex">
+          {pdfServiceRecordHref ? (
+            <a
+              href={pdfServiceRecordHref}
+              className={headerSecondaryActionClass("dark")}
+            >
+              <IconFileText className="h-4 w-4" />
+              PDF
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={onEvidencePdfAction}
+              className={headerSecondaryActionClass("dark")}
+            >
+              <IconFileText className="h-4 w-4" />
+              PDF
+            </button>
+          )}
+          {hasVendorPhone ? (
+            <a
+              href={`tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`}
+              className={headerSecondaryActionClass("dark")}
+            >
+              <IconPhone className="h-4 w-4" />
+              Call
+            </a>
+          ) : null}
+        </div>
+        {primaryCtaHref && primaryCtaEnabled ? (
+          <div className="hidden shrink-0 lg:block">
+            <a
+              href={primaryCtaHref}
+              className={headerPrimaryActionClass()}
+              style={{
+                backgroundColor: headerVendorBrandColor,
+                color: accentTextColor(headerVendorBrandColor),
+              }}
+              aria-label={primaryCtaLabel}
+            >
+              <IconClipboardText className="h-4 w-4" />
+              {compactPrimaryCtaLabel}
+            </a>
+          </div>
+        ) : null}
+        <HeaderMobileMenu
+          tone="dark"
+          className="lg:hidden"
+          items={mobileMenuItems}
+        />
+      </div>
+    </HeaderChrome>
+  );
 }
 
 function getLocalEvidencePdfHref() {
@@ -1146,7 +1374,7 @@ function ExhaustProofSpine({
           <div className="border-t border-white/10 bg-[#0c0e10] p-5 sm:p-6">
             <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#ff9b63]">
-                Work represented in this customer link
+                Work represented in this service report
               </p>
               <p className="text-xs text-white/42">{completedWork.length} service actions retained</p>
             </div>
@@ -1302,8 +1530,8 @@ function CoverageEducationSection({
             </div>
             <p className="text-sm leading-7 text-[#665b50]">
               {hasAttachedPhotos
-                ? "Photos describe only the areas attached to this customer link. The evidence PDF remains the submission, archive, or print copy."
-                : "This visit is documented from written service notes. The evidence PDF remains the submission, archive, or print copy."}
+                ? "Photos describe only the attached areas. The PDF copy remains the submission, archive, or print copy."
+                : "This visit is documented from written service notes. The PDF copy remains the submission, archive, or print copy."}
             </p>
           </div>
         </div>
@@ -1343,6 +1571,10 @@ function MobileProofCommand({
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const compactPrimaryCtaLabel = mobileCtaLabel(primaryCtaLabel, hasOpenAccessItem);
+  const mobileVendorBrandColor =
+    data.vendor.brandColor && /^#[0-9A-Fa-f]{6}$/.test(data.vendor.brandColor)
+      ? data.vendor.brandColor
+      : "#f26a21";
 
   return (
     <div className="packet-mobile-command pdf-print-hide mt-5 lg:hidden">
@@ -1353,10 +1585,17 @@ function MobileProofCommand({
               Quick actions
             </p>
             <p className="mt-1 text-sm font-semibold text-white">
-              Next action, photos, and evidence PDF.
+              Next action, photos, and PDF copy.
             </p>
           </div>
-          <span className="rounded-full border border-[#ff9b63]/30 bg-[#ff6b1a]/12 px-2.5 py-1 text-[11px] font-semibold text-[#ffb489]">
+          <span
+            className="rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+            style={{
+              borderColor: hexToRgba(mobileVendorBrandColor, 0.34),
+              backgroundColor: hexToRgba(mobileVendorBrandColor, 0.14),
+              color: mixWithWhite(mobileVendorBrandColor, 0.56),
+            }}
+          >
             {hasOpenAccessItem ? "Action needed" : "Ready"}
           </span>
         </div>
@@ -1365,7 +1604,15 @@ function MobileProofCommand({
           {primaryCtaHref && primaryCtaEnabled ? (
             <a
               href={primaryCtaHref}
-              className="packet-mobile-primary-action col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-[18px] bg-[#ff6b1a] px-4 text-[13px] font-semibold text-white min-[360px]:text-sm"
+              className="packet-mobile-primary-action col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-[18px] px-4 text-[13px] font-semibold min-[360px]:text-sm"
+              style={{
+                background: `linear-gradient(180deg, ${mixWithWhite(
+                  mobileVendorBrandColor,
+                  0.24,
+                )}, ${mobileVendorBrandColor})`,
+                color: accentTextColor(mobileVendorBrandColor),
+                boxShadow: `0 18px 42px ${hexToRgba(mobileVendorBrandColor, 0.28)}`,
+              }}
               aria-label={primaryCtaLabel}
             >
               <IconClipboardText className="h-4 w-4 shrink-0" />
@@ -1404,11 +1651,11 @@ function MobileProofCommand({
           >
             <DrawerContent className="packet-mobile-proof-drawer bg-[#101214] text-white">
               <DrawerHeader className="px-5 pb-2 pt-5">
-                <DrawerTitle className="text-white">Photos and evidence PDF</DrawerTitle>
+                <DrawerTitle className="text-white">Photos and PDF copy</DrawerTitle>
                 <DrawerDescription className="text-white/58">
                   {hasOpenAccessItem
-                    ? "Blocked access, before/after photos, and the evidence PDF stay separated."
-                    : "Completed photos and the evidence PDF stay separated."}
+                    ? "Blocked access, before/after photos, and the PDF copy stay separated."
+                    : "Completed photos and the PDF copy stay separated."}
                 </DrawerDescription>
               </DrawerHeader>
 
@@ -1441,7 +1688,7 @@ function MobileProofCommand({
                         <strong>{nextServiceWindow}</strong>
                       </div>
                       <div className="packet-mobile-data-row">
-                        <span>Evidence PDF</span>
+                        <span>PDF copy</span>
                         <strong>Available for files</strong>
                       </div>
                     </div>
@@ -1479,17 +1726,17 @@ function MobileProofCommand({
                 <TabsContent value="record">
                   <div className="packet-mobile-record-card">
                     <IconFileText className="h-6 w-6 text-[#ff9b63]" />
-                    <h3>Keep the evidence PDF.</h3>
+                    <h3>Keep the PDF copy.</h3>
                     <p>
                       The PDF is the file version for managers, insurance, or documentation requests. It stays separate from corrective or follow-up work.
                     </p>
                     {pdfServiceRecordHref ? (
                       <a href={pdfServiceRecordHref}>
-                        Open evidence PDF
+                        Open PDF copy
                       </a>
                     ) : (
                       <button type="button" onClick={onEvidencePdfAction}>
-                        Save evidence PDF
+                        Save PDF copy
                       </button>
                     )}
                   </div>
@@ -1500,7 +1747,14 @@ function MobileProofCommand({
                 {primaryCtaHref && primaryCtaEnabled ? (
                   <a
                     href={primaryCtaHref}
-                    className="inline-flex min-h-12 items-center justify-center rounded-[18px] bg-white px-4 text-sm font-semibold text-[#111315]"
+                    className="inline-flex min-h-12 items-center justify-center rounded-[18px] px-4 text-sm font-semibold"
+                    style={{
+                      background: `linear-gradient(180deg, ${mixWithWhite(
+                        mobileVendorBrandColor,
+                        0.24,
+                      )}, ${mobileVendorBrandColor})`,
+                      color: accentTextColor(mobileVendorBrandColor),
+                    }}
                   >
                     {primaryCtaLabel}
                   </a>
@@ -1521,20 +1775,20 @@ function MobileProofCommand({
             <a
               href={pdfServiceRecordHref}
               className="packet-mobile-secondary-action inline-flex min-h-11 items-center justify-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 text-sm font-semibold text-white"
-              aria-label="Open evidence PDF"
+              aria-label="Open PDF copy"
             >
               <IconFileText className="h-4 w-4" />
-              Evidence PDF
+              PDF copy
             </a>
           ) : (
             <button
               type="button"
               onClick={onEvidencePdfAction}
               className="packet-mobile-secondary-action inline-flex min-h-11 items-center justify-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 text-sm font-semibold text-white"
-              aria-label="Save evidence PDF"
+              aria-label="Save PDF copy"
             >
               <IconFileText className="h-4 w-4" />
-              Evidence PDF
+              PDF copy
             </button>
           )}
         </div>
@@ -1628,7 +1882,15 @@ export function CustomerWebPacket({
     findActionValue(data.customerClose.actionItems, [/access revisit/i]) ??
     (hasOpenAccessItem ? "After rear duct access is cleared" : "No access revisit needed");
   const proofCoverage = data.closeout?.proofCoverage;
-  const primaryCta = data.closeout?.primaryCta;
+  const rawPrimaryCta = data.closeout?.primaryCta;
+  const primaryCta =
+    String(rawPrimaryCta?.kind) === "pay_invoice"
+      ? data.closeout?.ctas.find(
+          (cta) =>
+            cta.kind === "confirm_next_service" ||
+            cta.kind === "schedule_next_cleaning",
+        )
+      : rawPrimaryCta;
   const serviceDate =
     getRowValue(data.packetHeader.quickFacts, ["Service date"]) ?? "Service date recorded";
   const serviceLocation =
@@ -1649,8 +1911,8 @@ export function CustomerWebPacket({
     : isConditionReviewOutcome
       ? "Service was completed. One recorded condition is listed for follow-up or next-service planning."
       : hasAttachedPhotos
-        ? "Service completed. Attached photos support the areas shown, and the evidence PDF is available for files."
-        : "Service completed from written notes. Photos are not attached to this visit, and the evidence PDF is available for files.";
+        ? "Service completed. Attached photos support the areas shown, and the PDF copy is available for files."
+        : "Service completed from written notes. Photos are not attached to this visit, and the PDF copy is available for files.";
   const beforePhoto = data.proofPhotos.find((photo) => photo.tone === "before");
   const afterPhoto =
     data.proofPhotos.find((photo) => photo.tone === "after") ??
@@ -1695,10 +1957,26 @@ export function CustomerWebPacket({
       : isConditionReviewOutcome
         ? conditionHeadline
         : "Ready for records";
-  const primaryCtaLabel = customerCopy(
+  const hasVendorPhone = data.vendor.directLine.trim().length > 0;
+  const hasVendorEmail = data.vendor.dispatch.trim().length > 0;
+  const vendorPhoneHref = hasVendorPhone
+    ? `tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`
+    : undefined;
+  const vendorBrandColor =
+    data.vendor.brandColor && /^#[0-9A-Fa-f]{6}$/.test(data.vendor.brandColor)
+      ? data.vendor.brandColor
+      : "#f26a21";
+  const vendorAccentStyle = accentVariables(vendorBrandColor);
+  const vendorAccentSoft = mixWithWhite(vendorBrandColor, 0.56);
+  const vendorAccentContrast = accentTextColor(vendorBrandColor);
+  const rawPrimaryCtaLabel = customerCopy(
     primaryCta?.label ??
       (hasOpenAccessItem ? "Reply after clearing access" : "Confirm next service window"),
   );
+  const primaryCtaUsesPhoneFallback = !primaryCta?.href && Boolean(vendorPhoneHref);
+  const primaryCtaLabel = primaryCtaUsesPhoneFallback
+    ? phoneFallbackCtaLabel(rawPrimaryCtaLabel, hasOpenAccessItem)
+    : rawPrimaryCtaLabel;
   const compactPrimaryCtaLabel = mobileCtaLabel(primaryCtaLabel, hasOpenAccessItem);
   const rawProofCoverageLabel =
     proofCoverage?.label ??
@@ -1736,16 +2014,10 @@ export function CustomerWebPacket({
     }, [])
     .slice(0, 6);
   const scopeGroups = groupScopeRows([...data.componentStatusRows]);
-  const hasVendorPhone = data.vendor.directLine.trim().length > 0;
-  const hasVendorEmail = data.vendor.dispatch.trim().length > 0;
-  const vendorPhoneHref = hasVendorPhone
-    ? `tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`
-    : undefined;
   const primaryCtaHref =
     primaryCta?.href ??
-    (hasVendorEmail
-      ? `mailto:${data.vendor.dispatch}`
-      : vendorPhoneHref);
+    vendorPhoneHref ??
+    (hasVendorEmail ? `mailto:${data.vendor.dispatch}` : undefined);
   const primaryCtaEnabled = primaryCta?.href
     ? primaryCta.enabled
     : Boolean(primaryCtaHref);
@@ -1755,6 +2027,7 @@ export function CustomerWebPacket({
       : null;
   const supportingCtas = (data.closeout?.ctas ?? []).filter(
     (cta): cta is LinkedCloseoutCta =>
+      String(cta.kind) !== "pay_invoice" &&
       cta.priority !== "primary" &&
       cta.priority !== "utility" &&
       cta.enabled &&
@@ -1797,8 +2070,8 @@ export function CustomerWebPacket({
         );
   const recordNoteLineCopy = customerCopy(
     previewRecordNoteEditValue ||
-      findActionValue(data.customerClose.actionItems, [/evidence pdf note/i]) ||
-      "The evidence PDF is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work.",
+      findActionValue(data.customerClose.actionItems, [/pdf copy note/i, /evidence pdf note/i]) ||
+      "The PDF copy is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work.",
   );
 
   function handleEvidencePdfAction() {
@@ -1844,11 +2117,24 @@ export function CustomerWebPacket({
 
   return (
     <article
+      id="report-top"
+      style={vendorAccentStyle}
       className={cx(
         "customer-web-packet packet-shell overflow-hidden bg-[#f7f1e9] text-[#111315] shadow-[0_36px_110px_rgba(17,17,17,0.1)] print:rounded-none print:border-0 print:shadow-none",
         className,
       )}
     >
+      <CustomerReportHeader
+        data={data}
+        primaryCtaLabel={primaryCtaLabel}
+        compactPrimaryCtaLabel={compactPrimaryCtaLabel}
+        primaryCtaHref={primaryCtaHref}
+        primaryCtaEnabled={primaryCtaEnabled}
+        pdfServiceRecordHref={pdfServiceRecordHref}
+        onEvidencePdfAction={handleEvidencePdfAction}
+        hasVendorPhone={hasVendorPhone}
+      />
+      <div className="h-1.5 w-full" style={{ backgroundColor: vendorBrandColor }} />
       <section className="packet-hero-shell relative min-h-[100svh] overflow-hidden bg-[#0f141b] text-white lg:min-h-[720px]">
         {afterPhoto ? (
           <Image
@@ -1861,14 +2147,28 @@ export function CustomerWebPacket({
             style={{ objectPosition: afterPhoto.position }}
           />
         ) : null}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(255,155,99,0.18),transparent_28%),linear-gradient(90deg,rgba(15,20,27,0.97)_0%,rgba(15,20,27,0.88)_44%,rgba(15,20,27,0.42)_100%)]" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(circle_at_78%_18%,${hexToRgba(
+              vendorBrandColor,
+              0.24,
+            )},transparent 28%),linear-gradient(90deg,rgba(15,20,27,0.97)_0%,rgba(15,20,27,0.88)_44%,rgba(15,20,27,0.42)_100%)`,
+          }}
+        />
         <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#0f141b] to-transparent" />
 
         <div className="relative grid min-h-[100svh] content-between gap-5 px-5 py-5 sm:px-8 sm:py-7 lg:min-h-[720px] lg:grid-cols-[minmax(0,0.9fr)_minmax(390px,0.72fr)] lg:gap-8 lg:px-10 lg:py-10">
           <div className="lg:col-span-2">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex min-w-0 items-center gap-4">
-                <div className="packet-vendor-mark flex h-13 w-13 shrink-0 items-center justify-center overflow-hidden rounded-[16px] bg-white text-[#121821] shadow-[0_18px_46px_rgba(0,0,0,0.28)]">
+                <div
+                  className="packet-vendor-mark flex h-13 w-13 shrink-0 items-center justify-center overflow-hidden rounded-[16px] bg-white text-[#121821] shadow-[0_18px_46px_rgba(0,0,0,0.28)]"
+                  style={{
+                    background: data.vendor.logoUrl ? "#ffffff" : vendorBrandColor,
+                    color: data.vendor.logoUrl ? "#121821" : "#ffffff",
+                  }}
+                >
                   {data.vendor.logoUrl ? (
                     <Image
                       src={data.vendor.logoUrl}
@@ -1916,7 +2216,7 @@ export function CustomerWebPacket({
           </div>
 
           <div className="flex max-w-3xl flex-col justify-end pb-2 lg:pb-5">
-            <SectionLabel light>Customer service link</SectionLabel>
+            <SectionLabel light>Service report link</SectionLabel>
             <div className="mt-3 flex max-w-2xl flex-wrap gap-2">
               {serviceSiteBadges.map(([label, value]) => (
                 <span
@@ -1931,7 +2231,7 @@ export function CustomerWebPacket({
             <HeroHeading className="font-display mt-5 max-w-4xl text-[2.35rem] font-semibold leading-[0.92] tracking-[-0.07em] text-white min-[390px]:text-[2.5rem] sm:text-[4.15rem] sm:leading-[0.9] sm:tracking-[-0.075em] lg:text-[6rem]">
               {isBlockedAccessOutcome && openItems.length > 0 ? (
                 <>
-                  Reachable work completed.
+                  Reachable work completed.{" "}
                   <br />
                   <span className="text-[#ff7a1a]">{actionAreaHeadline}.</span>
                 </>
@@ -1976,7 +2276,7 @@ export function CustomerWebPacket({
                 ["Result", resultMetricValue],
                 ["Record basis", proofCoverageMetricValue],
                 ["Customer action", compactPrimaryCtaLabel],
-                ["Evidence PDF", "Record copy"],
+                ["PDF copy", "Record copy"],
               ].map(([label, value]) => (
                 <div
                   key={label}
@@ -1996,7 +2296,12 @@ export function CustomerWebPacket({
               {primaryCtaHref && primaryCtaEnabled ? (
                 <Button
                   asChild
-                  className="packet-primary-cta min-h-12 rounded-[14px] bg-[#ff6b1a] px-6 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(255,107,26,0.22)] hover:bg-[#ff7a2f]"
+                  className="packet-primary-cta min-h-12 rounded-[14px] px-6 text-sm font-semibold"
+                  style={{
+                    backgroundColor: vendorBrandColor,
+                    color: vendorAccentContrast,
+                    boxShadow: `0 20px 45px ${hexToRgba(vendorBrandColor, 0.24)}`,
+                  }}
                 >
                   <a href={primaryCtaHref}>
                     <IconClipboardText className="h-4 w-4" />
@@ -2014,12 +2319,12 @@ export function CustomerWebPacket({
                 {pdfServiceRecordHref ? (
                   <a href={pdfServiceRecordHref}>
                     <IconFileText className="h-4 w-4" />
-                    Open evidence PDF
+                    Open PDF copy
                   </a>
                 ) : (
                   <>
                   <IconFileText className="h-4 w-4" />
-                  Save evidence PDF
+                  Save PDF copy
                   </>
                 )}
               </Button>
@@ -2057,7 +2362,10 @@ export function CustomerWebPacket({
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <div className="rounded-[22px] border border-white/13 bg-white/[0.075] px-4 py-3 backdrop-blur-xl">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#ffb489]">
+                <p
+                  className="text-[11px] font-semibold uppercase tracking-[0.13em]"
+                  style={{ color: vendorAccentSoft }}
+                >
                   Record basis
                 </p>
                 <p className="mt-2 text-sm font-semibold leading-6 text-white">
@@ -2065,8 +2373,11 @@ export function CustomerWebPacket({
                 </p>
               </div>
               <div className="rounded-[22px] border border-white/13 bg-white/[0.075] px-4 py-3 backdrop-blur-xl">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#ffb489]">
-                  Evidence PDF
+                <p
+                  className="text-[11px] font-semibold uppercase tracking-[0.13em]"
+                  style={{ color: vendorAccentSoft }}
+                >
+                  PDF copy
                 </p>
                 <p className="mt-2 text-sm font-semibold leading-6 text-white">
                   Record copy for archive, submission, or print.
@@ -2074,8 +2385,17 @@ export function CustomerWebPacket({
               </div>
             </div>
 
-            <div className="packet-hero-next-step mt-4 rounded-[22px] border border-[#ffb489]/24 bg-[#ff6b1a]/10 px-4 py-3 backdrop-blur-xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-[#ffb489]">
+            <div
+              className="packet-hero-next-step mt-4 rounded-[22px] border px-4 py-3 backdrop-blur-xl"
+              style={{
+                borderColor: hexToRgba(vendorBrandColor, 0.28),
+                backgroundColor: hexToRgba(vendorBrandColor, 0.12),
+              }}
+            >
+              <p
+                className="text-[11px] font-semibold uppercase tracking-[0.13em]"
+                style={{ color: vendorAccentSoft }}
+              >
                 Customer next step
               </p>
               <p className="mt-2 hidden max-w-2xl text-sm font-semibold leading-6 text-white sm:block">
@@ -2186,13 +2506,13 @@ export function CustomerWebPacket({
               <Metric label="Result" value={resultMetricValue} />
               <Metric label="Record basis" value={proofCoverageMetricValue} />
               <Metric label="Customer action" value={compactPrimaryCtaLabel} />
-              <Metric label="Evidence PDF" value="Record copy" />
+              <Metric label="PDF copy" value="Record copy" />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="packet-result-section grid gap-9 border-b border-[#ded6cc] bg-[#fbfaf7] px-5 py-10 sm:px-8 lg:px-10 lg:py-14 xl:grid-cols-[minmax(300px,0.78fr)_minmax(0,1.22fr)]">
+      <section id="summary" className="packet-result-section scroll-mt-24 grid gap-9 border-b border-[#ded6cc] bg-[#fbfaf7] px-5 py-10 sm:px-8 lg:px-10 lg:py-14 xl:grid-cols-[minmax(300px,0.78fr)_minmax(0,1.22fr)]">
         <div className="max-w-xl">
           <SectionLabel>{serviceResultLabel}</SectionLabel>
           <h2 className="font-display mt-3 text-[2.65rem] font-semibold leading-[0.94] tracking-[-0.07em] sm:text-[4.1rem]">
@@ -2234,7 +2554,7 @@ export function CustomerWebPacket({
           />
           <ResultLine
             label="Record note"
-            title="Keep the evidence PDF with kitchen exhaust files."
+            title="Keep the PDF copy with kitchen exhaust files."
             copy={recordNoteLineCopy}
             tone="record"
             editTarget="recordNote"
@@ -2261,7 +2581,7 @@ export function CustomerWebPacket({
       {sections.photos && data.proofPhotos.length > 0 ? (
         <section
           id="proof-story"
-          className="packet-proof-section border-b border-[#ded6cc] bg-[#111111] px-5 py-10 text-white sm:px-8 lg:px-10 lg:py-16"
+          className="packet-proof-section scroll-mt-24 border-b border-[#ded6cc] bg-[#111111] px-5 py-10 text-white sm:px-8 lg:px-10 lg:py-16"
         >
           <div className="grid gap-10 xl:grid-cols-[minmax(300px,0.52fr)_minmax(0,1fr)] xl:items-start">
             <motion.div
@@ -2278,8 +2598,8 @@ export function CustomerWebPacket({
                     ? "First review the blocked access item. Then compare the completed hood area before and after service."
                     : "First review the blocked access item. Then review the completed service photos."
                   : canCompareBeforeAfter
-                    ? "Compare the completed hood area before and after service, then keep the evidence PDF for files."
-                    : "Review the completed service photos, then keep the evidence PDF for files."}
+                    ? "Compare the completed hood area before and after service, then keep the PDF copy for files."
+                    : "Review the completed service photos, then keep the PDF copy for files."}
               </p>
               <ol className="packet-proof-steps mt-8 hidden border-l border-white/12 pl-5 lg:block">
                 {(hasOpenAccessItem
@@ -2296,7 +2616,7 @@ export function CustomerWebPacket({
                           ? "The hood photos show visible change in the completed area."
                           : "Completed service photos stay grouped without forcing a false matched comparison.",
                       ],
-                      ["03", "Keep the record", "The evidence PDF stays available for files and documentation requests."],
+                      ["03", "Keep the record", "The PDF copy stays available for files and documentation requests."],
                     ]
                   : [
                       [
@@ -2307,7 +2627,7 @@ export function CustomerWebPacket({
                           : "Completed service photos stay grouped without forcing a false matched comparison.",
                       ],
                       ["02", "Check attached photos", "The link keeps service areas and field photos in the same customer-readable record."],
-                      ["03", "Keep the record", "The evidence PDF stays available for files and documentation requests."],
+                      ["03", "Keep the record", "The PDF copy stays available for files and documentation requests."],
                     ]).map(([step, title, copy]) => (
                   <li
                     key={step}
@@ -2479,7 +2799,7 @@ export function CustomerWebPacket({
 
       <section
         id="record"
-        className="packet-record-section grid gap-5 border-b border-[#ded6cc] bg-[#fbfaf7] px-5 py-10 sm:px-8 lg:px-10 lg:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.05fr)]"
+        className="packet-record-section scroll-mt-24 grid gap-5 border-b border-[#ded6cc] bg-[#fbfaf7] px-5 py-10 sm:px-8 lg:px-10 lg:py-14 xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.05fr)]"
       >
         <Card className="packet-record-card gap-0 rounded-[28px] border-0 bg-[#111315] py-0 text-white shadow-[0_28px_80px_rgba(17,17,17,0.18)]">
           <CardHeader className="px-6 py-6">
@@ -2494,7 +2814,7 @@ export function CustomerWebPacket({
           <CardContent className="px-6 pb-6">
             <Separator className="mb-5 bg-white/12" />
             <p className="text-sm leading-7 text-white/62">
-              An evidence PDF is available for files, manager review, insurance, or documentation requests. It stays separate from corrective or follow-up work.
+              A PDF copy is available for files, manager review, insurance, or documentation requests. It stays separate from corrective or follow-up work.
             </p>
             <Button
               asChild={Boolean(pdfServiceRecordHref)}
@@ -2505,12 +2825,12 @@ export function CustomerWebPacket({
               {pdfServiceRecordHref ? (
                 <a href={pdfServiceRecordHref}>
                   <IconFileText className="h-4 w-4" />
-                  Open evidence PDF
+                  Open PDF copy
                 </a>
               ) : (
                 <>
                 <IconFileText className="h-4 w-4" />
-                Save evidence PDF
+                Save PDF copy
                 </>
               )}
             </Button>
@@ -2779,14 +3099,14 @@ export function CustomerWebPacket({
         </section>
       ) : null}
 
-      <footer className="packet-footer bg-[#111315] px-5 py-6 text-white sm:px-8 lg:px-10">
+      <footer id="contact" className="packet-footer scroll-mt-24 bg-[#111315] px-5 py-6 text-white sm:px-8 lg:px-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex items-center gap-2 text-[#ff9b63]">
             <IconFlame className="h-5 w-5" />
             <span className="text-sm font-semibold">{data.vendor.name}</span>
           </div>
           <p className="max-w-3xl text-xs leading-6 text-white/52">
-            This link summarizes this service visit from the service provider&apos;s records. Use the evidence PDF as the retained copy for files, manager review, insurance, landlord, or documentation requests. A manager, landlord, insurer, or reviewer may still apply their own requirements, and separate corrective or follow-up work needs a separate go-ahead.
+            This link summarizes this service visit from the service provider&apos;s records. Use the PDF copy as the retained copy for files, manager review, insurance, landlord, or documentation requests. A manager, landlord, insurer, or reviewer may still apply their own requirements, and separate corrective or follow-up work needs a separate go-ahead.
           </p>
         </div>
       </footer>
@@ -2805,7 +3125,11 @@ export function CustomerWebPacket({
             <a
               href={primaryCtaHref}
               tabIndex={showMobileDock ? undefined : -1}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[18px] bg-white px-3 text-xs font-semibold text-[#111315]"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[18px] px-3 text-xs font-semibold"
+              style={{
+                backgroundColor: vendorBrandColor,
+                color: vendorAccentContrast,
+              }}
               aria-label={primaryCtaLabel}
             >
               <IconClipboardText className="h-4 w-4" />
@@ -2819,7 +3143,7 @@ export function CustomerWebPacket({
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[18px] border border-white/12 bg-white/9 px-3 text-xs font-semibold text-white"
             >
               <IconFileText className="h-4 w-4" />
-              Evidence PDF
+              PDF copy
             </a>
           ) : (
             <button
@@ -2829,7 +3153,7 @@ export function CustomerWebPacket({
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[18px] border border-white/12 bg-white/9 px-3 text-xs font-semibold text-white"
             >
               <IconFileText className="h-4 w-4" />
-              Evidence PDF
+              PDF copy
             </button>
           )}
         </div>

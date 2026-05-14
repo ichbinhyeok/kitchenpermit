@@ -15,7 +15,7 @@ function firstNonBlank(value: string | undefined, fallback: string) {
 }
 
 export function buildEmailDraftUrl(draft: StartRequestDraft) {
-  const productInterest = firstNonBlank(draft.productInterest, "Customer link setup");
+  const productInterest = firstNonBlank(draft.productInterest, "Company-branded service report");
   const companyName = firstNonBlank(draft.companyName, "Not provided");
   const contactName = firstNonBlank(draft.contactName, "Not provided");
   const email = firstNonBlank(draft.email, "Not provided");

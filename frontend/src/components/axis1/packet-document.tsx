@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { CSSProperties } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -27,6 +28,7 @@ type Axis1PacketDocumentProps = {
   presentationMode?: "standard" | "short";
   visibleSections?: Partial<Axis1PacketDocumentSectionVisibility>;
   editConfig?: CustomerWebPacketEditConfig;
+  watermarkLabel?: string;
 };
 
 type Row = readonly [string, string];
@@ -54,8 +56,45 @@ function cx(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function hexToRgb(hex: string) {
+  const normalized = /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex.slice(1) : "f26a21";
+
+  return {
+    r: Number.parseInt(normalized.slice(0, 2), 16),
+    g: Number.parseInt(normalized.slice(2, 4), 16),
+    b: Number.parseInt(normalized.slice(4, 6), 16),
+  };
+}
+
+function hexToRgba(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgb(hex);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function mixWithWhite(hex: string, whiteAmount = 0.54) {
+  const { r, g, b } = hexToRgb(hex);
+  const mix = (value: number) =>
+    Math.round(value * (1 - whiteAmount) + 255 * whiteAmount)
+      .toString(16)
+      .padStart(2, "0");
+
+  return `#${mix(r)}${mix(g)}${mix(b)}`;
+}
+
+function accentVariables(hex: string) {
+  return {
+    "--axis1-vendor-accent": hex,
+    "--axis1-vendor-accent-soft": mixWithWhite(hex),
+    "--axis1-vendor-accent-border": hexToRgba(hex, 0.3),
+  } as CSSProperties;
+}
+
 function serviceRecordCopy(value: string) {
   return value
+    .replace(/\bservice handoff and office archive retained\b/gi, "Customer copy and service provider archive retained")
+    .replace(/\bService service record\b/g, "Customer copy")
+    .replace(/\bservice service record\b/g, "customer copy")
     .replace(/\boffice archive\b/gi, "service archive")
     .replace(/\boffice file\b/gi, "service file")
     .replace(/\boffice records\b/gi, "service records")
@@ -76,20 +115,20 @@ function serviceRecordCopy(value: string) {
     .replace(/\bOutcome classification\b/gi, "Service outcome")
     .replace(/\bResponsibility boundary\b/gi, "Action boundary")
     .replace(/\bPhoto support\b/gi, "Photo coverage")
-    .replace(/\bproof link\b/gi, "service record")
-    .replace(/\bcustomer link\b/gi, "service evidence record")
-    .replace(/\bcustomer service link\b/gi, "service evidence record")
+    .replace(/\bproof link\b/gi, "service report link")
+    .replace(/\bcustomer link\b/gi, "service report link")
+    .replace(/\bcustomer service link\b/gi, "service report link")
     .replace(/\bcustomer proof\b/gi, "customer record")
     .replaceAll("Exception shown", "Action needed")
     .replaceAll("Full raw archive", "Full service archive")
-    .replaceAll("PDF packet", "evidence PDF")
+    .replaceAll("PDF packet", "PDF copy")
     .replaceAll("sample packet", "service visit")
     .replaceAll("Sample packet", "Service visit")
     .replaceAll("Packet coverage", "Service record coverage")
-    .replaceAll("customer packet", "customer service link")
-    .replaceAll("Customer packet", "Customer service link")
-    .replaceAll("customer service link", "service evidence record")
-    .replaceAll("Customer service link", "Service evidence record")
+    .replaceAll("customer packet", "service report link")
+    .replaceAll("Customer packet", "Service report link")
+    .replaceAll("customer service link", "service report link")
+    .replaceAll("Customer service link", "Service report link")
     .replaceAll("packet", "service record")
     .replaceAll("Packet", "Service record")
     .replaceAll("Office note", "Record note");
@@ -182,7 +221,10 @@ function customerPhotoLabel(photo: Axis1PacketPreviewData["proofPhotos"][number]
 
 function SectionKicker({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-semibold uppercase tracking-[0.105em] text-[#d95c1c]">
+    <p
+      className="text-[10px] font-semibold uppercase tracking-[0.105em]"
+      style={{ color: "var(--axis1-vendor-accent, #d95c1c)" }}
+    >
       {children}
     </p>
   );
@@ -400,8 +442,13 @@ function serviceRecordActionRows(rows: readonly Row[]) {
       return ["Service note", value] as const;
     }
 
-    if (/^evidence pdf note$/i.test(label) || /^evidence pdf$/i.test(label)) {
-      return ["Evidence PDF", value] as const;
+    if (
+      /^pdf copy note$/i.test(label) ||
+      /^pdf copy$/i.test(label) ||
+      /^evidence pdf note$/i.test(label) ||
+      /^evidence pdf$/i.test(label)
+    ) {
+      return ["PDF copy", value] as const;
     }
 
     if (/^customer next step$/i.test(label) || /^primary customer cta$/i.test(label)) {
@@ -415,7 +462,7 @@ function serviceRecordActionRows(rows: readonly Row[]) {
     "Next routine service",
     "Customer action",
     "Service note",
-    "Evidence PDF",
+    "PDF copy",
   ]);
   const seen = new Set<string>();
   const displayRows: Row[] = [];
@@ -522,7 +569,7 @@ function ServiceEvidenceRecord({
     getRecordValue(data.packetHeader.quickFacts, ["System"], "Kitchen exhaust system");
   const reportId =
     getRecordValue(data.packetHeader.quickFacts, ["Report ID"], "") ||
-    getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-MASKED-0414");
+    getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-SAMPLE-0424");
   const nextWindow = getNextServiceWindow(data);
   const recommendedInterval = getRecordValue(data.frequencyRows, ["Recommended interval"], "Interval recorded");
   const conditionOnly = isConditionOnlyRecord(data);
@@ -556,7 +603,7 @@ function ServiceEvidenceRecord({
   const hasCompanyCredential = data.vendor.certification.trim().length > 0;
 
   const recordRows = [
-    ["Record type", "Kitchen exhaust service evidence PDF"],
+    ["Record type", "Kitchen exhaust service report PDF copy"],
     ["Report ID", reportId],
     ["Customer / property", data.packetHeader.title],
     ["Service location", location],
@@ -570,7 +617,7 @@ function ServiceEvidenceRecord({
   ] as const;
 
   const serviceBoundaryRows = [
-    ["Document class", "Customer-retained service evidence record"],
+    ["Document class", "Customer-retained service report copy"],
     [
       "Service outcome",
       conditionOnly
@@ -607,9 +654,9 @@ function ServiceEvidenceRecord({
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <SectionKicker>Service evidence record</SectionKicker>
+          <SectionKicker>Kitchen exhaust service report</SectionKicker>
               <h3 className="mt-3 font-display text-[1.95rem] font-bold leading-[0.92] tracking-[-0.06em] text-[#151515] sm:text-[2.55rem]">
-                Kitchen exhaust service record.
+                Service report for customer files.
               </h3>
             </div>
             <span className="rounded-full border border-[#f3c0a2] bg-[#fff0e7] px-3 py-1.5 text-xs font-semibold text-[#a9431f]">
@@ -617,11 +664,10 @@ function ServiceEvidenceRecord({
             </span>
           </div>
           <p className="mt-4 text-sm leading-7 text-[#5f574f]">
-            Prepared as a retained service record for customer files, manager
-            review, landlord, insurance, or documentation requests. It identifies
-            the property, service provider, person performing work, service date,
-            system areas, component status, excluded areas, photo status, label
-            details, and retained-copy trail.
+            Prepared for customer files, manager review, landlord, insurance,
+            or documentation requests. It identifies the property, service
+            provider, service date, completed areas, excluded areas, photo
+            status, label details, and retained-copy trail.
           </p>
           <div className="mt-5">
             <DenseLedger rows={recordRows.map(([label, value]) => [label, transform(value)] as const)} />
@@ -689,7 +735,7 @@ function ServiceEvidenceControls({
   const primaryOpenItem = getPrimaryOpenItem(data);
   const reportId =
     getRecordValue(data.packetHeader.quickFacts, ["Report ID"], "") ||
-    getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-MASKED-0414");
+    getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-SAMPLE-0424");
   const serviceDate = getRecordValue(data.packetHeader.quickFacts, ["Service date"], "Service date recorded");
   const location = getRecordValue(data.packetHeader.quickFacts, ["Location"], "Location recorded");
   const serviceWindow = getRecordValue(data.serviceRecordRows, ["Service window"], serviceDate);
@@ -707,14 +753,14 @@ function ServiceEvidenceControls({
 
   const documentControlRows = [
     ["Report ID", reportId],
-    ["Document title", "Kitchen exhaust service evidence record"],
+    ["Document title", "Kitchen exhaust service report"],
     ["Prepared date", serviceDate],
     ["Service date / window", serviceWindow],
     ["Servicing company", data.vendor.name],
     ["Person performing work", data.vendor.technician],
     ["System reference", systemRef],
     ["Service provider archive", "Retained"],
-    ["Customer copy", "PDF service evidence record"],
+    ["Customer copy", "PDF service report copy"],
     ["Photo archive", hasEvidencePhotos ? "Retained by service provider" : "No photos attached"],
     ["Service label / sticker ref", serviceNotice],
   ] as const;
@@ -850,21 +896,21 @@ function OutputRoleBlock({
   customerFacing: boolean;
   serviceRecord: boolean;
 }) {
-  const recordName = serviceRecord ? "PDF service evidence record" : "customer service link";
+  const recordName = serviceRecord ? "PDF copy" : "service report link";
   const title = serviceRecord
-    ? `Use this ${recordName} as service evidence for records requests.`
+    ? `Use this ${recordName} as the retained service record for files and documentation requests.`
     : customerFacing
       ? "Send this link when the customer needs the result and next step."
       : "Send this link when the customer needs to understand the visit.";
   const copy = serviceRecord
     ? `This ${recordName} summarizes the service date, work areas, photo evidence, inaccessible or not-serviced areas, findings, and next recommended service window for customer files, manager review, insurance, landlord, or documentation requests.`
     : customerFacing
-      ? "This link shows completed work, action items, attached photos, and next action. Use the evidence PDF for retained evidence or outside record requests."
+      ? "This link shows completed work, action items, attached photos, and next action. Use the PDF copy for retained records or outside documentation requests."
       : `This ${recordName} shows what was cleaned, what stayed open, what the photos prove, and what the customer should do next without waiting for another explanation call.`;
   const chips = serviceRecord
     ? ["Service record cover", "Report sheet fields", "Photo evidence appendix"]
     : customerFacing
-      ? ["Completed work", "Action item visible", "Evidence PDF separate"]
+      ? ["Completed work", "Action item visible", "PDF copy separate"]
       : ["Readable in one pass", "Action item visible", "Reply path included"];
 
   return (
@@ -874,11 +920,11 @@ function OutputRoleBlock({
           <SectionKicker>
             {serviceRecord
               ? customerFacing
-                ? "Service evidence PDF"
-                : "Service evidence PDF"
+                ? "PDF copy"
+                : "PDF copy"
               : customerFacing
-                ? "Customer service link"
-                : "Customer-ready service link"}
+                ? "Service report link"
+                : "Customer-ready service report link"}
           </SectionKicker>
           <h3 className="mt-3 font-display text-[1.78rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.25rem]">
             {title}
@@ -1487,6 +1533,7 @@ export function Axis1PacketDocument({
   presentationMode = "standard",
   visibleSections,
   editConfig,
+  watermarkLabel,
 }: Axis1PacketDocumentProps) {
   const isCustomerReport = variant === "customer-report";
   const isServiceRecord = outputIntent === "service-record";
@@ -1515,7 +1562,7 @@ export function Axis1PacketDocument({
       : "Ready for records";
   const documentReportId =
     getRecordValue(data.packetHeader.quickFacts, ["Report ID"], "") ||
-    getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-MASKED-0414");
+    getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-SAMPLE-0424");
   const systemIdentityRows = mapRows(data.systemIdentityRows, copy);
   const serviceRecordRows = mapRows(data.serviceRecordRows, copy);
   const proofPolicyRows = mapRows(data.proofPolicyRows, copy);
@@ -1555,6 +1602,11 @@ export function Axis1PacketDocument({
     data.vendor.dispatch.trim().length > 0 ||
     data.vendor.certification.trim().length > 0 ||
     data.vendor.afterHours.trim().length > 0;
+  const vendorBrandColor =
+    data.vendor.brandColor && /^#[0-9A-Fa-f]{6}$/.test(data.vendor.brandColor)
+      ? data.vendor.brandColor
+      : "#111315";
+  const vendorAccentStyle = accentVariables(vendorBrandColor);
   const hasProofPhotos = data.proofPhotos.length > 0;
   const conditionOnly = isConditionOnlyRecord(data);
   const showPhotoCoverage =
@@ -1591,17 +1643,28 @@ export function Axis1PacketDocument({
   return (
     <article
       data-report-id={documentReportId}
+      style={vendorAccentStyle}
       className={cx(
         "pdf-document packet-doc-root relative overflow-hidden break-words rounded-[24px] border border-[#d8d0c7] bg-[#fbfaf7] text-[#151515] shadow-[0_28px_80px_rgba(17,17,17,0.11)] [overflow-wrap:anywhere] print:rounded-none print:border-0 print:bg-white print:shadow-none sm:rounded-[30px]",
         isServiceRecord && "service-record-doc",
         className,
       )}
     >
+      <div
+        className="h-1.5 w-full"
+        style={{ backgroundColor: vendorBrandColor }}
+      />
       <header className="pdf-document-section px-4 py-5 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
         <div className="packet-header-grid grid gap-7 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-start">
           <div className="min-w-0">
             <div className="flex min-w-0 items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#111315] font-display text-xl font-bold text-[#ffb489] sm:h-13 sm:w-13 sm:rounded-[17px] sm:text-2xl">
+              <div
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#111315] font-display text-xl font-bold text-white sm:h-13 sm:w-13 sm:rounded-[17px] sm:text-2xl"
+                style={{
+                  background: data.vendor.logoUrl ? "#ffffff" : vendorBrandColor,
+                  color: data.vendor.logoUrl ? "#151515" : "#ffffff",
+                }}
+              >
                 {data.vendor.logoUrl ? (
                   <Image
                     src={data.vendor.logoUrl}
@@ -1622,14 +1685,14 @@ export function Axis1PacketDocument({
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-[#746b62]">
                   {data.vendor.brandingApplied || isCustomerReport
                     ? data.vendor.office
-                    : "Public sample shell. Brand, dispatch, and certification appear in paid setup."}
+                    : "Public sample shell. Brand, dispatch, and certification appear in the company version."}
                 </p>
               </div>
             </div>
 
             <div className="mt-7 max-w-3xl sm:mt-9">
               <SectionKicker>
-                {isServiceRecord ? "Service evidence PDF" : "Customer service link"}
+                {isServiceRecord ? "PDF copy" : "Service report link"}
               </SectionKicker>
               <h2 className="mt-3 font-display text-[2.05rem] font-bold leading-[0.92] tracking-[-0.065em] text-[#151515] sm:text-[3.65rem]">
                 {data.packetHeader.title}
@@ -1660,8 +1723,8 @@ export function Axis1PacketDocument({
               <span className="rounded-full border border-[#ded7cf] bg-white/75 px-2.5 py-1 text-[11px] font-medium text-[#5f574f]">
                 {isCustomerReport
                   ? isServiceRecord
-                    ? "Service evidence PDF"
-                    : "Customer service link"
+                    ? "PDF copy"
+                    : "Service report link"
                   : data.vendor.brandingApplied
                     ? "Branded vendor version"
                     : "Public sample shell"}
@@ -1890,7 +1953,10 @@ export function Axis1PacketDocument({
               <div className="mt-4 divide-y divide-[#e7e0d8] border-y border-[#ded7cf]">
                 {data.completedWork.map((item) => (
                   <div key={item} className="grid grid-cols-[14px_minmax(0,1fr)] gap-3 py-3">
-                    <span className="mt-2.5 h-1.5 w-1.5 rounded-full bg-[#f26a21]" />
+                    <span
+                      className="mt-2.5 h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: "var(--axis1-vendor-accent, #f26a21)" }}
+                    />
                     <p className="text-sm leading-6 text-[#151515]">{copy(item)}</p>
                   </div>
                 ))}
@@ -1980,7 +2046,10 @@ export function Axis1PacketDocument({
           <div className="pdf-document-card packet-customer-close rounded-[24px] bg-[#111315] px-5 py-5 text-white print:hidden">
             <div className="flex items-start justify-between gap-5">
               <div className="min-w-0">
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#ffb489]">
+                <p
+                  className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em]"
+                  style={{ color: "var(--axis1-vendor-accent-soft, #ffb489)" }}
+                >
                   What to do next
                 </p>
                 <h3 className="mt-3 font-display text-[1.72rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[2rem]">
@@ -1988,9 +2057,15 @@ export function Axis1PacketDocument({
                 </h3>
               </div>
               {data.scenario === "exception" ? (
-                <AlertTriangle className="mt-1 h-5 w-5 shrink-0 text-[#ffb489]" />
+                <AlertTriangle
+                  className="mt-1 h-5 w-5 shrink-0"
+                  style={{ color: "var(--axis1-vendor-accent-soft, #ffb489)" }}
+                />
               ) : (
-                <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-[#ffb489]" />
+                <CheckCircle2
+                  className="mt-1 h-5 w-5 shrink-0"
+                  style={{ color: "var(--axis1-vendor-accent-soft, #ffb489)" }}
+                />
               )}
             </div>
             <p className="mt-4 text-sm leading-7 text-white/68">{copy(data.customerClose.copy)}</p>
@@ -2033,13 +2108,19 @@ export function Axis1PacketDocument({
                   Signoff details stay attached.
                 </h3>
               </div>
-              <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#f26a21]" />
+              <ShieldCheck
+                className="mt-1 h-5 w-5 shrink-0"
+                style={{ color: "var(--axis1-vendor-accent, #f26a21)" }}
+              />
             </div>
             <div className="mt-5">
               <DenseLedger rows={finalCloseoutRows} />
             </div>
             <div className="mt-5 border-t border-[#ded7cf] pt-4">
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#f26a21]">
+              <p
+                className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em]"
+                style={{ color: "var(--axis1-vendor-accent, #f26a21)" }}
+              >
                 Not included in this service report
               </p>
               <p className="mt-2 text-sm leading-6 text-[#746b62]">{copy(data.scopeNote)}</p>
@@ -2047,7 +2128,7 @@ export function Axis1PacketDocument({
             <div className="packet-print-ack mt-5 hidden border-t border-[#ded7cf] pt-4 print:block">
               <SectionKicker>Customer file note</SectionKicker>
               <p className="mt-2 text-sm leading-6 text-[#746b62]">
-                Customer copy retained with the service evidence record.
+                Customer copy retained with the service report record.
               </p>
               <div className="mt-4">
                 <DenseLedger rows={printAcknowledgementRows} />
@@ -2073,7 +2154,7 @@ export function Axis1PacketDocument({
           </p>
           <p className="mt-2 max-w-4xl text-xs leading-6 text-[#746b62]">
             This service record summarizes this service visit from the service
-            provider&apos;s records. Use the evidence PDF as the retained evidence
+            provider&apos;s records. Use the PDF copy as the retained
             copy for files, manager review, insurance, landlord, or documentation
             requests. A manager, landlord, insurer, or reviewer may still apply
             their own requirements, and separate corrective or follow-up work needs
@@ -2082,6 +2163,11 @@ export function Axis1PacketDocument({
             until access is provided and follow-up service is completed.
           </p>
         </footer>
+      ) : null}
+      {watermarkLabel ? (
+        <div className="pdf-document-watermark" aria-hidden="true">
+          {watermarkLabel}
+        </div>
       ) : null}
     </article>
   );

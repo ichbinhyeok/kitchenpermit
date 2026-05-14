@@ -326,7 +326,7 @@ export function buildMockAxis1PhotoAssistSuggestions(
       ? genericName
         ? `${suggestedSlot.shortLabel} is a possible role, but the phone-style filename needs vendor review.`
         : reviewCue
-          ? `${suggestedSlot.shortLabel} is suggested from filename cues, but this photo needs vendor review before it can appear in the customer link or PDF.`
+      ? `${suggestedSlot.shortLabel} is suggested from filename cues, but this photo needs vendor review before it can appear in the service report link or PDF.`
           : `${suggestedSlot.shortLabel} is suggested from filename cues. Vendor must confirm the role.`
       : "No reliable photo role was found. Vendor must choose a role or leave this photo out.";
 

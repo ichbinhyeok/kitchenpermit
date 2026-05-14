@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import Link from "next/link";
+import Link from "@/components/navigation/static-link";
 import { useSyncExternalStore } from "react";
 import { LocalAxis1ReportClient } from "@/components/axis1/local-axis1-report-client";
 import { Panel } from "@/components/ui/panel";
@@ -36,14 +36,14 @@ export function LocalAxis1ProofPageContent() {
       <main className="min-h-screen bg-[#e9e1d7] px-3 py-4 text-[#151515] sm:px-5 sm:py-6 lg:py-8">
         <Panel className="mx-auto max-w-2xl px-6 py-6">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
-            Service handoff missing packet id
+            Service report link missing packet id
           </p>
           <h1 className="mt-3 font-display text-3xl font-bold tracking-[-0.06em] text-foreground">
-            This service handoff link is missing its record id.
+            This service report link is missing its record id.
           </h1>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
-            Open the builder and create a fresh customer handoff. The customer link
-            and evidence PDF will be generated from the current closeout record.
+            Open the builder and create a fresh service report. The report link
+            and PDF copy will be generated from the current service record.
           </p>
           <Link
             href="/axis-1/tool?step=photos"

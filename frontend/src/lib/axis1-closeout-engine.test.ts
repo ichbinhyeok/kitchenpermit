@@ -32,7 +32,7 @@ import {
 const forbiddenOverclaimPattern =
   /NFPA|compliance|pass\/fail|fire marshal|official|certificate|inspection|approval|repair/i;
 const forbiddenCustomerFacingContentPattern =
-  /NFPA|compliance|pass\/fail|pass-fail|fire marshal|official|certificate|inspection|inspected|approval|repair|proof packet|weak photo packet|customer packet|\bpacket\b/i;
+  /NFPA|compliance|pass\/fail|pass-fail|fire marshal|official|certificate|inspection|inspected|approval|repair|proof packet|weak photo packet|customer packet|\bpacket\b|pay invoice|invoice proof|payment-support/i;
 const internalPacketDataKeys = new Set([
   "generatedOutputs",
   "vendorSendReadinessWarnings",
@@ -295,7 +295,7 @@ describe("evaluateAxis1Closeout", () => {
         evidenceBasis: "partial_photos",
         claimLevel: "partial_photo_record",
         primaryCtaKind: "confirm_next_service",
-        proofCoverage: /1 \/ 7 recommended photo areas captured/,
+        proofCoverage: /1 photo area attached/,
         claimLimit: /Attached photos support part of the record/,
         responsibility: /No blocked or incomplete area/,
       },
@@ -312,7 +312,7 @@ describe("evaluateAxis1Closeout", () => {
         evidenceBasis: "photo_record",
         claimLevel: "photo_supported_record",
         primaryCtaKind: "confirm_next_service",
-        proofCoverage: /2 \/ 7 recommended photo areas captured/,
+        proofCoverage: /2 photo areas attached/,
         claimLimit: /Photo coverage is limited/,
         responsibility: /No blocked or incomplete area/,
       },
@@ -329,7 +329,7 @@ describe("evaluateAxis1Closeout", () => {
         evidenceBasis: "photo_record",
         claimLevel: "photo_supported_record",
         primaryCtaKind: "confirm_next_service",
-        proofCoverage: /7 \/ 7 recommended photo areas captured/,
+        proofCoverage: /7 photo areas attached/,
         claimLimit: /Photo coverage is limited/,
         responsibility: /No blocked or incomplete area/,
       },
@@ -370,7 +370,7 @@ describe("evaluateAxis1Closeout", () => {
         evidenceBasis: "partial_photos",
         claimLevel: "partial_photo_record",
         primaryCtaKind: "reply_after_clearing_access",
-        proofCoverage: /1 \/ 7 recommended photo areas captured/,
+        proofCoverage: /1 photo area attached/,
         claimLimit: /not presented as cleaned/,
         responsibility: /blocked section stays listed separately/,
       },
@@ -391,7 +391,7 @@ describe("evaluateAxis1Closeout", () => {
         evidenceBasis: "partial_photos",
         claimLevel: "partial_photo_record",
         primaryCtaKind: "reply_after_clearing_access",
-        proofCoverage: /2 \/ 7 recommended photo areas captured/,
+        proofCoverage: /2 photo areas attached/,
         claimLimit: /not presented as cleaned/,
         responsibility: /concealed path was cleaned/,
       },
@@ -432,7 +432,7 @@ describe("evaluateAxis1Closeout", () => {
         evidenceBasis: "partial_photos",
         claimLevel: "partial_photo_record",
         primaryCtaKind: "reply_after_clearing_access",
-        proofCoverage: /2 \/ 7 recommended photo areas captured/,
+        proofCoverage: /2 photo areas attached/,
         claimLimit: /not presented as cleaned/,
         responsibility: /excluded from the completed-work claim/,
       },
@@ -553,7 +553,7 @@ describe("evaluateAxis1Closeout", () => {
         evidenceBasis: "partial_photos",
         claimLevel: "partial_photo_record",
         primaryCtaKind: "reply_after_clearing_access",
-        proofCoverage: /2 \/ 7 recommended photo areas captured/,
+        proofCoverage: /2 photo areas attached/,
         claimLimit: /not presented as cleaned/,
         responsibility: /blocked section stays listed separately/,
       },
@@ -570,7 +570,7 @@ describe("evaluateAxis1Closeout", () => {
         evidenceBasis: "partial_photos",
         claimLevel: "partial_photo_record",
         primaryCtaKind: "confirm_next_service",
-        proofCoverage: /2 \/ 7 recommended photo areas captured/,
+        proofCoverage: /2 photo areas attached/,
         claimLimit: /Attached photos support part of the record/,
         responsibility: /No blocked or incomplete area/,
       },
@@ -587,7 +587,7 @@ describe("evaluateAxis1Closeout", () => {
         evidenceBasis: "partial_photos",
         claimLevel: "partial_photo_record",
         primaryCtaKind: "confirm_next_service",
-        proofCoverage: /2 \/ 7 recommended photo areas captured/,
+        proofCoverage: /2 photo areas attached/,
         claimLimit: /Attached photos support part of the record/,
         responsibility: /No blocked or incomplete area/,
       },
@@ -810,7 +810,7 @@ describe("evaluateAxis1Closeout", () => {
     expect(result.evidenceBasis).toBe("partial_photos");
     expect(result.claimLevel).toBe("partial_photo_record");
     expect(result.recordFormat.type).toBe("after_cleaning_record");
-    expect(result.proofCoverage.shortLabel).toBe("1/7 captured");
+    expect(result.proofCoverage.shortLabel).toBe("1 photo");
     expect(result.canUsePhotoProofLanguage).toBe(false);
   });
 
@@ -824,7 +824,7 @@ describe("evaluateAxis1Closeout", () => {
     expect(result.claimLevel).toBe("photo_supported_record");
     expect(result.recordFormat.type).toBe("photo_supported_service_record");
     expect(result.canUsePhotoProofLanguage).toBe(true);
-    expect(result.proofCoverage.shortLabel).toBe("2/7 captured");
+    expect(result.proofCoverage.shortLabel).toBe("2 photos");
   });
 
   it("summarizes all recommended proof slots when the full photo set is captured", () => {
@@ -837,7 +837,7 @@ describe("evaluateAxis1Closeout", () => {
     expect(result.recordFormat.type).toBe("photo_proof_packet");
     expect(result.proofCoverage.recommendedCount).toBe(7);
     expect(result.proofCoverage.label).toBe(
-      "7 / 7 recommended photo areas captured",
+      "7 photo areas attached",
     );
   });
 
@@ -851,11 +851,8 @@ describe("evaluateAxis1Closeout", () => {
     expect(result.generatedOutputs.find((output) => output.kind === "customer_link")?.readiness).toBe(
       "needs_review",
     );
-    expect(result.generatedOutputs.find((output) => output.kind === "invoice_proof_summary")?.readiness).toBe(
-      "not_applicable",
-    );
-    expect(result.generatedOutputs.find((output) => output.kind === "payment_support_copy")?.readiness).toBe(
-      "not_applicable",
+    expect(result.generatedOutputs.map((output) => output.kind).join(" ")).not.toMatch(
+      /invoice|payment/i,
     );
     expect(result.vendorSendReadinessWarnings).toContainEqual(
       expect.objectContaining({
@@ -873,11 +870,8 @@ describe("evaluateAxis1Closeout", () => {
     expect(result.generatedOutputs.find((output) => output.kind === "customer_link")?.readiness).toBe(
       "ready",
     );
-    expect(result.generatedOutputs.find((output) => output.kind === "invoice_proof_summary")?.readiness).toBe(
-      "needs_review",
-    );
-    expect(result.generatedOutputs.find((output) => output.kind === "payment_support_copy")?.readiness).toBe(
-      "needs_review",
+    expect(result.generatedOutputs.map((output) => output.kind).join(" ")).not.toMatch(
+      /invoice|payment/i,
     );
     expect(result.generatedOutputs.find((output) => output.kind === "internal_risk_summary")?.readiness).toBe(
       "needs_review",
@@ -1099,11 +1093,9 @@ describe("evaluateAxis1Closeout", () => {
         (output) => output.kind === "follow_up_quote_copy",
       )?.readiness,
     ).toBe("not_applicable");
-    expect(
-      result.generatedOutputs.find(
-        (output) => output.kind === "invoice_proof_summary",
-      )?.readiness,
-    ).toBe("needs_review");
+    expect(result.generatedOutputs.map((output) => output.kind).join(" ")).not.toMatch(
+      /invoice|payment/i,
+    );
     expectNoOverclaim(result);
   });
 
@@ -1168,7 +1160,7 @@ describe("evaluateAxis1Closeout", () => {
     expect(nextService?.reason).not.toMatch(/Access action/i);
   });
 
-  it("writes payment, invoice, revisit, and quote copy from area states", () => {
+  it("writes revisit and quote copy from area states", () => {
     const noPhotoClean = evaluate({
       values: values({ scenario: "clean" }),
       areaLedger: [
@@ -1265,16 +1257,9 @@ describe("evaluateAxis1Closeout", () => {
       ],
     });
 
-    expect(
-      noPhotoClean.generatedOutputs.find(
-        (output) => output.kind === "payment_support_copy",
-      )?.copy,
-    ).toMatch(/written closeout record with no field photos attached/i);
-    expect(
-      noPhotoClean.generatedOutputs.find(
-        (output) => output.kind === "invoice_proof_summary",
-      )?.readiness,
-    ).toBe("needs_review");
+    expect(noPhotoClean.generatedOutputs.map((output) => output.kind).join(" ")).not.toMatch(
+      /invoice|payment/i,
+    );
     expect(
       mixed.generatedOutputs.find((output) => output.kind === "revisit_copy")
         ?.copy,
@@ -1284,16 +1269,14 @@ describe("evaluateAxis1Closeout", () => {
         (output) => output.kind === "follow_up_quote_copy",
       )?.copy,
     ).toMatch(/Rooftop fan was recorded as a condition area/i);
-    expect(
-      mixed.generatedOutputs.find(
-        (output) => output.kind === "payment_support_copy",
-      )?.copy,
-    ).toMatch(/Blocked or incomplete areas stay separated: Duct \/ access/i);
+    expect(mixed.generatedOutputs.map((output) => output.kind).join(" ")).not.toMatch(
+      /invoice|payment/i,
+    );
     expectNoOverclaim(noPhotoClean);
     expectNoOverclaim(mixed);
   });
 
-  it("marks invoice proof ready only when clean photo coverage is strong", () => {
+  it("keeps clean photo coverage focused on report and PDF readiness", () => {
     const partial = evaluate({
       values: values({ scenario: "clean" }),
       photoSlots: ["hood-after"],
@@ -1311,15 +1294,11 @@ describe("evaluateAxis1Closeout", () => {
     });
 
     expect(partial.recordFormat.type).toBe("after_cleaning_record");
-    expect(partial.generatedOutputs.find((output) => output.kind === "invoice_proof_summary")?.readiness).toBe(
-      "needs_review",
-    );
-    expect(strong.generatedOutputs.find((output) => output.kind === "invoice_proof_summary")?.readiness).toBe(
+    expect(partial.generatedOutputs.find((output) => output.kind === "evidence_pdf")?.readiness).toBe(
       "ready",
     );
-    expect(strong.generatedOutputs.find((output) => output.kind === "payment_support_copy")?.readiness).toBe(
-      "ready",
-    );
+    expect(strong.generatedOutputs.find((output) => output.kind === "evidence_pdf")?.readiness).toBe("ready");
+    expect(strong.generatedOutputs.map((output) => output.kind).join(" ")).not.toMatch(/invoice|payment/i);
     expect(strong.vendorSendReadinessWarnings.map((warning) => warning.kind)).not.toContain(
       "missing_fan_photo",
     );
@@ -1360,33 +1339,25 @@ describe("evaluateAxis1Closeout", () => {
     );
   });
 
-  it("maps clean closeout CTA links without requiring payment integration", () => {
+  it("maps clean closeout to next-service action without external billing links", () => {
     const result = evaluate({
       values: values({ scenario: "clean" }),
       links: {
-        invoiceUrl: "https://pay.example/inv-100",
-        paymentDueLabel: "$1,250 due",
-        reviewUrl: "https://reviews.example/hood",
         nextServiceRequestUrl: "https://schedule.example/next",
         replyUrl: "mailto:dispatch@example.com",
       },
     });
 
     expect(result.primaryCta).toMatchObject({
-      kind: "pay_invoice",
-      label: "Pay invoice - $1,250 due",
-      href: "https://pay.example/inv-100",
+      kind: "confirm_next_service",
+      label: "Confirm next service",
+      href: "https://schedule.example/next",
       enabled: true,
     });
-    expect(result.customerActionType).toBe("pay_invoice");
-    expect(result.customerActionTitle).toBe("Pay invoice");
-    expect(result.customerActionCopy).toMatch(/Pay the invoice/);
-    expect(result.ctas.find((cta) => cta.kind === "schedule_next_cleaning")?.href).toBe(
-      "https://schedule.example/next",
-    );
-    expect(result.ctas.find((cta) => cta.kind === "leave_review")?.href).toBe(
-      "https://reviews.example/hood",
-    );
+    expect(result.customerActionType).toBe("confirm_next_service");
+    expect(result.customerActionTitle).toBe("Confirm next service");
+    expect(result.customerActionCopy).toMatch(/confirm the next service window/i);
+    expect(result.ctas.map((cta) => cta.kind).join(" ")).not.toMatch(/pay|invoice|review/i);
   });
 
   it.each([
@@ -1683,7 +1654,7 @@ describe("evaluateAxis1Closeout", () => {
 
     expect(packet.closeout?.primaryCta?.kind).toBe("reply_after_clearing_access");
     expect(packet.closeout?.recordFormat.type).toBe("access_issue_record");
-    expect(packet.closeout?.proofCoverage.shortLabel).toBe("1/7 captured");
+    expect(packet.closeout?.proofCoverage.shortLabel).toBe("1 photo");
     expect(packet.packetHeader.quickFacts).toContainEqual([
       "Customer next step",
       "Reply after clearing access",
@@ -1697,8 +1668,8 @@ describe("evaluateAxis1Closeout", () => {
       result.customerActionCopy,
     ]);
     expect(packet.customerClose.actionItems).toContainEqual([
-      "Evidence PDF",
-      "Evidence, archive, submission, or print copy",
+      "PDF copy",
+      "Archive, submission, or print copy",
     ]);
     expect(packet.photoCoverageRows.find((row) => row.item === "Access condition")?.status).toBe(
       "Captured",
@@ -1711,7 +1682,7 @@ describe("evaluateAxis1Closeout", () => {
       summaryOverride:
         "Reachable hood areas were serviced today. No field photos were captured for this visit",
       customerActionOverride:
-        "Please pay the invoice and reply if the next service window needs to move",
+        "Please confirm the next service window or reply if the date needs to move",
     });
     const result = evaluate({
       values: editedValues,
@@ -1726,7 +1697,7 @@ describe("evaluateAxis1Closeout", () => {
       "Reachable hood areas were serviced today. No field photos were captured for this visit.",
     );
     expect(result.customerActionCopy).toBe(
-      "Please pay the invoice and reply if the next service window needs to move.",
+      "Please confirm the next service window or reply if the date needs to move.",
     );
     expect(packet.packetHeader.copy).toContain(
       "Reachable hood areas were serviced today.",
@@ -1738,7 +1709,7 @@ describe("evaluateAxis1Closeout", () => {
     });
     expect(packet.customerClose.actionItems).toContainEqual([
       "Reply or action",
-      "Please pay the invoice and reply if the next service window needs to move.",
+      "Please confirm the next service window or reply if the date needs to move.",
     ]);
     expect(packet.closeout?.claimLevel).toBe("written_record");
     expect(packet.closeout?.proofCoverage.shortLabel).toBe("Written record");
@@ -1804,7 +1775,7 @@ describe("evaluateAxis1Closeout", () => {
     ]);
     expect(
       packet.customerClose.actionItems.flatMap((row) => row).join(" "),
-    ).not.toMatch(/Pay the invoice/i);
+    ).not.toMatch(/invoice|payment/i);
   });
 
   it("keeps no-photo proof coverage outcome-specific", () => {
@@ -1882,12 +1853,12 @@ describe("evaluateAxis1Closeout", () => {
     const condition = buildAxis1SampleProofData("condition_review");
 
     expect(clean.closeout?.outcomeType).toBe("clean");
-    expect(clean.closeout?.primaryCta?.kind).toBe("pay_invoice");
-    expect(clean.closeout?.proofCoverage.shortLabel).toBe("5/7 captured");
+    expect(clean.closeout?.primaryCta?.kind).toBe("confirm_next_service");
+    expect(clean.closeout?.proofCoverage.shortLabel).toBe("5 photos");
 
     expect(blocked.closeout?.outcomeType).toBe("blocked_access");
     expect(blocked.closeout?.primaryCta?.kind).toBe("reply_after_clearing_access");
-    expect(blocked.closeout?.proofCoverage.shortLabel).toBe("3/7 captured");
+    expect(blocked.closeout?.proofCoverage.shortLabel).toBe("3 photos");
     expect(
       blocked.closeout?.coverageEducation.items.find(
         (item) => item.state === "action_required",
@@ -1896,7 +1867,7 @@ describe("evaluateAxis1Closeout", () => {
 
     expect(condition.closeout?.outcomeType).toBe("condition_review");
     expect(condition.closeout?.primaryCta?.kind).toBe("request_quote");
-    expect(condition.closeout?.proofCoverage.shortLabel).toBe("4/7 captured");
+    expect(condition.closeout?.proofCoverage.shortLabel).toBe("4 photos");
     expect(condition.closeout?.coverageEducation.summary).toMatch(
       /recorded condition/i,
     );
@@ -1912,14 +1883,14 @@ describe("evaluateAxis1Closeout", () => {
     ).not.toMatch(/blocked|not represented/i);
   });
 
-  it("keeps sample customer-facing content locked to customer link and evidence PDF language", () => {
+  it("keeps sample customer-facing content locked to service report link and PDF language", () => {
     (["clean", "blocked_access", "condition_review"] as const).forEach((variant) => {
       const packet = buildAxis1SampleProofData(variant);
       const customerText = allPacketCustomerText(packet);
 
       expect(customerText).not.toMatch(forbiddenCustomerFacingContentPattern);
-      expect(customerText).toMatch(/customer link/i);
-      expect(customerText).toMatch(/evidence PDF/i);
+      expect(customerText).toMatch(/service report link/i);
+      expect(customerText).toMatch(/PDF/i);
       expect(packet.closeout?.recordFormat.label).not.toMatch(/packet/i);
     });
   });

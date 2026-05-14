@@ -3,9 +3,9 @@ import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { buildAxis1SampleProofData } from "@/lib/axis1-sample-packets";
 
 export const metadata: Metadata = {
-  title: "Sample Clean Closeout Customer Link",
+  title: "Sample Clean Closeout Service Report",
   description:
-    "A customer-facing clean hood service closeout customer link sample.",
+    "A customer-facing clean hood service report sample.",
 };
 
 const reportData = buildAxis1SampleProofData("clean");

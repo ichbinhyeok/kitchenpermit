@@ -50,10 +50,10 @@ export function PreviewStateControls({
       <div className="space-y-2.5">
         <div className="flex items-center justify-between gap-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Branding
+            Company info
           </p>
           <p className="text-xs leading-5 text-muted-foreground">
-            Public shell / branded customer link
+          Public shell / company service report link
           </p>
         </div>
         <SegmentedControl
@@ -76,7 +76,7 @@ export function PreviewStateControls({
       <div className="mt-4 space-y-2.5">
         <div className="flex items-center justify-between gap-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Customer link state
+          Service report link state
           </p>
           <p className="text-xs leading-5 text-muted-foreground">
             Exception / clean close

@@ -1,6 +1,6 @@
 ﻿ "use client";
 
-import Link from "next/link";
+import Link from "@/components/navigation/static-link";
 import { Download, Mail } from "lucide-react";
 import { Suspense, useSyncExternalStore } from "react";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
@@ -22,12 +22,12 @@ const brandingOptions: ReadonlyArray<{
 }> = [
   {
     value: "applied",
-    label: "Brand applied",
+    label: "Company info shown",
     description: "Vendor logo, contacts, and technician ref are visible.",
   },
   {
     value: "neutral",
-    label: "Brand hidden",
+    label: "Company info hidden",
     description: "Public sample shell hides the paid setup layer.",
   },
 ] as const;
@@ -72,13 +72,13 @@ function buildSetupEmailUrl(options: {
   branding: Axis1PacketBranding;
   scenario: Axis1PacketScenario;
 }) {
-  const subject = "Customer link setup request";
+  const subject = "Service report link inquiry (미정)";
   const body = [
     "Kitchen Permit team,",
     "",
-    "I want to discuss a customer link setup.",
+    "I want to discuss a branded service report link.",
     "",
-    `Preview state: ${options.branding} branding / ${options.scenario} scenario`,
+    `Preview state: ${options.branding} company details / ${options.scenario} scenario`,
     "Company:",
     "Service area:",
     "Direct phone:",
@@ -141,7 +141,7 @@ function buildPreviewData(options: {
       ...data.vendor,
       name: "Sample Hood Service Co.",
       initials: "SH",
-      office: "Vendor branding, dispatch, and service contact appear here",
+      office: "Company logo, dispatch, and service contact appear here",
       directLine: "",
       dispatch: "",
       certification: "",
@@ -150,7 +150,7 @@ function buildPreviewData(options: {
       reviewPrompt: "",
       preparedBy: "Technician / crew ID",
       previewBlurb:
-        "Public sample uses example branding. Setup replaces this with the vendor logo, direct line, dispatch email, credential, and technician reference.",
+        "Public sample uses example company details. Company version replaces this with the vendor logo, direct line, dispatch email, credential, and technician reference.",
       brandingApplied: false,
     },
     serviceRecordRows: maskRows(data.serviceRecordRows),
@@ -178,16 +178,16 @@ function Axis1PacketPdfPreviewContent({
           <div className="grid gap-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(420px,1.2fr)] lg:items-start">
             <div className="min-w-0 space-y-3">
               <div className="inline-flex items-center rounded-full border border-black/10 bg-white px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Cold-email preview // Customer link
+              Cold-email preview // Service report link
               </div>
               <div className="space-y-3">
                 <h1 className="max-w-3xl font-display text-[1.9rem] font-bold leading-[0.92] tracking-[-0.07em] text-foreground sm:text-[2.2rem]">
-                  This is the customer link your customer receives after the job.
+              This is the service report link your customer receives after the job.
                 </h1>
                 <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
                   First click should feel like a real delivery artifact, not a product
                   tour. The point is simple: fewer explanation calls, clearer follow-up
-                        notes, and a more premium handoff after the visit.
+                notes, and a more premium service report after the visit.
                 </p>
               </div>
 
@@ -196,7 +196,7 @@ function Axis1PacketPdfPreviewContent({
                   {[
                     ["Customer clarity", "Result, open item, and next step are visible without a callback."],
                     ["Defensible record", "Blocked access stays explicit instead of buried in technician notes."],
-                    ["Premium handoff", "The report makes serious service look organized the moment it lands."],
+  ["Premium report", "The report makes serious service look organized the moment it lands."],
                   ].map(([label, copy]) => (
                     <div
                       key={label}
@@ -221,7 +221,7 @@ function Axis1PacketPdfPreviewContent({
                         Document state
                       </p>
                       <h2 className="mt-3 font-display text-[1.26rem] font-bold leading-[0.95] tracking-[-0.05em] text-foreground">
-                        Review the customer link state and evidence PDF state vendors care about.
+              Review the service report link and PDF copy vendors care about.
                       </h2>
                     </div>
                     <div className="max-w-[260px] rounded-[14px] border border-black/10 bg-[rgba(17,17,17,0.02)] px-3 py-2.5">
@@ -255,7 +255,7 @@ function Axis1PacketPdfPreviewContent({
 
                   <div className="grid gap-2 rounded-[18px] border border-black/10 bg-[rgba(17,17,17,0.03)] px-4 py-3">
                     {[
-                      ["Current branding", currentBranding?.label ?? branding],
+                      ["Current company info", currentBranding?.label ?? branding],
                       ["Current state", currentScenario?.label ?? scenario],
                       ["Delivery note", "Same engine content / tighter print PDF"],
                     ].map(([label, value]) => (
@@ -277,7 +277,7 @@ function Axis1PacketPdfPreviewContent({
                       className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-accent bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white sm:w-auto"
                     >
                       <Mail className="h-4 w-4" />
-                      Email For Branded Setup
+                      Ask About Company Reports
                     </a>
                     {defaultDownloadState ? (
                       <a
@@ -285,7 +285,7 @@ function Axis1PacketPdfPreviewContent({
                         className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-foreground sm:w-auto"
                       >
                         <Download className="h-4 w-4" />
-                        Download Evidence PDF
+                        Download Sample PDF
                       </a>
                     ) : (
                       <Link
@@ -293,7 +293,7 @@ function Axis1PacketPdfPreviewContent({
                         className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-foreground sm:w-auto"
                       >
                         <Download className="h-4 w-4" />
-                        View Evidence PDF State
+                        View PDF Copy State
                       </Link>
                     )}
                     <Link
@@ -354,7 +354,7 @@ export default function Axis1PacketPdfPreviewPage() {
       fallback={
         <div className="px-3 py-4 sm:px-4 sm:py-6">
           <div className="mx-auto w-[min(1080px,100%)] rounded-[28px] border border-black/10 bg-white px-4 py-6 text-sm text-muted-foreground">
-            Loading customer link preview.
+        Loading service report link preview.
           </div>
         </div>
       }

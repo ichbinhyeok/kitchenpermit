@@ -3,67 +3,89 @@
 This repo now deploys as:
 
 - `app`: Spring Boot serving `/api` and the exported Next.js frontend
-- `nginx`: public TLS termination and reverse proxy
+- `host nginx`: Oracle host-level reverse proxy, shared with other projects
 
-The production database target is Supabase Postgres. Large assets can move to
-R2 later without changing this runtime shape.
+The production database target is Supabase Postgres. Axis 1 report photos are
+stored through the asset-storage abstraction, with R2 enabled in production.
 
 ## Server bootstrap
 
 1. Install Docker Engine and Docker Compose v2 on the Oracle host.
-2. Create the deploy directory:
+2. Make sure `kitchenpermit.com` points to the Oracle public IP.
 
    ```bash
-   sudo mkdir -p /opt/hood
-   sudo chown $USER:$USER /opt/hood
+   dig +short kitchenpermit.com
    ```
 
-3. Provision the TLS certificate on the Oracle host. One workable path is:
+3. Add a host nginx site entry for `kitchenpermit.com`.
+4. Point that host entry at `127.0.0.1:8810`.
+5. Keep Cloudflare in front, matching the same pattern used by `CarMoneyPit`.
 
-   ```bash
-   sudo snap install --classic certbot
-   sudo ln -s /snap/bin/certbot /usr/bin/certbot
-   sudo certbot certonly --standalone -d hood.example.com
-   ```
+Use [deploy/host-nginx-kitchenpermit.conf](C:/Development/Owner/hood/deploy/host-nginx-kitchenpermit.conf)
+as the starting point.
 
-   This writes the certs under `/etc/letsencrypt/live/hood.example.com/`.
-
-4. Copy `deploy/.env.example` to `/opt/hood/.env` and fill in real values.
-
-   Set `HOOD_CERT_ROOT=/etc/letsencrypt` so the `nginx` container can read
-   `/etc/letsencrypt/live/<domain>/fullchain.pem` and `privkey.pem`.
+No manual `/opt/hood/.env` file is required for the production workflow.
+The GitHub Action writes only `docker-compose.yml` on the server, following the
+same pattern as `CarMoneyPit`.
 
 ## GitHub Actions secrets
 
 Create these repository secrets:
 
-- `ORACLE_HOST`
-- `ORACLE_USER`
-- `ORACLE_SSH_KEY`
-- `ORACLE_PORT` (optional, defaults to `22`)
-- `ORACLE_DEPLOY_PATH` (optional, defaults to `/opt/hood`)
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+- `OCI_HOST`
+- `OCI_USERNAME`
+- `OCI_KEY`
+- `APP_DATASOURCE_URL`
+- `APP_DATASOURCE_USERNAME`
+- `APP_DATASOURCE_PASSWORD`
+- `GEMINI_API_KEY` (optional)
+- `HOOD_AXIS1_ASSET_STORAGE_DRIVER` (`r2` when R2 is ready)
+- `CLOUDFLARE_R2_BUCKET`
+- `CLOUDFLARE_R2_ENDPOINT`
+- `CLOUDFLARE_R2_ACCESS_KEY_ID`
+- `CLOUDFLARE_R2_SECRET_ACCESS_KEY`
+- `CLOUDFLARE_R2_REGION` (`auto`)
+- `CLOUDFLARE_R2_KEY_PREFIX` (`axis1-reports`)
+- `HOOD_BILLING_PROVIDER` (`paddle` when billing is ready)
+- `HOOD_BILLING_ENVIRONMENT` (`sandbox` while testing, `production` when live)
+- `PADDLE_COMPANY_PRICE_ID`
 
-The workflow builds the boot jar, bakes it into a container image, pushes
-`ghcr.io/<owner>/hood:latest`, uploads `compose.yaml` and
-`nginx.conf.template`, then runs `docker compose pull && docker compose up -d`
-over SSH.
+The workflow maps those Cloudflare secret names into Spring-friendly
+`HOOD_AXIS1_R2_*` environment variables inside the app container.
+
+Current production constants are written by the workflow itself:
+
+- base url: `https://kitchenpermit.com`
+- support email: `support@kitchenpermit.com`
+- published app port: `8810`
+- database keepalive: enabled, first ping after 60 seconds, then every 12 hours
+
+The workflow now mirrors `CarMoneyPit`:
+
+- builds and pushes `DOCKERHUB_USERNAME/kitchenpermit:latest`
+- SSHes into OCI
+- writes `~/deploy/hood/docker-compose.yml`
+- runs `docker compose pull && docker compose up -d`
 
 ## Manual deploy
 
-If you need to deploy outside Actions:
+If you need to deploy outside Actions, the workflow-generated compose is the
+source of truth. The host nginx sample file remains a manual step:
 
 ```bash
 ./gradlew bootJar
-docker build -t ghcr.io/<owner>/hood:manual .
-export HOOD_IMAGE=ghcr.io/<owner>/hood:manual
-docker compose -f deploy/compose.yaml --env-file deploy/.env.example up -d
+docker build -t <dockerhub-user>/kitchenpermit:manual .
+docker push <dockerhub-user>/kitchenpermit:manual
 ```
 
-For the real server, use `/opt/hood/.env` instead of the example file.
+Then update `~/deploy/hood/docker-compose.yml` on the server to point at the
+manual image tag if needed.
 
-After a host-side certificate renewal, reload nginx:
+After changing the host nginx config:
 
 ```bash
-cd /opt/hood
-docker compose exec nginx nginx -s reload
+sudo nginx -t
+sudo systemctl reload nginx
 ```

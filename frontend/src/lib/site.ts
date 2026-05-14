@@ -1,39 +1,27 @@
-﻿export const siteConfig = {
+import {
+  AXIS1_COMPANY_LAUNCH_PRICE,
+  AXIS1_COMPANY_MONTHLY_PRICE,
+} from "@/lib/axis1-product-policy";
+
+export const siteConfig = {
   name: "hood",
   description:
-    "Product-grade customer links, live outbound dossiers, and manual commerce flows for kitchen exhaust vendors.",
+    "Branded hood service report links and PDFs for kitchen exhaust vendors after every cleaning job.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenpermit.com",
   supportEmail:
     process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@kitchenpermit.com",
   navigation: [
     { href: "/", label: "Home" },
-    { href: "/axis-1", label: "Existing Customers" },
-    { href: "/axis-2", label: "New Sales" },
-    { href: "/samples", label: "Samples" },
+    { href: "/axis-1", label: "Service Report" },
+    { href: "/samples/axis-1", label: "Sample" },
     { href: "/pricing", label: "Pricing" },
+    { href: "/dashboard", label: "Dashboard" },
   ],
   pricing: [
     {
-      name: "Customer Link Setup",
-      price: "$149",
-      summary: "Starting point for closeout customer links and repeat-trust handoff.",
-    },
-    {
-      name: "Sales Packet Setup",
-      price: "$149",
-      summary:
-        "Starting point for first-touch outbound packet structure and positioning.",
-    },
-    {
-      name: "Service + Sales Bundle",
-      price: "$259",
-      summary:
-        "Combined setup for vendors running both existing-customer links and new-sales outreach together.",
-    },
-    {
-      name: "Live Sales Batch",
-      price: "$149",
-      summary: "Starting point for 10 live prospects after QA and dedupe.",
+      name: "Company Version",
+      price: AXIS1_COMPANY_MONTHLY_PRICE,
+      summary: `Saved company details, hosted service report links, clean PDF copies, and report history for ${AXIS1_COMPANY_LAUNCH_PRICE}.`,
     },
   ],
 } as const;

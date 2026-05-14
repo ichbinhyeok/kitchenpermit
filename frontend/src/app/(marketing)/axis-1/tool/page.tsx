@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { PacketBuilder } from "@/components/axis1/packet-builder";
 
 export const metadata: Metadata = {
-  title: "AI Hood Job Closeout",
+  title: "Service Report Builder",
   description:
-    "Minimal-input tool for kitchen exhaust vendors to upload messy job photos, review an AI-drafted closeout, and generate customer proof, invoice support, payment, follow-up, and next-action outputs.",
+    "A builder for kitchen exhaust vendors to turn job photos and notes into a restaurant-ready service report link and PDF.",
 };
 
 export default function Axis1ToolPage() {

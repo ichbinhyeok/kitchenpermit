@@ -1,67 +1,56 @@
 ﻿import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/navigation/static-link";
 import type { ReactNode } from "react";
-import { ArrowRight, Check, Flame } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/marketing/reveal";
 
-const serviceReportItems = [
-  "Plain-English work summary",
-  "Field photos with context",
-  "Blocked access and open items",
-  "Customer action and next visit window",
-];
+const inputRows = [
+  ["Job photos", "Hood, filter, fan, and access photos"],
+  ["Open item", "Rear access panel blocked"],
+  ["Next action", "Clear access before the next visit"],
+] as const;
 
-const salesListItems = [
-  "Live local trigger",
-  "Why this account fits",
-  "Best contact path",
-  "First-touch talking points",
-];
+const reportRows = [
+  ["Work result", "Reachable hood, filters, and duct path cleaned"],
+  ["Photo evidence", "Before/after photos grouped by hood area"],
+  ["Open item", "Blocked access kept separate from completed work"],
+  ["Saved copy", "Link/PDF for inspection records"],
+] as const;
 
-const proofRows = [
-  {
-    label: "After the visit",
-    title: "A customer link replaces the explanation call.",
-    detail:
-      "The operator sees what happened, what was not accessible, and what they need to do next.",
-  },
-  {
-    label: "Before the next sale",
-    title: "A live account list gives outreach a reason to exist.",
-    detail:
-      "The vendor gets a trigger, fit reason, contact path, and first-touch angle instead of a raw spreadsheet.",
-  },
-];
+const valueRows = [
+  ["Restaurant", "Sees what was done, what is still open, and what to save."],
+  ["Hood company", "Looks organized without rewriting photo texts after the crew leaves."],
+  ["Office", "Gets a cleaner service report for revisit, records, or follow-up."],
+] as const;
 
-const pricingRows = [
-  ["Customer link setup", "$149", "For existing-customer links"],
-  ["Sales packet setup", "$149", "For first-touch packet structure"],
-  ["Service + sales bundle", "$259", "For vendors using both paths"],
-  ["Live sales batch", "$149", "For 10 QA-reviewed prospects"],
-];
+const reportContents = [
+  ["Job details", "Service date, location, company contact, and job reference"],
+  ["Completed work", "Cleaned areas written in plain English"],
+  ["Photo evidence", "Before/after images tied to the right hood areas"],
+  ["Open items", "Blocked access or exceptions separated from completed work"],
+  ["Record copy", "Link/PDF the manager can save in the inspection folder"],
+] as const;
 
-function ArrowLink({
+function ActionLink({
   href,
   children,
   tone = "dark",
 }: {
   href: string;
   children: ReactNode;
-  tone?: "dark" | "light" | "accent" | "outline";
+  tone?: "dark" | "light" | "accent";
 }) {
   const toneClass =
     tone === "accent"
-      ? "bg-[#f26a21] text-white hover:bg-[#dd5b17]"
-      : tone === "outline"
-        ? "border border-white/16 bg-white/8 text-white hover:bg-white/14"
-        : tone === "light"
-          ? "bg-white text-[#111315] ring-1 ring-black/10 hover:bg-white/90"
-          : "bg-[#111315] text-white hover:bg-[#20262d]";
+      ? "bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.28)] hover:bg-[#dd5b17]"
+      : tone === "light"
+        ? "border border-white/18 bg-white/8 text-white hover:bg-white/14"
+        : "bg-[#111315] text-white hover:bg-[#20262d]";
 
   return (
     <Link
       href={href}
-      className={`inline-flex min-h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-[15px] font-bold transition ${toneClass}`}
+      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-[15px] font-bold transition ${toneClass}`}
     >
       <span>{children}</span>
       <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
@@ -69,100 +58,71 @@ function ArrowLink({
   );
 }
 
-function EvidenceLine({ children }: { children: ReactNode }) {
+function ProductSurface() {
   return (
-    <li className="flex items-start gap-3 border-t border-current/10 py-4 text-[15px] leading-6">
-      <Check className="mt-1 h-4 w-4 shrink-0 text-[#f26a21]" strokeWidth={2.4} />
-      <span>{children}</span>
-    </li>
-  );
-}
-
-function ProductDocumentPreview() {
-  return (
-    <div className="grid gap-4 lg:grid-cols-[1.06fr_0.94fr]">
-      <div className="overflow-hidden rounded-[32px] border border-black/10 bg-white shadow-[0_24px_70px_rgba(18,16,14,0.10)]">
-        <div className="relative h-[360px]">
-          <Image
-            src="/images/home-hero-commercial-line-bright-v1.png"
-            alt="Bright commercial kitchen exhaust hood line"
-            fill
-            sizes="(max-width: 1024px) 100vw, 52vw"
-            className="object-cover object-center"
-            priority
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_54%,rgba(0,0,0,0.58))]" />
-          <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4 text-white">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/70">
-                Service surface
-              </p>
-              <p className="mt-1 max-w-sm font-display text-3xl font-bold leading-[0.95]">
-                A handoff that looks like a real operating document.
-              </p>
-            </div>
-            <Flame className="hidden h-6 w-6 text-[#ff8a4d] sm:block" strokeWidth={2} />
-          </div>
+    <div className="relative overflow-hidden rounded-[32px] border border-white/12 bg-[#101419] p-3 shadow-[0_40px_140px_rgba(0,0,0,0.42)]">
+      <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#f26a21]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-white/24" />
+          <span className="h-2.5 w-2.5 rounded-full bg-white/16" />
         </div>
-        <div className="grid border-t border-black/8 md:grid-cols-2">
-          <div className="p-6">
-            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-              Existing customers
-            </p>
-            <h3 className="mt-3 font-display text-3xl font-bold leading-[0.96] text-foreground">
-              Same-day customer link
-            </h3>
-            <ul className="mt-5 text-muted-foreground">
-              {serviceReportItems.map((item) => (
-                <EvidenceLine key={item}>{item}</EvidenceLine>
-              ))}
-            </ul>
-          </div>
-          <div className="border-t border-black/8 bg-[#f7f0e8] p-6 md:border-l md:border-t-0">
-            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-              New accounts
-            </p>
-            <h3 className="mt-3 font-display text-3xl font-bold leading-[0.96] text-foreground">
-              10 live prospects
-            </h3>
-            <ul className="mt-5 text-muted-foreground">
-              {salesListItems.map((item) => (
-                <EvidenceLine key={item}>{item}</EvidenceLine>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/42">
+          Sample service report
+        </p>
       </div>
 
-      <div className="rounded-[32px] bg-[#11161b] p-6 text-white shadow-[0_24px_70px_rgba(18,16,14,0.18)]">
-        <div className="flex items-center justify-between border-b border-white/10 pb-5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/48">
-            What vendors buy first
+      <div className="grid gap-3 p-3 lg:grid-cols-[0.82fr_1.18fr]">
+        <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-[#ffb27c]">
+            From the field
           </p>
-          <span className="rounded-full bg-[#f26a21] px-3 py-1 text-xs font-bold text-white">
-            sample first
-          </span>
-        </div>
-        <div className="space-y-8 py-7">
-          {proofRows.map((row, index) => (
-            <div key={row.label} className="grid gap-5 sm:grid-cols-[4rem_1fr]">
-              <span className="font-mono text-xs text-white/38">0{index + 1}</span>
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ffb27c]">
-                  {row.label}
+          <h3 className="mt-3 max-w-sm text-[2rem] font-black leading-[0.9] tracking-[-0.06em] text-white">
+            What the crew sends in
+          </h3>
+          <div className="mt-5 grid gap-3">
+            {inputRows.map(([label, copy]) => (
+              <div key={label} className="rounded-[18px] border border-white/10 bg-black/18 p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/36">
+                  {label}
                 </p>
-                <h3 className="mt-3 font-display text-[2rem] font-bold leading-[0.96] text-white">
-                  {row.title}
-                </h3>
-                <p className="mt-3 text-[15px] leading-7 text-white/64">{row.detail}</p>
+                <p className="mt-2 text-sm font-bold leading-6 text-white">{copy}</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-        <div className="border-t border-white/10 pt-6">
-          <ArrowLink href="/samples/axis-1" tone="accent">
-            Open customer link sample
-          </ArrowLink>
+
+        <div className="overflow-hidden rounded-[24px] bg-[#f7efe4] text-[#111315]">
+          <div className="grid gap-5 border-b border-black/10 p-5 md:grid-cols-[1fr_170px]">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-[#75695f]">
+                What the restaurant gets
+              </p>
+              <h3 className="mt-3 max-w-xl font-display text-[clamp(2.5rem,6vw,4.8rem)] font-bold leading-[0.86] tracking-[-0.078em]">
+                One report, ready to save
+              </h3>
+            </div>
+            <div className="relative min-h-[130px] overflow-hidden rounded-[22px] bg-[#111315]">
+              <Image
+                src="/images/packet-proof/ai-baffle-filters.jpg"
+                alt="Clean baffle filters after kitchen exhaust service"
+                fill
+                sizes="170px"
+                className="object-cover"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-0 p-5">
+            {reportRows.map(([label, copy]) => (
+              <div key={label} className="grid gap-2 border-t border-black/10 py-4 first:border-t-0 sm:grid-cols-[0.28fr_0.72fr]">
+                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#75695f]">
+                  {label}
+                </p>
+                <p className="text-sm font-bold leading-6">{copy}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -171,211 +131,146 @@ function ProductDocumentPreview() {
 
 export default function HomePage() {
   return (
-    <div className="pb-24">
-      <section className="container-shell pt-4 sm:pt-6">
-        <Reveal>
-          <div className="relative overflow-hidden rounded-[38px] bg-[#101419] text-white shadow-[0_42px_120px_rgba(8,10,12,0.28)] md:rounded-[48px]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_14%,rgba(242,106,33,0.20),transparent_28%),linear-gradient(90deg,#101419_0%,#101419_43%,rgba(16,20,25,0.86)_60%,rgba(16,20,25,0.52)_100%)]" />
-            <div className="relative grid min-h-[720px] lg:grid-cols-[0.94fr_1.06fr]">
-              <div className="z-10 flex flex-col justify-between gap-10 px-5 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
-                <div className="max-w-2xl">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.34em] text-[#ffb27c]">
-                    For kitchen exhaust vendors
-                  </p>
-                  <h1 className="mt-8 max-w-[9ch] font-display text-[3.75rem] font-bold leading-[0.9] text-white min-[390px]:text-[4.3rem] md:text-[6.2rem] lg:text-[5.7rem] xl:text-[6.25rem]">
-                    Customer links after service. Leads before sales.
-                  </h1>
-                  <p className="mt-7 max-w-xl text-base leading-8 text-white/70 md:text-lg md:leading-8">
-                    hood gives kitchen exhaust vendors two useful deliverables: a
-                    customer link after the job and a live local prospect
-                    list before the next one.
-                  </p>
-                  <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                    <ArrowLink href="/samples/axis-1" tone="accent">
-                      Open free sample
-                    </ArrowLink>
-                    <ArrowLink href="/start" tone="outline">
-                      Request setup
-                    </ArrowLink>
-                  </div>
-                </div>
+    <div className="-mt-[82px] overflow-hidden bg-[#080a0c] text-white">
+      <section className="relative isolate min-h-[100svh] px-4 pb-12 pt-[104px] sm:px-5 md:pt-[120px]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-8%,rgba(242,106,33,0.30),transparent_26%),radial-gradient(circle_at_72%_28%,rgba(123,153,175,0.16),transparent_28%),linear-gradient(180deg,#080a0c_0%,#101419_62%,#080a0c_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(180deg,black,transparent_72%)]" />
 
-                <div className="grid gap-4 border-t border-white/10 pt-6 text-sm text-white/64 sm:grid-cols-3">
-                  <div>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-white/36">
-                      Existing customers
-                    </p>
-                    <p className="mt-2 font-semibold leading-6 text-white">
-                      Send a link they can understand.
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-white/36">
-                      New accounts
-                    </p>
-                    <p className="mt-2 font-semibold leading-6 text-white">
-                      Buy a list that has a reason to call.
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-white/36">
-                      Delivery
-                    </p>
-                    <p className="mt-2 font-semibold leading-6 text-white">
-                      Public samples first. Paid delivery by inquiry.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative min-h-[440px] lg:min-h-full">
-                <Image
-                  src="/images/home-hero-commercial-line-bright-v1.png"
-                  alt="Clean commercial kitchen hood line"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 54vw"
-                  className="object-cover object-center"
-                  priority
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(16,20,25,0.10),rgba(16,20,25,0.16)),linear-gradient(90deg,#101419_0%,rgba(16,20,25,0.60)_20%,transparent_58%)]" />
-                <div className="absolute bottom-5 left-5 right-5 rounded-[26px] border border-white/24 bg-white/82 p-5 text-[#111315] shadow-[0_26px_70px_rgba(0,0,0,0.18)] backdrop-blur md:bottom-8 md:left-8 md:right-8">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-[#75695f]">
-                    sample link surface
-                  </p>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <h2 className="font-display text-2xl font-bold leading-[0.96]">
-                        Customer link
-                      </h2>
-                      <p className="mt-2 text-sm leading-6 text-[#60554c]">
-                        Result, exceptions, and customer action in one clean link.
-                      </p>
-                    </div>
-                    <div>
-                      <h2 className="font-display text-2xl font-bold leading-[0.96]">
-                        Sales list
-                      </h2>
-                      <p className="mt-2 text-sm leading-6 text-[#60554c]">
-                        Triggers and contact paths packaged for first touch.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className="relative mx-auto flex min-h-[calc(100svh-140px)] w-[min(1240px,100%)] flex-col justify-end gap-8">
+          <Reveal className="max-w-5xl">
+            <p className="font-mono text-[11px] uppercase tracking-[0.34em] text-[#ffb27c]">
+              For hood cleaning companies
+            </p>
+            <h1 className="mt-5 max-w-[15ch] font-display text-[clamp(3.05rem,10.8vw,7.6rem)] font-bold leading-[0.86] tracking-[-0.085em] text-white">
+              Send a restaurant-ready service report after every hood cleaning job.
+            </h1>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-white/72 md:text-xl md:leading-9">
+              Turn job photos, blocked access notes, and next actions into one
+              branded link/PDF the restaurant can save for inspection records.
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <ActionLink href="/samples/axis-1" tone="accent">
+                View sample report
+              </ActionLink>
+              <ActionLink href="/company-version" tone="light">
+                Start company version
+              </ActionLink>
+              <ActionLink href="/axis-1/tool?account=free" tone="light">
+                Try the builder
+              </ActionLink>
             </div>
-          </div>
-        </Reveal>
+          </Reveal>
+
+          <Reveal delay={0.05}>
+            <ProductSurface />
+          </Reveal>
+        </div>
       </section>
 
-      <section className="container-shell py-12 md:py-18">
-        <Reveal className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+      <section className="px-4 py-16 sm:px-5 md:py-24">
+        <Reveal className="mx-auto grid w-[min(1180px,100%)] gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-              Two moments
+            <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[#ffb27c]">
+              After service
             </p>
-            <h2 className="mt-4 font-display text-[2.55rem] font-bold leading-[0.93] text-foreground md:text-[4.6rem]">
-              The product earns money where vendors lose time.
+            <h2 className="mt-4 max-w-4xl font-display text-[clamp(2.8rem,8vw,6rem)] font-bold leading-[0.88] tracking-[-0.078em]">
+              The cleaning is done. The customer still needs the record.
             </h2>
           </div>
-          <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-            The site should not feel like generic field-service software. It should feel
-            like a packet system for a vendor who needs clearer customer handoff and more
-            usable sales opportunities.
-          </p>
-        </Reveal>
-
-        <Reveal delay={0.06} className="mt-8">
-          <ProductDocumentPreview />
-        </Reveal>
-      </section>
-
-      <section className="container-shell py-4 md:py-12">
-        <Reveal>
-          <div className="overflow-hidden rounded-[34px] border border-black/8 bg-white/72 shadow-[0_26px_80px_rgba(17,17,17,0.08)]">
-            <div className="grid lg:grid-cols-[0.86fr_1.14fr]">
-              <div className="bg-[#12171c] p-6 text-white sm:p-8">
-                <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[#ffb27c]">
-                  What ships
+          <div className="grid gap-0 overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
+            {valueRows.map(([label, copy]) => (
+              <div key={label} className="grid gap-4 border-b border-white/10 px-5 py-6 last:border-b-0 md:grid-cols-[0.25fr_0.75fr] md:px-7">
+                <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/42">
+                  {label}
                 </p>
-                <h2 className="mt-5 max-w-md font-display text-[2.35rem] font-bold leading-[0.95] md:text-[3.3rem]">
-                  Not a portal. Not a dashboard. A useful deliverable.
-                </h2>
-                <p className="mt-5 max-w-md text-[15px] leading-7 text-white/65">
-                  Login-heavy history and account management can come later. The first
-                  version should make the vendor look sharper today and support outreach
-                  this week.
+                <p className="max-w-2xl text-[1.35rem] font-bold leading-[1.1] tracking-[-0.045em] text-white md:text-[1.65rem]">
+                  {copy}
                 </p>
-              </div>
-              <div className="grid divide-y divide-black/8 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
-                <div className="p-6 sm:p-8">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-                    Existing-customer product
-                  </p>
-                  <h3 className="mt-4 font-display text-3xl font-bold leading-[0.96] text-foreground">
-                    Send this after the technician leaves.
-                  </h3>
-                  <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
-                    It reduces basic explanation calls and makes blocked access defensible
-                    before it turns into a complaint.
-                  </p>
-                  <div className="mt-7">
-                    <ArrowLink href="/axis-1">See customer links</ArrowLink>
-                  </div>
-                </div>
-                <div className="bg-[#fbf3ea] p-6 sm:p-8">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-                    New-account product
-                  </p>
-                  <h3 className="mt-4 font-display text-3xl font-bold leading-[0.96] text-foreground">
-                    Use this before the first cold touch.
-                  </h3>
-                  <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
-                    It keeps sales lists commercial: fewer dead rows, clearer triggers,
-                    and better reasons to contact.
-                  </p>
-                  <div className="mt-7">
-                    <ArrowLink href="/axis-2">See sales lists</ArrowLink>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      <section className="container-shell py-10 md:py-16">
-        <Reveal className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-              Pricing frame
-            </p>
-            <h2 className="mt-4 font-display text-[2.4rem] font-bold leading-[0.95] text-foreground md:text-[3.8rem]">
-              Setup-led, because the output has to be defensible.
-            </h2>
-            <p className="mt-5 max-w-xl text-base leading-8 text-muted-foreground">
-              Pricing stays visible, but recurring delivery only makes sense after a
-              vendor has bought again.
-            </p>
-          </div>
-          <div className="overflow-hidden rounded-[28px] border border-black/8 bg-white">
-            {pricingRows.map(([name, price, summary]) => (
-              <div
-                key={name}
-                className="grid gap-3 border-b border-black/8 p-5 last:border-b-0 sm:grid-cols-[1fr_auto] sm:items-center"
-              >
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-                    {name}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{summary}</p>
-                </div>
-                <p className="font-display text-4xl font-bold text-foreground">{price}</p>
               </div>
             ))}
           </div>
         </Reveal>
       </section>
 
+      <section className="bg-[#f6efe6] px-4 py-16 text-[#111315] sm:px-5 md:py-24">
+        <Reveal className="mx-auto grid w-[min(1180px,100%)] gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[#75695f]">
+              What the restaurant gets
+            </p>
+            <h2 className="mt-4 max-w-4xl font-display text-[clamp(2.8rem,8vw,6rem)] font-bold leading-[0.88] tracking-[-0.078em]">
+              A report they can save, not another login.
+            </h2>
+            <p className="mt-6 max-w-lg text-base leading-8 text-[#665c53]">
+              Each report separates completed work, photo evidence, open items,
+              and the next action so the restaurant does not have to decode a
+              camera roll.
+            </p>
+          </div>
+          <div className="min-w-0 border-y border-black/12">
+            {reportContents.map(([label, copy]) => (
+              <div key={label} className="grid gap-4 border-b border-black/10 py-6 last:border-b-0 md:grid-cols-[0.3fr_0.7fr]">
+                <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-[#8b8178]">
+                  {label}
+                </p>
+                <p className="max-w-2xl text-[1.35rem] font-bold leading-[1.1] tracking-[-0.045em] md:text-[1.6rem]">
+                  {copy}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="bg-[#f6efe6] px-4 pb-16 text-[#111315] sm:px-5 md:pb-24">
+        <Reveal className="mx-auto w-[min(1180px,100%)]">
+          <div className="grid overflow-hidden rounded-[38px] bg-[#111315] text-white shadow-[0_34px_120px_rgba(17,19,21,0.22)] lg:grid-cols-[1fr_0.92fr]">
+            <div className="p-6 sm:p-8 lg:p-10">
+              <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[#ffb27c]">
+                For your company
+              </p>
+              <h2 className="mt-4 max-w-3xl font-display text-[clamp(2.6rem,7vw,5.7rem)] font-bold leading-[0.9] tracking-[-0.075em]">
+                Want this under your company name?
+              </h2>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-white/64">
+                Start with the public sample. Use the free builder without login,
+                then move to the $79/month company version when you want your
+                brand, clean PDFs, live service report links, and report history.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <ActionLink href="/samples/axis-1" tone="accent">
+                  View sample report
+                </ActionLink>
+                <ActionLink href="/company-version" tone="light">
+                  Start company version
+                </ActionLink>
+                <ActionLink href="/axis-1/tool?account=free" tone="light">
+                  Try the builder
+                </ActionLink>
+              </div>
+            </div>
+            <div className="border-t border-white/10 bg-[#f8f1e8] p-6 text-[#111315] lg:border-l lg:border-t-0 sm:p-8 lg:p-10">
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#75695f]">
+                Pricing rule
+              </p>
+              <div className="mt-5 divide-y divide-black/10 border-y border-black/10">
+                {[
+                  ["Free builder", "No login, no company logo/contact, 7-day link, watermarked PDF"],
+                  ["Company version", "$79/month for company logo/contact, live service report links, clean PDFs, and history"],
+                  ["Design help", "Optional brand/report polish from $249"],
+                ].map(([label, copy]) => (
+                  <div key={label} className="grid gap-3 py-5 sm:grid-cols-[0.32fr_0.68fr]">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#75695f]">
+                      {label}
+                    </p>
+                    <p className="text-sm font-bold leading-6">{copy}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
     </div>
   );
 }

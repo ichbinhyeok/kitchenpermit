@@ -162,7 +162,7 @@ export const axis1RecordTypeMeta: Record<Axis1RecordType, Axis1RecordTypeMeta> =
     label: "Full Photo Service Record",
     builderTitle: "Full photo record format",
     builderCopy:
-      "Before/after and multiple exhaust-path photos are attached, so the customer link can show strong visual support while the PDF carries the evidence record.",
+  "Before/after and multiple exhaust-path photos are attached, so the service report link can show strong visual support while the PDF carries the evidence record.",
     customerCopy:
       "This record includes before/after service photos and supporting exhaust-path field photos.",
     recordBasis: "Vendor-confirmed service result with attached field photos",
@@ -172,7 +172,7 @@ export const axis1RecordTypeMeta: Record<Axis1RecordType, Axis1RecordTypeMeta> =
     label: "After-Cleaning Service Record",
     builderTitle: "After-photo record format",
     builderCopy:
-      "After photos are attached without a reliable before comparison, so the customer link stays formal without forcing a false comparison.",
+  "After photos are attached without a reliable before comparison, so the service report link stays formal without forcing a false comparison.",
     customerCopy:
       "After-cleaning field photos are attached for this service record. No before-photo comparison is included.",
     recordBasis: "Vendor-confirmed service result with after-cleaning field photos",

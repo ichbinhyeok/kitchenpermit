@@ -12,6 +12,7 @@ artifacts/
 output/
 tmp/
 deploy/.env
+references/axis1-validation-artifacts/
 
 # Local scratch lists
 tmp*.txt

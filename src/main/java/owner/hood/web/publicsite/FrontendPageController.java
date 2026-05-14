@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,30 +19,51 @@ public class FrontendPageController {
         this.resourceLoader = resourceLoader;
     }
 
+    @GetMapping("/manifest.webmanifest")
+    public ResponseEntity<Resource> serveWebManifest() {
+        Resource resource = resourceLoader.getResource("classpath:/static/manifest.webmanifest");
+
+        if (!resource.exists()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/manifest+json"))
+                .body(resource);
+    }
+
     @GetMapping({
             "/",
             "/axis-1",
             "/axis-1/{*path}",
             "/axis-2",
+            "/company-version",
+            "/dashboard",
             "/exports/{*path}",
+            "/login",
             "/p/{*path}",
             "/pricing",
+            "/privacy",
+            "/refund-policy",
             "/reports/{*path}",
             "/samples",
             "/samples/{*path}",
             "/start",
-            "/start/{*path}"
+            "/start/{*path}",
+            "/terms"
     })
-    public String serveFrontendPage(HttpServletRequest request) {
+    public ResponseEntity<Resource> serveFrontendPage(HttpServletRequest request) {
         String requestPath = normalizePath(request.getRequestURI());
-        String htmlPath = "/".equals(requestPath) ? "/index.html" : requestPath + ".html";
+        String htmlPath = htmlPathFor(requestPath);
         Resource resource = resourceLoader.getResource("classpath:/static" + htmlPath);
 
         if (!resource.exists()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        return "forward:" + htmlPath;
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body(resource);
     }
 
     private String normalizePath(String path) {
@@ -55,5 +78,17 @@ public class FrontendPageController {
         }
 
         return normalized;
+    }
+
+    private String htmlPathFor(String requestPath) {
+        if ("/".equals(requestPath)) {
+            return "/index.html";
+        }
+
+        if (requestPath.endsWith(".html")) {
+            return requestPath;
+        }
+
+        return requestPath + ".html";
     }
 }

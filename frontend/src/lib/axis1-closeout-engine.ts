@@ -40,7 +40,6 @@ export type Axis1CloseoutClaimLevel =
   | "photo_supported_record";
 
 export type Axis1CloseoutCustomerActionType =
-  | "pay_invoice"
   | "confirm_next_service"
   | "clear_access_then_revisit"
   | "approve_access_correction"
@@ -57,9 +56,7 @@ export type Axis1CloseoutCtaPriority =
   | "utility";
 
 export type Axis1CloseoutCtaKind =
-  | "pay_invoice"
   | "schedule_next_cleaning"
-  | "leave_review"
   | "reply_after_clearing_access"
   | "request_revisit"
   | "request_quote"
@@ -67,7 +64,6 @@ export type Axis1CloseoutCtaKind =
   | "confirm_received"
   | "reply_with_questions"
   | "download_pdf"
-  | "attach_to_invoice"
   | "send_follow_up_quote"
   | "mark_customer_action_needed";
 
@@ -81,21 +77,15 @@ export type Axis1CloseoutCta = {
 };
 
 export type Axis1CloseoutLinks = {
-  invoiceUrl?: string;
-  paymentDueLabel?: string;
-  reviewUrl?: string;
   nextServiceRequestUrl?: string;
   followUpQuoteUrl?: string;
   replyUrl?: string;
-  quoteUrl?: string;
-  customerPortalUrl?: string;
+  pdfHref?: string;
 };
 
 export type Axis1GeneratedOutputKind =
   | "customer_link"
   | "evidence_pdf"
-  | "invoice_proof_summary"
-  | "payment_support_copy"
   | "follow_up_quote_copy"
   | "revisit_copy"
   | "next_service_copy"
@@ -337,7 +327,7 @@ type CloseoutIssuePolicy = {
 const accessIssuePolicies: Record<(typeof accessExceptionKinds)[number], CloseoutIssuePolicy> = {
   "blocked-storage": {
     actionType: "clear_access_then_revisit",
-    actionTitle: "Clear access, then request revisit",
+    actionTitle: "Clear access, then schedule revisit",
     actionCopy:
       "Move the stored equipment or obstruction away from the access point, then reply so a revisit can be scheduled.",
     responsibilityCopy:
@@ -536,7 +526,7 @@ function buildProofCoverageSummary(
         : caseType === "condition_review"
           ? "Written condition record"
           : "Written service record"
-      : `${capturedCount} / ${recommendedCount} recommended photo areas captured`;
+      : `${capturedCount} photo area${capturedCount === 1 ? "" : "s"} attached`;
   const shortLabel =
     totalAttached === 0
       ? caseType === "access_exception"
@@ -544,7 +534,7 @@ function buildProofCoverageSummary(
         : caseType === "condition_review"
           ? "Condition record"
           : "Written record"
-      : `${capturedCount}/${recommendedCount} captured`;
+      : `${capturedCount} photo${capturedCount === 1 ? "" : "s"}`;
 
   return {
     capturedCount,
@@ -613,7 +603,7 @@ function buildCta(options: {
     enabled,
     reason:
       options.reason ??
-      (enabled ? undefined : "Link field is not connected for this draft record."),
+      (enabled ? undefined : "Use the company phone or reply email shown on the service report."),
   };
 }
 
@@ -642,51 +632,20 @@ function buildCloseoutCtas(options: {
   const links = options.links ?? {};
   const pdfCta = buildCta({
     kind: "download_pdf",
-    label: "Download evidence PDF",
+    label: "Download PDF copy",
+    href: links.pdfHref,
     priority: "utility",
     enabled: true,
-    reason: "The evidence PDF is the archive, submission, or print copy.",
+    reason: "The PDF copy is the archive, submission, or print copy.",
   });
 
   if (options.caseType === "clean_closeout") {
-    if (!links.invoiceUrl) {
-      return [
-        buildCta({
-          kind: "confirm_next_service",
-          label: "Confirm next service",
-          href: links.nextServiceRequestUrl ?? links.replyUrl,
-          priority: "primary",
-        }),
-        buildCta({
-          kind: "leave_review",
-          label: "Leave a review",
-          href: links.reviewUrl,
-          priority: "tertiary",
-        }),
-        pdfCta,
-      ];
-    }
-
     return [
       buildCta({
-        kind: "pay_invoice",
-        label: links.paymentDueLabel
-          ? `Pay invoice - ${links.paymentDueLabel}`
-          : "Pay invoice",
-        href: links.invoiceUrl,
-        priority: "primary",
-      }),
-      buildCta({
-        kind: "schedule_next_cleaning",
-        label: "Schedule next cleaning",
+        kind: "confirm_next_service",
+        label: "Confirm next service",
         href: links.nextServiceRequestUrl ?? links.replyUrl,
-        priority: "secondary",
-      }),
-      buildCta({
-        kind: "leave_review",
-        label: "Leave a review",
-        href: links.reviewUrl,
-        priority: "tertiary",
+        priority: "primary",
       }),
       pdfCta,
     ];
@@ -702,7 +661,7 @@ function buildCloseoutCtas(options: {
       }),
       buildCta({
         kind: "request_revisit",
-        label: "Request revisit",
+        label: "Schedule revisit after access is clear",
         href: links.nextServiceRequestUrl ?? links.replyUrl,
         priority: "secondary",
       }),
@@ -816,7 +775,7 @@ function buildVendorSendReadinessWarnings(options: {
         severity: "blocker",
         title: "Result required",
         copy:
-          "Pick the service result before Axis 1 generates customer, PDF, invoice, quote, revisit, or rebook output.",
+          "Pick the service result before Axis 1 generates the customer report link, PDF, follow-up, revisit, or next-service output.",
         customerCopy:
           "No customer-facing service result is generated until the service result is selected.",
       }),
@@ -1050,10 +1009,6 @@ function generatedOutputKindForTruthKind(
       return "customer_link";
     case "evidence_pdf":
       return "evidence_pdf";
-    case "invoice_proof":
-      return "invoice_proof_summary";
-    case "payment_message":
-      return "payment_support_copy";
     case "quote_followup":
       return "follow_up_quote_copy";
     case "revisit_message":
@@ -1168,19 +1123,10 @@ function buildGeneratedOutputs(options: {
   const hasReviewWarnings = options.vendorWarnings.some(
     (warning) => warning.severity !== "note",
   );
-  const proofIsStrong = options.claimLevel === "photo_supported_record";
-  const isClean = options.caseType === "clean_closeout";
   const hasBlockedOrIncompleteAreas =
     options.areaSummary.blockedOrIncompleteAreas.length > 0;
   const hasConditionAreas = options.areaSummary.conditionAreas.length > 0;
-  const hasNotesOnlyCompletedAreas =
-    options.areaSummary.notesOnlyCompletedAreas.length > 0;
   const hasUnclearAreas = options.areaSummary.unclearAreas.length > 0;
-  const hasWeakAreaEvidence =
-    hasBlockedOrIncompleteAreas ||
-    hasConditionAreas ||
-    hasNotesOnlyCompletedAreas ||
-    hasUnclearAreas;
   const blockedAccessAreas = options.areaSummary.blockedOrIncompleteAreas.filter(
     (area) => area.state === "blocked_no_access",
   );
@@ -1191,8 +1137,6 @@ function buildGeneratedOutputs(options: {
   const blockedAccessAreaList = formatAreaList(blockedAccessAreas);
   const incompleteAreaList = formatAreaList(incompleteAreas);
   const conditionAreaList = formatAreaList(options.areaSummary.conditionAreas);
-  const photoSupportedAreaList = formatAreaList(options.areaSummary.photoSupportedAreas);
-  const notesOnlyAreaList = formatAreaList(options.areaSummary.notesOnlyCompletedAreas);
   const outputBlockReason =
     "Select the service result before outputs are created.";
   const nextServiceReviewReason =
@@ -1215,47 +1159,7 @@ function buildGeneratedOutputs(options: {
     .join(" ");
   const customerOutputCopy =
     areaEvidenceSummary ||
-    "Customer handoff is generated from the selected result, record basis, and next action.";
-  const invoiceProofCopy =
-    options.evidenceBasis === "no_photos"
-      ? [
-          "Service closeout is a written crew record; no field photos are attached.",
-          notesOnlyAreaList ? `Completed from notes: ${notesOnlyAreaList}.` : "",
-          blockedAreaList ? `Separate from completed work: ${blockedAreaList}.` : "",
-          conditionAreaList ? `Recorded condition: ${conditionAreaList}.` : "",
-        ]
-          .filter(Boolean)
-          .join(" ")
-      : [
-          "Customer handoff and evidence PDF are tied to the same closeout record.",
-          photoSupportedAreaList ? `Photo-supported areas: ${photoSupportedAreaList}.` : "",
-          notesOnlyAreaList ? `Written areas: ${notesOnlyAreaList}.` : "",
-          blockedAreaList ? `Separate from completed work: ${blockedAreaList}.` : "",
-          conditionAreaList ? `Recorded condition: ${conditionAreaList}.` : "",
-        ]
-          .filter(Boolean)
-          .join(" ");
-  const paymentSupportCopy =
-    options.evidenceBasis === "no_photos"
-      ? [
-          "This visit is documented as a written closeout record with no field photos attached.",
-          notesOnlyAreaList ? `Completed from crew notes: ${notesOnlyAreaList}.` : "",
-          blockedAreaList
-            ? `Do not represent these as completed: ${blockedAreaList}.`
-            : "",
-          conditionAreaList ? `Condition follow-up is separate: ${conditionAreaList}.` : "",
-        ]
-          .filter(Boolean)
-          .join(" ")
-      : [
-          "The customer handoff and evidence PDF show the same area-by-area closeout.",
-          photoSupportedAreaList ? `Attached photos support: ${photoSupportedAreaList}.` : "",
-          notesOnlyAreaList ? `Written areas remain labeled: ${notesOnlyAreaList}.` : "",
-          blockedAreaList ? `Blocked or incomplete areas stay separated: ${blockedAreaList}.` : "",
-          conditionAreaList ? `Condition follow-up stays separate: ${conditionAreaList}.` : "",
-        ]
-          .filter(Boolean)
-          .join(" ");
+      "Service report link is generated from the selected result, record basis, and next action.";
   const quoteCopy = hasConditionAreas
     ? `${conditionAreaList} was recorded as a condition area, separate from the completed cleaning closeout. Use this note for quote follow-up before adding separate corrective work.`
     : undefined;
@@ -1285,26 +1189,14 @@ function buildGeneratedOutputs(options: {
     return [
       buildGeneratedOutput({
         kind: "customer_link",
-        label: "Customer handoff link",
+    label: "Service report link",
         readiness: "needs_review",
         reason: outputBlockReason,
       }),
       buildGeneratedOutput({
         kind: "evidence_pdf",
-        label: "Evidence PDF",
+        label: "PDF copy",
         readiness: "needs_review",
-        reason: outputBlockReason,
-      }),
-      buildGeneratedOutput({
-        kind: "invoice_proof_summary",
-        label: "Invoice proof summary",
-        readiness: "not_applicable",
-        reason: outputBlockReason,
-      }),
-      buildGeneratedOutput({
-        kind: "payment_support_copy",
-        label: "Payment-support copy",
-        readiness: "not_applicable",
         reason: outputBlockReason,
       }),
       buildGeneratedOutput({
@@ -1342,7 +1234,7 @@ function buildGeneratedOutputs(options: {
   return [
     buildGeneratedOutput({
       kind: "customer_link",
-      label: "Customer handoff link",
+    label: "Service report link",
       readiness: "ready",
       reason:
         "Generated from the vendor-confirmed result, record basis, proof coverage, and next action.",
@@ -1350,38 +1242,14 @@ function buildGeneratedOutputs(options: {
     }),
     buildGeneratedOutput({
       kind: "evidence_pdf",
-      label: "Evidence PDF",
+      label: "PDF copy",
       readiness: "ready",
       reason:
-        "Uses the same service record as the customer handoff in a retained document layout.",
+    "Uses the same service record as the service report link in a retained document layout.",
       copy: areaEvidenceSummary
         ? `${areaEvidenceSummary} ${options.claimLimitCopy}`
         : options.claimLimitCopy,
       ctaKind: "download_pdf",
-    }),
-    buildGeneratedOutput({
-      kind: "invoice_proof_summary",
-      label: "Invoice proof summary",
-      readiness: isClean && proofIsStrong && !hasWeakAreaEvidence ? "ready" : "needs_review",
-      reason:
-        isClean && proofIsStrong && !hasWeakAreaEvidence
-          ? "Ready to attach as concise payment support."
-          : "Review before attaching to invoice because the record has written, partial, blocked, unclear, or condition-only limits.",
-      copy:
-        invoiceProofCopy,
-      ctaKind: "attach_to_invoice",
-    }),
-    buildGeneratedOutput({
-      kind: "payment_support_copy",
-      label: "Payment-support copy",
-      readiness: isClean && proofIsStrong && !hasWeakAreaEvidence ? "ready" : "needs_review",
-      reason:
-        isClean && proofIsStrong && !hasWeakAreaEvidence
-          ? "Ready to paste beside the invoice or payment request."
-          : "Review before using with payment because the record has written, partial, blocked, unclear, or condition-only limits.",
-      copy:
-        paymentSupportCopy,
-      ctaKind: "attach_to_invoice",
     }),
     buildGeneratedOutput({
       kind: "follow_up_quote_copy",
@@ -2147,17 +2015,6 @@ function buildCustomerActionPolicy(options: {
   selectedConditionKinds: readonly Axis1BuilderExceptionKind[];
 }): CloseoutIssuePolicy {
   if (options.caseType === "clean_closeout") {
-    if (options.links?.invoiceUrl) {
-      return {
-        actionType: "pay_invoice",
-        actionTitle: "Pay invoice",
-        actionCopy:
-          "Pay the invoice from this service record, then use the next-service option if you want to schedule the next cleaning.",
-        responsibilityCopy:
-          "No blocked or incomplete area is being listed for customer action.",
-      };
-    }
-
     return {
       actionType: "confirm_next_service",
       actionTitle: "Confirm next service",
@@ -2241,6 +2098,25 @@ function buildClaimLimitCopy(
   return `${proofLimit} Recorded conditions and follow-up paths are separate from this cleaning record.`;
 }
 
+function buildPacketHeaderCopy(result: Axis1CloseoutEngineResult) {
+  const photoSentence =
+    result.evidenceBasis === "photo_record"
+      ? "Attached photos support the service areas shown."
+      : result.evidenceBasis === "partial_photos"
+        ? "Attached photos support only the areas shown."
+        : "This is a written service record based on service notes.";
+
+  if (result.caseType === "access_exception") {
+    return `Reachable work was completed. The blocked area is listed separately and is not presented as cleaned. ${photoSentence}`;
+  }
+
+  if (result.caseType === "condition_review") {
+    return `Service was completed. The recorded condition is listed separately for follow-up or next-service planning. ${photoSentence}`;
+  }
+
+  return `${result.customerResultCopy} ${photoSentence}`;
+}
+
 function upsertRows(
   rows: readonly [string, string][],
   additions: readonly [string, string][],
@@ -2287,8 +2163,8 @@ function buildProofPolicyRows(
 
   const retainedCopy =
     result.evidenceBasis === "no_photos"
-      ? "Vendor job notes and the evidence PDF stay available for archive, submission, or print copy."
-      : "Raw field photos, technician notes, and the evidence PDF stay available for archive, submission, or print copy.";
+      ? "Vendor job notes and the PDF copy stay available for archive, submission, or print copy."
+      : "Raw field photos, technician notes, and the PDF copy stay available for archive, submission, or print copy.";
   const calmCoverageNotes = result.proofCoverage.items
     .filter((item) => item.state !== "captured" && item.state !== "not_applicable")
     .map((item): [string, string] => [item.label, item.customerCopy]);
@@ -2359,7 +2235,7 @@ export function applyAxis1CloseoutEngineToPacket(
     },
     packetHeader: {
       ...data.packetHeader,
-      copy: `${result.customerResultCopy} ${result.claimLimitCopy}`,
+      copy: buildPacketHeaderCopy(result),
       quickFacts: upsertRows(data.packetHeader.quickFacts, [
         ["Record basis", result.basisLabel],
         ["Record type", result.recordFormat.label],
@@ -2424,7 +2300,7 @@ export function applyAxis1CloseoutEngineToPacket(
         ["Record type", result.recordFormat.label],
         [photoCoverageLabel, photoCoverageValue],
         [result.coverageEducation.title, result.coverageEducation.summary],
-        ["Evidence PDF", "Evidence, archive, submission, or print copy"],
+        ["PDF copy", "Archive, submission, or print copy"],
         ["Action boundary", result.responsibilityCopy],
       ]),
     },

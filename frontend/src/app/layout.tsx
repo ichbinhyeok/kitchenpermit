@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "hood | Industrial packets for kitchen exhaust vendors",
+    default: "hood | Service reports for hood cleaning jobs",
     template: "%s | hood",
   },
   description: siteConfig.description,

@@ -42,8 +42,6 @@ export type Axis1JobTruthPhotoStatus =
 export type Axis1JobTruthOutputKind =
   | "customer_link"
   | "evidence_pdf"
-  | "invoice_proof"
-  | "payment_message"
   | "revisit_message"
   | "quote_followup"
   | "next_cleaning_reminder";
@@ -253,16 +251,12 @@ export function deriveAxis1JobTruthOutputs(options: {
   const conditionAreas = customerRelevantAreas.filter(
     (area) => area.state === "condition_noted",
   );
-  const notesOnlyCompletedAreas = customerRelevantAreas.filter(
-    (area) => area.state === "completed_from_notes",
-  );
   const unclearAreas = customerRelevantAreas.filter(
     (area) => area.state === "unclear_needs_review",
   );
   const hasBlockedOrIncomplete = blockedOrNotCompletedAreas.length > 0;
   const hasCondition = conditionAreas.length > 0;
   const hasUnclear = unclearAreas.length > 0;
-  const hasNotesOnly = notesOnlyCompletedAreas.length > 0;
   const baseStatementIds = options.claimStatements
     .filter((statement) => statement.customerVisible)
     .map((statement) => statement.id);
@@ -281,9 +275,8 @@ export function deriveAxis1JobTruthOutputs(options: {
   const blockedAreaList = formatAreaList(blockedOrNotCompletedAreas);
   const conditionAreaList = formatAreaList(conditionAreas);
   const unclearAreaList = formatAreaList(unclearAreas);
-  const notesOnlyAreaList = formatAreaList(notesOnlyCompletedAreas);
   const resultMissingReason =
-    "Vendor must declare the job result before customer or payment outputs are generated.";
+    "Vendor must declare the job result before the customer report link and PDF are generated.";
   const unresolvedReason = (() => {
     if (blockedAreas.length > 0 && notCompletedAreas.length > 0) {
       return `Clear blocked/no-access areas and review incomplete areas before normal closeout language is used: ${blockedAreaList}.`;
@@ -303,17 +296,6 @@ export function deriveAxis1JobTruthOutputs(options: {
 
     return undefined;
   })();
-  const weakInvoiceReason = [
-    hasNotesOnly ? `Written-only completed areas: ${notesOnlyAreaList}.` : "",
-    hasBlockedOrIncomplete
-      ? `Blocked or not-completed areas: ${blockedAreaList}.`
-      : "",
-    hasCondition ? `Condition-only areas: ${conditionAreaList}.` : "",
-    hasUnclear ? `Unclear areas: ${unclearAreaList}.` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   if (resultMissing) {
     return [
       buildOutput({
@@ -325,18 +307,6 @@ export function deriveAxis1JobTruthOutputs(options: {
       buildOutput({
         kind: "evidence_pdf",
         readiness: "needs_review",
-        reason: resultMissingReason,
-        statementIds: [],
-      }),
-      buildOutput({
-        kind: "invoice_proof",
-        readiness: "not_applicable",
-        reason: resultMissingReason,
-        statementIds: [],
-      }),
-      buildOutput({
-        kind: "payment_message",
-        readiness: "not_applicable",
         reason: resultMissingReason,
         statementIds: [],
       }),
@@ -372,24 +342,6 @@ export function deriveAxis1JobTruthOutputs(options: {
       kind: "evidence_pdf",
       readiness: hasUnclear ? "needs_review" : "ready",
       reason: hasUnclear ? unresolvedReason : undefined,
-      statementIds: baseStatementIds,
-    }),
-    buildOutput({
-      kind: "invoice_proof",
-      readiness:
-        hasNotesOnly || hasBlockedOrIncomplete || hasCondition || hasUnclear
-          ? "needs_review"
-          : "ready",
-      reason: weakInvoiceReason || undefined,
-      statementIds: baseStatementIds,
-    }),
-    buildOutput({
-      kind: "payment_message",
-      readiness:
-        hasNotesOnly || hasBlockedOrIncomplete || hasCondition || hasUnclear
-          ? "needs_review"
-          : "ready",
-      reason: weakInvoiceReason || undefined,
       statementIds: baseStatementIds,
     }),
     buildOutput({

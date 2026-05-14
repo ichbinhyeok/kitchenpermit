@@ -3,9 +3,9 @@ import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { buildAxis1SampleProofData } from "@/lib/axis1-sample-packets";
 
 export const metadata: Metadata = {
-  title: "Sample Customer Link",
+  title: "Sample Service Report",
   description:
-    "A customer-facing kitchen exhaust customer link sample for restaurant operators after service.",
+    "A customer-facing kitchen exhaust service report sample for restaurant operators after service.",
 };
 
 const reportData = buildAxis1SampleProofData("blocked_access");

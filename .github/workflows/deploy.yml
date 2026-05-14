@@ -1,27 +1,28 @@
-name: Deploy
+name: CD for OCI ARM64
 
 on:
   push:
     branches:
       - main
-      - master
   workflow_dispatch:
-
-permissions:
-  contents: read
-  packages: write
 
 concurrency:
   group: hood-production-deploy
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -47,93 +48,80 @@ jobs:
       - name: Build and test
         run: ./gradlew --no-daemon test bootJar
 
-      - name: Compute image name
-        id: image
-        shell: bash
-        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
-
-      - name: Log in to GHCR
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ steps.image.outputs.name }}
-          tags: |
-            type=raw,value=latest
-            type=sha,prefix=sha-
-
-      - name: Build and push image
-        uses: docker/build-push-action@v6
+      - name: Build and push
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
+          platforms: linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/kitchenpermit:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Start SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: Deploy to OCI
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          ssh-private-key: ${{ secrets.ORACLE_SSH_KEY }}
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USERNAME }}
+          key: ${{ secrets.OCI_KEY }}
+          script: |
+            mkdir -p ~/deploy/hood
+            mkdir -p ~/deploy/hood/storage
+            cd ~/deploy/hood
 
-      - name: Add Oracle host to known_hosts
-        shell: bash
-        run: |
-          set -euo pipefail
-          PORT="${{ secrets.ORACLE_PORT }}"
-          if [ -z "$PORT" ]; then
-            PORT=22
-          fi
-          mkdir -p ~/.ssh
-          ssh-keyscan -p "$PORT" -H "${{ secrets.ORACLE_HOST }}" >> ~/.ssh/known_hosts
+            cat <<'EOF' > docker-compose.yml
+            services:
+              app:
+                image: ${{ secrets.DOCKERHUB_USERNAME }}/kitchenpermit:latest
+                ports:
+                  - "8810:8080"
+                environment:
+                  - APP_DATASOURCE_URL=${{ secrets.APP_DATASOURCE_URL }}
+                  - APP_DATASOURCE_DRIVER=org.postgresql.Driver
+                  - APP_DATASOURCE_USERNAME=${{ secrets.APP_DATASOURCE_USERNAME }}
+                  - APP_DATASOURCE_PASSWORD=${{ secrets.APP_DATASOURCE_PASSWORD }}
+                  - APP_HIBERNATE_DDL_AUTO=validate
+                  - HOOD_DATABASE_KEEPALIVE_ENABLED=true
+                  - HOOD_DATABASE_KEEPALIVE_INITIAL_DELAY_MS=60000
+                  - HOOD_DATABASE_KEEPALIVE_DELAY_MS=43200000
+                  - HOOD_BILLING_PROVIDER=${{ secrets.HOOD_BILLING_PROVIDER || 'abstract' }}
+                  - HOOD_BILLING_ENVIRONMENT=${{ secrets.HOOD_BILLING_ENVIRONMENT || 'sandbox' }}
+                  - PADDLE_COMPANY_PRICE_ID=${{ secrets.PADDLE_COMPANY_PRICE_ID }}
+                  - PADDLE_API_KEY=${{ secrets.PADDLE_API_KEY }}
+                  - PADDLE_CLIENT_TOKEN=${{ secrets.PADDLE_CLIENT_TOKEN }}
+                  - PADDLE_WEBHOOK_SECRET=${{ secrets.PADDLE_WEBHOOK_SECRET }}
+                  - PADDLE_WEBHOOK_TOLERANCE_SECONDS=${{ secrets.PADDLE_WEBHOOK_TOLERANCE_SECONDS || '300' }}
+                  - GG_JTE_DEVELOPMENT_MODE=false
+                  - GG_JTE_USE_PRECOMPILED_TEMPLATES=true
+                  - HOOD_SITE_BASE_URL=https://kitchenpermit.com
+                  - HOOD_SITE_NAME=hood
+                  - HOOD_SITE_SUPPORT_EMAIL=support@kitchenpermit.com
+                  - HOOD_STORAGE_ROOT=/app/storage
+                  - HOOD_AXIS1_ASSET_STORAGE_DRIVER=${{ secrets.HOOD_AXIS1_ASSET_STORAGE_DRIVER || 'filesystem' }}
+                  - HOOD_AXIS1_R2_BUCKET=${{ secrets.CLOUDFLARE_R2_BUCKET }}
+                  - HOOD_AXIS1_R2_ENDPOINT=${{ secrets.CLOUDFLARE_R2_ENDPOINT }}
+                  - HOOD_AXIS1_R2_ACCESS_KEY_ID=${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+                  - HOOD_AXIS1_R2_SECRET_ACCESS_KEY=${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+                  - HOOD_AXIS1_R2_REGION=${{ secrets.CLOUDFLARE_R2_REGION || 'auto' }}
+                  - HOOD_AXIS1_R2_KEY_PREFIX=${{ secrets.CLOUDFLARE_R2_KEY_PREFIX || 'axis1-reports' }}
+                  - SPRING_H2_CONSOLE_ENABLED=false
+                  - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75.0
+                  - GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+                volumes:
+                  - ./storage:/app/storage
+                restart: always
+                deploy:
+                  resources:
+                    limits:
+                      memory: 1024M
+            EOF
 
-      - name: Upload deploy assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          PORT="${{ secrets.ORACLE_PORT }}"
-          DEPLOY_DIR="${{ secrets.ORACLE_DEPLOY_PATH }}"
-
-          if [ -z "$PORT" ]; then
-            PORT=22
-          fi
-
-          if [ -z "$DEPLOY_DIR" ]; then
-            DEPLOY_DIR=/opt/hood
-          fi
-
-          ssh -p "$PORT" "${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}" "mkdir -p '$DEPLOY_DIR'"
-          scp -P "$PORT" deploy/compose.yaml deploy/nginx.conf.template "${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}:$DEPLOY_DIR/"
-
-      - name: Pull and restart on Oracle
-        shell: bash
-        run: |
-          set -euo pipefail
-          PORT="${{ secrets.ORACLE_PORT }}"
-          DEPLOY_DIR="${{ secrets.ORACLE_DEPLOY_PATH }}"
-          IMAGE_REF="${{ steps.image.outputs.name }}:latest"
-
-          if [ -z "$PORT" ]; then
-            PORT=22
-          fi
-
-          if [ -z "$DEPLOY_DIR" ]; then
-            DEPLOY_DIR=/opt/hood
-          fi
-
-          ssh -p "$PORT" "${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}" <<EOF
-          set -euo pipefail
-          cd "$DEPLOY_DIR"
-          test -f .env || { echo ".env is missing in $DEPLOY_DIR" >&2; exit 1; }
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          export HOOD_IMAGE="$IMAGE_REF"
-          docker compose -f compose.yaml --env-file .env pull
-          docker compose -f compose.yaml --env-file .env up -d --remove-orphans
-          docker logout ghcr.io
-          EOF
+            docker compose pull
+            docker compose up -d --remove-orphans

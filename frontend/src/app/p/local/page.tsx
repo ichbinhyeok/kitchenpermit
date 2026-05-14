@@ -9,7 +9,7 @@ export default function LocalAxis1ProofPage() {
         <main className="min-h-screen bg-[#e9e1d7] px-3 py-4 text-[#151515] sm:px-5 sm:py-6 lg:py-8">
           <Panel className="mx-auto max-w-2xl px-6 py-6">
             <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              Loading local customer link
+          Loading local service report link
             </p>
           </Panel>
         </main>

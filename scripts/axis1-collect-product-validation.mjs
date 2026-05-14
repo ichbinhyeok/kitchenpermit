@@ -25,7 +25,7 @@ const overclaimPattern =
   /\b(NFPA|compliance|pass\/fail|pass-fail|fire marshal|official certificate|AI-verified|verified cleaning|approval)\b/i;
 const scopedOverclaimPattern = /\b(repair|inspection|inspected)\b/i;
 const ctaPattern =
-  /(Pay invoice|Reply after clearing access|Reply for access|Request follow-up quote|Request quote|Confirm next service|Download PDF|PDF record|Schedule next cleaning|Schedule service|Leave a review)/i;
+  /(Reply after clearing access|Reply for access|Request follow-up quote|Request quote|Confirm next service|Download PDF|PDF record|Schedule next cleaning|Schedule service)/i;
 
 function compactText(value, max = 160) {
   return String(value ?? "")

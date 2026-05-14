@@ -14,7 +14,7 @@ export function PageHeader({ label, title, description }: PageHeaderProps) {
         <div className="relative flex flex-col gap-6">
           <SectionLabel>{label}</SectionLabel>
           <div className="grid gap-8 md:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] md:items-end">
-            <h1 className="font-display text-[2.3rem] font-bold leading-[0.96] tracking-[-0.055em] text-foreground sm:text-5xl sm:leading-[0.92] sm:tracking-[-0.065em] md:max-w-[11ch] md:text-7xl md:leading-[0.88] md:tracking-[-0.08em]">
+            <h1 className="font-display text-[2.3rem] font-bold leading-[0.96] tracking-normal text-foreground sm:text-5xl sm:leading-[0.92] md:max-w-[11ch] md:text-7xl md:leading-[0.88]">
               {title}
             </h1>
             <div className="space-y-4">
@@ -23,12 +23,12 @@ export function PageHeader({ label, title, description }: PageHeaderProps) {
               </p>
               <div className="hidden gap-3 md:grid md:grid-cols-2">
                 <div className="rounded-[24px] border border-border bg-white/72 px-4 py-4 text-sm leading-7 text-foreground">
-                  Packet-first surface. The deliverable should feel product-grade
-                  before it feels software-y.
+                  Customer-ready handoff. Service result, photos, open items,
+                  and next action stay in one clean record.
                 </div>
                 <div className="rounded-[24px] border border-border bg-[rgba(17,17,17,0.04)] px-4 py-4 text-sm leading-7 text-muted-foreground">
-                  No fake self-serve theater. MVP stays vendor-first, manual, and
-                  commercially honest.
+                  Simple policy. Test the builder free, then use the company
+                  version when reports need your brand and history.
                 </div>
               </div>
             </div>

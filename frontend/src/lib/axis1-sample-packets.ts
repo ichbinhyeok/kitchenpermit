@@ -47,16 +47,16 @@ const sampleVendor: Axis1PacketPreviewData["vendor"] = {
   certification: "TX Reg #KEX-2087",
   technician: "Miguel R. / Tech ID SH-114",
   afterHours: "(512) 555-0192",
-  reviewPrompt: "review@summit.example",
+  reviewPrompt: "dispatch@summit.example",
   preparedBy: "Summit Hood Service Co. | SH-114",
   previewBlurb:
-    "Customer sees a same-day customer link with vendor brand, service contact, credential, and record references already in place.",
+    "Customer sees a same-day service report link with the vendor brand, service contact, credential, and record references already in place.",
   brandingApplied: true,
 };
 
 const baseSampleValues: Axis1BuilderFormValues = {
   ...axis1BuilderDefaults,
-  propertyName: "Masked restaurant group",
+  propertyName: "Sample Restaurant Group",
   siteCity: "Austin, TX",
   serviceDate: "2026-04-24",
   authorizedBy: "Store manager",
@@ -82,9 +82,9 @@ export const axis1SampleProofVariants: readonly Axis1SampleProofConfig[] = [
     variant: "clean",
     path: "/p/sample-clean-closeout",
     label: "Clean closeout",
-    title: "Completed service with payment and rebook CTA",
+    title: "Completed service with next-service action",
     copy:
-      "A clean visit leads with the completed result, written or photo coverage, invoice action, review, and next service timing.",
+      "A clean visit leads with the completed result, photo coverage, the PDF copy, and the next service timing.",
     values: {
       ...baseSampleValues,
       scenario: "clean",
@@ -102,14 +102,7 @@ export const axis1SampleProofVariants: readonly Axis1SampleProofConfig[] = [
       "access-condition": "not-applicable",
       "service-label": "not-captured",
     },
-    links: {
-      invoiceUrl: "mailto:billing@summit.example?subject=Invoice%20HDS-MASKED-0424",
-      paymentDueLabel: "$1,250 due",
-      reviewUrl: "mailto:review@summit.example?subject=Service%20review",
-      nextServiceRequestUrl:
-        "mailto:dispatch@summit.example?subject=Confirm%20next%20hood%20service",
-      replyUrl: "mailto:dispatch@summit.example?subject=Question%20about%20HDS-MASKED-0424",
-    },
+    links: {},
   },
   {
     variant: "blocked_access",
@@ -133,17 +126,13 @@ export const axis1SampleProofVariants: readonly Axis1SampleProofConfig[] = [
       "grease-containment": "not-captured",
       "service-label": "not-captured",
     },
-    links: {
-      nextServiceRequestUrl:
-        "mailto:dispatch@summit.example?subject=Request%20blocked%20access%20revisit",
-      replyUrl: "mailto:dispatch@summit.example?subject=Access%20cleared%20for%20HDS-MASKED-0424",
-    },
+    links: {},
   },
   {
     variant: "condition_review",
     path: "/p/sample-condition-review",
     label: "Condition review",
-    title: "Completed service with recorded follow-up quote path",
+    title: "Completed service with recorded condition",
     copy:
       "A recorded condition stays visible as a quote or monitoring decision without turning the cleaning closeout into a correction claim.",
     values: {
@@ -165,13 +154,7 @@ export const axis1SampleProofVariants: readonly Axis1SampleProofConfig[] = [
       "access-condition": "not-applicable",
       "service-label": "not-captured",
     },
-    links: {
-      followUpQuoteUrl:
-        "mailto:quotes@summit.example?subject=Follow-up%20quote%20for%20HDS-MASKED-0424",
-      nextServiceRequestUrl:
-        "mailto:dispatch@summit.example?subject=Confirm%20next%20hood%20service",
-      replyUrl: "mailto:dispatch@summit.example?subject=Question%20about%20recorded%20condition",
-    },
+    links: {},
   },
 ] as const;
 
@@ -247,7 +230,7 @@ function applySampleBranding(
     packetHeader: {
       ...data.packetHeader,
       archiveNote:
-        "Customer sees the service result, attached photos, next action, and a clear evidence PDF handoff in one branded customer link.",
+        "Customer sees the service result, attached photos, next action, and a clear PDF copy in one branded service report link.",
     },
     serviceRecordRows: upsertRows(data.serviceRecordRows, [
       ["Technician", sampleVendor.technician],
@@ -261,8 +244,8 @@ function applySampleBranding(
       ["Dispatch", sampleVendor.dispatch],
       ["After-hours", sampleVendor.afterHours],
       ["Follow-up contact", sampleVendor.reviewPrompt],
-      ["Customer link", `https://kitchenpermit.com${config.path}`],
-      ["Delivery record", "Customer link sent; evidence PDF available"],
+      ["Service report link", `https://kitchenpermit.com${config.path}`],
+      ["Delivery record", "Service report link sent; PDF copy available"],
     ]),
     sampleFooter: [
       [
@@ -271,11 +254,11 @@ function applySampleBranding(
       ],
       [
         "Primary output",
-        "Customer link for handoff. Evidence PDF remains the archive, submission, or print copy.",
+        "Service report link for the customer. PDF copy remains the archive, submission, or print copy.",
       ],
       [
-        "Setup adds",
-        "Real hosted link, saved photos, branded delivery, and customer-specific history.",
+        "Actual company version",
+        "Hosted report link, saved photos, branded delivery, and customer-specific service history.",
       ],
     ],
   };

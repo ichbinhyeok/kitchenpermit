@@ -6,6 +6,11 @@ import type {
   Axis1UploadedFieldPhotoState,
 } from "@/lib/axis1-field-photos";
 import type { Axis1PacketPreviewData } from "@/lib/axis1-packet-preview";
+import type { Axis1CompanyProfile } from "@/lib/axis1-company-profile";
+import {
+  getAxis1FreeLinkExpiresAt,
+  type Axis1ProductPlan,
+} from "@/lib/axis1-product-policy";
 
 const localPacketStoragePrefix = "hood.axis1.local-packet.";
 const localPacketReadCache = new Map<
@@ -20,6 +25,9 @@ export type Axis1LocalPacketRecord = {
   schemaVersion: 1;
   id: string;
   createdAt: string;
+  expiresAt?: string;
+  productPlan?: Axis1ProductPlan;
+  companyProfile?: Axis1CompanyProfile;
   values: Axis1BuilderFormValues;
   uploadedFieldPhotos: Axis1UploadedFieldPhotoState;
   photoSlotResolutions: Axis1PhotoSlotResolutionState;
@@ -81,6 +89,11 @@ export function saveAxis1LocalPacket(
     createdAt: new Date().toISOString(),
     ...input,
   };
+  record.productPlan ??= "free";
+  record.expiresAt ??=
+    record.productPlan === "free"
+      ? getAxis1FreeLinkExpiresAt(record.createdAt) ?? undefined
+      : undefined;
 
   try {
     const raw = JSON.stringify(record);
@@ -90,7 +103,7 @@ export function saveAxis1LocalPacket(
     return {
       ok: false,
       error:
-        "The customer link was too large for local browser storage. Try fewer photos or smaller image files.",
+      "The service report link was too large for local browser storage. Try fewer photos or smaller image files.",
     };
   }
 

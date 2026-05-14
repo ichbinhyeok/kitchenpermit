@@ -1,4 +1,4 @@
-import Link, { type LinkProps } from "next/link";
+﻿import Link, { type StaticLinkProps } from "@/components/navigation/static-link";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ const buttonLinkVariants = cva(
   },
 );
 
-type ButtonLinkProps = LinkProps &
+type ButtonLinkProps = StaticLinkProps &
   React.AnchorHTMLAttributes<HTMLAnchorElement> &
   VariantProps<typeof buttonLinkVariants> & {
     children: React.ReactNode;

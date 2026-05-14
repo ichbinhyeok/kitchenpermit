@@ -655,10 +655,12 @@ async function auditVisualIntegrity(page, label, options = {}) {
 }
 
 async function assertMenuUsable(page) {
+  const expectedMenuLabels = ["Sample", "Product", "Pricing", "Dashboard", "Company Version"];
   await clickVisibleButton(page, "Menu", { waitMs: 200 });
   const menuState = await page.evaluate(() => {
+    const expectedLabels = ["Sample", "Product", "Pricing", "Dashboard", "Company Version"];
     const links = Array.from(document.querySelectorAll("a")).filter((link) =>
-      ["Sample", "Product", "Setup"].includes((link.textContent || "").trim()),
+      expectedLabels.includes((link.textContent || "").trim()),
     );
 
     return links.map((link) => {
@@ -673,19 +675,24 @@ async function assertMenuUsable(page) {
     });
   });
 
-  assert(menuState.length === 3, "Menu did not expose Sample/Product/Setup links.", {
+  const visibleMenuState = menuState.filter((item) => item.visible);
+  const visibleLabels = Array.from(new Set(visibleMenuState.map((item) => item.text)));
+
+  assert(expectedMenuLabels.every((label) => visibleLabels.includes(label)), "Menu did not expose all launch links.", {
+    expectedMenuLabels,
+    visibleLabels,
     menuState,
   });
   assert(
-    menuState.every((item) => item.visible && item.clickable),
+    visibleMenuState.every((item) => item.clickable),
     "Menu link is visible but covered or not clickable.",
-    { menuState },
+    { visibleMenuState },
   );
   await clickVisibleButton(page, "Menu", { waitMs: 150 });
   await page.waitForTimeout(150);
   const stillOpen = await page.evaluate(() =>
     Array.from(document.querySelectorAll("a")).some((link) =>
-      ["Sample", "Product", "Setup"].includes((link.textContent || "").trim()) &&
+      ["Sample", "Product", "Pricing", "Dashboard", "Company Version"].includes((link.textContent || "").trim()) &&
       link.getBoundingClientRect().width > 1 &&
       link.getBoundingClientRect().height > 1,
     ),
@@ -696,7 +703,7 @@ async function assertMenuUsable(page) {
 async function assertToolIsCloseoutFirst(page) {
   const text = await bodyText(page);
   assert(/Add photos or a short note|Drop photos if you have them/i.test(text), "First screen does not lead with photos and notes.");
-  assert(/Draft closeout|Review written record/i.test(text), "First screen does not offer a low-effort path into review.");
+  assert(/Review closeout|Review written record|Review the service summary/i.test(text), "First screen does not offer a low-effort path into review.");
   assert(/photos|notes/i.test(text), "First screen is not framed around photos and notes.");
   assert(/photos optional|saved even if not proof|no photos is okay/i.test(text), "First screen does not keep photos optional and non-threatening.");
   assert(!/\bRisk\b[\s\S]{0,80}\bScope\b[\s\S]{0,80}\bProof\b/i.test(text), "Old risk/scope/proof workflow leaked into primary flow.");
@@ -812,15 +819,15 @@ const testCases = [
   },
   {
     id: "vendor-03-mobile-outputs-first",
-    persona: "Busy vendor wants copy/link/payment output, not another form",
+    persona: "Busy vendor wants the report link, PDF, and follow-up output, not another form",
     viewport: { width: 390, height: 844, isMobile: true, hasTouch: true },
     run: async ({ page, baseUrl }) => {
       await page.goto(`${baseUrl}${basePath}?qa=deep-v03&step=review`, { waitUntil: "networkidle" });
       await pickCompleted(page);
       const rows = await goToOutputs(page);
-      assert(outputRow(rows, "Customer handoff link").readiness === "ready", "Customer link should be ready.");
+      assert(outputRow(rows, "Service report link").readiness === "ready", "Service report link should be ready.");
       const text = await bodyText(page);
-      assert(/written closeout record|no field photos attached/i.test(text), "No-photo payment/output copy did not disclose written-record basis.");
+      assert(/written closeout record|no field photos attached/i.test(text), "No-photo report output did not disclose written-record basis.");
       await assertOutputsBeforeFormWork(page);
       await auditVisualIntegrity(page, "mobile outputs first");
     },

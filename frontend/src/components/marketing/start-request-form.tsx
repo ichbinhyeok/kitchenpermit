@@ -116,7 +116,7 @@ export function StartRequestForm() {
 
     if (firstInvalidField) {
       setFieldErrors(validationErrors);
-      setErrorMessage("Complete the highlighted fields before sending the setup request.");
+      setErrorMessage("Complete the highlighted fields before sending the design help request.");
       window.requestAnimationFrame(() => {
         const input = formElement.elements.namedItem(firstInvalidField);
         if (input instanceof HTMLElement) {
@@ -142,7 +142,7 @@ export function StartRequestForm() {
 
       if (!response.ok) {
         setErrorMessage(
-          "The request could not be saved. Opening a structured email draft instead.",
+          "The inquiry could not be saved. Opening a prepared email instead.",
         );
         window.location.href = fallbackEmailDraftUrl;
         return;
@@ -154,7 +154,7 @@ export function StartRequestForm() {
       });
     } catch {
       setErrorMessage(
-        "The request could not reach the backend. Opening a structured email draft instead.",
+        "The inquiry could not reach the backend. Opening a prepared email instead.",
       );
       window.location.href = fallbackEmailDraftUrl;
     }
@@ -240,16 +240,16 @@ export function StartRequestForm() {
         </label>
         <label className="grid gap-2">
           <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-            Product interest
+            Request type
           </span>
           <select
             name="productInterest"
             className={fieldClassName("productInterest")}
-            defaultValue="Customer link setup"
+            defaultValue="Design help from $249"
           >
-            <option>Customer link setup</option>
-            <option>Customer link setup + sales lists</option>
-            <option>Sales lists</option>
+            <option>Design help from $249</option>
+            <option>Company version early access</option>
+            <option>Pricing question</option>
           </select>
         </label>
       </div>
@@ -261,7 +261,7 @@ export function StartRequestForm() {
           name="notes"
           rows={5}
           className={fieldClassName("notes", "rounded-[26px]")}
-          placeholder="Current service area, whether you want branded customer links, customer link/PDF delivery, sales-list batches, or timing."
+          placeholder="Logo, report color, wording, PDF design, company defaults, sample feedback, or timing."
         />
       </label>
       {errorMessage ? (
@@ -274,7 +274,7 @@ export function StartRequestForm() {
         disabled={isPending}
         className="mt-3 inline-flex items-center justify-center rounded-full border border-accent bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-[0_18px_40px_rgba(242,106,33,0.18)] transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isPending ? "Saving request..." : "Request setup"}
+        {isPending ? "Saving request..." : "Send design help request"}
       </button>
     </form>
   );

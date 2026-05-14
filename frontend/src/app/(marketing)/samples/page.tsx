@@ -1,45 +1,29 @@
 ﻿import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/navigation/static-link";
 import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/marketing/page-header";
 import { Panel } from "@/components/ui/panel";
 
 export const metadata: Metadata = {
   title: "Samples",
-  description: "Public sample links for Hood closeout customer links and sales lists.",
+  description: "Public sample service report for hood cleaning customers after service.",
 };
 
 const samples = [
   {
     href: "/samples/axis-1",
-    label: "Existing-Customer Sample",
-    title: "Hood Closeout Customer Link preview",
+    label: "Customer Service Report Sample",
+    title: "Hood closeout service report preview",
     description:
-      "A free public sample link that vendors can use in cold email, follow-up, and search to show what the customer link feels like.",
+      "A free public sample vendors can use in cold email, follow-up, and search to show what the restaurant receives after service.",
     visible: [
       "Service summary, work scope, and next-step structure",
       "Photo evidence rhythm and customer-facing language",
       "How inaccessible or partial work is surfaced",
     ],
     hidden: [
-      "Vendor-specific brand setup and full delivery export",
+      "Company-specific logo/contact and clean delivery export",
       "Raw internal note layer and unfiltered media set",
-    ],
-  },
-  {
-    href: "/samples/axis-2",
-    label: "New-Sales Sample",
-    title: "Sales dossier preview",
-    description:
-      "A masked list-first sample showing how live prospects are framed, scored, and turned into first-touch outreach.",
-    visible: [
-      "2 to 3 masked rows with trigger-led framing",
-      "Why-now explanation and first-touch packet logic",
-      "Batch structure that feels commercial, not generic data",
-    ],
-    hidden: [
-      "Direct usable contact paths and complete personalization",
-      "Full deduped batch export and enrichment logic",
     ],
   },
 ] as const;
@@ -48,11 +32,11 @@ export default function SamplesPage() {
   return (
     <>
       <PageHeader
-        label="SAMPLES // PUBLIC CUSTOMER LINKS"
-        title="Preview the customer link surfaces."
-        description="These sample pages are meant to be public. They help vendors understand the product, support cold outreach, and give search traffic something real to inspect without leaking the paid SKU."
+        label="SAMPLES // SERVICE REPORT"
+        title="Preview the customer service report."
+        description="The public sample should prove the product without asking a vendor to imagine it: service result, blocked access, photo evidence, PDF posture, and next action in one customer-readable record."
       />
-      <section className="container-shell grid gap-6 pb-10 md:grid-cols-2">
+      <section className="container-shell grid gap-6 pb-10 md:grid-cols-[minmax(0,1fr)_minmax(280px,0.42fr)]">
         {samples.map((sample) => (
           <Panel key={sample.href} className="flex h-full flex-col justify-between px-6 py-6">
             <div className="space-y-6">
@@ -96,13 +80,25 @@ export default function SamplesPage() {
             </div>
             <Link
               href={sample.href}
-              className="mt-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-accent"
+              className="mt-8 inline-flex min-h-10 items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-accent"
             >
-              Open sample
+              View sample report
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Panel>
         ))}
+        <Panel className="px-6 py-6">
+          <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
+            Later samples
+          </p>
+          <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] text-foreground">
+            The first launch is focused on the service report.
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-muted-foreground">
+            Future samples can cover other vendor workflows. For now, the public sample
+            path should lead with the finished customer service report restaurants can save.
+          </p>
+        </Panel>
       </section>
       <section className="container-shell pb-20">
         <Panel className="grid gap-6 px-6 py-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-start">
@@ -111,15 +107,14 @@ export default function SamplesPage() {
               Sample rules
             </p>
             <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] text-foreground">
-              The sample should prove product quality, not leak the SKU.
+              The sample should prove product quality, not internal product mechanics.
             </h2>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              "The customer link sample proves readability, findings clarity, and rebook posture.",
-              "The sales-list sample stays list-first and shows only 2 to 3 masked rows publicly.",
-              "These sample links are free and public on purpose. They should work in cold email and in SEO.",
-              "HTML and PDF previews are fine, but a free sample cannot become a usable paid batch substitute.",
+              "The service report sample proves readability, findings clarity, and rebook posture.",
+              "This sample link is free and public on purpose. It should work in cold email and in SEO.",
+              "HTML and PDF previews are fine, but the public sample should not pretend every company detail is already configured.",
               "A vendor should leave the page thinking the artifact is credible, not that the data was handed away.",
             ].map((rule) => (
               <div key={rule} className="border border-border bg-white px-4 py-4 text-sm leading-7 text-muted-foreground">

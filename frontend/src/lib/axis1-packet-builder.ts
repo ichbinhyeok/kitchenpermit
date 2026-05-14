@@ -19,7 +19,7 @@ export const axis1CadenceOptions = [
   {
     value: "90",
     label: "90 days",
-    copy: "Standard operating pattern for this service handoff.",
+  copy: "Standard operating pattern for this service report.",
   },
   {
     value: "120",
@@ -162,7 +162,7 @@ export type Axis1BuilderFormValues = z.infer<typeof axis1BuilderSchema>;
 
 export const axis1BuilderDefaults: Axis1BuilderFormValues = {
   scenario: "exception",
-  propertyName: "Masked restaurant group",
+  propertyName: "Sample Restaurant Group",
   siteCity: "Austin, TX",
   serviceDate: "2026-04-24",
   authorizedBy: "Store manager",
@@ -792,7 +792,7 @@ export function buildAxis1NeutralPacketData(
     reviewPrompt: "",
     preparedBy: "Technician / crew",
     previewBlurb:
-      "Free handoff output excludes vendor branding, phone, email, and hosted delivery links.",
+      "Free report output excludes company logo/contact, phone, email, and saved customer links.",
     brandingApplied: false,
   };
 
@@ -826,7 +826,7 @@ export function buildAxis1NeutralPacketData(
   );
   const recordNoteCopy = values.recordNoteOverride?.trim()
     ? withTrailingPeriod(values.recordNoteOverride)
-    : "The evidence PDF is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work.";
+    : "The PDF copy is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work.";
   const exceptionNote = buildExceptionNote(selectedKinds, values.exceptionNote ?? "");
   const propertyTitle = values.propertyName.trim();
   const siteLabel = values.siteCity.trim();
@@ -886,12 +886,12 @@ export function buildAxis1NeutralPacketData(
     location: "Next service timing",
     issue: `Recommended next window: ${nextServiceWindow}.`,
     whyItMatters:
-      "The next service window stays explicit inside the same handoff so the customer can reply before the visit disappears into memory.",
+      "The next service window stays explicit inside the same service report so the customer can reply before the visit disappears into memory.",
     ownerAction:
       scenario === "clean"
         ? `Reply to confirm the next service window: ${nextServiceWindow}.`
         : customerAction,
-    notice: "This timing is recorded in the service handoff and office file.",
+      notice: "This timing is recorded in the service report and office file.",
     status: scenario === "clean" ? "Action" : "Monitor",
   };
 
@@ -907,7 +907,7 @@ export function buildAxis1NeutralPacketData(
         ["Location", siteLabel],
         ["System", systemLabel],
         ["Today's result", serviceResultTitle],
-        ["Report ID", "HDS-MASKED-0424"],
+        ["Report ID", "HDS-SAMPLE-0424"],
       ],
       archiveNote:
         "Customer sees the clear service link. Full image archive and raw technician detail stay retained in the office file.",
@@ -940,7 +940,7 @@ export function buildAxis1NeutralPacketData(
       ["Site", siteLabel],
       ["System", `SYS-01 / ${systemLabel}`],
       ["Line served", systemLabel],
-      ["Service record coverage", "One closeout handoff for one exhaust system"],
+      ["Service record coverage", "One service report for one kitchen exhaust system"],
       ["Reviewed on site", authorizedBy],
     ],
     serviceRecordRows: [
@@ -969,7 +969,7 @@ export function buildAxis1NeutralPacketData(
         "Separate scope note",
         "Outside this closeout record. Separate trade work and follow-up authorization use their own process.",
       ],
-      ["Report ID", "HDS-MASKED-0424"],
+      ["Report ID", "HDS-SAMPLE-0424"],
     ],
     routeSegments: [
       {
@@ -1189,23 +1189,23 @@ export function buildAxis1NeutralPacketData(
                 ? "Clear the blocked area, then reply to schedule the revisit."
                 : "Review this condition and reply if you want it quoted.",
             copy:
-              "The service handoff separates completed work from the action item so the next reply can be short and clear.",
+        "The service report separates completed work from the action item so the next reply can be short and clear.",
             actionItems: [
               ["Next visit window", nextServiceWindow],
               ["Reply or action", customerAction],
               ["Recorded note", followUpCopy],
-              ["Evidence PDF note", recordNoteCopy],
+              ["PDF copy note", recordNoteCopy],
             ],
           }
         : {
           title: "Reply to confirm the next service window.",
           copy:
-              "The service handoff keeps the recommended service window visible while the visit is still fresh.",
+      "The service report keeps the recommended service window visible while the visit is still fresh.",
             actionItems: [
               ["Next visit window", nextServiceWindow],
               ["Reply or action", customerAction],
               ["Recorded note", followUpCopy],
-              ["Evidence PDF note", recordNoteCopy],
+              ["PDF copy note", recordNoteCopy],
             ],
           },
     closeoutRows: [
@@ -1233,8 +1233,8 @@ export function buildAxis1NeutralPacketData(
       ],
       ["Prepared by technician", freeVendor.preparedBy],
       ["Reviewed on site", authorizedBy],
-      ["Delivery record", "Evidence PDF saved for customer records"],
-      ["Record retention", "Service handoff and office archive retained"],
+      ["Delivery record", "PDF copy saved for customer records"],
+      ["Record retention", "Customer copy and service provider archive retained"],
       ["Next due", nextDue],
       ["Reply path", customerAction],
     ],
@@ -1253,7 +1253,7 @@ export function buildAxis1FreeSharedPacketData(
     proofPhotos: [],
     proofPolicyRows: [
       [
-        "Shared service handoff",
+    "Shared service report",
         "This link reproduces the written service record for this visit.",
       ],
       [
@@ -1262,7 +1262,7 @@ export function buildAxis1FreeSharedPacketData(
       ],
       [
         "Record copy",
-        "Use the evidence PDF copy or service record for local photo files and archive.",
+        "Use the PDF copy or service record for local photo files and archive.",
       ],
     ],
     componentStatusRows: data.componentStatusRows.map((row) => ({
@@ -1297,7 +1297,7 @@ export function buildAxis1FreeSharedPacketData(
     closeoutRows: [
       ...data.closeoutRows.map(([label, value]): [string, string] => {
         if (label === "Delivery record") {
-          return [label, "Shared service handoff delivered"];
+  return [label, "Shared service report delivered"];
         }
 
         if (label === "Record retention") {

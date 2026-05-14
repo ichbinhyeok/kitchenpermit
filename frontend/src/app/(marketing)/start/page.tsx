@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { StartRequestForm } from "@/components/marketing/start-request-form";
 import { PageHeader } from "@/components/marketing/page-header";
 import { Panel } from "@/components/ui/panel";
@@ -6,40 +6,40 @@ import { buildEmailDraftUrl } from "@/lib/start-request";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Request Customer Link Setup",
-  description: "Request a customer link setup or sales list conversation for hood vendors.",
+  title: "Design Help Request",
+  description: "Request optional design help for a company-branded hood service report version.",
 };
 
 export default function StartPage() {
   const genericDraftUrl = buildEmailDraftUrl({});
   const nextSteps = [
-    "1. Tell us whether you want customer link setup, sales lists, or both.",
-    `2. Open the structured email draft to ${siteConfig.supportEmail}.`,
-    "3. We reply manually with setup scope, price, and the next delivery step.",
+    "1. Tell us where you operate and what you want polished in the branded report.",
+    `2. Open a prepared email to ${siteConfig.supportEmail}.`,
+    "3. We reply manually with the next step. Design help starts at $249.",
   ] as const;
 
   return (
     <>
       <PageHeader
-        label="START // SETUP REQUEST"
-        title="Request customer link setup."
-        description="The free builder stays neutral. Setup is the manual path for vendor branding, delivery, saved records, and real customer-ready operation."
+        label="START // DESIGN HELP"
+        title="Request optional design help."
+        description="The company version should be self-serve by default. Use this only if you want help polishing company look, wording, or report defaults."
       />
       <section className="container-shell grid gap-6 pb-20 md:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
         <Panel className="px-6 py-6">
           <div className="mb-4 border-b border-border pb-4 sm:mb-6 sm:pb-5">
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-              Vendor setup request
+              Vendor request
             </p>
             <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-foreground">
-              <span className="sm:hidden">Setup request.</span>
+              <span className="sm:hidden">Design help request.</span>
               <span className="hidden sm:inline">
-                Send one clean request for setup or sales-list delivery.
+                Request brand/report design help from $249.
               </span>
             </h2>
             <p className="mt-3 hidden max-w-2xl text-sm leading-7 text-muted-foreground sm:block">
-              No account or checkout yet. The form creates a structured inquiry,
-              then email handles the actual setup, quote, and delivery path.
+              No payment is taken on this request. The form creates an inquiry for
+              optional design support; the core product remains self-serve.
             </p>
           </div>
           <StartRequestForm />
@@ -59,23 +59,24 @@ export default function StartPage() {
           </Panel>
           <Panel className="px-6 py-6">
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-              Manual commerce rule
+              Optional help boundaries
             </p>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <div className="border border-border bg-[rgba(17,17,17,0.03)] px-4 py-4">
                 <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                  This page does
+                  What this request does
                 </p>
                 <p className="mt-3 text-sm leading-7 text-foreground">
-                  Capture a structured request and route it into manual follow-up.
+                  Sends your brand/report notes to support so we can reply with a
+                  design-help next step.
                 </p>
               </div>
               <div className="border border-border bg-[rgba(17,17,17,0.03)] px-4 py-4">
                 <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                  This page does not
+                  What this request does not do
                 </p>
                 <p className="mt-3 text-sm leading-7 text-foreground">
-                  Create an account, auto-charge a card, or pretend fulfillment is already self-serve.
+                  Create an account, auto-charge a card, or make design help look required.
                 </p>
               </div>
             </div>
@@ -86,11 +87,11 @@ export default function StartPage() {
             </p>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
               If you want to bypass the form, send a direct note with company name,
-              contact, market, and whether you need customer link setup, sales lists, or both.
+              contact, market, and what your service report needs to show after service.
             </p>
             <a
               href={genericDraftUrl}
-              className="mt-5 inline-flex text-base font-semibold text-accent"
+              className="mt-5 inline-flex min-h-10 items-center text-base font-semibold text-accent"
             >
               {siteConfig.supportEmail}
             </a>

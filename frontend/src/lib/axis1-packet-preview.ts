@@ -20,6 +20,7 @@ export type Axis1PacketPreviewData = {
     name: string;
     initials: string;
     logoUrl?: string;
+    brandColor?: string;
     office: string;
     directLine: string;
     dispatch: string;
@@ -297,14 +298,14 @@ export function getAxis1PacketPreviewData(options: {
         reviewPrompt: "review@summit.example",
         preparedBy: "Summit Hood Service Co. | SH-114",
         previewBlurb:
-          "Customer sees a same-day customer link with vendor brand, service contact, credential, and record references already in place.",
+          "Customer sees a same-day service report link with vendor brand, service contact, credential, and record references already in place.",
         brandingApplied: true,
       }
     : {
         name: "Sample Hood Service Co.",
         initials: "SH",
         logoUrl: "/images/sample-hood-service-logo.svg",
-        office: "Vendor branding, dispatch, and service contact appear here",
+        office: "Company logo, dispatch, and service contact appear here",
         directLine: "(512) 555-0148",
         dispatch: "dispatch@samplehood.co",
         certification: "TX service ref shown here",
@@ -313,19 +314,19 @@ export function getAxis1PacketPreviewData(options: {
         reviewPrompt: "service@samplehood.co",
         preparedBy: "Technician / crew ID",
         previewBlurb:
-          "Public sample uses example branding. Setup replaces this with the vendor logo, direct line, dispatch email, certification, and technician reference.",
+          "Public sample uses example company details. The company version replaces this with the vendor logo, direct line, dispatch email, certification, and technician reference.",
         brandingApplied: false,
       };
 
   return {
     branding: options.branding,
     scenario: options.scenario,
-    reportUrl: "https://kitchenpermit.com/p/hds-masked-0414",
+    reportUrl: "https://kitchenpermit.com/p/hds-sample-0414",
     vendor,
     packetHeader: {
-      title: "Masked restaurant group",
+      title: "Sample Restaurant Group",
       copy:
-        "This customer link shows what was cleaned today, what was not completed or recorded, attached photos, and the next action.",
+        "This service report link shows what was cleaned today, what was not completed or recorded, attached photos, and the next action.",
       quickFacts: [
         ["Service date", "Apr 14, 2026"],
         ["Location", "Austin, TX"],
@@ -336,10 +337,10 @@ export function getAxis1PacketPreviewData(options: {
             ? "Accessible areas cleaned; access item open"
             : "Accessible areas cleaned; ready for records",
         ],
-        ["Report ID", "HDS-MASKED-0414"],
+        ["Report ID", "HDS-SAMPLE-0414"],
       ],
       archiveNote:
-        "Customer sees the clear customer link. Full image archive, raw technician notes, and internal QA detail stay retained in the office file.",
+        "Customer sees the clear service report link. Full image archive, raw technician notes, and internal QA detail stay retained in the service file.",
     },
     summaryCards: [
       {
@@ -374,11 +375,11 @@ export function getAxis1PacketPreviewData(options: {
       },
     ],
     systemIdentityRows: [
-      ["Property", "Masked restaurant group"],
+      ["Property", "Sample Restaurant Group"],
       ["Site", "Masked Austin, TX"],
       ["System", "SYS-01 / main cookline hood line"],
       ["Line served", "Main Type I cookline"],
-      ["Customer link coverage", "One closeout record for one exhaust system"],
+      ["Service report coverage", "One service report for one kitchen exhaust system"],
       ["Access basis", "Accessible hood, filters, plenum, duct access, fan / roof discharge, and grease path"],
       ["On-site diagram", "Matched to SYS-01 / main cookline line"],
       ["Reviewed on site", "Store manager (masked)"],
@@ -412,7 +413,7 @@ export function getAxis1PacketPreviewData(options: {
         "Separate area note",
         "Separate trade work and follow-up authorization are outside this closeout record",
       ],
-      ["Report ID", "HDS-MASKED-0414"],
+      ["Report ID", "HDS-SAMPLE-0414"],
     ],
     routeSegments: [
       {
@@ -464,7 +465,7 @@ export function getAxis1PacketPreviewData(options: {
       ],
       [
         "What stays in office records",
-        "Full photo archive, raw technician notes, and QA detail stay retained outside this customer link.",
+        "Full photo archive, raw technician notes, and QA detail stay retained outside this service report link.",
       ],
       [
         "Action items stay visible",
@@ -557,7 +558,7 @@ export function getAxis1PacketPreviewData(options: {
       "Documented visible system condition with section-linked field photos",
       "Recorded fan housing, hinge/base, curb, roof discharge, and grease-containment condition for future follow-up",
       "Posted service label and exception notice at close-out",
-      "Prepared a same-day customer link with next-step guidance",
+      "Prepared a same-day service report link with next-step guidance",
     ],
     operationalChecks: [
       ["Cookline protection before wash", "Completed"],
@@ -588,14 +589,14 @@ export function getAxis1PacketPreviewData(options: {
           eyebrow: "Access blocked / not cleaned",
           title: "Blocked access stays visible.",
           copy:
-            "Blocked access is shown directly instead of being buried in technician notes. The customer link stays defensible by saying what was cleaned, what was not accessible, and what the customer needs to clear next.",
+            "Blocked access is shown directly instead of being buried in technician notes. The service report link stays defensible by saying what was cleaned, what was not accessible, and what the customer needs to clear next.",
           tone: "issue",
         }
       : {
           eyebrow: "Service close-out",
           title: "No open access exception remains.",
           copy:
-            "Accessible sections were cleaned, documented, and closed without an open access exception at departure. The customer link can move directly into record retention and next-cycle confirmation.",
+            "Accessible sections were cleaned, documented, and closed without an open access exception at departure. The service report link can move directly into record retention and next-cycle confirmation.",
           tone: "success",
         },
     notesSection: exceptionOpen
@@ -649,7 +650,7 @@ export function getAxis1PacketPreviewData(options: {
             whyItMatters:
               "The customer can understand the service visit without another explanation call.",
             ownerAction:
-              "Retain this customer link for records and confirm the next planned service window.",
+              "Retain this service report link for records and confirm the next planned service window.",
             notice: "Standard service label posted with next due date.",
             status: "Closed",
           },
@@ -670,7 +671,7 @@ export function getAxis1PacketPreviewData(options: {
               "Rebook timing is explicit instead of disappearing into office follow-up or memory.",
             ownerAction:
               "Reply to confirm Jul 8-13, 2026 or request a different service window.",
-            notice: "Rebook cue is included in the same customer link.",
+            notice: "Rebook cue is included in the same service report link.",
             status: "Needs reply",
           },
         ],
@@ -678,7 +679,7 @@ export function getAxis1PacketPreviewData(options: {
       ? {
           title: "Clear rear duct access, then reply.",
           copy:
-            "The customer link separates completed work from the blocked access area, so the next reply can confirm the access revisit.",
+            "The service report link separates completed work from the blocked access area, so the next reply can confirm the access revisit.",
           actionItems: [
             ["Access action", "Move stored items from rear duct access"],
             ["Access revisit", "After rear duct access is cleared"],
@@ -690,7 +691,7 @@ export function getAxis1PacketPreviewData(options: {
       : {
           title: "Reply to confirm the next service window.",
           copy:
-            "The customer link keeps the recommended service window visible while the visit is still fresh.",
+            "The service report link keeps the recommended service window visible while the visit is still fresh.",
           actionItems: [
             ["Next visit window", "Jul 8-13, 2026"],
             ["Reply or action", "Confirm next service"],
@@ -719,10 +720,10 @@ export function getAxis1PacketPreviewData(options: {
       ["After-hours", vendor.afterHours],
       ["Follow-up contact", vendor.reviewPrompt],
       ["Reviewed on site", "Store manager / masked"],
-      ["On-site record", "Keep this customer link with kitchen service records"],
-      ["Customer link", "https://kitchenpermit.com/p/hds-masked-0414"],
-      ["Delivery record", "Evidence PDF emailed same day"],
-      ["Record retention", "Customer link sent / full vendor archive retained"],
+      ["On-site record", "Keep this service report link with kitchen service records"],
+      ["Service report link", "https://kitchenpermit.com/p/hds-sample-0414"],
+      ["Delivery record", "PDF copy emailed same day"],
+      ["Record retention", "Service report link sent / full vendor archive retained"],
       ["Next due", "Jul 13, 2026"],
       ["Reply path", "Rebook confirmation or follow-up quote reply"],
     ],
@@ -732,22 +733,22 @@ export function getAxis1PacketPreviewData(options: {
       ["Customer action", exceptionOpen ? "Clear rear access and reply" : "Confirm next service window"],
       ["Vendor action", "Await reply or schedule follow-up"],
       ["Record location", "Keep with kitchen exhaust service records"],
-      ["Generated for", "Customer-facing service link"],
+      ["Generated for", "Customer-facing service report link"],
     ],
     scopeNote:
-      "This customer link covers accessible portions of this kitchen exhaust cleaning visit for one exhaust system. Separate trade service, follow-up work, and concealed or inaccessible portions are not included unless separately quoted.",
+      "This service report link covers accessible portions of this kitchen exhaust cleaning visit for one exhaust system. Separate trade service, follow-up work, and concealed or inaccessible portions are not included unless separately quoted.",
     sampleFooter: [
       [
         "What the sample proves",
-        "The customer link can explain completed areas, recorded conditions, blocked access, and next action in language the customer can actually use.",
+        "The service report link can explain completed areas, recorded conditions, blocked access, and next action in language the customer can actually use.",
       ],
       [
-        "What stays paid",
-        "Vendor branding setup, full photo handling, customer-specific data, and real delivery workflow stay behind setup.",
+        "What the company version adds",
+        "Company logo/contact, full photo handling, customer-specific data, and real delivery workflow.",
       ],
       [
         "Why vendors care",
-        "The vendor gets a customer handoff asset that reduces explanation work and makes premium service easier to justify.",
+      "The vendor gets a customer service report that reduces explanation work and makes premium service easier to justify.",
       ],
     ],
   };

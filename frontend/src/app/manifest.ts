@@ -4,10 +4,10 @@ export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "hood customer link builder",
+    name: "hood service report builder",
     short_name: "hood",
     description:
-      "Mobile-first hood customer link builder for kitchen exhaust vendors.",
+      "Mobile-first hood service report builder for kitchen exhaust vendors.",
     start_url: "/axis-1/tool",
     scope: "/",
     display: "standalone",
@@ -43,9 +43,9 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: "Create customer link",
-        short_name: "Customer link",
-        description: "Open the mobile hood customer link builder.",
+        name: "Create service report",
+        short_name: "Report",
+        description: "Open the mobile hood service report builder.",
         url: "/axis-1/tool",
         icons: [
           {
@@ -56,9 +56,9 @@ export default function manifest(): MetadataRoute.Manifest {
         ],
       },
       {
-        name: "View sample customer link",
+        name: "View sample service report",
         short_name: "Sample",
-        description: "Open the customer-facing sample customer link.",
+        description: "Open the customer-facing sample service report.",
         url: "/p/sample-hood-cleaning",
         icons: [
           {

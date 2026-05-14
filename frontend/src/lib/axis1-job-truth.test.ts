@@ -73,11 +73,8 @@ describe("Axis1JobTruthRecord", () => {
 
     expect(outputReadiness(record, "customer_link")?.readiness).toBe("ready");
     expect(outputReadiness(record, "evidence_pdf")?.readiness).toBe("ready");
-    expect(outputReadiness(record, "invoice_proof")?.readiness).toBe(
-      "needs_review",
-    );
-    expect(outputReadiness(record, "payment_message")?.readiness).toBe(
-      "needs_review",
+    expect(record.outputReadiness.map((output) => output.kind).join(" ")).not.toMatch(
+      /invoice|payment/i,
     );
     expect(record.claimStatements).toEqual(
       expect.arrayContaining([

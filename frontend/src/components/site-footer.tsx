@@ -1,13 +1,19 @@
-﻿import Link from "next/link";
+﻿import Link from "@/components/navigation/static-link";
 import { ButtonLink } from "@/components/ui/button-link";
 import { siteConfig } from "@/lib/site";
 
 const footerLinks = [
-  { href: "/axis-1", label: "Existing Customers" },
-  { href: "/axis-2", label: "New Sales" },
-  { href: "/samples", label: "Samples" },
+  { href: "/axis-1", label: "Service Report" },
+  { href: "/samples/axis-1", label: "Sample" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: `mailto:${siteConfig.supportEmail}`, label: "Contact Support" },
+];
+
+const legalLinks = [
+  { href: "/terms", label: "Terms" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/refund-policy", label: "Refund Policy" },
 ];
 
 export function SiteFooter() {
@@ -18,19 +24,19 @@ export function SiteFooter() {
           <div className="grid gap-6 border-b border-white/10 px-6 py-8 md:grid-cols-[minmax(0,1.15fr)_auto] md:items-center md:px-8">
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.34em] text-white/45">
-                Manual request path
+                For your company
               </p>
               <p className="mt-3 max-w-2xl font-display text-3xl font-bold tracking-[-0.06em] text-white md:text-5xl">
-                The customer link carries the value. The site just opens the deal cleanly.
+                If the sample works, see how it looks under your company name.
               </p>
             </div>
             <ButtonLink
-              href="/start"
+              href="/company-version"
               variant="solid"
               withIcon
               className="justify-self-start md:justify-self-end"
             >
-              Request Setup
+              Start Company Version
             </ButtonLink>
           </div>
           <div className="grid gap-10 px-6 py-8 md:grid-cols-[1.2fr_0.9fr_0.9fr] md:px-8">
@@ -39,9 +45,9 @@ export function SiteFooter() {
                 {siteConfig.name}
               </p>
               <p className="max-w-xl text-sm leading-7 text-white/62">
-                Industrial-grade customer links for kitchen exhaust vendors. Service
-                closeout links sharpen post-service trust. Sales lists sell live opportunity
-                before the first-touch sales packet helps close.
+                Branded hood service report links and PDFs for hood cleaning
+                companies. Turn field photos, open items, and next steps into a
+                restaurant-ready report after every visit.
               </p>
             </div>
             <div className="space-y-3">
@@ -50,7 +56,11 @@ export function SiteFooter() {
               </p>
               <nav className="grid gap-2 text-sm uppercase tracking-[0.12em] text-white/52">
                 {footerLinks.slice(0, 4).map((link) => (
-                  <Link key={link.label} href={link.href} className="transition hover:text-white">
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className="flex min-h-10 items-center transition hover:text-white"
+                  >
                     {link.label}
                   </Link>
                 ))}
@@ -58,17 +68,40 @@ export function SiteFooter() {
             </div>
             <div className="space-y-3">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/72">
-                Workflow
+                Next Step
               </p>
               <nav className="grid gap-2 text-sm uppercase tracking-[0.12em] text-white/52">
-                <Link href="/start" className="transition hover:text-white">
-                  Request Setup
+                <Link
+                  href="/company-version"
+                  className="flex min-h-10 items-center transition hover:text-white"
+                >
+                  Company Version
                 </Link>
-                <Link href={`mailto:${siteConfig.supportEmail}`} className="transition hover:text-white">
+                <Link
+                  href="/start"
+                  className="flex min-h-10 items-center transition hover:text-white"
+                >
+                  Design Help
+                </Link>
+                <Link
+                  href={`mailto:${siteConfig.supportEmail}`}
+                  className="flex min-h-10 items-center transition hover:text-white"
+                >
                   Contact Support
                 </Link>
               </nav>
             </div>
+          </div>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-white/10 px-6 py-5 text-xs uppercase tracking-[0.16em] text-white/42 md:px-8">
+            {legalLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="flex min-h-9 items-center transition hover:text-white"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

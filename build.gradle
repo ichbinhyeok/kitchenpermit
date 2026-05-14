@@ -25,7 +25,10 @@ repositories {
 }
 
 dependencies {
+    implementation platform('software.amazon.awssdk:bom:2.25.70')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-jackson'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -36,10 +39,13 @@ dependencies {
     implementation 'org.apache.pdfbox:pdfbox:3.0.2'
     implementation 'org.apache.poi:poi-ooxml:5.4.1'
     implementation 'com.microsoft.playwright:playwright:1.53.0'
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:url-connection-client'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
@@ -142,4 +148,16 @@ tasks.named('bootRun') {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // The sourcing batch suite is a separate Axis 2/sales-list gate, not part of the Axis 1 launch deploy gate.
+    exclude '**/VendorProspectSourcingFlowTest.class'
+}
+
+tasks.register('vendorProspectSourcingTest', Test) {
+    group = 'verification'
+    description = 'Runs the separate vendor prospect sourcing regression suite.'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/VendorProspectSourcingFlowTest.class'
+    shouldRunAfter tasks.named('test')
 }

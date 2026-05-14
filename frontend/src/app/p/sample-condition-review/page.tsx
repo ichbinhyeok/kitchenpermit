@@ -3,9 +3,9 @@ import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { buildAxis1SampleProofData } from "@/lib/axis1-sample-packets";
 
 export const metadata: Metadata = {
-  title: "Sample Condition Review Customer Link",
+  title: "Sample Condition Review Service Report",
   description:
-    "A customer-facing hood service customer link sample with a recorded condition and follow-up quote action.",
+    "A customer-facing hood service report sample with a recorded condition and follow-up quote action.",
 };
 
 const reportData = buildAxis1SampleProofData("condition_review");
