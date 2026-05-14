@@ -21,7 +21,7 @@ class PublicSiteApiControllerTest {
     void siteConfigEndpointExposesFrontendBootstrapFields() throws Exception {
         mockMvc.perform(get("/api/public/site-config"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.siteName").value("hood"))
+                .andExpect(jsonPath("$.siteName").value("KitchenPermit"))
                 .andExpect(jsonPath("$.baseUrl").value("https://kitchenpermit.com"))
                 .andExpect(jsonPath("$.supportEmail").value("compliance@kitchenpermit.com"));
     }

@@ -3,14 +3,14 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Terms of service for hood.",
+  description: `Terms of service for ${siteConfig.name}.`,
 };
 
 const terms = [
   {
     title: "1. Service",
     copy:
-      "hood provides software that helps kitchen exhaust and hood cleaning companies create customer-facing service report links and PDF-ready records. We do not provide hood cleaning, inspection, repair, or field services.",
+      `${siteConfig.name} provides software that helps kitchen exhaust and hood cleaning companies create customer-facing service report links and PDF-ready records. We do not provide hood cleaning, inspection, repair, or field services.`,
   },
   {
     title: "2. Accounts and Access",
@@ -30,7 +30,7 @@ const terms = [
   {
     title: "5. Acceptable Use",
     copy:
-      "You may not use hood to upload unlawful content, infringing content, malware, deceptive reports, or content that violates third-party rights. We may remove content or restrict access when necessary to protect the service, customers, or legal compliance.",
+      `You may not use ${siteConfig.name} to upload unlawful content, infringing content, malware, deceptive reports, or content that violates third-party rights. We may remove content or restrict access when necessary to protect the service, customers, or legal compliance.`,
   },
   {
     title: "6. Availability",
@@ -40,7 +40,7 @@ const terms = [
   {
     title: "7. Limitation of Liability",
     copy:
-      "To the maximum extent permitted by law, hood is provided as-is and we are not liable for indirect, incidental, special, consequential, or punitive damages arising from use of the service.",
+      `To the maximum extent permitted by law, ${siteConfig.name} is provided as-is and we are not liable for indirect, incidental, special, consequential, or punitive damages arising from use of the service.`,
   },
   {
     title: "8. Contact",
@@ -59,7 +59,7 @@ export default function TermsPage() {
       </h1>
       <p className="mt-5 max-w-3xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8">
         Last updated: May 13, 2026. These terms describe the rules for using
-        hood and its paid subscription features.
+        {siteConfig.name} and its paid subscription features.
       </p>
 
       <div className="mt-12 divide-y divide-border rounded-[34px] border border-border bg-white/80 px-5 md:px-8">

@@ -6,8 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class HoodSiteProperties {
 
     private String baseUrl = "http://localhost:8080";
-    private String name = "hood";
-    private String supportEmail = "ops@hood.local";
+    private String name = "KitchenPermit";
+    private String supportEmail = "support@kitchenpermit.com";
 
     public String getBaseUrl() {
         return baseUrl;

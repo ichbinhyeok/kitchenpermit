@@ -12,7 +12,7 @@ import {
 export const metadata: Metadata = {
   title: "Company Version",
   description:
-    "The paid hood service report version for saved company details, live service report links, clean PDFs, and report history.",
+    "The paid KitchenPermit company version for saved company details, live service report links, clean PDFs, and report history.",
 };
 
 const storedItems = [

@@ -4,10 +4,10 @@ export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "hood service report builder",
-    short_name: "hood",
+    name: "KitchenPermit service report builder",
+    short_name: "KitchenPermit",
     description:
-      "Mobile-first hood service report builder for kitchen exhaust vendors.",
+      "Mobile-first service report builder for kitchen exhaust vendors.",
     start_url: "/axis-1/tool",
     scope: "/",
     display: "standalone",
@@ -45,7 +45,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: "Create service report",
         short_name: "Report",
-        description: "Open the mobile hood service report builder.",
+        description: "Open the mobile service report builder.",
         url: "/axis-1/tool",
         icons: [
           {

@@ -3,7 +3,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Refund Policy",
-  description: "Refund policy for hood subscriptions.",
+  description: `Refund policy for ${siteConfig.name} subscriptions.`,
 };
 
 const sections = [

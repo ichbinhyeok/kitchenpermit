@@ -3,7 +3,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Privacy policy for hood.",
+  description: `Privacy policy for ${siteConfig.name}.`,
 };
 
 const sections = [
@@ -53,8 +53,8 @@ export default function PrivacyPage() {
         Privacy Policy
       </h1>
       <p className="mt-5 max-w-3xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8">
-        Last updated: May 13, 2026. This policy explains how hood handles
-        information for its SaaS report builder and hosted report links.
+        Last updated: May 13, 2026. This policy explains how {siteConfig.name}{" "}
+        handles information for its SaaS report builder and hosted report links.
       </p>
 
       <div className="mt-12 divide-y divide-border rounded-[34px] border border-border bg-white/80 px-5 md:px-8">

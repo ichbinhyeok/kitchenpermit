@@ -4,9 +4,9 @@ import {
 } from "@/lib/axis1-product-policy";
 
 export const siteConfig = {
-  name: "hood",
+  name: "KitchenPermit",
   description:
-    "Branded hood service report links and PDFs for kitchen exhaust vendors after every cleaning job.",
+    "Branded service report links and PDFs for kitchen exhaust vendors after every cleaning job.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenpermit.com",
   supportEmail:
     process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@kitchenpermit.com",

@@ -63,9 +63,9 @@ export function Axis1BuilderHeader<TStep extends string>({
     >
         <HeaderBrandLink
           href="/axis-1/tool"
-          icon="H"
-          title="Hood"
-          subtitle="Report"
+          icon="K"
+          title="Kitchen"
+          subtitle="Permit"
           tone="dark"
           className="px-1"
           markClassName="h-9 w-9 rounded-full"

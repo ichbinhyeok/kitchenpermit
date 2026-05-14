@@ -324,8 +324,8 @@ function ViewerChrome({
 }) {
   const displayUrl =
     mode === "pdf"
-      ? "hood.link/summit/sample-restaurant-group/inspection-record.pdf"
-      : "hood.link/summit/sample-restaurant-group/restaurant-view";
+      ? "kitchenpermit.com/p/summit/inspection-record.pdf"
+      : "kitchenpermit.com/p/summit/restaurant-view";
 
   return (
     <div className="grid gap-3 border-b border-white/10 bg-[#111519] px-3 py-3 text-white sm:px-4 lg:grid-cols-[1fr_auto] lg:items-center">

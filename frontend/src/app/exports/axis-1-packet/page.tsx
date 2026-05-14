@@ -74,7 +74,7 @@ function buildSetupEmailUrl(options: {
 }) {
   const subject = "Service report link inquiry (미정)";
   const body = [
-    "Kitchen Permit team,",
+    `${siteConfig.name} team,`,
     "",
     "I want to discuss a branded service report link.",
     "",

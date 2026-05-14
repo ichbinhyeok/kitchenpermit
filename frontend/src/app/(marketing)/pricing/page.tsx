@@ -11,7 +11,7 @@ import {
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Pricing for the free hood service report builder, company version, and optional design help.",
+    "Pricing for the free service report builder, company version, and optional design help.",
 };
 
 const offerTracks = [

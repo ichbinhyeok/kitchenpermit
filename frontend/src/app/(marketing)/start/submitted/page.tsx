@@ -226,8 +226,8 @@ function StartSubmittedContent() {
           </h2>
           <p className="mt-4 text-base leading-8 text-muted-foreground">
             This opens a prepared email to {siteConfig.supportEmail}. After it is sent,
-            hood can review the request and quote optional design help without making
-            it look required for the self-serve company version.
+            {siteConfig.name} can review the request and quote optional design help
+            without making it look required for the self-serve company version.
           </p>
           <div className="mt-6 grid gap-3">
             {[

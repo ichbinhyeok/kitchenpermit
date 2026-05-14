@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "hood | Service reports for hood cleaning jobs",
-    template: "%s | hood",
+    default: "KitchenPermit | Service reports for hood cleaning jobs",
+    template: "%s | KitchenPermit",
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "hood",
+    title: "KitchenPermit",
   },
   icons: {
     icon: [

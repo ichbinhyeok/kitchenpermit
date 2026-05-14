@@ -97,7 +97,7 @@ class PublicSiteControllerTest {
 
         assertStaticResourceContains(
                 "static/manifest.webmanifest",
-                "hood service report builder",
+                "KitchenPermit service report builder",
                 "Create service report"
         );
     }

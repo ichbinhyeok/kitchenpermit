@@ -106,7 +106,7 @@ jobs:
                   - GG_JTE_DEVELOPMENT_MODE=false
                   - GG_JTE_USE_PRECOMPILED_TEMPLATES=true
                   - HOOD_SITE_BASE_URL=https://kitchenpermit.com
-                  - HOOD_SITE_NAME=hood
+                  - HOOD_SITE_NAME=KitchenPermit
                   - HOOD_SITE_SUPPORT_EMAIL=support@kitchenpermit.com
                   - HOOD_STORAGE_ROOT=/app/storage
                   - HOOD_AXIS1_ASSET_STORAGE_DRIVER=${{ secrets.HOOD_AXIS1_ASSET_STORAGE_DRIVER || 'filesystem' }}
@@ -127,6 +127,26 @@ jobs:
                     limits:
                       memory: 1024M
             EOF
+            GOOGLE_OAUTH_CLIENT_ID='${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID }}' \
+            GOOGLE_OAUTH_CLIENT_SECRET='${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET }}' \
+            python3 - <<'PY'
+            import os
+            from pathlib import Path
+
+            client_id = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "").strip()
+            client_secret = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "").strip()
+
+            if client_id and client_secret:
+                path = Path("docker-compose.yml")
+                body = path.read_text()
+                needle = "                  - SPRING_H2_CONSOLE_ENABLED=false\n"
+                insert = (
+                    f"                  - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID={client_id}\n"
+                    f"                  - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET={client_secret}\n"
+                    "                  - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE=openid,email,profile\n"
+                )
+                path.write_text(body.replace(needle, needle + insert))
+            PY
 
             docker compose down --remove-orphans || true
             docker compose pull

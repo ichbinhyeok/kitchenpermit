@@ -25,7 +25,7 @@ export function buildEmailDraftUrl(draft: StartRequestDraft) {
 
   const subject = `${productInterest} request - ${companyName}`;
   const body = [
-    "Kitchen Permit team,",
+    `${siteConfig.name} team,`,
     "",
     `I want to discuss ${productInterest}.`,
     "",

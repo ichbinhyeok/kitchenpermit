@@ -28,7 +28,7 @@ public class InquiryMailDraftFactory {
                 + " request"
                 + (hasText(companyName) ? " - " + companyName : "");
 
-        String body = "Kitchen Permit team,\r\n\r\n"
+        String body = siteProperties.getName() + " team,\r\n\r\n"
                 + "I want to discuss " + firstNonBlank(productInterest, "a project") + ".\r\n\r\n"
                 + "Company: " + firstNonBlank(companyName, "Not provided") + "\r\n"
                 + "Primary contact: " + firstNonBlank(contactName, "Not provided") + "\r\n"
