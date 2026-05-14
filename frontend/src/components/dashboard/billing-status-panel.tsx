@@ -66,10 +66,57 @@ function billingNoticeCopy(value: string | null) {
 
 function BillingNotice({ compact = false }: { compact?: boolean }) {
   const searchParams = useSearchParams();
+  const billing = searchParams.get("billing");
+  const access = searchParams.get("access");
   const notice = useMemo(
-    () => billingNoticeCopy(searchParams.get("billing")),
-    [searchParams],
+    () => billingNoticeCopy(billing),
+    [billing],
   );
+
+  useEffect(() => {
+    if (billing !== "checkout-complete" || access === "active") {
+      return;
+    }
+
+    let cancelled = false;
+    let retryTimer: number | null = null;
+    let attempts = 0;
+
+    async function refreshWhenCompanyAccessIsReady() {
+      attempts += 1;
+
+      try {
+        const entitlements = await loadAxis1AccountEntitlements();
+
+        if (cancelled) {
+          return;
+        }
+
+        if (entitlements.companyAccess) {
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set("access", "active");
+          window.location.replace(nextUrl.toString());
+          return;
+        }
+      } catch {
+        // Keep the success notice visible and retry briefly while Paddle/webhook settles.
+      }
+
+      if (!cancelled && attempts < 12) {
+        retryTimer = window.setTimeout(refreshWhenCompanyAccessIsReady, 2500);
+      }
+    }
+
+    void refreshWhenCompanyAccessIsReady();
+
+    return () => {
+      cancelled = true;
+
+      if (retryTimer) {
+        window.clearTimeout(retryTimer);
+      }
+    };
+  }, [access, billing]);
 
   if (!notice) {
     return null;
