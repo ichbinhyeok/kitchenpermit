@@ -8,7 +8,11 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        allow: [
+          "/",
+          "/api/axis1/assets/",
+          "/api/axis1/reports/public/",
+        ],
         disallow: [
           "/api/",
           "/auth/",
@@ -17,8 +21,6 @@ export default function robots(): MetadataRoute.Robots {
           "/forgot-password",
           "/login",
           "/ops/",
-          "/p/",
-          "/reports/",
           "/reset-password",
           "/start/submitted",
         ],

@@ -16,6 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -69,6 +70,12 @@ class PublicSiteControllerTest {
         expectFrontendPage("/p/sample-blocked-access");
         expectFrontendPage("/p/sample-blocked-access.html");
         expectFrontendPage("/p/server");
+        mockMvc.perform(get("/p/server"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"));
+        mockMvc.perform(get("/reports/free-axis-1"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"));
 
         assertStaticResourceContains(
                 "static/samples/axis-1.html",
@@ -136,8 +143,12 @@ class PublicSiteControllerTest {
         assertStaticResourceContains(
                 "static/robots.txt",
                 "Sitemap: https://kitchenpermit.com/sitemap.xml",
-                "Disallow: /p/"
+                "Allow: /api/axis1/assets/",
+                "Allow: /api/axis1/reports/public/",
+                "Disallow: /api/"
         );
+        assertStaticResourceDoesNotContain("static/robots.txt", "Disallow: /p/");
+        assertStaticResourceDoesNotContain("static/robots.txt", "Disallow: /reports/");
     }
 
     @Test

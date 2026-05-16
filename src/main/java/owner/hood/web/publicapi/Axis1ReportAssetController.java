@@ -12,6 +12,7 @@ import owner.hood.application.axis1.Axis1ReportAssetStorage;
 import owner.hood.application.axis1.Axis1StoredAsset;
 import owner.hood.domain.axis1.Axis1ReportRecord;
 import owner.hood.infrastructure.persistence.Axis1ReportRecordRepository;
+import owner.hood.web.common.RobotsHeaders;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -39,29 +40,35 @@ public class Axis1ReportAssetController {
             @PathVariable String fileName
     ) {
         if (!publicId.matches("[A-Za-z0-9]{12,40}") || !fileName.matches("[A-Za-z0-9._-]+")) {
-            return ResponseEntity.notFound().build();
+            return noIndex(HttpStatus.NOT_FOUND).build();
         }
 
         return reportRecords.findByPublicId(publicId)
                 .map(record -> serveAsset(record, fileName))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> noIndex(HttpStatus.NOT_FOUND).build());
     }
 
     private ResponseEntity<byte[]> serveAsset(Axis1ReportRecord record, String fileName) {
         if (record.getExpiresAt() != null && record.getExpiresAt().isBefore(Instant.now())) {
-            return ResponseEntity.status(HttpStatus.GONE).build();
+            return noIndex(HttpStatus.GONE).build();
         }
 
         if (isCompanySubscriptionInactive(record)) {
-            return ResponseEntity.status(HttpStatus.GONE).build();
+            return noIndex(HttpStatus.GONE).build();
         }
 
         return assetStorage.loadAsset(record.getPublicId(), fileName)
                 .map(asset -> ResponseEntity.ok()
                         .contentType(mediaType(asset, fileName))
                         .header(HttpHeaders.CACHE_CONTROL, "private, max-age=300")
+                        .header(RobotsHeaders.X_ROBOTS_TAG, RobotsHeaders.NO_INDEX_PRIVATE_CONTENT)
                         .body(asset.bytes()))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> noIndex(HttpStatus.NOT_FOUND).build());
+    }
+
+    private ResponseEntity.BodyBuilder noIndex(HttpStatus status) {
+        return ResponseEntity.status(status)
+                .header(RobotsHeaders.X_ROBOTS_TAG, RobotsHeaders.NO_INDEX_PRIVATE_CONTENT);
     }
 
     private MediaType mediaType(Axis1StoredAsset asset, String fileName) {

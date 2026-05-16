@@ -26,6 +26,7 @@ import owner.hood.domain.axis1.Axis1CompanyProfile;
 import owner.hood.domain.axis1.Axis1ReportRecord;
 import owner.hood.infrastructure.persistence.Axis1CompanyProfileRepository;
 import owner.hood.infrastructure.persistence.Axis1ReportRecordRepository;
+import owner.hood.web.common.RobotsHeaders;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -268,18 +269,18 @@ public class Axis1AccountStorageApiController {
         return reportRecords.findByPublicId(publicId)
                 .map(record -> {
                     if (isExpired(record)) {
-                        return ResponseEntity.status(HttpStatus.GONE)
+                        return publicNoIndex(HttpStatus.GONE)
                                 .body(expiredReportResponse(record));
                     }
 
                     if (isCompanySubscriptionInactive(record)) {
-                        return ResponseEntity.status(HttpStatus.GONE)
+                        return publicNoIndex(HttpStatus.GONE)
                                 .body(inactiveCompanyReportResponse(record));
                     }
 
-                    return ResponseEntity.ok(reportResponse(record, true));
+                    return publicNoIndex(HttpStatus.OK).body(reportResponse(record, true));
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> publicNoIndex(HttpStatus.NOT_FOUND).build());
     }
 
     @GetMapping("/api/axis1/reports/public/{publicId}/pdf-manifest")
@@ -287,22 +288,27 @@ public class Axis1AccountStorageApiController {
         return reportRecords.findByPublicId(publicId)
                 .map(record -> {
                     if (isExpired(record)) {
-                        return ResponseEntity.status(HttpStatus.GONE)
+                        return publicNoIndex(HttpStatus.GONE)
                                 .body(expiredReportResponse(record));
                     }
 
                     if (isCompanySubscriptionInactive(record)) {
-                        return ResponseEntity.status(HttpStatus.GONE)
+                        return publicNoIndex(HttpStatus.GONE)
                                 .body(inactiveCompanyReportResponse(record));
                     }
 
-                    return ResponseEntity.ok(Map.of(
+                    return publicNoIndex(HttpStatus.OK).body(Map.of(
                             "publicId", record.getPublicId(),
                             "productPlan", record.getProductPlan(),
                             "pdfExport", pdfExportService.capability(record.getProductPlan(), fromJson(record.getPayloadJson()))
                     ));
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> publicNoIndex(HttpStatus.NOT_FOUND).build());
+    }
+
+    private ResponseEntity.BodyBuilder publicNoIndex(HttpStatus status) {
+        return ResponseEntity.status(status)
+                .header(RobotsHeaders.X_ROBOTS_TAG, RobotsHeaders.NO_INDEX_PRIVATE_CONTENT);
     }
 
     private Optional<String> authenticatedEmail(Authentication authentication) {

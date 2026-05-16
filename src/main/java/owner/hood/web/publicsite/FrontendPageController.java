@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.server.ResponseStatusException;
+import owner.hood.web.common.RobotsHeaders;
 
 @Controller
 public class FrontendPageController {
@@ -74,9 +75,14 @@ public class FrontendPageController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_HTML)
-                .body(resource);
+        ResponseEntity.BodyBuilder response = ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML);
+
+        if (isPrivateShareRoute(requestPath)) {
+            response.header(RobotsHeaders.X_ROBOTS_TAG, RobotsHeaders.NO_INDEX_PRIVATE_CONTENT);
+        }
+
+        return response.body(resource);
     }
 
     private String normalizePath(String path) {
@@ -103,5 +109,12 @@ public class FrontendPageController {
         }
 
         return requestPath + ".html";
+    }
+
+    private boolean isPrivateShareRoute(String requestPath) {
+        return requestPath.equals("/p")
+                || requestPath.startsWith("/p/")
+                || requestPath.equals("/reports")
+                || requestPath.startsWith("/reports/");
     }
 }

@@ -1,5 +1,6 @@
 package owner.hood.web.delivery;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import owner.hood.application.axis1.Axis1JobService;
 import owner.hood.infrastructure.pdf.Axis2PdfService;
 import owner.hood.infrastructure.pdf.Axis1PdfService;
 import owner.hood.web.common.PageMetaFactory;
+import owner.hood.web.common.RobotsHeaders;
 
 @Controller
 public class DeliveryController {
@@ -42,7 +44,8 @@ public class DeliveryController {
     }
 
     @GetMapping("/deliver/axis-1/{token}")
-    public String axis1Brief(@PathVariable String token, Model model) {
+    public String axis1Brief(@PathVariable String token, Model model, HttpServletResponse response) {
+        response.setHeader(RobotsHeaders.X_ROBOTS_TAG, RobotsHeaders.NO_INDEX_PRIVATE_CONTENT);
         Axis1BriefView brief = axis1JobService.loadBrief(token);
         model.addAttribute("page", pageMetaFactory.packetPage(
                 "/deliver/axis-1/" + token,
@@ -55,7 +58,8 @@ public class DeliveryController {
     }
 
     @GetMapping("/deliver/axis-2/{token}")
-    public String axis2Packet(@PathVariable String token, Model model) {
+    public String axis2Packet(@PathVariable String token, Model model, HttpServletResponse response) {
+        response.setHeader(RobotsHeaders.X_ROBOTS_TAG, RobotsHeaders.NO_INDEX_PRIVATE_CONTENT);
         Axis2PacketView packet = axis2Service.findPacket(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         model.addAttribute("page", pageMetaFactory.packetPage(
@@ -76,6 +80,7 @@ public class DeliveryController {
                         .filename("hood-axis2-" + token + "-list.csv")
                         .build()
                         .toString())
+                .header(RobotsHeaders.X_ROBOTS_TAG, RobotsHeaders.NO_INDEX_PRIVATE_CONTENT)
                 .body(axis2Service.exportBatchCsv(token));
     }
 
@@ -95,6 +100,7 @@ public class DeliveryController {
                         .filename(filename)
                         .build()
                         .toString())
+                .header(RobotsHeaders.X_ROBOTS_TAG, RobotsHeaders.NO_INDEX_PRIVATE_CONTENT)
                 .body(pdf);
     }
 }

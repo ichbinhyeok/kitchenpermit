@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -196,6 +197,7 @@ class Axis1AccountStorageApiTest {
 
         mockMvc.perform(get(assetHref))
                 .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
                 .andExpect(resultMatcher -> {
                     String contentType = resultMatcher.getResponse().getContentType();
                     if (!MediaType.IMAGE_PNG_VALUE.equals(contentType)) {
@@ -300,6 +302,7 @@ class Axis1AccountStorageApiTest {
 
         mockMvc.perform(get("/api/axis1/reports/public/{publicId}", publicId))
                 .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
                 .andExpect(jsonPath("$.payload.values.propertyName").value("Metro Diner"));
 
         mockMvc.perform(get("/api/axis1/reports/{publicId}/builder", publicId))
@@ -315,6 +318,7 @@ class Axis1AccountStorageApiTest {
 
         mockMvc.perform(get("/api/axis1/reports/public/{publicId}/pdf-manifest", publicId))
                 .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
                 .andExpect(jsonPath("$.pdfExport.serverDownloadReady").value(true))
                 .andExpect(jsonPath("$.pdfExport.downloadHref", startsWith("/api/axis1/assets/")));
 
@@ -322,6 +326,7 @@ class Axis1AccountStorageApiTest {
 
         mockMvc.perform(get(pdfHref))
                 .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
                 .andExpect(resultMatcher -> {
                     String contentType = resultMatcher.getResponse().getContentType();
                     if (!MediaType.APPLICATION_PDF_VALUE.equals(contentType)) {
@@ -361,7 +366,8 @@ class Axis1AccountStorageApiTest {
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/axis1/reports/public/{publicId}", publicId))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"));
     }
 
     @Test
