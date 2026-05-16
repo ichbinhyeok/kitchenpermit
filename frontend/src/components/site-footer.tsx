@@ -35,7 +35,7 @@ export function SiteFooter() {
               withIcon
               className="justify-self-start md:justify-self-end"
             >
-              Start Company Version
+              Set Up Company Reports
             </ButtonLink>
           </div>
           <div className="grid gap-10 px-6 py-8 md:grid-cols-[1.2fr_0.9fr_0.9fr] md:px-8">
@@ -74,7 +74,7 @@ export function SiteFooter() {
                   href="/company-version"
                   className="flex min-h-10 items-center transition hover:text-white"
                 >
-                  Company Version
+                  Company Reports
                 </Link>
                 <Link
                   href="/start"

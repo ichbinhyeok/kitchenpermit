@@ -35,8 +35,8 @@ const workspaceActions = [
   {
     icon: CalendarClock,
     title: "Next dates",
-    copy: "Open upcoming service and customer items.",
-    href: "#report-history",
+    copy: "Jump to the scheduled service queue.",
+    href: "#next-service-queue",
     primary: false,
   },
   {
@@ -57,7 +57,7 @@ const workspaceActions = [
 export default function DashboardPage() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader sticky={false} />
       <main className="min-h-screen bg-[#f0e9df] text-[#111315]">
         <section className="border-b border-black/10 bg-[#111315] px-3 py-4 text-white sm:px-5">
           <div className="mx-auto w-[min(1360px,100%)]">

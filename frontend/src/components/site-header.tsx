@@ -24,7 +24,12 @@ const navigation = [
 
 type HeaderAuthStatus = "checking" | "authenticated" | "anonymous";
 
-export function SiteHeader() {
+type SiteHeaderProps = {
+  className?: string;
+  sticky?: boolean;
+};
+
+export function SiteHeader({ className, sticky = true }: SiteHeaderProps = {}) {
   const pathname = usePathname();
   const [authStatus, setAuthStatus] =
     useState<HeaderAuthStatus>("checking");
@@ -68,7 +73,11 @@ export function SiteHeader() {
   );
 
   return (
-    <HeaderChrome tone="light" className="site-header">
+    <HeaderChrome
+      tone="light"
+      sticky={sticky}
+      className={["site-header", className].filter(Boolean).join(" ")}
+    >
       <div className="flex min-w-0 items-center gap-2 lg:gap-8">
         <HeaderBrandLink
           href="/"
@@ -93,10 +102,10 @@ export function SiteHeader() {
         <div className="hidden lg:block">
           <Link
             href="/company-version"
-            aria-label="Start company version"
+            aria-label="Set up company reports"
             className={headerPrimaryActionClass()}
           >
-            Company Version
+            Company Reports
           </Link>
         </div>
         <HeaderMobileMenu
@@ -110,7 +119,7 @@ export function SiteHeader() {
             })),
             {
               href: "/company-version",
-              label: "Company Version",
+              label: "Company Reports",
               kind: "primary",
             },
           ]}

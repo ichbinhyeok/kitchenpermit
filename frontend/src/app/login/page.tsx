@@ -42,9 +42,11 @@ export default function LoginPage() {
       </div>
 
       <section className="mx-auto grid w-[min(1120px,100%)] overflow-hidden rounded-[28px] border border-black/10 bg-[#fffaf3] shadow-[0_28px_90px_rgba(26,20,16,0.12)] lg:grid-cols-[minmax(0,1fr)_430px]">
-        <LoginProductPreview />
+        <div className="order-2 lg:order-1">
+          <LoginProductPreview />
+        </div>
 
-        <aside className="flex flex-col justify-between p-5 sm:p-7 lg:p-8">
+        <aside className="order-1 flex flex-col justify-between p-5 sm:p-7 lg:order-2 lg:p-8">
           <div>
             <div className="flex items-start justify-between gap-4 border-b border-black/10 pb-5">
               <div>

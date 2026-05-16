@@ -379,7 +379,7 @@ export function CompanyProfilePanel() {
   return (
     <div
       id="company-profile"
-      className="border-b border-black/10 bg-[#fffaf2] px-4 py-3 sm:px-5"
+      className="scroll-mt-4 border-b border-black/10 bg-[#fffaf2] px-4 py-3 sm:scroll-mt-6 sm:px-5"
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="flex min-w-0 items-start gap-3">
@@ -420,7 +420,7 @@ export function CompanyProfilePanel() {
                       : "Ready"}
               </span>
             </div>
-            <h2 className="mt-1 truncate text-xl font-black tracking-[-0.04em]">
+            <h2 className="mt-1 break-words text-xl font-black tracking-[-0.04em]">
               {storageState === "loading"
                 ? "Checking company access."
                 : profileLocked

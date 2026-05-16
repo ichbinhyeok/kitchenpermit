@@ -182,7 +182,7 @@ export default function Axis1Page() {
                   withIcon
                   className="w-full justify-between sm:w-auto sm:justify-center"
                 >
-                  Start company version
+                  Set up company reports
                 </ButtonLink>
               </div>
               <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
@@ -196,7 +196,7 @@ export default function Axis1Page() {
                   href="/axis-1/tool?account=free"
                   className="inline-flex min-h-10 items-center text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline"
                 >
-                  Try the builder
+                  Try free builder
                 </a>
               </div>
               <div className="hidden gap-2 sm:grid-cols-3 md:grid">
@@ -518,14 +518,14 @@ export default function Axis1Page() {
                   View sample report
                 </ButtonLink>
                 <ButtonLink href="/company-version" withIcon>
-                  Start company version
+                  Set up company reports
                 </ButtonLink>
               </div>
               <a
                 href="/axis-1/tool?account=free"
                 className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-accent"
               >
-                Try the builder
+                Try free builder
                 <ArrowRight className="h-4 w-4" />
               </a>
             </div>

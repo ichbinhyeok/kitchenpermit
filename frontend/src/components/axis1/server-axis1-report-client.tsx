@@ -33,6 +33,16 @@ function serviceRecordPdfViewHref(publicId: string) {
   return `/p/server?reportId=${encodeURIComponent(publicId)}&format=pdf`;
 }
 
+function hostedPdfHref(
+  response: Awaited<ReturnType<typeof loadAxis1ServerReport>>,
+) {
+  const downloadHref = response.pdfExport?.serverDownloadReady
+    ? response.pdfExport.downloadHref?.trim()
+    : "";
+
+  return downloadHref || serviceRecordPdfViewHref(response.publicId);
+}
+
 function withServerPdfHref(
   packetData: Axis1LocalPacketRecord["packetData"],
   pdfHref?: string,
@@ -165,7 +175,7 @@ function toHostedRecord(
     return null;
   }
 
-  const pdfHref = serviceRecordPdfViewHref(response.publicId);
+  const pdfHref = hostedPdfHref(response);
   const hostedPacketData = isUsableHostedPacketData(payload.packetData)
     ? withServerPdfHref(payload.packetData, pdfHref)
     : undefined;

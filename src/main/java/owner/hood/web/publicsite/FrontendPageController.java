@@ -40,6 +40,7 @@ public class FrontendPageController {
             "/company-version",
             "/dashboard",
             "/exports/{*path}",
+            "/forgot-password",
             "/login",
             "/p/{*path}",
             "/pricing",
@@ -50,6 +51,7 @@ public class FrontendPageController {
             "/samples/{*path}",
             "/start",
             "/start/{*path}",
+            "/reset-password",
             "/terms"
     })
     public ResponseEntity<Resource> serveFrontendPage(HttpServletRequest request) {

@@ -3,6 +3,7 @@ import Link from "@/components/navigation/static-link";
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/marketing/reveal";
+import { AXIS1_COMPANY_MONTHLY_PRICE } from "@/lib/axis1-product-policy";
 
 const inputRows = [
   ["Job photos", "Hood, filter, fan, and access photos"],
@@ -29,6 +30,14 @@ const reportContents = [
   ["Photo evidence", "Before/after images tied to the right hood areas"],
   ["Open items", "Blocked access or exceptions separated from completed work"],
   ["Record copy", "Link/PDF the manager can save in the inspection folder"],
+] as const;
+
+const planCues = [
+  ["Free", "No login. Unbranded 7-day test link and watermarked PDF."],
+  [
+    "Company",
+    `${AXIS1_COMPANY_MONTHLY_PRICE}. Your logo/contact, clean PDFs, live links, and history.`,
+  ],
 ] as const;
 
 function ActionLink({
@@ -141,7 +150,7 @@ export default function HomePage() {
             <p className="font-mono text-[11px] uppercase tracking-[0.34em] text-[#ffb27c]">
               For hood cleaning companies
             </p>
-            <h1 className="mt-5 max-w-[15ch] font-display text-[clamp(3.05rem,10.8vw,7.6rem)] font-bold leading-[0.86] tracking-[-0.085em] text-white">
+            <h1 className="mt-5 max-w-[15ch] font-display text-[clamp(2.95rem,8.7vw,6.35rem)] font-bold leading-[0.88] tracking-[-0.075em] text-white">
               Send a restaurant-ready service report after every hood cleaning job.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/72 md:text-xl md:leading-9">
@@ -149,15 +158,22 @@ export default function HomePage() {
               branded link/PDF the restaurant can save for inspection records.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <ActionLink href="/samples/axis-1" tone="accent">
+              <ActionLink href="/axis-1/tool?account=free" tone="accent">
+                Try free builder
+              </ActionLink>
+              <ActionLink href="/samples/axis-1" tone="light">
                 View sample report
               </ActionLink>
               <ActionLink href="/company-version" tone="light">
-                Start company version
+                Set up company reports
               </ActionLink>
-              <ActionLink href="/axis-1/tool?account=free" tone="light">
-                Try the builder
-              </ActionLink>
+            </div>
+            <div className="mt-4 grid max-w-2xl gap-2 text-sm leading-6 text-white/64 sm:grid-cols-2">
+              {planCues.map(([label, copy]) => (
+                <p key={label} className="border-l border-white/14 pl-3">
+                  <span className="font-bold text-white">{label}:</span> {copy}
+                </p>
+              ))}
             </div>
           </Reveal>
 
@@ -233,19 +249,20 @@ export default function HomePage() {
                 Want this under your company name?
               </h2>
               <p className="mt-5 max-w-2xl text-base leading-8 text-white/64">
-                Start with the public sample. Use the free builder without login,
-                then move to the $79/month company version when you want your
-                brand, clean PDFs, live service report links, and report history.
+                Start with the public sample or create a free unbranded test
+                report without login. Move to the $79/month company version when
+                you want your logo/contact, clean PDFs, live service report
+                links, and report history.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <ActionLink href="/samples/axis-1" tone="accent">
+                <ActionLink href="/axis-1/tool?account=free" tone="accent">
+                  Try free builder
+                </ActionLink>
+                <ActionLink href="/samples/axis-1" tone="light">
                   View sample report
                 </ActionLink>
                 <ActionLink href="/company-version" tone="light">
-                  Start company version
-                </ActionLink>
-                <ActionLink href="/axis-1/tool?account=free" tone="light">
-                  Try the builder
+                  Set up company reports
                 </ActionLink>
               </div>
             </div>

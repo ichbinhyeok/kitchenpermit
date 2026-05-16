@@ -2635,6 +2635,8 @@ export function PacketBuilder({
   const [mobileSheet, setMobileSheet] = useState<MobileSheetView | null>(null);
   const [setupNoticeAction, setSetupNoticeAction] =
     useState<SetupNoticeAction | null>(null);
+  const [lastSavedReportLink, setLastSavedReportLink] =
+    useState<SavedReportLink | null>(null);
   const [paidFeatureNotice, setPaidFeatureNotice] =
     useState<PaidFeatureNotice | null>(null);
   const [authSessionStatus, setAuthSessionStatus] =
@@ -3351,6 +3353,16 @@ export function PacketBuilder({
             : "Free mode keeps a visible watermark so vendors can evaluate the output before using it under their company name.",
           badge: productPolicy.outputLabel,
         };
+  const lastSavedReportLinkLabel =
+    lastSavedReportLink?.storage === "server"
+      ? "Hosted report link"
+      : "Browser fallback link";
+  const lastSavedReportLinkCopy =
+    lastSavedReportLink?.storage === "server"
+      ? lastSavedReportLink.productPlan === "company"
+        ? "Saved to account history under the company version."
+        : "Saved as a free 7-day test link."
+      : "Saved in this browser only because hosted storage was not reachable.";
   const activePreviewPresentationMode =
     reportOutputMode === "pdf" ? packetPresentationMode : "standard";
   const activePreviewSections =
@@ -4291,14 +4303,20 @@ export function PacketBuilder({
       const savedReport = await saveCurrentReportLink();
 
       if (savedReport) {
-        window.open(savedReport.url, "_blank", "noopener,noreferrer");
+        setLastSavedReportLink(savedReport);
+        openSavedReportLink(savedReport);
       }
 
       return;
     }
 
     if (action === "print-pdf") {
-      await saveCurrentReportLink({ quiet: true });
+      const savedReport = await saveCurrentReportLink({ quiet: true });
+
+      if (savedReport) {
+        setLastSavedReportLink(savedReport);
+      }
+
       window.setTimeout(printCustomerReport, 160);
     }
   }
@@ -4356,6 +4374,8 @@ export function PacketBuilder({
       return;
     }
 
+    setLastSavedReportLink(savedReport);
+
     try {
       await navigator.clipboard.writeText(savedReport.url);
       const isHosted = savedReport.storage === "server";
@@ -4371,8 +4391,36 @@ export function PacketBuilder({
       );
     } catch {
       toast.error("Could not copy automatically", {
-        description: "Open the generated service report link and copy the browser address.",
+        description: "The generated service report link is visible below. Open it or copy the URL from the field.",
       });
+    }
+  }
+
+  async function copySavedReportUrl(savedReport: SavedReportLink | null) {
+    if (!savedReport) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(savedReport.url);
+      toast.success("Report link copied", {
+        description:
+          savedReport.storage === "server"
+            ? "The hosted service report URL is ready to send."
+            : "The browser fallback URL is ready to test in this browser.",
+      });
+    } catch {
+      toast.error("Could not copy automatically", {
+        description: "Select the visible URL field, or open the report and copy the browser address.",
+      });
+    }
+  }
+
+  function openSavedReportLink(savedReport: SavedReportLink) {
+    const opened = window.open(savedReport.url, "_blank", "noopener,noreferrer");
+
+    if (!opened) {
+      window.location.assign(savedReport.url);
     }
   }
 
@@ -9794,6 +9842,49 @@ export function PacketBuilder({
                   </SegmentedControlItem>
                 </SegmentedControl>
               </div>
+              {lastSavedReportLink ? (
+                <div className="pdf-print-hide mb-3 rounded-[18px] border border-[#2c7a3f]/20 bg-[#f0f8ef] px-3.5 py-3 md:px-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className={labelClassName()}>{lastSavedReportLinkLabel}</p>
+                        <span className="rounded-full border border-[#2c7a3f]/20 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#1f6330]">
+                          Generated
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs font-semibold leading-5 text-[#1f6330]">
+                        {lastSavedReportLinkCopy}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <a
+                        href={lastSavedReportLink.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111315] px-3 text-[10px] font-black uppercase tracking-[0.13em] text-white"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Open report
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => void copySavedReportUrl(lastSavedReportLink)}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-[10px] font-black uppercase tracking-[0.13em] text-foreground"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy again
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    aria-label="Generated service report link"
+                    readOnly
+                    value={lastSavedReportLink.url}
+                    onFocus={(event) => event.currentTarget.select()}
+                    className="mt-3 h-10 w-full min-w-0 rounded-[14px] border border-[#2c7a3f]/18 bg-white px-3 font-mono text-[11px] font-semibold text-foreground outline-none"
+                  />
+                </div>
+              ) : null}
               <div
                 className={`min-w-0 border bg-white ${
                   reportOutputMode === "pdf"

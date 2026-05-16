@@ -1,8 +1,11 @@
 package owner.hood.web.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,6 +24,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.view.RedirectView;
 import owner.hood.application.auth.AccountUserDetailsService;
+import owner.hood.application.auth.PasswordResetRateLimiter;
+import owner.hood.application.auth.PasswordResetService;
+import owner.hood.application.auth.PasswordResetService.ResetPasswordResult;
 import owner.hood.config.SecurityConfig;
 import owner.hood.domain.auth.AccountUser;
 import owner.hood.infrastructure.persistence.AccountUserRepository;
@@ -32,17 +38,29 @@ public class AuthController {
     private final AccountUserRepository accountUsers;
     private final PasswordEncoder passwordEncoder;
     private final UserDetailsService userDetailsService;
+    private final PasswordResetService passwordResetService;
+    private final PasswordResetRateLimiter passwordResetRateLimiter;
+    private final String siteBaseUrl;
+    private final boolean exposeDevResetLink;
 
     public AuthController(
             ObjectProvider<ClientRegistrationRepository> clientRegistrations,
             AccountUserRepository accountUsers,
             PasswordEncoder passwordEncoder,
-            UserDetailsService userDetailsService
+            UserDetailsService userDetailsService,
+            PasswordResetService passwordResetService,
+            PasswordResetRateLimiter passwordResetRateLimiter,
+            @Value("${hood.site.base-url:https://kitchenpermit.com}") String siteBaseUrl,
+            @Value("${hood.auth.password-reset.expose-dev-link:false}") boolean exposeDevResetLink
     ) {
         this.clientRegistrations = clientRegistrations;
         this.accountUsers = accountUsers;
         this.passwordEncoder = passwordEncoder;
         this.userDetailsService = userDetailsService;
+        this.passwordResetService = passwordResetService;
+        this.passwordResetRateLimiter = passwordResetRateLimiter;
+        this.siteBaseUrl = siteBaseUrl;
+        this.exposeDevResetLink = exposeDevResetLink;
     }
 
     @GetMapping("/auth/google")
@@ -95,6 +113,55 @@ public class AuthController {
         return new RedirectView(SecurityConfig.safeNextPath(next, "/dashboard"), true);
     }
 
+    @PostMapping("/auth/password-reset/request")
+    public RedirectView requestPasswordReset(
+            @RequestParam(name = "email") String email,
+            HttpServletRequest request
+    ) {
+        String redirect = "/forgot-password?sent=1";
+        var resetHref = passwordResetRateLimiter.allow(email, request.getRemoteAddr())
+                ? passwordResetService.requestPasswordReset(email)
+                : java.util.Optional.<String>empty();
+
+        if (shouldExposeResetHref() && resetHref.isPresent()) {
+            redirect = redirect + "&reset=" + URLEncoder.encode(resetHref.get(), StandardCharsets.UTF_8);
+        }
+
+        return new RedirectView(redirect, true);
+    }
+
+    @PostMapping("/auth/password-reset/confirm")
+    public RedirectView confirmPasswordReset(
+            @RequestParam(name = "token", required = false) String token,
+            @RequestParam(name = "password") String password,
+            @RequestParam(name = "confirmPassword") String confirmPassword
+    ) {
+        String tokenQuery = token == null || token.isBlank()
+                ? ""
+                : "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+        String authSeparator = tokenQuery.isBlank() ? "?auth=" : "&auth=";
+
+        if (!password.equals(confirmPassword)) {
+            return new RedirectView("/reset-password" + tokenQuery + authSeparator + "password-mismatch", true);
+        }
+
+        ResetPasswordResult result = passwordResetService.resetPassword(token, password);
+
+        if (result == ResetPasswordResult.SUCCESS) {
+            return new RedirectView("/login?auth=password-reset", true);
+        }
+
+        if (result == ResetPasswordResult.WEAK_PASSWORD) {
+            return new RedirectView("/reset-password" + tokenQuery + authSeparator + "weak-password", true);
+        }
+
+        if (result == ResetPasswordResult.EXPIRED_TOKEN) {
+            return new RedirectView("/reset-password?auth=expired-token", true);
+        }
+
+        return new RedirectView("/reset-password?auth=invalid-token", true);
+    }
+
     @GetMapping("/auth/session")
     @ResponseBody
     public Map<String, Object> currentSession(Authentication authentication) {
@@ -121,6 +188,10 @@ public class AuthController {
         } catch (RuntimeException ignored) {
             return false;
         }
+    }
+
+    private boolean shouldExposeResetHref() {
+        return exposeDevResetLink;
     }
 
     private void authenticateNewAccount(String email, HttpServletRequest request) {

@@ -40,7 +40,7 @@ const offerTracks = [
     copy:
       "For vendors who want reports under their company name, clean PDFs, saved company details, customer history, and follow-up reminders after each service.",
     href: "/company-version",
-    cta: "Start company version",
+    cta: "Set up company reports",
     icon: Repeat2,
     points: [
       "Save company logo, report color, and contact details",
@@ -93,7 +93,7 @@ export default function PricingPage() {
             href="/company-version"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-5 text-sm font-black text-white transition hover:bg-[#dd5b17]"
           >
-            Start company version
+            Set up company reports
             <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
           </Link>
           <Link

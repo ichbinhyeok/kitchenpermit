@@ -1178,10 +1178,31 @@ export function ReportHistoryPanel() {
     setSortDirection(defaultSortDirections[preset.sortMode]);
   }
 
+  useEffect(() => {
+    function applyHashTarget() {
+      if (
+        window.location.hash === "#next-service-queue" ||
+        window.location.hash === "#next-dates"
+      ) {
+        setActivePreset("upcoming");
+        setViewMode("queue");
+        setSortMode("nextService");
+        setSortDirection(defaultSortDirections.nextService);
+      }
+    }
+
+    applyHashTarget();
+    window.addEventListener("hashchange", applyHashTarget);
+
+    return () => {
+      window.removeEventListener("hashchange", applyHashTarget);
+    };
+  }, []);
+
   return (
     <div
       id="report-history"
-      className="bg-[#fffaf2]"
+      className="scroll-mt-4 bg-[#fffaf2] sm:scroll-mt-6"
     >
       <div className="border-b border-black/10 bg-[#fffaf2] px-3 py-3 sm:px-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -1262,6 +1283,8 @@ export function ReportHistoryPanel() {
           </div>
         ) : null}
       </div>
+
+      <div id="next-service-queue" className="scroll-mt-4 sm:scroll-mt-6" />
 
       {status === "loading" ? (
         <div className="p-5 text-sm font-semibold leading-6 text-[#75695f]">

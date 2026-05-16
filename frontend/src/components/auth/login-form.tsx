@@ -70,6 +70,14 @@ function statusMessage(
     };
   }
 
+  if (value === "password-reset") {
+    return {
+      tone: "success" as const,
+      title: "Password updated",
+      copy: "Use the new password to return to your account workspace.",
+    };
+  }
+
   return null;
 }
 
@@ -206,10 +214,26 @@ export function LoginForm() {
             aria-invalid={message?.tone === "error" ? true : undefined}
             className={fieldClassName}
           />
+          {isSignup ? (
+            <span className="text-[11px] font-semibold leading-4 text-[#75695f]">
+              Use an email you can access. Password reset links and account
+              notices are sent there.
+            </span>
+          ) : null}
         </label>
         <label className="grid gap-2">
-          <span className={labelClassName}>
-            Password
+          <span className="flex items-center justify-between gap-3">
+            <span className={labelClassName}>
+              Password
+            </span>
+            {!isSignup ? (
+              <a
+                href="/forgot-password"
+                className="text-[11px] font-black uppercase text-[#b94d11] underline-offset-4 hover:underline"
+              >
+                Forgot password?
+              </a>
+            ) : null}
           </span>
           <input
             name="password"
