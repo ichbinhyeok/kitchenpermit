@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Panel } from "@/components/ui/panel";
+import { ResourceLinkStrip } from "@/components/marketing/resource-link-strip";
 import { SectionLabel } from "@/components/ui/section-label";
 import { publicPageMetadata } from "@/lib/seo";
 
@@ -479,6 +480,12 @@ export default function Axis1Page() {
           );
         })}
       </section>
+
+      <ResourceLinkStrip
+        label="Report resources"
+        title="Answer the report questions before the customer sees the quote."
+        description="Templates, photo-report guidance, and after-service handoff pages give cold-email recipients a useful next click before the builder."
+      />
 
       <section className="container-shell pb-20 pt-8">
         <Panel className="grid gap-5 px-5 py-5 md:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] md:items-center md:px-6 md:py-6">

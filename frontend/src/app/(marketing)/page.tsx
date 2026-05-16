@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/marketing/reveal";
+import { ResourceLinkStrip } from "@/components/marketing/resource-link-strip";
 import { AXIS1_COMPANY_MONTHLY_PRICE } from "@/lib/axis1-product-policy";
 import { publicPageMetadata } from "@/lib/seo";
 
@@ -246,6 +247,14 @@ export default function HomePage() {
           </div>
         </Reveal>
       </section>
+
+      <div className="bg-[#f6efe6] text-[#111315]">
+        <ResourceLinkStrip
+          label="Search + cold email pages"
+          title="Send a useful resource before asking a vendor to try the product."
+          description="The same pages that can rank for report-related searches also work as neutral links in cold email follow-up."
+        />
+      </div>
 
       <section className="bg-[#f6efe6] px-4 pb-16 text-[#111315] sm:px-5 md:pb-24">
         <Reveal className="mx-auto w-[min(1180px,100%)]">

@@ -3,7 +3,7 @@ import Link from "@/components/navigation/static-link";
 import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/marketing/page-header";
 import { Panel } from "@/components/ui/panel";
-import { publicPageMetadata, seoResourcePages } from "@/lib/seo";
+import { canonicalUrl, publicPageMetadata, seoResourcePages } from "@/lib/seo";
 
 export const metadata: Metadata = publicPageMetadata({
   title: "Hood Cleaning Service Report Resources",
@@ -13,8 +13,25 @@ export const metadata: Metadata = publicPageMetadata({
 });
 
 export default function ResourcesPage() {
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "KitchenPermit hood cleaning report resources",
+    itemListElement: seoResourcePages.map((page, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: page.title,
+      url: canonicalUrl(page.path),
+    })),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
+
       <PageHeader
         label="RESOURCES"
         title="Templates for cleaner customer handoffs."

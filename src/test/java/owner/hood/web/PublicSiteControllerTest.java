@@ -97,16 +97,39 @@ class PublicSiteControllerTest {
         expectFrontendPage("/nfpa-96-hood-cleaning-photo-checklist");
         expectFrontendPage("/blocked-access-service-report-template");
         expectFrontendPage("/hood-cleaning-customer-closeout-email-template");
+        expectFrontendPage("/restaurant-hood-cleaning-report");
+        expectFrontendPage("/commercial-kitchen-exhaust-cleaning-report");
+        expectFrontendPage("/hood-cleaning-certificate-vs-service-report");
+        expectFrontendPage("/hood-cleaning-before-after-photo-report");
+        expectFrontendPage("/send-hood-cleaning-report-after-service");
 
         assertStaticResourceContains(
                 "static/hood-cleaning-service-report-template.html",
                 "Hood cleaning service report template",
                 "Minimum fields",
-                "Build a free report"
+                "Build a free report",
+                "FAQPage",
+                "HowTo",
+                "Cold-email bridge",
+                "og:image"
+        );
+        assertStaticResourceContains(
+                "static/restaurant-hood-cleaning-report.html",
+                "Restaurant hood cleaning report",
+                "restaurant hood cleaning report",
+                "Questions this page should answer before the vendor clicks."
+        );
+        assertStaticResourceContains(
+                "static/send-hood-cleaning-report-after-service.html",
+                "Send a hood cleaning report after service",
+                "Use this page in cold email",
+                "utm_source=cold_email"
         );
         assertStaticResourceContains(
                 "static/sitemap.xml",
                 "https://kitchenpermit.com/hood-cleaning-service-report-template",
+                "https://kitchenpermit.com/restaurant-hood-cleaning-report",
+                "https://kitchenpermit.com/send-hood-cleaning-report-after-service",
                 "https://kitchenpermit.com/resources"
         );
         assertStaticResourceDoesNotContain("static/sitemap.xml", "/axis-2");

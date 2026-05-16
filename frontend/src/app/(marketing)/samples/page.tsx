@@ -2,6 +2,7 @@
 import Link from "@/components/navigation/static-link";
 import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/marketing/page-header";
+import { ResourceLinkStrip } from "@/components/marketing/resource-link-strip";
 import { Panel } from "@/components/ui/panel";
 import { publicPageMetadata } from "@/lib/seo";
 
@@ -102,6 +103,11 @@ export default function SamplesPage() {
           </p>
         </Panel>
       </section>
+      <ResourceLinkStrip
+        label="Sample follow-up links"
+        title="Give vendors a page for the exact question they ask next."
+        description="After the sample, link them to the template, restaurant-report, photo-report, or after-service handoff page instead of repeating the whole pitch."
+      />
       <section className="container-shell pb-20">
         <Panel className="grid gap-6 px-6 py-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-start">
           <div>

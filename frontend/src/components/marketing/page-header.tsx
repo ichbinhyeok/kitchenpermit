@@ -13,15 +13,15 @@ export function PageHeader({ label, title, description }: PageHeaderProps) {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(242,106,33,0.14),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(17,17,17,0.04),transparent_32%)]" />
         <div className="relative flex flex-col gap-6">
           <SectionLabel>{label}</SectionLabel>
-          <div className="grid gap-8 md:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] md:items-end">
-            <h1 className="font-display text-[2.3rem] font-bold leading-[0.96] tracking-normal text-foreground sm:text-5xl sm:leading-[0.92] md:max-w-[11ch] md:text-7xl md:leading-[0.88]">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-end">
+            <h1 className="min-w-0 max-w-[12ch] break-words font-display text-[2.3rem] font-bold leading-[0.96] tracking-normal text-foreground sm:text-5xl sm:leading-[0.92] md:text-[4rem] md:leading-[0.88] lg:max-w-[11ch] lg:text-7xl">
               {title}
             </h1>
             <div className="space-y-4">
               <p className="max-w-2xl border-l border-border-strong pl-5 text-base leading-8 text-muted-foreground md:text-lg">
                 {description}
               </p>
-              <div className="hidden gap-3 md:grid md:grid-cols-2">
+              <div className="hidden gap-3 lg:grid lg:grid-cols-2">
                 <div className="rounded-[24px] border border-border bg-white/72 px-4 py-4 text-sm leading-7 text-foreground">
                   Customer-ready handoff. Service result, photos, open items,
                   and next action stay in one clean record.

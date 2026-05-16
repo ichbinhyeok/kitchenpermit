@@ -2,6 +2,7 @@
 import Link from "@/components/navigation/static-link";
 import { ArrowRight, Check, FileText, Paintbrush, Repeat2 } from "lucide-react";
 import { PageHeader } from "@/components/marketing/page-header";
+import { ResourceLinkStrip } from "@/components/marketing/resource-link-strip";
 import { Panel } from "@/components/ui/panel";
 import {
   AXIS1_COMPANY_MONTHLY_PRICE,
@@ -195,6 +196,12 @@ export default function PricingPage() {
           );
         })}
       </section>
+
+      <ResourceLinkStrip
+        label="Before pricing"
+        title="Use resource pages when a vendor is not ready for pricing yet."
+        description="Cold-email traffic can land on a useful report page first, then move to the free builder or company version when the value is clear."
+      />
 
       <section className="container-shell pb-20">
         <Panel className="grid gap-6 px-5 py-5 md:grid-cols-[0.72fr_1.28fr] md:px-8 md:py-8">

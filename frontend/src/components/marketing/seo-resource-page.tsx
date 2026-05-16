@@ -1,5 +1,12 @@
 import Link from "@/components/navigation/static-link";
-import type { SeoResourcePageData } from "@/lib/seo";
+import {
+  canonicalUrl,
+  defaultOpenGraphImagePath,
+  type SeoColdEmailUse,
+  type SeoQuestion,
+  type SeoResourcePageData,
+  type SeoWorkflowStep,
+} from "@/lib/seo";
 import { ArrowRight, Check, CopyCheck, FileText } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Panel } from "@/components/ui/panel";
@@ -9,9 +16,149 @@ type SeoResourcePageProps = {
   page: SeoResourcePageData;
 };
 
+function defaultFaqs(page: SeoResourcePageData): readonly SeoQuestion[] {
+  return [
+    {
+      question: `What should a ${page.title} include?`,
+      answer: `It should include ${page.checklist.slice(0, 4).join(", ")}, and a clear saved record for the customer.`,
+    },
+    {
+      question: "Should photos and open items stay in the same report?",
+      answer:
+        "Yes. Photos, completed work, blocked access, and next actions should stay in one customer-readable report so the restaurant does not have to piece together separate messages.",
+    },
+    {
+      question: "Can this page be used before a vendor tries the builder?",
+      answer:
+        "Yes. Send the resource or sample first, then point the vendor to the free builder when they want to see their own report output.",
+    },
+  ];
+}
+
+function defaultWorkflowSteps(page: SeoResourcePageData): readonly SeoWorkflowStep[] {
+  return page.sections.map((section) => ({
+    title: section.title,
+    text: section.copy,
+  }));
+}
+
+function defaultSearchIntents(page: SeoResourcePageData): readonly string[] {
+  return [
+    page.title,
+    `${page.title} example`,
+    `${page.title} template`,
+  ];
+}
+
+function defaultColdEmailUse(page: SeoResourcePageData): SeoColdEmailUse {
+  return {
+    title: "Use this page before the product ask",
+    copy:
+      "Send the resource link when a vendor needs context before trying the free builder. It works as a neutral SEO page and as a cold-email follow-up asset.",
+    subject: `Service report resource: ${page.title}`,
+    preview: page.summary,
+    ctaHref: `${page.primaryHref}${page.primaryHref.includes("?") ? "&" : "?"}utm_source=cold_email&utm_medium=outreach&utm_campaign=service_report_resources`,
+    ctaLabel: page.primaryAction,
+  };
+}
+
+function structuredDataForPage({
+  page,
+  faqs,
+  workflowSteps,
+}: {
+  page: SeoResourcePageData;
+  faqs: readonly SeoQuestion[];
+  workflowSteps: readonly SeoWorkflowStep[];
+}) {
+  const pageUrl = canonicalUrl(page.path);
+
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: canonicalUrl("/"),
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Resources",
+          item: canonicalUrl("/resources"),
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: page.title,
+          item: pageUrl,
+        },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: page.metaTitle,
+      description: page.description,
+      url: pageUrl,
+      isPartOf: {
+        "@type": "WebSite",
+        name: "KitchenPermit",
+        url: canonicalUrl("/"),
+      },
+      primaryImageOfPage: {
+        "@type": "ImageObject",
+        url: canonicalUrl(defaultOpenGraphImagePath),
+        width: 1200,
+        height: 630,
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: faq.answer,
+        },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      name: page.workflowTitle ?? `How to use ${page.title}`,
+      description: page.summary,
+      step: workflowSteps.map((step, index) => ({
+        "@type": "HowToStep",
+        position: index + 1,
+        name: step.title,
+        text: step.text,
+        url: `${pageUrl}#step-${index + 1}`,
+      })),
+    },
+  ];
+}
+
 export function SeoResourcePage({ page }: SeoResourcePageProps) {
+  const faqs = page.faqs ?? defaultFaqs(page);
+  const workflowSteps = page.workflowSteps ?? defaultWorkflowSteps(page);
+  const searchIntents = page.searchIntents ?? defaultSearchIntents(page);
+  const coldEmail = page.coldEmail ?? defaultColdEmailUse(page);
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredDataForPage({ page, faqs, workflowSteps })),
+        }}
+      />
+
       <section className="container-shell pb-10 pt-5 md:pb-16 md:pt-8">
         <div className="grid gap-8 border-b border-border pb-10 md:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] md:items-end">
           <div className="space-y-5">
@@ -51,6 +198,57 @@ export function SeoResourcePage({ page }: SeoResourcePageProps) {
             </p>
           </div>
         ))}
+      </section>
+
+      <section className="container-shell grid gap-6 pb-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+        <Panel className="px-6 py-6 md:px-7 md:py-7">
+          <p className="font-mono text-xs uppercase tracking-[0.22em] text-accent">
+            Workflow
+          </p>
+          <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-foreground">
+            {page.workflowTitle ?? `How to use ${page.title}`}
+          </h2>
+          <div className="mt-6 grid gap-4">
+            {workflowSteps.map((step, index) => (
+              <div
+                id={`step-${index + 1}`}
+                key={step.title}
+                className="grid gap-3 border-t border-border pt-4 first:border-t-0 first:pt-0 sm:grid-cols-[72px_1fr]"
+              >
+                <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">
+                  {String(index + 1).padStart(2, "0")}
+                </p>
+                <div>
+                  <h3 className="text-base font-black tracking-[-0.03em] text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                    {step.text}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel className="px-6 py-6 md:px-7 md:py-7">
+          <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
+            Search intent
+          </p>
+          <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-foreground">
+            Queries this page should answer
+          </h2>
+          <div className="mt-6 grid gap-3">
+            {searchIntents.map((intent) => (
+              <div
+                key={intent}
+                className="border border-border bg-white px-4 py-4 text-sm font-bold leading-6 text-foreground"
+              >
+                {intent}
+              </div>
+            ))}
+          </div>
+        </Panel>
       </section>
 
       <section className="container-shell grid gap-6 pb-12 md:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
@@ -108,17 +306,71 @@ export function SeoResourcePage({ page }: SeoResourcePageProps) {
         </Panel>
       </section>
 
-      <section className="container-shell grid gap-6 pb-16 md:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="rounded-[28px] bg-[#111315] px-6 py-6 text-white md:px-8 md:py-8">
-          <div className="flex items-center gap-3">
-            <CopyCheck className="h-5 w-5 text-[#ffb27d]" />
-            <p className="font-mono text-xs uppercase tracking-[0.22em] text-white/52">
-              Copy block
+      <section className="container-shell pb-12">
+        <Panel className="grid gap-6 px-6 py-6 md:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] md:px-7 md:py-7">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.22em] text-accent">
+              Common questions
             </p>
+            <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-foreground">
+              Questions this page should answer before the vendor clicks.
+            </h2>
           </div>
-          <pre className="mt-5 whitespace-pre-wrap font-sans text-sm leading-7 text-white/76">
-            {page.copyBlock}
-          </pre>
+          <div className="divide-y divide-border border-y border-border">
+            {faqs.map((faq) => (
+              <div key={faq.question} className="py-5">
+                <h3 className="text-base font-black tracking-[-0.03em] text-foreground">
+                  {faq.question}
+                </h3>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                  {faq.answer}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </section>
+
+      <section className="container-shell grid gap-6 pb-16 md:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid gap-6">
+          <div className="rounded-[28px] bg-[#111315] px-6 py-6 text-white md:px-8 md:py-8">
+            <div className="flex items-center gap-3">
+              <CopyCheck className="h-5 w-5 text-[#ffb27d]" />
+              <p className="font-mono text-xs uppercase tracking-[0.22em] text-white/52">
+                Copy block
+              </p>
+            </div>
+            <pre className="mt-5 whitespace-pre-wrap font-sans text-sm leading-7 text-white/76">
+              {page.copyBlock}
+            </pre>
+          </div>
+
+          <Panel className="px-6 py-6 md:px-7 md:py-7">
+            <p className="font-mono text-xs uppercase tracking-[0.22em] text-accent">
+              Cold-email bridge
+            </p>
+            <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-foreground">
+              {coldEmail.title}
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              {coldEmail.copy}
+            </p>
+            <div className="mt-5 grid gap-3 border-y border-border py-4">
+              <p className="text-sm leading-6 text-foreground">
+                <span className="font-bold">Subject:</span> {coldEmail.subject}
+              </p>
+              <p className="text-sm leading-6 text-muted-foreground">
+                {coldEmail.preview}
+              </p>
+            </div>
+            <Link
+              href={coldEmail.ctaHref}
+              className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#111315] px-5 text-sm font-bold text-white transition hover:bg-[#20262d]"
+            >
+              {coldEmail.ctaLabel}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Panel>
         </div>
 
         <div className="border-t border-border pt-5">
