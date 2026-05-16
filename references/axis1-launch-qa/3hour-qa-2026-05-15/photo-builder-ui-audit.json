@@ -1,0 +1,57 @@
+{
+  "inputs": 3,
+  "text2Signals": {
+    "hasBefore": true,
+    "hasAfter": true,
+    "hasReview": true,
+    "hasGemini": true,
+    "hasNoCertOverclaim": true
+  },
+  "text5Signals": {
+    "hasUnknown": true,
+    "hasAccess": true,
+    "hasBefore": true,
+    "hasAfter": true,
+    "hasNoCertOverclaim": true
+  },
+  "selects": 17,
+  "relevantButtons": [
+    "1PhotosPhotos & notes7 photos",
+    "2ReviewReview report",
+    "1. Photos & notes7 photosAdd photos and notesDrop job photos or one short note. The builder drafts a customer-ready service report from there.",
+    "2. Review reportRequiredReview service summaryFix only wrong or uncertain parts in the preview.",
+    "3. OutputsLockedPreview link and PDFCheck the service report link and PDF copy before using the paid company version.",
+    "Confirm result first",
+    "Access revisitBlocked area returnOnly the access path is expected.",
+    "Blocked / no accessCompleted where reachableOne area needs access, revisit, or area clarification.",
+    "Change an area",
+    "Confirm result first",
+    "Job basicsRequiredNeeded before output: customer, site, reviewerAdd real customer details before creating a link or PDF. The tool will not send untouched defaults.Add details",
+    "Change if needed",
+    "Today's resultCompleted: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied.Default lineEdit line",
+    "Customer next stepSelect what happened today before the tool writes a customer next action.Default next stepEdit line",
+    "Photo / record basisWritten service record2 attached photo(s) / Written service recordEdit photos",
+    "Blocked / no accessCompleted where reachablePick if true",
+    "Access revisit",
+    "Run Photo Assist",
+    "Fix photo matches",
+    "Review photos",
+    "Review report",
+    "Copy report linkConfirm result first",
+    "Today's resultAdjustCompleted: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied.Default line",
+    "Customer next stepAdjustSelect what happened today before the tool writes a customer next action.Default next step",
+    "Confirm",
+    "Confirm",
+    "HD/FL · Step 01Hood canopy and filtersCompleted from notesHood body, baffle filters, tracks, and nearby grease collection points were included in this visit. Completed from service notes; no field photo is attached for this area.",
+    "PL/DK · Step 02Plenum, duct path, and accessCompleted from notesReachable plenum, duct path, and access points were included instead of stopping at the visible hood face. Completed from service notes; no field photo is attached for this area.",
+    "RF-01 · Step 03Rooftop fanCompleted from notesRooftop fan, hinge/curb, belt/pulley visibility, and discharge-area status were included in the service record. Completed from service notes; no field photo is attached for this area.",
+    "GC-01 · Step 04Grease path and containmentCompleted from notesGrease path, grease cups, containment, drip points, buckets, or roof grease trail were included in the service record. Completed from service notes; no field photo is attached for this area.",
+    "Photo tray",
+    "Review report"
+  ],
+  "consoleMessages": [],
+  "screenshots": [
+    "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\photo-builder-2-photos.png",
+    "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\photo-builder-5-plus-unknown.png"
+  ]
+}

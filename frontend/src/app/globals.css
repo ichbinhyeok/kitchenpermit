@@ -1665,6 +1665,12 @@ body:has(.axis-tool-route) .site-footer {
       linear-gradient(180deg, #0d0f11 0 32svh, #f6efe6 32svh 100%);
   }
 
+  .customer-web-packet.customer-web-packet-short.packet-shell {
+    background:
+      radial-gradient(circle at 50% -4%, var(--axis1-vendor-accent-tint, rgba(255, 107, 26, 0.12)), transparent 22%),
+      linear-gradient(180deg, #0d0f11 0 26rem, #f6efe6 26rem 100%);
+  }
+
   .customer-web-packet .packet-hero-shell {
     min-height: 100svh;
     border-bottom: 0;
@@ -1673,9 +1679,22 @@ body:has(.axis-tool-route) .site-footer {
       inset 0 -220px 190px rgba(7, 9, 11, 0.68);
   }
 
+  .customer-web-packet.customer-web-packet-short .packet-hero-shell {
+    min-height: auto;
+    box-shadow:
+      inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -140px 150px rgba(7, 9, 11, 0.56);
+  }
+
   .customer-web-packet .packet-hero-shell > .relative {
     min-height: 100svh;
     padding-bottom: 6.75rem;
+  }
+
+  .customer-web-packet.customer-web-packet-short .packet-hero-shell > .relative {
+    min-height: auto;
+    gap: 1.15rem;
+    padding-bottom: 2rem;
   }
 
   .customer-web-packet .packet-hero-shell h1 {
@@ -1683,6 +1702,11 @@ body:has(.axis-tool-route) .site-footer {
     line-height: 1.12 !important;
     letter-spacing: 0 !important;
     text-wrap: balance;
+  }
+
+  .customer-web-packet.customer-web-packet-short .packet-hero-shell h1 {
+    max-width: none;
+    font-size: clamp(2.35rem, 14vw, 3.35rem);
   }
 
   .customer-web-packet .packet-result-section h2,
@@ -1745,6 +1769,11 @@ body:has(.axis-tool-route) .site-footer {
   .customer-web-packet .packet-result-section h2 {
     max-width: 9ch;
     font-size: clamp(2.35rem, 13vw, 3.15rem);
+  }
+
+  .customer-web-packet.customer-web-packet-short .packet-result-section h2 {
+    max-width: none;
+    font-size: clamp(2rem, 11vw, 2.65rem);
   }
 
   .customer-web-packet .packet-result-list {
@@ -1958,6 +1987,180 @@ html.app-printing [data-vaul-overlay] {
   box-shadow: none !important;
 }
 
+.axis1-service-record-screen {
+  background:
+    linear-gradient(180deg, rgba(55, 47, 39, 0.09), rgba(55, 47, 39, 0.03)),
+    #d8d0c7 !important;
+}
+
+.axis1-service-record-screen .service-record-doc {
+  width: 100%;
+  border-color: #b8b0a7 !important;
+  border-radius: 2px !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 24px 70px rgba(24, 20, 17, 0.22) !important;
+}
+
+.service-record-doc {
+  background: #ffffff !important;
+}
+
+.service-record-doc > .h-1\.5 {
+  height: 4px !important;
+}
+
+.service-record-doc .pdf-document-section {
+  border-color: #c9c1b8 !important;
+  background: #ffffff !important;
+}
+
+.axis1-service-record-screen .service-record-doc .pdf-document-section {
+  padding: 22px 30px !important;
+}
+
+.service-record-doc .service-record-masthead {
+  padding-top: 24px !important;
+  padding-bottom: 20px !important;
+}
+
+.service-record-doc .packet-header-grid {
+  gap: 22px !important;
+}
+
+.service-record-doc .service-record-logo-mark {
+  width: 42px !important;
+  height: 42px !important;
+  border: 1px solid #d6cec5;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+.service-record-doc .service-record-logo-mark img {
+  border-radius: 3px !important;
+  padding: 4px !important;
+}
+
+.service-record-doc .service-record-provider-name {
+  font-size: 1.2rem !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.12 !important;
+}
+
+.service-record-doc .service-record-document-title {
+  max-width: 620px;
+  font-size: clamp(1.85rem, 4.8vw, 2.35rem) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.service-record-doc .service-record-subject {
+  max-width: 620px;
+}
+
+.service-record-doc .service-evidence-card,
+.service-record-doc .service-record-index,
+.service-record-doc .pdf-document-card,
+.service-record-doc .packet-signoff-card,
+.service-record-doc .packet-ack-card {
+  border-color: #c9c1b8 !important;
+  border-radius: 4px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.service-record-doc .service-record-box,
+.service-record-doc .service-record-next-box,
+.service-record-doc .packet-signoff-card,
+.service-record-doc .packet-ack-card {
+  padding: 18px !important;
+}
+
+.service-record-doc h3 {
+  font-size: 1.08rem !important;
+  line-height: 1.18 !important;
+  letter-spacing: -0.012em !important;
+}
+
+.service-record-doc .service-record-identification h3 {
+  font-size: 1.28rem !important;
+}
+
+.service-record-doc .service-record-control-grid {
+  gap: 22px !important;
+}
+
+.service-record-doc .packet-final-section {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.service-record-doc .packet-final-sidebar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0 !important;
+}
+
+.service-record-doc .service-record-next-box {
+  grid-column: 1 / -1;
+}
+
+.service-record-doc .packet-contact-grid,
+.service-record-doc dl,
+.service-record-doc .divide-y {
+  border-color: #d4ccc3 !important;
+}
+
+.service-record-doc dt {
+  color: #746b62 !important;
+}
+
+.service-record-doc dl > div {
+  grid-template-columns: minmax(120px, 0.34fr) minmax(0, 0.66fr) !important;
+}
+
+.service-record-doc dd {
+  text-align: left !important;
+}
+
+.service-record-doc dd,
+.service-record-doc p,
+.service-record-doc li {
+  letter-spacing: 0 !important;
+}
+
+.service-record-doc .rounded-full {
+  border-radius: 4px !important;
+}
+
+.service-record-doc .packet-photo-grid figure > div {
+  border-radius: 4px !important;
+}
+
+@media (min-width: 1024px) {
+  .service-record-doc .packet-header-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .service-record-doc .packet-header-grid aside {
+    border-top: 1px solid #ded7cf !important;
+    border-left: 0 !important;
+    padding-top: 16px !important;
+    padding-left: 0 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .axis1-service-record-screen .service-record-doc .pdf-document-section {
+    padding: 18px 18px !important;
+  }
+
+  .service-record-doc .packet-final-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (min-width: 900px) {
   .tool-pdf-paper-shell {
     max-width: calc(100vw - 128px) !important;
@@ -2091,6 +2294,14 @@ html.app-printing [data-vaul-overlay] {
   .service-record-doc dl,
   .service-record-doc .divide-y {
     border-color: #b8b8b8 !important;
+  }
+
+  .service-record-doc dl > div {
+    grid-template-columns: minmax(92px, 0.32fr) minmax(0, 0.68fr) !important;
+  }
+
+  .service-record-doc dd {
+    text-align: left !important;
   }
 
   .service-record-doc .rounded-full {

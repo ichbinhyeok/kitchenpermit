@@ -74,7 +74,7 @@ const freeVsPaid = [
   ["Company details", "Free output has no company logo/contact line. Paid output carries the vendor name, logo, report color, phone, and reply path."],
   ["Link life", "Free report links are limited to 7 days. Paid links stay live while the subscription is active."],
   ["PDF", "Free PDFs carry a watermark. Paid PDFs are clean customer/inspection copies."],
-  ["History", "Free reports do not create an account history. Paid reports are grouped by customer/site in the dashboard."],
+  ["History", "Free reports do not create an account history. Paid reports are grouped by customer/site in Account."],
   ["Follow-up", "Free output ends after the test link. Paid history shows next service timing and gives staff a customer-ready message to send."],
 ] as const;
 

@@ -6,8 +6,7 @@ const footerLinks = [
   { href: "/axis-1", label: "Service Report" },
   { href: "/samples/axis-1", label: "Sample" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: `mailto:${siteConfig.supportEmail}`, label: "Contact Support" },
+  { href: "/dashboard", label: "Account" },
 ];
 
 const legalLinks = [
@@ -84,10 +83,10 @@ export function SiteFooter() {
                   Design Help
                 </Link>
                 <Link
-                  href={`mailto:${siteConfig.supportEmail}`}
+                  href="/start"
                   className="flex min-h-10 items-center transition hover:text-white"
                 >
-                  Contact Support
+                  Request Support
                 </Link>
               </nav>
             </div>

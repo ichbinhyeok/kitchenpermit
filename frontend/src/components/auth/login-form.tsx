@@ -1,38 +1,84 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, ArrowRight, CheckCircle2, KeyRound } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from "@/components/ui/segmented-control";
+import { Button } from "@/components/ui/button";
 import { getSafeNextPath } from "@/lib/auth/redirects";
 
 type AuthMode = "login" | "signup";
+type AuthStatusMessage = {
+  tone: "success" | "warning" | "error";
+  title: string;
+  copy: string;
+};
 
-function statusMessage(value: string | null, signedOut: string | null) {
+function statusMessage(
+  value: string | null,
+  signedOut: string | null,
+): AuthStatusMessage | null {
   if (signedOut) {
-    return "Signed out. Use Google or email/password to return to the company dashboard.";
+    return {
+      tone: "success" as const,
+      title: "Signed out",
+      copy: "Use Google or email/password to return to your account workspace.",
+    };
   }
 
   if (value === "google-missing") {
-    return "Google OAuth is not configured on the Spring server yet.";
+    return {
+      tone: "warning" as const,
+      title: "Google sign-in is not ready",
+      copy: "Use email and password on this local build.",
+    };
   }
 
   if (value === "failed") {
-    return "Email or password did not match.";
+    return {
+      tone: "error" as const,
+      title: "Could not sign in",
+      copy: "The email or password did not match an account. Check both fields and try again.",
+    };
   }
 
   if (value === "exists") {
-    return "An account already exists for that email. Log in instead.";
+    return {
+      tone: "warning" as const,
+      title: "Account already exists",
+      copy: "Switch to Log in and use that email.",
+    };
   }
 
   if (value === "password-mismatch") {
-    return "Password confirmation did not match.";
+    return {
+      tone: "error" as const,
+      title: "Passwords do not match",
+      copy: "Re-enter the same password in both fields.",
+    };
   }
 
   if (value === "weak-password") {
-    return "Use a password with at least 8 characters.";
+    return {
+      tone: "error" as const,
+      title: "Password is too short",
+      copy: "Use at least 8 characters.",
+    };
   }
 
   return null;
+}
+
+function clientStatusMessage(copy: string): AuthStatusMessage {
+  return {
+    tone: "error" as const,
+    title: "Check the form",
+    copy,
+  };
 }
 
 export function LoginForm() {
@@ -46,9 +92,15 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [clientMessage, setClientMessage] = useState<string | null>(null);
-  const message =
-    clientMessage ?? statusMessage(searchParams.get("auth"), searchParams.get("signed_out"));
+  const message: AuthStatusMessage | null =
+    clientMessage !== null
+      ? clientStatusMessage(clientMessage)
+      : statusMessage(searchParams.get("auth"), searchParams.get("signed_out"));
   const isSignup = mode === "signup";
+  const fieldClassName =
+    "h-11 w-full rounded-lg border border-black/10 bg-white px-3 text-sm font-semibold text-[#111315] outline-none transition placeholder:text-[#b2a69b] focus:border-[#111315]/40 focus:ring-4 focus:ring-[#111315]/8 aria-invalid:border-[#b42318]/50 aria-invalid:bg-[#fff8f6]";
+  const labelClassName =
+    "font-mono text-[10px] uppercase text-[#7b6f65]";
 
   function handleSignupSubmit(event: FormEvent<HTMLFormElement>) {
     if (password !== confirmPassword) {
@@ -65,39 +117,74 @@ export function LoginForm() {
 
   return (
     <div className="grid gap-5">
-      <a
-        href={`/auth/google?next=${encodeURIComponent(nextPath)}`}
-        className="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full border border-black/10 bg-white px-5 text-sm font-black uppercase tracking-[0.12em] text-[#111315] shadow-[0_16px_45px_rgba(26,20,16,0.08)] transition hover:-translate-y-0.5 hover:bg-[#fbf7ef]"
-      >
-        Continue with Google
-        <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-      </a>
-
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#8a7b6d]">
-        <span className="h-px bg-black/10" />
-        or use email
-        <span className="h-px bg-black/10" />
-      </div>
-
-      <div className="grid grid-cols-2 rounded-full border border-black/10 bg-white p-1">
-        {(["login", "signup"] as const).map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => {
-              setMode(item);
-              setClientMessage(null);
-            }}
-            className={`min-h-11 rounded-full text-xs font-black uppercase tracking-[0.13em] transition ${
-              mode === item
-                ? "bg-[#111315] text-white"
-                : "text-[#75695f] hover:bg-[#fbf7ef] hover:text-[#111315]"
+      <AnimatePresence initial={false}>
+        {message ? (
+          <motion.div
+            role="alert"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
+            className={`rounded-xl border px-3.5 py-3 text-sm font-semibold leading-6 ${
+              message.tone === "error"
+                ? "border-[#b42318]/28 bg-[#fff1ed] text-[#7a271a]"
+                : message.tone === "warning"
+                  ? "border-[#f26a21]/28 bg-[#fff7ef] text-[#7a3a12]"
+                  : "border-[#1f7a4d]/24 bg-[#eff8f1] text-[#1c5334]"
             }`}
           >
-            {item === "login" ? "Log in" : "Create account"}
-          </button>
-        ))}
+            <div className="flex items-start gap-3">
+              {message.tone === "success" ? (
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              ) : (
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              )}
+              <div>
+                <p className="font-black tracking-[-0.02em]">{message.title}</p>
+                <p className="mt-0.5 text-xs leading-5 opacity-80">{message.copy}</p>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <Button
+        asChild
+        variant="outline"
+        size="lg"
+        className="h-11 rounded-lg border-black/10 bg-white text-sm font-black text-[#111315] shadow-[0_10px_24px_rgba(26,20,16,0.06)] hover:bg-[#fbf7ef]"
+      >
+        <a href={`/auth/google?next=${encodeURIComponent(nextPath)}`}>
+          <KeyRound className="h-4 w-4 text-[#75695f]" />
+          Continue with Google
+          <ArrowRight className="h-4 w-4" />
+        </a>
+      </Button>
+
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-[10px] font-black uppercase text-[#8a7b6d]">
+        <span className="h-px bg-black/10" />
+        email password
+        <span className="h-px bg-black/10" />
       </div>
+
+      <SegmentedControl
+        type="single"
+        value={mode}
+        onValueChange={(value) => {
+          if (value === "login" || value === "signup") {
+            setMode(value);
+            setClientMessage(null);
+          }
+        }}
+        className="rounded-lg bg-[#f1eadf]"
+      >
+        <SegmentedControlItem value="login" className="rounded-md text-xs font-black uppercase">
+          Log in
+        </SegmentedControlItem>
+        <SegmentedControlItem value="signup" className="rounded-md text-xs font-black uppercase">
+          Create account
+        </SegmentedControlItem>
+      </SegmentedControl>
 
       <form
         action={isSignup ? "/auth/signup" : "/auth/login"}
@@ -107,7 +194,7 @@ export function LoginForm() {
       >
         <input type="hidden" name="next" value={nextPath} />
         <label className="grid gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#7b6f65]">
+          <span className={labelClassName}>
             Work email
           </span>
           <input
@@ -116,11 +203,12 @@ export function LoginForm() {
             required
             autoComplete="email"
             placeholder="owner@yourcompany.com"
-            className="min-h-14 rounded-[22px] border border-black/10 bg-white px-4 text-base font-bold text-[#111315] outline-none transition placeholder:text-[#b2a69b] focus:border-[#f26a21] focus:ring-4 focus:ring-[#f26a21]/15"
+            aria-invalid={message?.tone === "error" ? true : undefined}
+            className={fieldClassName}
           />
         </label>
         <label className="grid gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#7b6f65]">
+          <span className={labelClassName}>
             Password
           </span>
           <input
@@ -135,12 +223,13 @@ export function LoginForm() {
               setPassword(event.target.value);
               setClientMessage(null);
             }}
-            className="min-h-14 rounded-[22px] border border-black/10 bg-white px-4 text-base font-bold text-[#111315] outline-none transition placeholder:text-[#b2a69b] focus:border-[#f26a21] focus:ring-4 focus:ring-[#f26a21]/15"
+            aria-invalid={message?.tone === "error" ? true : undefined}
+            className={fieldClassName}
           />
         </label>
         {isSignup ? (
           <label className="grid gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#7b6f65]">
+            <span className={labelClassName}>
               Confirm password
             </span>
             <input
@@ -155,31 +244,27 @@ export function LoginForm() {
                 setConfirmPassword(event.target.value);
                 setClientMessage(null);
               }}
-              className="min-h-14 rounded-[22px] border border-black/10 bg-white px-4 text-base font-bold text-[#111315] outline-none transition placeholder:text-[#b2a69b] focus:border-[#f26a21] focus:ring-4 focus:ring-[#f26a21]/15"
+              aria-invalid={message?.tone === "error" ? true : undefined}
+              className={fieldClassName}
             />
           </label>
         ) : null}
-        <button
+        <Button
           type="submit"
-          className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-5 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:-translate-y-0.5 hover:bg-[#dd5b17]"
+          size="lg"
+          className="mt-1 h-11 rounded-lg bg-[#111315] text-sm font-black text-white hover:bg-[#27221e]"
         >
           {isSignup ? "Create account" : "Log in"}
           <ArrowRight className="h-4 w-4" />
-        </button>
+        </Button>
       </form>
 
-      {message ? (
-        <div className="rounded-[22px] border border-black/10 bg-white/72 p-4 text-sm font-semibold leading-6 text-[#5f574f]">
-          {message}
-        </div>
-      ) : null}
-
-      <div className="rounded-[24px] bg-[#111315] p-4 text-sm leading-6 text-white/70">
-        <p className="font-black text-white">Account manages company output</p>
+      <div className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm leading-6 text-[#6f665e]">
+        <p className="font-black text-[#111315]">Account manages company output</p>
         <p className="mt-1">
           Free builder stays open. Sign in to manage the company version; active
           subscription access unlocks saved company details, clean PDFs, live
-          service report links, and dashboard history.
+          service report links, and account history.
         </p>
       </div>
     </div>

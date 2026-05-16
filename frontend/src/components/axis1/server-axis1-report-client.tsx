@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Copy, FileText, Printer, TriangleAlert } from "lucide-react";
-import { toast } from "sonner";
+import { Printer, TriangleAlert } from "lucide-react";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
@@ -29,6 +28,10 @@ type ReportLoadState =
   | { status: "expired" }
   | { status: "missing" }
   | { status: "error" };
+
+function serviceRecordPdfViewHref(publicId: string) {
+  return `/p/server?reportId=${encodeURIComponent(publicId)}&format=pdf`;
+}
 
 function withServerPdfHref(
   packetData: Axis1LocalPacketRecord["packetData"],
@@ -105,6 +108,35 @@ function isUsableHostedPacketData(
   );
 }
 
+function normalizeDisplayValue(value?: string | null) {
+  return (value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function rowValue(
+  rows: ReadonlyArray<readonly string[]> | undefined,
+  label: string,
+) {
+  return rows?.find(([rowLabel]) => rowLabel.toLowerCase() === label.toLowerCase())?.[1] ?? "";
+}
+
+function hasHostedPacketDataMismatch(
+  values: Partial<Axis1LocalPacketRecord["values"]>,
+  packetData: NonNullable<Axis1LocalPacketRecord["packetData"]>,
+) {
+  const checks = [
+    [values.propertyName, packetData.packetHeader.title],
+    [values.siteCity, rowValue(packetData.packetHeader.quickFacts, "Location")],
+    [values.systemName, rowValue(packetData.packetHeader.quickFacts, "System")],
+  ];
+
+  return checks.some(
+    ([expected, actual]) =>
+      normalizeDisplayValue(expected) !== "" &&
+      normalizeDisplayValue(actual) !== "" &&
+      normalizeDisplayValue(expected) !== normalizeDisplayValue(actual),
+  );
+}
+
 function normalizeHostedValues(
   values: Partial<Axis1LocalPacketRecord["values"]>,
 ): Axis1LocalPacketRecord["values"] {
@@ -133,13 +165,14 @@ function toHostedRecord(
     return null;
   }
 
-  const pdfHref =
-    response.pdfExport?.serverDownloadReady && response.pdfExport.downloadHref
-      ? response.pdfExport.downloadHref
-      : undefined;
-  const packetData = isUsableHostedPacketData(payload.packetData)
+  const pdfHref = serviceRecordPdfViewHref(response.publicId);
+  const hostedPacketData = isUsableHostedPacketData(payload.packetData)
     ? withServerPdfHref(payload.packetData, pdfHref)
     : undefined;
+  const packetData =
+    hostedPacketData && !hasHostedPacketDataMismatch(payload.values, hostedPacketData)
+      ? hostedPacketData
+      : undefined;
 
   return {
     schemaVersion: 1,
@@ -210,19 +243,6 @@ export function ServerAxis1ReportClient({
     }, 120);
   }
 
-  async function copyCurrentLink() {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success("Hosted service report link copied", {
-        description: "This link loads from the saved report record.",
-      });
-    } catch {
-      toast.error("Could not copy automatically", {
-        description: "Copy the browser address manually.",
-      });
-    }
-  }
-
   if (state.status === "loading") {
     return (
       <main className="min-h-screen bg-[#e9e1d7] px-3 py-4 text-[#151515] sm:px-5 sm:py-6 lg:py-8">
@@ -287,63 +307,54 @@ export function ServerAxis1ReportClient({
   const isServiceRecord = outputIntent === "service-record";
   const productPlan = record.productPlan ?? "free";
   const productPolicy = getAxis1ProductPlanPolicy(productPlan);
-  const serverPdfHref = record.links?.pdfHref;
+  const reportVisibleSections = isServiceRecord
+    ? visibleSections
+    : {
+        ...axis1DefaultReportSections,
+        ...visibleSections,
+        checklist: false,
+        photos: photoCount > 0,
+        routeDetail: false,
+      };
+  const reportPresentationMode = isServiceRecord ? record.presentationMode : "short";
 
   return (
-    <main className="min-h-screen bg-[#e9e1d7] px-3 py-4 text-[#151515] sm:px-5 sm:py-6 lg:py-8 print:bg-white print:px-0 print:py-0">
-      <div className="pdf-print-hide mx-auto mb-4 flex w-[min(1080px,100%)] flex-col gap-3 rounded-[22px] border border-black/8 bg-white/90 px-4 py-3 shadow-[0_18px_44px_rgba(17,17,17,0.08)] backdrop-blur md:flex-row md:items-center md:justify-between">
-        <div className="min-w-0">
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#f26a21]">
-            {isServiceRecord ? "Service report PDF" : "Service report link"} /{" "}
-            {productPolicy.shortLabel}
-          </p>
-          <p className="mt-1 text-sm font-semibold leading-6 text-foreground">
-            {isServiceRecord
-              ? `${productPolicy.pdfPolicy}. Print or save this PDF as the retained service copy.`
-              : `${photoCount} photo(s) attached. ${productPolicy.linkPolicy}.`}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={copyCurrentLink}
-            className={`rounded-full border border-black/10 bg-white px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground hover:bg-white ${
-              isServiceRecord ? "hidden" : ""
-            }`}
-          >
-            <Copy className="h-3.5 w-3.5" />
-            Copy link
-          </Button>
-          {serverPdfHref ? (
-            <Button
-              asChild
-              className="rounded-full bg-[#111315] px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
-            >
-              <a href={serverPdfHref}>
-                <FileText className="h-3.5 w-3.5" />
-                Open PDF
-              </a>
-            </Button>
-          ) : (
+    <main
+      className={`min-h-screen text-[#151515] print:bg-white print:px-0 print:py-0 ${
+        isServiceRecord
+          ? "axis1-service-record-screen bg-[#d8d0c7] px-3 py-3 sm:px-5 sm:py-5 lg:py-6"
+          : "bg-[#f7f1e9]"
+      }`}
+    >
+      {isServiceRecord ? (
+        <div className="pdf-preview-toolbar pdf-print-hide mx-auto mb-3 flex w-[min(816px,100%)] flex-col gap-3 border border-[#b8b0a7] bg-white px-3 py-2 shadow-[0_10px_28px_rgba(24,20,17,0.12)] md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#6f665d]">
+              Service report PDF / {productPolicy.shortLabel}
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-[#423c36]">
+              {productPolicy.pdfPolicy}. Print or save this PDF as the retained service copy.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
               onClick={printReport}
-              className="rounded-full bg-[#111315] px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
+              className="rounded-[6px] bg-[#111315] px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-white hover:bg-[#111315]/90"
             >
               <Printer className="h-3.5 w-3.5" />
               Save PDF
             </Button>
-          )}
+          </div>
         </div>
-      </div>
-      <div className="mx-auto w-[min(1080px,100%)]">
+      ) : null}
+      <div className={isServiceRecord ? "mx-auto w-[min(816px,100%)]" : "w-full"}>
         <Axis1PacketDocument
           data={packetData}
           variant="customer-report"
           outputIntent={outputIntent}
-          presentationMode={record.presentationMode}
-          visibleSections={visibleSections}
+          presentationMode={reportPresentationMode}
+          visibleSections={reportVisibleSections}
           watermarkLabel={
             isServiceRecord && productPlan === "free"
               ? productPolicy.watermarkLabel

@@ -18,6 +18,17 @@ export type Axis1ServerReportRecord = {
   serviceDate?: string | null;
   nextServiceDate?: string | null;
   hasOpenItems?: boolean;
+  historyStatus?: {
+    code:
+      | "open_access"
+      | "quote_review"
+      | "monitor_condition"
+      | "next_service"
+      | "written_record"
+      | "record_only";
+    label: string;
+    tone: "action" | "review" | "scheduled" | "record" | "neutral";
+  };
   customerAction?: string;
   expiresAt?: string | null;
   createdAt: string;

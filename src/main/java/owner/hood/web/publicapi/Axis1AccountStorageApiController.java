@@ -48,6 +48,13 @@ public class Axis1AccountStorageApiController {
     private static final int FREE_LINK_DAYS = 7;
     private static final String DEFAULT_BRAND_COLOR = "#0F172A";
     private static final int MAX_LOGO_DATA_URL_LENGTH = 700_000;
+    private static final List<String> ACCESS_EXCEPTION_KINDS = List.of(
+            "blocked-storage",
+            "sealed-panel",
+            "panel-signage",
+            "unsafe-access",
+            "not-cleaned"
+    );
 
     private final Axis1CompanyProfileRepository companyProfiles;
     private final Axis1ReportRecordRepository reportRecords;
@@ -486,6 +493,7 @@ public class Axis1AccountStorageApiController {
         response.put("pdfExport", pdfExportService.capability(record.getProductPlan(), payload));
         response.put("retention", retentionResponse(record));
         response.put("hasOpenItems", hasOpenItems(payload));
+        response.put("historyStatus", historyStatusResponse(record, payload));
         response.put("customerAction", customerActionSummary(payload));
 
         if (includePayload) {
@@ -640,16 +648,115 @@ public class Axis1AccountStorageApiController {
     private static boolean hasOpenItems(Map<String, Object> payload) {
         Map<String, Object> values = objectMap(payload.get("values"));
 
-        return "exception".equals(stringValue(values.get("scenario")))
-                || hasListValue(values.get("exceptionKinds"))
-                || !stringValue(values.get("exceptionNote")).isBlank()
-                || !stringValue(values.get("followUpNote")).isBlank()
-                || !stringValue(values.get("customerActionOverride")).isBlank()
-                || !stringValue(values.get("followUpOverride")).isBlank();
+        return isAccessException(values);
     }
 
     private static boolean hasListValue(Object value) {
         return value instanceof List<?> list && !list.isEmpty();
+    }
+
+    private static Map<String, Object> historyStatusResponse(Axis1ReportRecord record, Map<String, Object> payload) {
+        Map<String, Object> values = objectMap(payload.get("values"));
+        String scenario = stringValue(values.get("scenario"));
+        String followUpMode = stringValue(values.get("followUpMode"));
+        String action = firstNonBlank(
+                stringValue(values.get("customerActionOverride")),
+                stringValue(values.get("followUpOverride")),
+                stringValue(values.get("followUpNote"))
+        ).toLowerCase(Locale.ROOT);
+        int photoCount = inlinePhotoCount(payload);
+
+        if (isAccessException(values)) {
+            return historyStatus("open_access", "Open access item", "action");
+        }
+
+        if ("exception".equals(scenario)) {
+            if ("quote".equals(followUpMode)) {
+                return historyStatus("quote_review", "Quote review", "review");
+            }
+
+            return historyStatus("monitor_condition", "Monitor / review", "review");
+        }
+
+        if (photoCount <= 0) {
+            return historyStatus("written_record", "Written record", "record");
+        }
+
+        if (isNextServiceAction(action, record.getNextServiceDate())) {
+            return historyStatus("next_service", "Next service", "scheduled");
+        }
+
+        return historyStatus("record_only", "Record only", "record");
+    }
+
+    private static Map<String, Object> historyStatus(String code, String label, String tone) {
+        return Map.of(
+                "code", code,
+                "label", label,
+                "tone", tone
+        );
+    }
+
+    private static boolean isAccessException(Map<String, Object> values) {
+        if (!"exception".equals(stringValue(values.get("scenario")))) {
+            return false;
+        }
+
+        Object exceptionKinds = values.get("exceptionKinds");
+
+        if (!(exceptionKinds instanceof List<?> kinds)) {
+            return false;
+        }
+
+        return kinds.stream()
+                .map(Axis1AccountStorageApiController::stringValue)
+                .anyMatch(ACCESS_EXCEPTION_KINDS::contains);
+    }
+
+    private static boolean isNextServiceAction(String action, String nextServiceDate) {
+        if (nextServiceDate == null && action.isBlank()) {
+            return false;
+        }
+
+        return action.contains("next")
+                || action.contains("service window")
+                || action.contains("schedule")
+                || action.contains("rebook")
+                || action.contains("confirm");
+    }
+
+    private static int inlinePhotoCount(Map<String, Object> payload) {
+        Map<String, Object> metadata = assetStorageMetadataStatic(payload);
+        Object value = metadata.get("inlinePhotoCount");
+
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+
+        return countUploadedPhotos(objectMap(payload.get("uploadedFieldPhotos")));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> assetStorageMetadataStatic(Map<String, Object> payload) {
+        Object metadata = payload.get("_assetStorage");
+
+        if (metadata instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
+        }
+
+        return Map.of();
+    }
+
+    private static int countUploadedPhotos(Map<String, Object> uploadedFieldPhotos) {
+        int count = 0;
+
+        for (Object value : uploadedFieldPhotos.values()) {
+            if (value instanceof Map<?, ?>) {
+                count += 1;
+            }
+        }
+
+        return count;
     }
 
     private static String customerActionSummary(Map<String, Object> payload) {

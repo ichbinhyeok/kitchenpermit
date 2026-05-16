@@ -1,0 +1,3150 @@
+{
+  "generatedAt": "2026-05-15T04:49:32.973Z",
+  "base": "http://127.0.0.1:8096",
+  "results": [
+    {
+      "label": "dashboard",
+      "path": "/dashboard",
+      "status": 200,
+      "title": "Dashboard | KitchenPermit",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Billing help",
+          "href": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help",
+          "absoluteHref": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [
+        {
+          "text": "Start next reportCreate the customer-ready link/PDF. Company access adds branding and history.",
+          "href": "/axis-1/tool",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool"
+        }
+      ],
+      "imageLoad": "0/0",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD Company Version DASHBOARD Your report workspace. Build the next hood cleaning report, resend a customer link, or update the company details restaurants see on the report. Start next report Create the customer-ready link/PDF. Company access adds branding and history. Open saved history Available when company access is active: reopen, edit, or resend saved reports. Update company info Change the logo, report color, phone, email, or service area. REVIEW PRICING SIGN OUT ACCOUNT STATUS COMPANY ACTIVE $79/mo Company version includes saved c",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\dashboard-desktop.png"
+    },
+    {
+      "label": "home",
+      "path": "/",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [],
+      "imageLoad": "1/1",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version FOR HOOD CLEANING COMPANIES Send a restaurant-ready service report after every hood cleaning job. Turn job photos, blocked access notes, and next actions into one branded link/PDF the restaurant can save for inspection records. View sample report Start company version Try the builder SAMPLE SERVICE REPORT FROM THE FIELD What the crew sends in JOB PHOTOS Hood, filter, fan, and access photos OPEN ITEM Rear access panel blocked NEXT ACTION Clear access before the next visit WHAT THE RESTAURANT GETS One report, ready ",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\home-desktop.png"
+    },
+    {
+      "label": "axis-1",
+      "path": "/axis-1",
+      "status": 200,
+      "title": "Branded Service Reports for Hood Cleaning Jobs | KitchenPermit",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [],
+      "imageLoad": "0/0",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version FOR HOOD SERVICE VENDORS Send a branded service report after every hood cleaning job. Restaurant clients get one clean link/PDF they can save for inspections, with photos, open items, and the next action. VIEW SAMPLE REPORT START COMPANY VERSION See how this would look for my company Try the builder BRANDED SERVICE REPORT INSPECTION-READY PDF CLEAR OPEN-ITEM RECORD BRANDED SERVICE REPORT + PDF Restaurant-ready service report BRANDED RECORD Vendor logo, contact, job result, and PDF copy in one report. INSPECTION FI",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\axis-1-desktop.png"
+    },
+    {
+      "label": "samples-axis-1",
+      "path": "/samples/axis-1",
+      "status": 200,
+      "title": "Customer Service Report Link and PDF Sample | KitchenPermit",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": true,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [],
+      "imageLoad": "8/13",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version SAMPLE REPORT See the branded service report a restaurant receives. This is the link and PDF a restaurant can save after service, with the result, photos, open items, and next action in one place. RESTAURANT VIEW Opens result, photos, and next action. INSPECTION PDF Saves a copy with inspection records. Open restaurant view See PDF copy Use this under my company name HL Summit Hood Service Co. Sent to Sample Restaurant Group APR 24 RESULT Reachable work completed. OPEN ITEM 1 area needs customer action. PHOTO EVID",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\samples-axis-1-desktop.png"
+    },
+    {
+      "label": "pricing",
+      "path": "/pricing",
+      "status": 200,
+      "title": "Pricing | KitchenPermit",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [],
+      "imageLoad": "0/0",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version PRICING Free builder. $79/mo company version. The free builder proves the output. The company version is the paid product: company logo/contact, clean PDF, live restaurant report links, customer history, and follow-up workflow. Customer-ready handoff. Service result, photos, open items, and next action stay in one clean record. Simple policy. Test the builder free, then use the company version when reports need your brand and history. Start company version Try free builder View sample report PRODUCT POLICY Test th",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\pricing-desktop.png"
+    },
+    {
+      "label": "company-version",
+      "path": "/company-version",
+      "status": 200,
+      "title": "Company Version | KitchenPermit",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [],
+      "imageLoad": "0/0",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version COMPANY VERSION // $79/MO Save your company info once. Send every report under your name. The paid path for saved company details, clean inspection PDFs, live service report links, customer history, and next-service follow-up for hood cleaning companies that want the report to carry their name. Start $79 checkout View dashboard View sample report View pricing WHAT GETS SAVED COMPANY IDENTITY Company name, logo, report color, service area, and customer-facing contact. REPLY PATH Phone, dispatch email, and the actio",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-version-desktop.png"
+    },
+    {
+      "label": "company-clean-link",
+      "path": "/p/server?reportId=9e5d5f04aa714a0a8f",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        }
+      ],
+      "imageLoad": "8/8",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT PHOTOS RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Feb 15, 2026 Ready for records SERVICE REPORT Property: Marigold Diner Location: Los Angeles, CA Reviewed: Luis, closing manager Service completed. Accessible hood interior, filter bank, and reachable plenum were cleaned and closed during the overnight visit. Attached photos support the service areas shown. RESULT Closed RECORD BASIS 5 photos CUSTOMER ACTION Call service team PDF COPY Record copy Call to confirm next servi",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-clean-link-desktop.png"
+    },
+    {
+      "label": "company-open-access-link",
+      "path": "/p/server?reportId=67e4d189dc3b4fa5bd",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        }
+      ],
+      "imageLoad": "8/9",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT PHOTOS RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Feb 2, 2026 1 area needs your action SERVICE REPORT Property: Canal Street Tacos Location: Glendale, CA Reviewed: Angela, assistant manager Reachable work completed. 1 area needs your action. Reachable work was completed. The blocked area is listed separately and is not presented as cleaned. Attached photos support only the areas shown. RESULT Action needed RECORD BASIS 4 photos CUSTOMER ACTION Call service team PDF COPY R",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-open-access-link-desktop.png"
+    },
+    {
+      "label": "company-written-record-link",
+      "path": "/p/server?reportId=119b1986e45341ae87",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        }
+      ],
+      "imageLoad": "0/0",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records May 8, 2026 Ready for records SERVICE REPORT Property: Blue Line Pizza Location: Burbank, CA Reviewed: Rosa, shift lead Service completed. Service was closed from the written crew record because no field photos were attached to this link. This is a written service record based on service notes. RESULT Closed RECORD BASIS Written record CUSTOMER ACTION Call service team PDF COPY Record copy Call to confirm next service Open PDF co",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-written-record-link-desktop.png"
+    },
+    {
+      "label": "company-quote-review-link",
+      "path": "/p/server?reportId=b708543a796c4110a6",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        }
+      ],
+      "imageLoad": "7/7",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT PHOTOS RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Apr 23, 2026 1 condition recorded SERVICE REPORT Property: Northside Grill Location: Pasadena, CA Reviewed: Dina, general manager Service completed. 1 condition recorded. Service was completed. The recorded condition is listed separately for follow-up or next-service planning. Attached photos support the service areas shown. RESULT Review item RECORD BASIS 4 photos CUSTOMER ACTION Call service team PDF COPY Record copy Cal",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-quote-review-link-desktop.png"
+    },
+    {
+      "label": "company-monitor-review-link",
+      "path": "/p/server?reportId=c31a06545e6648648b",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        }
+      ],
+      "imageLoad": "7/7",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT PHOTOS RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Mar 14, 2026 1 condition recorded SERVICE REPORT Property: Elm Market Kitchen Location: Santa Monica, CA Reviewed: Noah, facilities Service completed. 1 condition recorded. Service was completed. The recorded condition is listed separately for follow-up or next-service planning. Attached photos support the service areas shown. RESULT Review item RECORD BASIS 4 photos CUSTOMER ACTION Call service team PDF COPY Record copy C",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-monitor-review-link-desktop.png"
+    },
+    {
+      "label": "free-test-link",
+      "path": "/p/server?reportId=d3187b1b14b44cbb97",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        }
+      ],
+      "imageLoad": "4/4",
+      "firstText": "SR Service report SERVICE REPORT RESULT PHOTOS RECORD PDF SR Service report Kitchen exhaust service record Free test link May 13, 2026 Ready for records SERVICE REPORT Property: Free Trial Bistro Location: Anaheim, CA Reviewed: Trial manager Service completed. The accessible kitchen exhaust service path was completed. Attached photos support only the areas shown. Attached photos support only the areas shown. RESULT Closed RECORD BASIS 2 photos CUSTOMER ACTION Confirm service PDF COPY Record copy Open PDF copy Use your normal customer communication channel to confirm this step. CUSTOMER NEXT ST",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\free-test-link-desktop.png"
+    },
+    {
+      "label": "company-open-access-pdf",
+      "path": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [],
+      "imageLoad": "2/2",
+      "firstText": "SERVICE REPORT PDF / COMPANY Clean PDF, no watermark. Print or save this PDF as the retained service copy. SAVE PDF KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Canal Street Tacos GLENDALE, CA / FEB 2, 2026 / REPORT SR-67E4D189 Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Action item visible Service date Feb 2, 2026 Location Glendale, CA System Tortilla line exhaust Today's result Completed with open ",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-open-access-pdf-desktop.png"
+    },
+    {
+      "label": "company-written-record-pdf",
+      "path": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [],
+      "imageLoad": "0/0",
+      "firstText": "SERVICE REPORT PDF / COMPANY Clean PDF, no watermark. Print or save this PDF as the retained service copy. SAVE PDF KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Blue Line Pizza BURBANK, CA / MAY 8, 2026 / REPORT SR-119B1986 Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Ready for records Service date May 8, 2026 Location Burbank, CA System Oven hood and make-line exhaust Today's result Completed and clo",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-written-record-pdf-desktop.png"
+    },
+    {
+      "label": "free-test-pdf",
+      "path": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [],
+      "imageLoad": "1/1",
+      "firstText": "SERVICE REPORT PDF / FREE Watermarked PDF. Print or save this PDF as the retained service copy. SAVE PDF SR Service report Kitchen exhaust service record CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Free Trial Bistro ANAHEIM, CA / MAY 13, 2026 / REPORT SR-D3187B1B Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Ready for records Service date May 13, 2026 Location Anaheim, CA System Main hood test report Today's result Completed and closed Report ID SR-D3187B1B Record basis Partial photos",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\free-test-pdf-desktop.png"
+    },
+    {
+      "label": "mobile-builder",
+      "path": "/axis-1/tool",
+      "status": 200,
+      "title": "Service Report Builder | KitchenPermit",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [],
+      "imageLoad": "0/0",
+      "firstText": "K Kitchen PERMIT 1 2 3 FREE BUILDER NO LOGIN Free builder: no login, no company logo/contact, 7-day test link, watermarked PDF, and no report history. FREE COMPANY LOCKED LOGIN PHOTOS & NOTES Create the restaurant-ready hood cleaning report. Add job photos if you have them. One short note is enough when the crew needs a clean report link and PDF for the restaurant. JOB PHOTOS Drop photos if you have them Before, after, fan, filter, access, label, and issue photos can all go in one batch. CHOOSE PHOTOS Photos optional Saved with report OPTIONAL NOTE WHAT WAS INCLUDED? Hood cleaning Hood, duct, ",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-builder-mobile.png"
+    },
+    {
+      "label": "mobile-dashboard",
+      "path": "/dashboard",
+      "status": 200,
+      "title": "Dashboard | KitchenPermit",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Billing help",
+          "href": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help",
+          "absoluteHref": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [
+        {
+          "text": "Start next reportCreate the customer-ready link/PDF. Company access adds branding and history.",
+          "href": "/axis-1/tool",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool"
+        }
+      ],
+      "imageLoad": "0/0",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD Company Version DASHBOARD Your report workspace. Build the next hood cleaning report, resend a customer link, or update the company details restaurants see on the report. Start next report Create the customer-ready link/PDF. Company access adds branding and history. Open saved history Available when company access is active: reopen, edit, or resend saved reports. Update company info Change the logo, report color, phone, email, or service area. REVIEW PRICING SIGN OUT ACCOUNT STATUS COMPANY ACTIVE $79/mo Company version includes saved c",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-dashboard-mobile.png"
+    },
+    {
+      "label": "mobile-customer-link",
+      "path": "/p/server?reportId=67e4d189dc3b4fa5bd",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        }
+      ],
+      "imageLoad": "5/9",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Feb 2, 2026 1 area needs your action SERVICE REPORT Property: Canal Street Tacos Location: Glendale, CA Reviewed: Angela, assistant manager Reachable work completed. 1 area needs your action. Reachable work was completed. The blocked area is listed separately and is not presented as cleaned. QUICK ACTIONS Next action, photos, and PDF copy. Action needed Call service team Photos PDF copy RESULT Action needed RECORD BASIS 4 photos CUSTOMER ACTION Call service team PD",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-customer-link-mobile.png"
+    },
+    {
+      "label": "mobile-pdf",
+      "path": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+      "status": 200,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [],
+      "imageLoad": "2/2",
+      "firstText": "SERVICE REPORT PDF / COMPANY Clean PDF, no watermark. Print or save this PDF as the retained service copy. SAVE PDF KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Canal Street Tacos GLENDALE, CA / FEB 2, 2026 / REPORT SR-67E4D189 Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Action item visible Service date Feb 2, 2026 Location Glendale, CA System Tortilla line exhaust Today's result Completed with open ",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-pdf-mobile.png"
+    },
+    {
+      "label": "mobile-pricing",
+      "path": "/pricing",
+      "status": 200,
+      "title": "Pricing | KitchenPermit",
+      "horizontalOverflowPx": 0,
+      "actionableConsoleCount": 0,
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [],
+      "imageLoad": "0/0",
+      "firstText": "KITCHENPERMIT PRICING Free builder. $79/mo company version. The free builder proves the output. The company version is the paid product: company logo/contact, clean PDF, live restaurant report links, customer history, and follow-up workflow. Start company version Try free builder View sample report PRODUCT POLICY Test the report free. Pay when it carries your company name. Free builder: no login, no company logo/contact, 7-day link, watermarked PDF. Company version: $79/mo for saved company details, live service report links, clean PDFs, customer history, and follow-up reminders. Design help: ",
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-pricing-mobile.png"
+    }
+  ],
+  "rawResults": [
+    {
+      "label": "dashboard",
+      "path": "/dashboard",
+      "status": 200,
+      "textLength": 3577,
+      "title": "Dashboard | KitchenPermit",
+      "finalUrl": "http://127.0.0.1:8096/dashboard",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD Company Version DASHBOARD Your report workspace. Build the next hood cleaning report, resend a customer link, or update the company details restaurants see on the report. Start next report Create the customer-ready link/PDF. Company access adds branding and history. Open saved history Available when company access is active: reopen, edit, or resend saved reports. Update company info Change the logo, report color, phone, email, or service area. REVIEW PRICING SIGN OUT ACCOUNT STATUS COMPANY ACTIVE $79/mo Company version includes saved c",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KITCHENPERMIT",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Home",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Start next reportCreate the customer-ready link/PDF. Company access adds branding and history.",
+          "href": "/axis-1/tool",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool"
+        },
+        {
+          "text": "Open saved historyAvailable when company access is active: reopen, edit, or resend saved reports.",
+          "href": "#report-history",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard#report-history"
+        },
+        {
+          "text": "Update company infoChange the logo, report color, phone, email, or service area.",
+          "href": "#company-profile",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard#company-profile"
+        },
+        {
+          "text": "Review pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Build company report",
+          "href": "/axis-1/tool?step=outputs&account=company",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company"
+        },
+        {
+          "text": "Billing help",
+          "href": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help",
+          "absoluteHref": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=9e5d5f04aa714a0a8f",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=9e5d5f04aa714a0a8f"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=2a7b7514ee624a7d87",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=2a7b7514ee624a7d87"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=2a7b7514ee624a7d87",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=2a7b7514ee624a7d87"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=67e4d189dc3b4fa5bd",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=67e4d189dc3b4fa5bd"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=20fcc152496a44178d",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=20fcc152496a44178d"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=20fcc152496a44178d",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=20fcc152496a44178d"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=119b1986e45341ae87",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=119b1986e45341ae87"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=119b1986e45341ae87",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=c31a06545e6648648b",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=c31a06545e6648648b"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=c31a06545e6648648b",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=b708543a796c4110a6",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=b708543a796c4110a6"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=b708543a796c4110a6",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6"
+        },
+        {
+          "text": "Start Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Design Help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        },
+        {
+          "text": "Terms",
+          "href": "/terms",
+          "absoluteHref": "http://127.0.0.1:8096/terms"
+        },
+        {
+          "text": "Privacy",
+          "href": "/privacy",
+          "absoluteHref": "http://127.0.0.1:8096/privacy"
+        },
+        {
+          "text": "Refund Policy",
+          "href": "/refund-policy",
+          "absoluteHref": "http://127.0.0.1:8096/refund-policy"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Sign out",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Edit company info"
+      ],
+      "imageCount": 0,
+      "loadedImages": 0,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\dashboard-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Billing help",
+          "href": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help",
+          "absoluteHref": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [
+        {
+          "text": "Start next reportCreate the customer-ready link/PDF. Company access adds branding and history.",
+          "href": "/axis-1/tool",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool"
+        }
+      ]
+    },
+    {
+      "label": "home",
+      "path": "/",
+      "status": 200,
+      "textLength": 2682,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version FOR HOOD CLEANING COMPANIES Send a restaurant-ready service report after every hood cleaning job. Turn job photos, blocked access notes, and next actions into one branded link/PDF the restaurant can save for inspection records. View sample report Start company version Try the builder SAMPLE SERVICE REPORT FROM THE FIELD What the crew sends in JOB PHOTOS Hood, filter, fan, and access photos OPEN ITEM Rear access panel blocked NEXT ACTION Clear access before the next visit WHAT THE RESTAURANT GETS One report, ready ",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KITCHENPERMIT",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Home",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Login",
+          "href": "/login",
+          "absoluteHref": "http://127.0.0.1:8096/login"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "View sample report",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Start company version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Try the builder",
+          "href": "/axis-1/tool?account=free",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?account=free"
+        },
+        {
+          "text": "View sample report",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Start company version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Try the builder",
+          "href": "/axis-1/tool?account=free",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?account=free"
+        },
+        {
+          "text": "Start Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Design Help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        },
+        {
+          "text": "Terms",
+          "href": "/terms",
+          "absoluteHref": "http://127.0.0.1:8096/terms"
+        },
+        {
+          "text": "Privacy",
+          "href": "/privacy",
+          "absoluteHref": "http://127.0.0.1:8096/privacy"
+        },
+        {
+          "text": "Refund Policy",
+          "href": "/refund-policy",
+          "absoluteHref": "http://127.0.0.1:8096/refund-policy"
+        }
+      ],
+      "buttons": [
+        "Menu"
+      ],
+      "imageCount": 1,
+      "loadedImages": 1,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\home-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": []
+    },
+    {
+      "label": "axis-1",
+      "path": "/axis-1",
+      "status": 200,
+      "textLength": 6146,
+      "title": "Branded Service Reports for Hood Cleaning Jobs | KitchenPermit",
+      "finalUrl": "http://127.0.0.1:8096/axis-1",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version FOR HOOD SERVICE VENDORS Send a branded service report after every hood cleaning job. Restaurant clients get one clean link/PDF they can save for inspections, with photos, open items, and the next action. VIEW SAMPLE REPORT START COMPANY VERSION See how this would look for my company Try the builder BRANDED SERVICE REPORT INSPECTION-READY PDF CLEAR OPEN-ITEM RECORD BRANDED SERVICE REPORT + PDF Restaurant-ready service report BRANDED RECORD Vendor logo, contact, job result, and PDF copy in one report. INSPECTION FI",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KITCHENPERMIT",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Home",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Login",
+          "href": "/login",
+          "absoluteHref": "http://127.0.0.1:8096/login"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "View sample report",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Start company version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "See how this would look for my company",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Try the builder",
+          "href": "/axis-1/tool?account=free",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?account=free"
+        },
+        {
+          "text": "View sample report",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Start company version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Try the builder",
+          "href": "/axis-1/tool?account=free",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?account=free"
+        },
+        {
+          "text": "Start Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Design Help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        },
+        {
+          "text": "Terms",
+          "href": "/terms",
+          "absoluteHref": "http://127.0.0.1:8096/terms"
+        },
+        {
+          "text": "Privacy",
+          "href": "/privacy",
+          "absoluteHref": "http://127.0.0.1:8096/privacy"
+        },
+        {
+          "text": "Refund Policy",
+          "href": "/refund-policy",
+          "absoluteHref": "http://127.0.0.1:8096/refund-policy"
+        }
+      ],
+      "buttons": [
+        "Menu"
+      ],
+      "imageCount": 0,
+      "loadedImages": 0,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\axis-1-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": []
+    },
+    {
+      "label": "samples-axis-1",
+      "path": "/samples/axis-1",
+      "status": 200,
+      "textLength": 13464,
+      "title": "Customer Service Report Link and PDF Sample | KitchenPermit",
+      "finalUrl": "http://127.0.0.1:8096/samples/axis-1",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version SAMPLE REPORT See the branded service report a restaurant receives. This is the link and PDF a restaurant can save after service, with the result, photos, open items, and next action in one place. RESTAURANT VIEW Opens result, photos, and next action. INSPECTION PDF Saves a copy with inspection records. Open restaurant view See PDF copy Use this under my company name HL Summit Hood Service Co. Sent to Sample Restaurant Group APR 24 RESULT Reachable work completed. OPEN ITEM 1 area needs customer action. PHOTO EVID",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KITCHENPERMIT",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Home",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Login",
+          "href": "/login",
+          "absoluteHref": "http://127.0.0.1:8096/login"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Use this under my company name",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Summit Hood Service Co.Service report link",
+          "href": "#report-top",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1#report-top"
+        },
+        {
+          "text": "Summary",
+          "href": "#summary",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1#summary"
+        },
+        {
+          "text": "Photos",
+          "href": "#proof-story",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1#proof-story"
+        },
+        {
+          "text": "Record",
+          "href": "#record",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1#record"
+        },
+        {
+          "text": "Contact",
+          "href": "#contact",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1#contact"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:5125550148",
+          "absoluteHref": "tel:5125550148"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:5125550148",
+          "absoluteHref": "tel:5125550148"
+        },
+        {
+          "text": "Call after clearing access",
+          "href": "tel:5125550148",
+          "absoluteHref": "tel:5125550148"
+        },
+        {
+          "text": "Call after clearing access",
+          "href": "tel:5125550148",
+          "absoluteHref": "tel:5125550148"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:5125550148",
+          "absoluteHref": "tel:5125550148"
+        },
+        {
+          "text": "Open full restaurant view",
+          "href": "/p/sample-blocked-access",
+          "absoluteHref": "http://127.0.0.1:8096/p/sample-blocked-access"
+        },
+        {
+          "text": "Start Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Design Help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        },
+        {
+          "text": "Terms",
+          "href": "/terms",
+          "absoluteHref": "http://127.0.0.1:8096/terms"
+        },
+        {
+          "text": "Privacy",
+          "href": "/privacy",
+          "absoluteHref": "http://127.0.0.1:8096/privacy"
+        },
+        {
+          "text": "Refund Policy",
+          "href": "/refund-policy",
+          "absoluteHref": "http://127.0.0.1:8096/refund-policy"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Open restaurant view",
+        "See PDF copy",
+        "Restaurant view",
+        "Inspection PDF",
+        "PDF",
+        "Menu",
+        "Photos",
+        "PDF copy",
+        "Save PDF copy",
+        "HD-01 · Step 01Hood canopyCompletedDegreased and wiped accessible hood interior surfaces.",
+        "FL-01 · Step 02Filter bankCompletedRemoved, cleaned, checked, and returned to service.",
+        "PL-01 · Step 03Plenum / duct pathCompletedReachable path cleaned and documented in service scope.",
+        "DK-02 · Step 04Rear duct accessInaccessibleNot completed: Stored equipment blocked the rear duct access panel during service. This area remains tied to the recorded access item and should not be read as cleaned.",
+        "RF-01 · Step 05Rooftop fan areaRecordedVisible rooftop and containment conditions stay on record so the service team can answer follow-up questions.",
+        "Save PDF copy",
+        "PDF copy",
+        "Show inspection PDF"
+      ],
+      "imageCount": 13,
+      "loadedImages": 8,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\samples-axis-1-desktop.png",
+      "containsForbiddenText": true,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": []
+    },
+    {
+      "label": "pricing",
+      "path": "/pricing",
+      "status": 200,
+      "textLength": 3143,
+      "title": "Pricing | KitchenPermit",
+      "finalUrl": "http://127.0.0.1:8096/pricing",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version PRICING Free builder. $79/mo company version. The free builder proves the output. The company version is the paid product: company logo/contact, clean PDF, live restaurant report links, customer history, and follow-up workflow. Customer-ready handoff. Service result, photos, open items, and next action stay in one clean record. Simple policy. Test the builder free, then use the company version when reports need your brand and history. Start company version Try free builder View sample report PRODUCT POLICY Test th",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KITCHENPERMIT",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Home",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Login",
+          "href": "/login",
+          "absoluteHref": "http://127.0.0.1:8096/login"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Start company version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Try free builder",
+          "href": "/axis-1/tool?account=free",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?account=free"
+        },
+        {
+          "text": "View sample report",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Try free builder",
+          "href": "/axis-1/tool?account=free",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?account=free"
+        },
+        {
+          "text": "Start company version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Request design help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Start Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Design Help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        },
+        {
+          "text": "Terms",
+          "href": "/terms",
+          "absoluteHref": "http://127.0.0.1:8096/terms"
+        },
+        {
+          "text": "Privacy",
+          "href": "/privacy",
+          "absoluteHref": "http://127.0.0.1:8096/privacy"
+        },
+        {
+          "text": "Refund Policy",
+          "href": "/refund-policy",
+          "absoluteHref": "http://127.0.0.1:8096/refund-policy"
+        }
+      ],
+      "buttons": [
+        "Menu"
+      ],
+      "imageCount": 0,
+      "loadedImages": 0,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\pricing-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": []
+    },
+    {
+      "label": "company-version",
+      "path": "/company-version",
+      "status": 200,
+      "textLength": 2333,
+      "title": "Company Version | KitchenPermit",
+      "finalUrl": "http://127.0.0.1:8096/company-version",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD LOGIN Company Version COMPANY VERSION // $79/MO Save your company info once. Send every report under your name. The paid path for saved company details, clean inspection PDFs, live service report links, customer history, and next-service follow-up for hood cleaning companies that want the report to carry their name. Start $79 checkout View dashboard View sample report View pricing WHAT GETS SAVED COMPANY IDENTITY Company name, logo, report color, service area, and customer-facing contact. REPLY PATH Phone, dispatch email, and the actio",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KITCHENPERMIT",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Home",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Login",
+          "href": "/login",
+          "absoluteHref": "http://127.0.0.1:8096/login"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "View dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "View sample report",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "View pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Preview company mode",
+          "href": "/axis-1/tool?step=outputs&account=company",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company"
+        },
+        {
+          "text": "Start Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Design Help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        },
+        {
+          "text": "Terms",
+          "href": "/terms",
+          "absoluteHref": "http://127.0.0.1:8096/terms"
+        },
+        {
+          "text": "Privacy",
+          "href": "/privacy",
+          "absoluteHref": "http://127.0.0.1:8096/privacy"
+        },
+        {
+          "text": "Refund Policy",
+          "href": "/refund-policy",
+          "absoluteHref": "http://127.0.0.1:8096/refund-policy"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Start $79 checkout",
+        "Start company version"
+      ],
+      "imageCount": 0,
+      "loadedImages": 0,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-version-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": []
+    },
+    {
+      "label": "company-clean-link",
+      "path": "/p/server?reportId=9e5d5f04aa714a0a8f",
+      "status": 200,
+      "textLength": 3811,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT PHOTOS RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Feb 15, 2026 Ready for records SERVICE REPORT Property: Marigold Diner Location: Los Angeles, CA Reviewed: Luis, closing manager Service completed. Accessible hood interior, filter bank, and reachable plenum were cleaned and closed during the overnight visit. Attached photos support the service areas shown. RESULT Closed RECORD BASIS 5 photos CUSTOMER ACTION Call service team PDF COPY Record copy Call to confirm next servi",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KPKitchen Permit Hood ServiceService report",
+          "href": "#report-top",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f#report-top"
+        },
+        {
+          "text": "Result",
+          "href": "#summary",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f#summary"
+        },
+        {
+          "text": "Photos",
+          "href": "#proof-story",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f#proof-story"
+        },
+        {
+          "text": "Record",
+          "href": "#record",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f#record"
+        },
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "Call to confirm next service",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "Call to confirm next service",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Photos"
+      ],
+      "imageCount": 8,
+      "loadedImages": 8,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-clean-link-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f&format=pdf"
+        }
+      ]
+    },
+    {
+      "label": "company-open-access-link",
+      "path": "/p/server?reportId=67e4d189dc3b4fa5bd",
+      "status": 200,
+      "textLength": 4932,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT PHOTOS RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Feb 2, 2026 1 area needs your action SERVICE REPORT Property: Canal Street Tacos Location: Glendale, CA Reviewed: Angela, assistant manager Reachable work completed. 1 area needs your action. Reachable work was completed. The blocked area is listed separately and is not presented as cleaned. Attached photos support only the areas shown. RESULT Action needed RECORD BASIS 4 photos CUSTOMER ACTION Call service team PDF COPY R",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KPKitchen Permit Hood ServiceService report",
+          "href": "#report-top",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd#report-top"
+        },
+        {
+          "text": "Result",
+          "href": "#summary",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd#summary"
+        },
+        {
+          "text": "Photos",
+          "href": "#proof-story",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd#proof-story"
+        },
+        {
+          "text": "Record",
+          "href": "#record",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd#record"
+        },
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Call after clearing access",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Call after clearing access",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Photos"
+      ],
+      "imageCount": 9,
+      "loadedImages": 8,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-open-access-link-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        }
+      ]
+    },
+    {
+      "label": "company-written-record-link",
+      "path": "/p/server?reportId=119b1986e45341ae87",
+      "status": 200,
+      "textLength": 2722,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records May 8, 2026 Ready for records SERVICE REPORT Property: Blue Line Pizza Location: Burbank, CA Reviewed: Rosa, shift lead Service completed. Service was closed from the written crew record because no field photos were attached to this link. This is a written service record based on service notes. RESULT Closed RECORD BASIS Written record CUSTOMER ACTION Call service team PDF COPY Record copy Call to confirm next service Open PDF co",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KPKitchen Permit Hood ServiceService report",
+          "href": "#report-top",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87#report-top"
+        },
+        {
+          "text": "Result",
+          "href": "#summary",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87#summary"
+        },
+        {
+          "text": "Record",
+          "href": "#record",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87#record"
+        },
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "Call to confirm next service",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "Call to confirm next service",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        }
+      ],
+      "buttons": [
+        "Menu"
+      ],
+      "imageCount": 0,
+      "loadedImages": 0,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-written-record-link-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf"
+        }
+      ]
+    },
+    {
+      "label": "company-quote-review-link",
+      "path": "/p/server?reportId=b708543a796c4110a6",
+      "status": 200,
+      "textLength": 4018,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT PHOTOS RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Apr 23, 2026 1 condition recorded SERVICE REPORT Property: Northside Grill Location: Pasadena, CA Reviewed: Dina, general manager Service completed. 1 condition recorded. Service was completed. The recorded condition is listed separately for follow-up or next-service planning. Attached photos support the service areas shown. RESULT Review item RECORD BASIS 4 photos CUSTOMER ACTION Call service team PDF COPY Record copy Cal",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KPKitchen Permit Hood ServiceService report",
+          "href": "#report-top",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6#report-top"
+        },
+        {
+          "text": "Result",
+          "href": "#summary",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6#summary"
+        },
+        {
+          "text": "Photos",
+          "href": "#proof-story",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6#proof-story"
+        },
+        {
+          "text": "Record",
+          "href": "#record",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6#record"
+        },
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "Call about follow-up quote",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "Call about follow-up quote",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Photos"
+      ],
+      "imageCount": 7,
+      "loadedImages": 7,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-quote-review-link-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=b708543a796c4110a6&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6&format=pdf"
+        }
+      ]
+    },
+    {
+      "label": "company-monitor-review-link",
+      "path": "/p/server?reportId=c31a06545e6648648b",
+      "status": 200,
+      "textLength": 3995,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT RESULT PHOTOS RECORD PDF Call service team KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Mar 14, 2026 1 condition recorded SERVICE REPORT Property: Elm Market Kitchen Location: Santa Monica, CA Reviewed: Noah, facilities Service completed. 1 condition recorded. Service was completed. The recorded condition is listed separately for follow-up or next-service planning. Attached photos support the service areas shown. RESULT Review item RECORD BASIS 4 photos CUSTOMER ACTION Call service team PDF COPY Record copy C",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KPKitchen Permit Hood ServiceService report",
+          "href": "#report-top",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b#report-top"
+        },
+        {
+          "text": "Result",
+          "href": "#summary",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b#summary"
+        },
+        {
+          "text": "Photos",
+          "href": "#proof-story",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b#proof-story"
+        },
+        {
+          "text": "Record",
+          "href": "#record",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b#record"
+        },
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "Call to confirm next service",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "Call to confirm next service",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Photos"
+      ],
+      "imageCount": 7,
+      "loadedImages": 7,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-monitor-review-link-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=c31a06545e6648648b&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b&format=pdf"
+        }
+      ]
+    },
+    {
+      "label": "free-test-link",
+      "path": "/p/server?reportId=d3187b1b14b44cbb97",
+      "status": 200,
+      "textLength": 3479,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97",
+      "firstText": "SR Service report SERVICE REPORT RESULT PHOTOS RECORD PDF SR Service report Kitchen exhaust service record Free test link May 13, 2026 Ready for records SERVICE REPORT Property: Free Trial Bistro Location: Anaheim, CA Reviewed: Trial manager Service completed. The accessible kitchen exhaust service path was completed. Attached photos support only the areas shown. Attached photos support only the areas shown. RESULT Closed RECORD BASIS 2 photos CUSTOMER ACTION Confirm service PDF COPY Record copy Open PDF copy Use your normal customer communication channel to confirm this step. CUSTOMER NEXT ST",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "SRService reportService report",
+          "href": "#report-top",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97#report-top"
+        },
+        {
+          "text": "Result",
+          "href": "#summary",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97#summary"
+        },
+        {
+          "text": "Photos",
+          "href": "#proof-story",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97#proof-story"
+        },
+        {
+          "text": "Record",
+          "href": "#record",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97#record"
+        },
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Photos"
+      ],
+      "imageCount": 4,
+      "loadedImages": 4,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\free-test-link-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf"
+        }
+      ]
+    },
+    {
+      "label": "company-open-access-pdf",
+      "path": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+      "status": 200,
+      "textLength": 10804,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+      "firstText": "SERVICE REPORT PDF / COMPANY Clean PDF, no watermark. Print or save this PDF as the retained service copy. SAVE PDF KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Canal Street Tacos GLENDALE, CA / FEB 2, 2026 / REPORT SR-67E4D189 Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Action item visible Service date Feb 2, 2026 Location Glendale, CA System Tortilla line exhaust Today's result Completed with open ",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [],
+      "buttons": [
+        "Save PDF"
+      ],
+      "imageCount": 2,
+      "loadedImages": 2,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-open-access-pdf-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": []
+    },
+    {
+      "label": "company-written-record-pdf",
+      "path": "/p/server?reportId=119b1986e45341ae87&format=pdf",
+      "status": 200,
+      "textLength": 8156,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87&format=pdf",
+      "firstText": "SERVICE REPORT PDF / COMPANY Clean PDF, no watermark. Print or save this PDF as the retained service copy. SAVE PDF KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Blue Line Pizza BURBANK, CA / MAY 8, 2026 / REPORT SR-119B1986 Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Ready for records Service date May 8, 2026 Location Burbank, CA System Oven hood and make-line exhaust Today's result Completed and clo",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [],
+      "buttons": [
+        "Save PDF"
+      ],
+      "imageCount": 0,
+      "loadedImages": 0,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\company-written-record-pdf-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": []
+    },
+    {
+      "label": "free-test-pdf",
+      "path": "/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+      "status": 200,
+      "textLength": 9888,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=d3187b1b14b44cbb97&format=pdf",
+      "firstText": "SERVICE REPORT PDF / FREE Watermarked PDF. Print or save this PDF as the retained service copy. SAVE PDF SR Service report Kitchen exhaust service record CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Free Trial Bistro ANAHEIM, CA / MAY 13, 2026 / REPORT SR-D3187B1B Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Ready for records Service date May 13, 2026 Location Anaheim, CA System Main hood test report Today's result Completed and closed Report ID SR-D3187B1B Record basis Partial photos",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [],
+      "buttons": [
+        "Save PDF"
+      ],
+      "imageCount": 1,
+      "loadedImages": 1,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\free-test-pdf-desktop.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": []
+    },
+    {
+      "label": "mobile-builder",
+      "path": "/axis-1/tool",
+      "status": 200,
+      "textLength": 1063,
+      "title": "Service Report Builder | KitchenPermit",
+      "finalUrl": "http://127.0.0.1:8096/axis-1/tool",
+      "firstText": "K Kitchen PERMIT 1 2 3 FREE BUILDER NO LOGIN Free builder: no login, no company logo/contact, 7-day test link, watermarked PDF, and no report history. FREE COMPANY LOCKED LOGIN PHOTOS & NOTES Create the restaurant-ready hood cleaning report. Add job photos if you have them. One short note is enough when the crew needs a clean report link and PDF for the restaurant. JOB PHOTOS Drop photos if you have them Before, after, fan, filter, access, label, and issue photos can all go in one batch. CHOOSE PHOTOS Photos optional Saved with report OPTIONAL NOTE WHAT WAS INCLUDED? Hood cleaning Hood, duct, ",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KITCHENPERMIT",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Home",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Login",
+          "href": "/login",
+          "absoluteHref": "http://127.0.0.1:8096/login"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "KKitchenPermit",
+          "href": "/axis-1/tool",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool"
+        },
+        {
+          "text": "Login",
+          "href": "/login?next=%2Faxis-1%2Ftool%3Fstep%3Doutputs%26account%3Dcompany",
+          "absoluteHref": "http://127.0.0.1:8096/login?next=%2Faxis-1%2Ftool%3Fstep%3Doutputs%26account%3Dcompany"
+        },
+        {
+          "text": "SRService reportService report link",
+          "href": "#report-top",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool#report-top"
+        },
+        {
+          "text": "Summary",
+          "href": "#summary",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool#summary"
+        },
+        {
+          "text": "Record",
+          "href": "#record",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool#record"
+        },
+        {
+          "text": "Contact",
+          "href": "#contact",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool#contact"
+        },
+        {
+          "text": "Start Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Design Help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        },
+        {
+          "text": "Terms",
+          "href": "/terms",
+          "absoluteHref": "http://127.0.0.1:8096/terms"
+        },
+        {
+          "text": "Privacy",
+          "href": "/privacy",
+          "absoluteHref": "http://127.0.0.1:8096/privacy"
+        },
+        {
+          "text": "Refund Policy",
+          "href": "/refund-policy",
+          "absoluteHref": "http://127.0.0.1:8096/refund-policy"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "1PhotosPhotos & notesOptional",
+        "2ReviewReview report",
+        "3OutputsOutputs",
+        "Menu",
+        "Free",
+        "Company locked",
+        "1. Photos & notesOptionalAdd photos and notesDrop job photos or one short note. The builder drafts a customer-ready service report from there.",
+        "2. Review reportRequiredReview service summaryFix only wrong or uncertain parts in the preview.",
+        "3. OutputsLockedPreview link and PDFCheck the service report link and PDF copy before using the paid company version.",
+        "Confirm result first",
+        "StandardHood cleaningHood, duct, fan, and grease path expected.",
+        "Hood + fanFull exhaust pathUse when fan and duct were part of the visit.",
+        "Filters onlyFilter serviceOnly hood/filter work is expected.",
+        "Fan onlyRooftop fanFan and rooftop grease path only.",
+        "Access revisitBlocked area returnOnly the access path is expected.",
+        "Condition onlyRecord conditionNo cleaning completion is assumed.",
+        "CompletedCompletedIncluded work completed; no customer action needed.Recommended",
+        "Blocked / no accessCompleted where reachableOne area needs access, revisit, or area clarification.",
+        "Condition foundService done, condition notedCondition should drive quote, revisit, or next-service follow-up.",
+        "Show less",
+        "Confirm result first",
+        "Job basicsRequiredNeeded before output: customer, site, reviewerAdd real customer details before creating a link or PDF. The tool will not send untouched defaults.Add details",
+        "Change if needed",
+        "Continue to Outputs",
+        "Record details",
+        "Today's resultCompleted: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied.Default lineEdit line",
+        "Report statusNo responsibility boundary can be shown until the visit outcome is selected.Shown as closedEdit line",
+        "Customer next stepSelect what happened today before the tool writes a customer next action.Default next stepEdit line",
+        "Photo / record basisWritten service recordWritten service recordEdit photos",
+        "Next serviceAug 8-13, 202690 days selectedEdit timing",
+        "CompletedCompletedSuggested",
+        "Blocked / no accessCompleted where reachablePick if true",
+        "Condition foundService done, condition notedPick if true",
+        "Standard",
+        "Hood + fan",
+        "Filters only",
+        "Fan only",
+        "Access revisit",
+        "Condition only",
+        "Ready to review?Review reportReview the service summary, then fix only wrong or uncertain parts.",
+        "Review written record",
+        "Review report",
+        "Reset quick mode",
+        "Print / save PDF",
+        "Copy report link",
+        "Copy report linkConfirm result first",
+        "Save service report PDFPDF record from the same service record.",
+        "Today's resultAdjustCompleted: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied.Default line",
+        "Report statusAdjustNo responsibility boundary can be shown until the visit outcome is selected.Shown as closed",
+        "Customer next stepAdjustSelect what happened today before the tool writes a customer next action.Default next step",
+        "Report link",
+        "Service report PDF",
+        "Copy report link",
+        "Edit customer wording",
+        "Copy report link",
+        "Open link",
+        "Save PDF layout",
+        "Service report link",
+        "Service report PDF",
+        "Service report linkPrimary outputWeb report - best for customer clarity, follow-up items, and reply.",
+        "PDF / printPDF copyFormal service report PDF - best for archive, attachment, print, and outside record requests.",
+        "Copy link",
+        "Open",
+        "Full PDF",
+        "Short PDF",
+        "Use shorter wording",
+        "Restore recommended copy",
+        "Add company info",
+        "Report history",
+        "Report link",
+        "Service report PDF",
+        "PDF",
+        "Menu",
+        "PDF copy",
+        "Save PDF copy",
+        "HD/FL · Step 01Hood canopy and filtersCompleted from notesHood body, baffle filters, tracks, and nearby grease collection points were included in this visit. Completed from service notes; no field photo is attached for this area.",
+        "PL/DK · Step 02Plenum, duct path, and accessCompleted from notesReachable plenum, duct path, and access points were included instead of stopping at the visible hood face. Completed from service notes; no field photo is attached for this area.",
+        "RF-01 · Step 03Rooftop fanCompleted from notesRooftop fan, hinge/curb, belt/pulley visibility, and discharge-area status were included in the service record. Completed from service notes; no field photo is attached for this area.",
+        "GC-01 · Step 04Grease path and containmentCompleted from notesGrease path, grease cups, containment, drip points, buckets, or roof grease trail were included in the service record. Completed from service notes; no field photo is attached for this area."
+      ],
+      "imageCount": 0,
+      "loadedImages": 0,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-builder-mobile.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": []
+    },
+    {
+      "label": "mobile-dashboard",
+      "path": "/dashboard",
+      "status": 200,
+      "textLength": 3577,
+      "title": "Dashboard | KitchenPermit",
+      "finalUrl": "http://127.0.0.1:8096/dashboard",
+      "firstText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE PRICING DASHBOARD Company Version DASHBOARD Your report workspace. Build the next hood cleaning report, resend a customer link, or update the company details restaurants see on the report. Start next report Create the customer-ready link/PDF. Company access adds branding and history. Open saved history Available when company access is active: reopen, edit, or resend saved reports. Update company info Change the logo, report color, phone, email, or service area. REVIEW PRICING SIGN OUT ACCOUNT STATUS COMPANY ACTIVE $79/mo Company version includes saved c",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KITCHENPERMIT",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Home",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Start next reportCreate the customer-ready link/PDF. Company access adds branding and history.",
+          "href": "/axis-1/tool",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool"
+        },
+        {
+          "text": "Open saved historyAvailable when company access is active: reopen, edit, or resend saved reports.",
+          "href": "#report-history",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard#report-history"
+        },
+        {
+          "text": "Update company infoChange the logo, report color, phone, email, or service area.",
+          "href": "#company-profile",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard#company-profile"
+        },
+        {
+          "text": "Review pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Build company report",
+          "href": "/axis-1/tool?step=outputs&account=company",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company"
+        },
+        {
+          "text": "Billing help",
+          "href": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help",
+          "absoluteHref": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=9e5d5f04aa714a0a8f",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=9e5d5f04aa714a0a8f"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=9e5d5f04aa714a0a8f",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=9e5d5f04aa714a0a8f"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=2a7b7514ee624a7d87",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=2a7b7514ee624a7d87"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=2a7b7514ee624a7d87",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=2a7b7514ee624a7d87"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=67e4d189dc3b4fa5bd",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=67e4d189dc3b4fa5bd"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=20fcc152496a44178d",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=20fcc152496a44178d"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=20fcc152496a44178d",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=20fcc152496a44178d"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=119b1986e45341ae87",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=119b1986e45341ae87"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=119b1986e45341ae87",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=119b1986e45341ae87"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=c31a06545e6648648b",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=c31a06545e6648648b"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=c31a06545e6648648b",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=c31a06545e6648648b"
+        },
+        {
+          "text": "Edit report",
+          "href": "/axis-1/tool?step=outputs&account=company&loadReport=b708543a796c4110a6",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=b708543a796c4110a6"
+        },
+        {
+          "text": "Open customer link",
+          "href": "/p/server?reportId=b708543a796c4110a6",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=b708543a796c4110a6"
+        },
+        {
+          "text": "Start Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Design Help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        },
+        {
+          "text": "Terms",
+          "href": "/terms",
+          "absoluteHref": "http://127.0.0.1:8096/terms"
+        },
+        {
+          "text": "Privacy",
+          "href": "/privacy",
+          "absoluteHref": "http://127.0.0.1:8096/privacy"
+        },
+        {
+          "text": "Refund Policy",
+          "href": "/refund-policy",
+          "absoluteHref": "http://127.0.0.1:8096/refund-policy"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Sign out",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Copy text",
+        "Copy email",
+        "Remove",
+        "Edit company info"
+      ],
+      "imageCount": 0,
+      "loadedImages": 0,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-dashboard-mobile.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Billing help",
+          "href": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help",
+          "absoluteHref": "mailto:support@kitchenpermit.com?subject=Company%20version%20billing%20help"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": [
+        {
+          "text": "Start next reportCreate the customer-ready link/PDF. Company access adds branding and history.",
+          "href": "/axis-1/tool",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool"
+        }
+      ]
+    },
+    {
+      "label": "mobile-customer-link",
+      "path": "/p/server?reportId=67e4d189dc3b4fa5bd",
+      "status": 200,
+      "textLength": 4162,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd",
+      "firstText": "KP Kitchen Permit Hood Service SERVICE REPORT KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records Feb 2, 2026 1 area needs your action SERVICE REPORT Property: Canal Street Tacos Location: Glendale, CA Reviewed: Angela, assistant manager Reachable work completed. 1 area needs your action. Reachable work was completed. The blocked area is listed separately and is not presented as cleaned. QUICK ACTIONS Next action, photos, and PDF copy. Action needed Call service team Photos PDF copy RESULT Action needed RECORD BASIS 4 photos CUSTOMER ACTION Call service team PD",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KPKitchen Permit Hood ServiceService report",
+          "href": "#report-top",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd#report-top"
+        },
+        {
+          "text": "Result",
+          "href": "#summary",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd#summary"
+        },
+        {
+          "text": "Photos",
+          "href": "#proof-story",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd#proof-story"
+        },
+        {
+          "text": "Record",
+          "href": "#record",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd#record"
+        },
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Call after clearing access",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Call after clearing access",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "Call service team",
+          "href": "tel:2135550196",
+          "absoluteHref": "tel:2135550196"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        }
+      ],
+      "buttons": [
+        "Menu",
+        "Photos"
+      ],
+      "imageCount": 9,
+      "loadedImages": 5,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-customer-link-mobile.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": [
+        {
+          "text": "PDF",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "Open PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        },
+        {
+          "text": "PDF copy",
+          "href": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+          "absoluteHref": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf"
+        }
+      ]
+    },
+    {
+      "label": "mobile-pdf",
+      "path": "/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+      "status": 200,
+      "textLength": 10804,
+      "title": "KitchenPermit | Service reports for hood cleaning jobs",
+      "finalUrl": "http://127.0.0.1:8096/p/server?reportId=67e4d189dc3b4fa5bd&format=pdf",
+      "firstText": "SERVICE REPORT PDF / COMPANY Clean PDF, no watermark. Print or save this PDF as the retained service copy. SAVE PDF KP Kitchen Permit Hood Service Los Angeles County | restaurant hood cleaning records CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Canal Street Tacos GLENDALE, CA / FEB 2, 2026 / REPORT SR-67E4D189 Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Action item visible Service date Feb 2, 2026 Location Glendale, CA System Tortilla line exhaust Today's result Completed with open ",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [],
+      "buttons": [
+        "Save PDF"
+      ],
+      "imageCount": 2,
+      "loadedImages": 2,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-pdf-mobile.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [],
+      "pdfAnchors": []
+    },
+    {
+      "label": "mobile-pricing",
+      "path": "/pricing",
+      "status": 200,
+      "textLength": 2865,
+      "title": "Pricing | KitchenPermit",
+      "finalUrl": "http://127.0.0.1:8096/pricing",
+      "firstText": "KITCHENPERMIT PRICING Free builder. $79/mo company version. The free builder proves the output. The company version is the paid product: company logo/contact, clean PDF, live restaurant report links, customer history, and follow-up workflow. Start company version Try free builder View sample report PRODUCT POLICY Test the report free. Pay when it carries your company name. Free builder: no login, no company logo/contact, 7-day link, watermarked PDF. Company version: $79/mo for saved company details, live service report links, clean PDFs, customer history, and follow-up reminders. Design help: ",
+      "horizontalOverflowPx": 0,
+      "consoleMessages": [],
+      "actionableConsole": [],
+      "anchors": [
+        {
+          "text": "KITCHENPERMIT",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Home",
+          "href": "/",
+          "absoluteHref": "http://127.0.0.1:8096/"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Login",
+          "href": "/login",
+          "absoluteHref": "http://127.0.0.1:8096/login"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Start company version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Try free builder",
+          "href": "/axis-1/tool?account=free",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?account=free"
+        },
+        {
+          "text": "View sample report",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Try free builder",
+          "href": "/axis-1/tool?account=free",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1/tool?account=free"
+        },
+        {
+          "text": "Start company version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Request design help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Start Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Service Report",
+          "href": "/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/axis-1"
+        },
+        {
+          "text": "Sample",
+          "href": "/samples/axis-1",
+          "absoluteHref": "http://127.0.0.1:8096/samples/axis-1"
+        },
+        {
+          "text": "Pricing",
+          "href": "/pricing",
+          "absoluteHref": "http://127.0.0.1:8096/pricing"
+        },
+        {
+          "text": "Dashboard",
+          "href": "/dashboard",
+          "absoluteHref": "http://127.0.0.1:8096/dashboard"
+        },
+        {
+          "text": "Company Version",
+          "href": "/company-version",
+          "absoluteHref": "http://127.0.0.1:8096/company-version"
+        },
+        {
+          "text": "Design Help",
+          "href": "/start",
+          "absoluteHref": "http://127.0.0.1:8096/start"
+        },
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        },
+        {
+          "text": "Terms",
+          "href": "/terms",
+          "absoluteHref": "http://127.0.0.1:8096/terms"
+        },
+        {
+          "text": "Privacy",
+          "href": "/privacy",
+          "absoluteHref": "http://127.0.0.1:8096/privacy"
+        },
+        {
+          "text": "Refund Policy",
+          "href": "/refund-policy",
+          "absoluteHref": "http://127.0.0.1:8096/refund-policy"
+        }
+      ],
+      "buttons": [
+        "Menu"
+      ],
+      "imageCount": 0,
+      "loadedImages": 0,
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\mobile-pricing-mobile.png",
+      "containsForbiddenText": false,
+      "forbiddenHrefAnchors": [
+        {
+          "text": "Contact Support",
+          "href": "mailto:support@kitchenpermit.com",
+          "absoluteHref": "mailto:support@kitchenpermit.com"
+        }
+      ],
+      "pdfAnchors": []
+    }
+  ]
+}

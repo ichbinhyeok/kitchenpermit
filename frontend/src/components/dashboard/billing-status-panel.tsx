@@ -3,7 +3,7 @@
 import Link from "@/components/navigation/static-link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { CreditCard, RotateCcw, ShieldCheck, TriangleAlert } from "lucide-react";
+import { FileText } from "lucide-react";
 import {
   AXIS1_COMPANY_MONTHLY_PRICE,
 } from "@/lib/axis1-product-policy";
@@ -11,7 +11,6 @@ import {
   loadAxis1AccountEntitlements,
   type Axis1AccountEntitlements,
 } from "@/lib/axis1-server-storage";
-import { siteConfig } from "@/lib/site";
 
 type EntitlementState =
   | { status: "loading" }
@@ -24,10 +23,10 @@ function StatusPill({ children, tone = "muted" }: { children: string; tone?: "go
       ? "bg-[#1f7a4d] text-white"
       : tone === "warn"
         ? "bg-[#fff2e8] text-[#a94410]"
-        : "bg-white/12 text-white/62";
+        : "bg-black/[0.06] text-[#5f574f]";
 
   return (
-    <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${toneClass}`}>
+    <span className={`rounded-full border border-black/10 px-2.5 py-1 text-[10px] font-black uppercase ${toneClass}`}>
       {children}
     </span>
   );
@@ -124,7 +123,7 @@ function BillingNotice({ compact = false }: { compact?: boolean }) {
 
   return (
     <div
-      className={`rounded-[24px] border ${
+      className={`border ${
         compact ? "p-3" : "p-4"
       } ${
         notice.tone === "good"
@@ -219,71 +218,43 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
     <div className="grid gap-3">
       {showNotice ? <BillingNotice /> : null}
 
-      <div className="overflow-hidden rounded-[34px] bg-[#111315] text-white shadow-[0_36px_120px_rgba(17,19,21,0.28)]">
-        <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[26px] border border-white/10 bg-white/[0.055] p-4">
-            <div className="flex items-center justify-between gap-4">
-              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/42">
+      <section className="relative overflow-hidden border-b border-black/10 bg-[#fffaf2] text-[#111315]">
+        <div className="grid gap-3 px-4 py-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#7b6f65]">
                 Account status
               </p>
               <StatusPill tone={companyAccess ? "good" : "warn"}>
                 {accountStatus}
               </StatusPill>
+              <span className="text-xs font-bold text-[#75695f]">
+                {AXIS1_COMPANY_MONTHLY_PRICE}
+              </span>
             </div>
-            <p className="mt-5 font-display text-5xl font-bold tracking-[-0.07em]">
-              {AXIS1_COMPANY_MONTHLY_PRICE}
-            </p>
-            <p className="mt-2 text-sm font-semibold leading-6 text-white/58">
-              Company version includes saved company info, logo, report color,
-              clean PDFs, live service report links, customer history, and
-              follow-up workflow while access is active.
+            <p className="mt-1 max-w-3xl text-sm font-semibold leading-6 text-[#5f574f]">
+              {billingStatusCopy} Saved company info, clean PDFs, live report
+              links, and history stay available while access is active.
             </p>
           </div>
 
-          <div className="grid gap-3">
-            {[
-              ["Company access", billingStatusCopy],
-              ["Manage billing", "Email support for card updates, cancellation, receipts, or billing questions."],
-              ["Access help", "If subscription access stops, support can help restore company mode after the account is corrected."],
-              ["Access rule", "Free builder stays public. Company output requires active or trialing access."],
-            ].map(([label, copy], index) => (
-              <div key={label} className="rounded-[20px] border border-white/10 bg-white/[0.045] px-4 py-3">
-                <div className="flex items-start gap-3">
-                  {index === 0 ? (
-                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#ffb27c]" />
-                  ) : index === 1 ? (
-                    <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-[#ffb27c]" />
-                  ) : index === 2 ? (
-                    <RotateCcw className="mt-0.5 h-4 w-4 shrink-0 text-[#ffb27c]" />
-                  ) : (
-                    <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-[#ffb27c]" />
-                  )}
-                  <div>
-                    <p className="text-sm font-black tracking-[-0.035em] text-white">
-                      {label}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-white/52">{copy}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/axis-1/tool?step=outputs&account=company"
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-3 text-[10px] font-black uppercase text-white"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Build report
+            </Link>
+            <Link
+              href="/pricing"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-[10px] font-black uppercase text-[#111315]"
+            >
+              Plan
+            </Link>
           </div>
         </div>
-        <div className="flex flex-col gap-2 border-t border-white/10 px-5 py-4 sm:flex-row sm:flex-wrap sm:px-6">
-          <Link
-            href="/axis-1/tool?step=outputs&account=company"
-            className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#f26a21] px-4 text-[11px] font-black uppercase tracking-[0.12em] text-white"
-          >
-            Build company report
-          </Link>
-          <a
-            href={`mailto:${siteConfig.supportEmail}?subject=Company%20version%20billing%20help`}
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/12 bg-white/[0.055] px-4 text-[11px] font-black uppercase tracking-[0.12em] text-white/72"
-          >
-            Billing help
-          </a>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

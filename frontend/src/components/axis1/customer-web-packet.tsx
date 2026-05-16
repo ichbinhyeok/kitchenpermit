@@ -151,6 +151,37 @@ function accentVariables(hex: string) {
   } as CSSProperties;
 }
 
+function isRenderableLogoSrc(src: string) {
+  if (!src.startsWith("data:")) {
+    return true;
+  }
+
+  const [, metadata = "", base64 = ""] = src.match(/^data:([^,]+),(.+)$/) ?? [];
+
+  if (!metadata.includes(";base64") || !base64) {
+    return false;
+  }
+
+  try {
+    const binary = atob(base64);
+
+    if (metadata.startsWith("image/png")) {
+      return binary.startsWith("\u0089PNG\r\n\u001a\n") && binary.slice(-12, -8) === "IEND";
+    }
+
+    if (metadata.startsWith("image/jpeg") || metadata.startsWith("image/jpg")) {
+      return binary.charCodeAt(0) === 0xff &&
+        binary.charCodeAt(1) === 0xd8 &&
+        binary.charCodeAt(binary.length - 2) === 0xff &&
+        binary.charCodeAt(binary.length - 1) === 0xd9;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function customerCopy(value: string) {
   return value
     .replace(/\bservice handoff and office archive retained\b/gi, "Customer copy and service provider archive retained")
@@ -169,6 +200,16 @@ function customerCopy(value: string) {
     .replace(/\bseparate trade service\b/gi, "separate corrective work")
     .replace(/\bseparate corrective work and follow-up work\b/gi, "separate corrective or follow-up work")
     .replace(/\bfollow-up work authorization\b/gi, "follow-up go-ahead")
+    .replace(/\breply\s+so\b/gi, "contact the service team so")
+    .replace(/\breply\s+when\b/gi, "contact the service team when")
+    .replace(/\breply\s+if\b/gi, "contact the service team if")
+    .replace(/\breply\s+to\b/gi, "contact the service team to")
+    .replace(/\breply\s+before\b/gi, "contact the service team before")
+    .replace(/\breply\s+after\b/gi, "contact the service team after")
+    .replace(/\bcall\s+after\s+clearing\s+access\b/gi, "contact the service team after clearing access")
+    .replace(/\bcall\s+service\s+team\b/gi, "contact service team")
+    .replace(/\bcall\s+service\s+provider\b/gi, "contact service provider")
+    .replace(/\bnext reply\b/gi, "next response")
     .replace(/\bservice close-out\b/gi, "service record")
     .replace(/\bcustomer handoff\b/gi, "customer service record")
     .replace(/\bhandoff\b/gi, "service record")
@@ -202,12 +243,12 @@ function compactCtaLabel(value: string) {
 function mobileCtaLabel(value: string, hasOpenAccessItem = false) {
   const compact = compactCtaLabel(value);
 
-  if (/^call\b/i.test(compact)) {
-    return "Call vendor";
+  if (/^call\b|^reply\b|^contact\b/i.test(compact)) {
+    return hasOpenAccessItem ? "Contact after clearing access" : "Contact service team";
   }
 
   if (hasOpenAccessItem || /access/i.test(compact)) {
-    return "Reply after clearing access";
+    return "Contact after clearing access";
   }
 
   if (/quote/i.test(compact)) {
@@ -225,18 +266,28 @@ function phoneFallbackCtaLabel(value: string, hasOpenAccessItem = false) {
   const compact = compactCtaLabel(value);
 
   if (hasOpenAccessItem || /access/i.test(compact)) {
-    return "Call after clearing access";
+    return "Contact after clearing access";
   }
 
   if (/quote/i.test(compact)) {
-    return "Call about follow-up quote";
+    return "Contact about follow-up quote";
   }
 
   if (/next service|next cleaning|schedule|rebook|confirm/i.test(compact)) {
-    return "Call to confirm next service";
+    return "Contact to confirm next service";
   }
 
-  return "Call service provider";
+  return "Contact service team";
+}
+
+function providerCallLabel(vendorName: string, compact = false) {
+  const name = vendorName.trim();
+
+  if (!name || /^service report$/i.test(name)) {
+    return compact ? "Contact service team" : "Contact service provider";
+  }
+
+  return compact ? "Contact service team" : `Contact ${name}`;
 }
 
 function CustomerReportHeader({
@@ -248,6 +299,7 @@ function CustomerReportHeader({
   pdfServiceRecordHref,
   onEvidencePdfAction,
   hasVendorPhone,
+  compactReport = false,
 }: {
   data: Axis1PacketPreviewData;
   primaryCtaLabel: string;
@@ -257,22 +309,31 @@ function CustomerReportHeader({
   pdfServiceRecordHref: string | null;
   onEvidencePdfAction: () => void;
   hasVendorPhone: boolean;
+  compactReport?: boolean;
 }) {
-  const navItems = [
-    ["#summary", "Summary"],
-    data.proofPhotos.length > 0 ? ["#proof-story", "Photos"] : null,
-    ["#record", "Record"],
-    ["#contact", "Contact"],
-  ].filter(Boolean) as Array<[string, string]>;
+  const navItems = (compactReport
+    ? [
+        ["#summary", "Result"],
+        data.proofPhotos.length > 0 ? ["#proof-story", "Photos"] : null,
+        ["#record", "Record"],
+      ]
+    : [
+        ["#summary", "Summary"],
+        data.proofPhotos.length > 0 ? ["#proof-story", "Photos"] : null,
+        ["#record", "Record"],
+        ["#contact", "Contact"],
+      ]).filter(Boolean) as Array<[string, string]>;
+  const primaryCtaUsesPhone = Boolean(primaryCtaHref?.startsWith("tel:"));
+  const showPhoneShortcut = hasVendorPhone && !primaryCtaUsesPhone;
   const mobileMenuItems = [
     ...navItems.map(([href, label]) => ({ href, label })),
     pdfServiceRecordHref
       ? { href: pdfServiceRecordHref, label: "Open PDF copy" }
       : { label: "Save PDF copy", onSelect: onEvidencePdfAction },
-    hasVendorPhone
+    showPhoneShortcut
       ? {
           href: `tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`,
-          label: "Call service provider",
+          label: "Contact service provider",
         }
       : null,
     primaryCtaHref && primaryCtaEnabled
@@ -291,29 +352,36 @@ function CustomerReportHeader({
   return (
     <HeaderChrome
       tone="dark"
-      containerClassName="mx-auto w-full max-w-[1180px]"
-      shellClassName="flex-wrap px-2 py-1.5 sm:px-4"
+      padded={!compactReport}
+      containerClassName={compactReport ? "w-full" : "mx-auto w-full max-w-[1180px]"}
+      shellClassName={
+        compactReport
+          ? "min-h-[60px] !rounded-none border-x-0 border-t-0 px-4 py-2 shadow-none sm:px-6"
+          : "flex-wrap px-2 py-1.5 sm:px-4"
+      }
     >
       <HeaderBrandLink
         href="#report-top"
         ariaLabel="Back to report top"
         icon={
           data.vendor.logoUrl ? (
-            <Image
+            <VendorLogoImage
               src={data.vendor.logoUrl}
               alt=""
               width={40}
               height={40}
               className="h-full w-full object-contain p-1.5"
+              fallbackText={data.vendor.initials}
             />
           ) : (
             <span className="text-sm font-semibold">{data.vendor.initials}</span>
           )
         }
         title={data.vendor.name}
-        subtitle="Service report link"
+        subtitle={compactReport ? "Service report" : "Service report link"}
         tone="dark"
-        className="max-w-[220px] lg:max-w-[260px]"
+        className="max-w-[62vw] sm:max-w-[240px] lg:max-w-[260px]"
+        titleClassName="whitespace-normal text-clip leading-[1.05] sm:truncate"
         markClassName={
           data.vendor.logoUrl
             ? "customer-report-logo-mark"
@@ -356,7 +424,7 @@ function CustomerReportHeader({
               PDF
             </button>
           )}
-          {hasVendorPhone ? (
+          {showPhoneShortcut ? (
             <a
               href={`tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`}
               className={headerSecondaryActionClass("dark")}
@@ -603,6 +671,54 @@ function StatusBadge({ status }: { status: string }) {
       <Icon className="h-3.5 w-3.5" />
       {customerCopy(status)}
     </Badge>
+  );
+}
+
+function VendorLogoImage({
+  src,
+  alt,
+  className,
+  width,
+  height,
+  fallbackText,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+  width: number;
+  height: number;
+  fallbackText: string;
+}) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed || !isRenderableLogoSrc(src)) {
+    return <span className="font-semibold">{fallbackText}</span>;
+  }
+
+  if (src.startsWith("data:")) {
+    // Next/Image can fail on uploaded data URLs in the exported customer report.
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        width={width}
+        height={height}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      className={className}
+      onError={() => setFailed(true)}
+    />
   );
 }
 
@@ -913,7 +1029,13 @@ function BeforeAfterCompare({
   );
 }
 
-function ServicePhotoSetRail({ photos }: { photos: readonly ProofPhoto[] }) {
+function ServicePhotoSetRail({
+  photos,
+  hasComparison = false,
+}: {
+  photos: readonly ProofPhoto[];
+  hasComparison?: boolean;
+}) {
   const visiblePhotos = photos.slice(0, 6);
 
   return (
@@ -924,7 +1046,9 @@ function ServicePhotoSetRail({ photos }: { photos: readonly ProofPhoto[] }) {
             Full visit photo set
           </p>
           <p className="mt-1 text-sm leading-6 text-white/58">
-            The large before/after is the main comparison. All {photos.length} service photos stay available here.
+            {hasComparison
+              ? `The large before/after comparison stays first. All ${photos.length} service photos stay available here.`
+              : `All ${photos.length} service photos stay available here without forcing a false before/after comparison.`}
           </p>
         </div>
         <span className="shrink-0 rounded-full border border-white/12 bg-white/8 px-3 py-1.5 text-xs font-semibold text-white/72">
@@ -1571,6 +1695,8 @@ function MobileProofCommand({
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const compactPrimaryCtaLabel = mobileCtaLabel(primaryCtaLabel, hasOpenAccessItem);
+  const hasProofPhotos = proofPhotos.length > 0;
+  const primaryCtaUsesPhone = Boolean(primaryCtaHref?.startsWith("tel:"));
   const mobileVendorBrandColor =
     data.vendor.brandColor && /^#[0-9A-Fa-f]{6}$/.test(data.vendor.brandColor)
       ? data.vendor.brandColor
@@ -1585,7 +1711,9 @@ function MobileProofCommand({
               Quick actions
             </p>
             <p className="mt-1 text-sm font-semibold text-white">
-              Next action, photos, and PDF copy.
+              {hasProofPhotos
+                ? "Next action, photos, and PDF copy."
+                : "Next action and PDF copy."}
             </p>
           </div>
           <span
@@ -1634,22 +1762,25 @@ function MobileProofCommand({
             </div>
           ) : null}
 
-          <button
-            type="button"
-            onPointerDown={() => setIsDrawerOpen(true)}
-            onClick={() => setIsDrawerOpen(true)}
-            className="packet-mobile-secondary-action inline-flex min-h-11 items-center justify-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 text-sm font-semibold text-white"
-          >
-            <IconPhoto className="h-4 w-4" />
-            Photos
-          </button>
+          {hasProofPhotos ? (
+            <button
+              type="button"
+              onPointerDown={() => setIsDrawerOpen(true)}
+              onClick={() => setIsDrawerOpen(true)}
+              className="packet-mobile-secondary-action inline-flex min-h-11 items-center justify-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 text-sm font-semibold text-white"
+            >
+              <IconPhoto className="h-4 w-4" />
+              Photos
+            </button>
+          ) : null}
 
-          <Drawer
-            open={isDrawerOpen}
-            onOpenChange={setIsDrawerOpen}
-            shouldScaleBackground={false}
-          >
-            <DrawerContent className="packet-mobile-proof-drawer bg-[#101214] text-white">
+          {hasProofPhotos ? (
+            <Drawer
+              open={isDrawerOpen}
+              onOpenChange={setIsDrawerOpen}
+              shouldScaleBackground={false}
+            >
+              <DrawerContent className="packet-mobile-proof-drawer bg-[#101214] text-white">
               <DrawerHeader className="px-5 pb-2 pt-5">
                 <DrawerTitle className="text-white">Photos and PDF copy</DrawerTitle>
                 <DrawerDescription className="text-white/58">
@@ -1697,13 +1828,14 @@ function MobileProofCommand({
 
                 <TabsContent value="photos">
                   <div className="packet-mobile-photo-strip">
-                    {proofPhotos.map((photo) => (
+                    {proofPhotos.map((photo, index) => (
                       <figure
                         key={photo.proofId}
                         className="packet-mobile-photo-card"
                       >
                         <ProofImage
                           photo={photo}
+                          priority={index < 3}
                           className="aspect-[0.92/1] rounded-[24px]"
                         />
                         <figcaption className="pt-4">
@@ -1759,22 +1891,26 @@ function MobileProofCommand({
                     {primaryCtaLabel}
                   </a>
                 ) : null}
-                {hasVendorPhone ? (
+                {hasVendorPhone && !primaryCtaUsesPhone ? (
                   <a
                     href={`tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`}
                     className="inline-flex min-h-11 items-center justify-center rounded-[16px] border border-white/12 bg-white/7 px-4 text-sm font-semibold text-white"
                   >
-                    Call vendor
+                    {providerCallLabel(data.vendor.name, true)}
                   </a>
                 ) : null}
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
+          ) : null}
 
           {pdfServiceRecordHref ? (
             <a
               href={pdfServiceRecordHref}
-              className="packet-mobile-secondary-action inline-flex min-h-11 items-center justify-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 text-sm font-semibold text-white"
+              className={cx(
+                "packet-mobile-secondary-action inline-flex min-h-11 items-center justify-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 text-sm font-semibold text-white",
+                !hasProofPhotos && "col-span-2",
+              )}
               aria-label="Open PDF copy"
             >
               <IconFileText className="h-4 w-4" />
@@ -1784,7 +1920,10 @@ function MobileProofCommand({
             <button
               type="button"
               onClick={onEvidencePdfAction}
-              className="packet-mobile-secondary-action inline-flex min-h-11 items-center justify-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 text-sm font-semibold text-white"
+              className={cx(
+                "packet-mobile-secondary-action inline-flex min-h-11 items-center justify-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 text-sm font-semibold text-white",
+                !hasProofPhotos && "col-span-2",
+              )}
               aria-label="Save PDF copy"
             >
               <IconFileText className="h-4 w-4" />
@@ -1939,6 +2078,20 @@ export function CustomerWebPacket({
     hasDistinctPhotoPair && beforePhoto && afterPhoto
       ? isMatchedBeforeAfterPair(beforePhoto, afterPhoto)
       : false;
+  const photoSectionTitle = canCompareBeforeAfter
+    ? "Before and after photos are attached."
+    : issuePhoto
+      ? "Photos attached to this service record."
+      : afterPhoto
+        ? "After-service photos are attached."
+        : "Photos attached to this service record.";
+  const photoSectionCopy = hasOpenAccessItem
+    ? canCompareBeforeAfter
+      ? "Review the blocked access item first. Then compare the completed hood area before and after service."
+      : "Review the blocked access item first. Other attached photos stay with the service record without implying a matched before/after set."
+    : canCompareBeforeAfter
+      ? "Compare the completed hood area before and after service, then keep the PDF copy for files."
+      : "Review the attached service photos, then keep the PDF copy for files.";
   const customerActionTitle = customerCopy(
     data.closeout?.customerActionTitle ?? data.customerClose.title,
   );
@@ -1958,7 +2111,6 @@ export function CustomerWebPacket({
         ? conditionHeadline
         : "Ready for records";
   const hasVendorPhone = data.vendor.directLine.trim().length > 0;
-  const hasVendorEmail = data.vendor.dispatch.trim().length > 0;
   const vendorPhoneHref = hasVendorPhone
     ? `tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`
     : undefined;
@@ -1969,6 +2121,7 @@ export function CustomerWebPacket({
   const vendorAccentStyle = accentVariables(vendorBrandColor);
   const vendorAccentSoft = mixWithWhite(vendorBrandColor, 0.56);
   const vendorAccentContrast = accentTextColor(vendorBrandColor);
+  const isUnbrandedTestLink = !data.vendor.brandingApplied;
   const rawPrimaryCtaLabel = customerCopy(
     primaryCta?.label ??
       (hasOpenAccessItem ? "Reply after clearing access" : "Confirm next service window"),
@@ -2016,8 +2169,7 @@ export function CustomerWebPacket({
   const scopeGroups = groupScopeRows([...data.componentStatusRows]);
   const primaryCtaHref =
     primaryCta?.href ??
-    vendorPhoneHref ??
-    (hasVendorEmail ? `mailto:${data.vendor.dispatch}` : undefined);
+    vendorPhoneHref;
   const primaryCtaEnabled = primaryCta?.href
     ? primaryCta.enabled
     : Boolean(primaryCtaHref);
@@ -2051,10 +2203,10 @@ export function CustomerWebPacket({
       : "No blocked area remained at the end of the visit.";
   const openItemLineCopy = hasOpenAccessItem
     ? customerCopy(
-        previewOpenItemEditValue ||
-          accessScopeNote ||
-          primaryOpenItem?.ownerAction ||
-          "Review the blocked area and reply for follow-up.",
+          previewOpenItemEditValue ||
+            accessScopeNote ||
+            primaryOpenItem?.ownerAction ||
+          "Review the blocked area and contact the service team for follow-up.",
       )
     : isConditionReviewOutcome
       ? customerCopy(
@@ -2073,6 +2225,8 @@ export function CustomerWebPacket({
       findActionValue(data.customerClose.actionItems, [/pdf copy note/i, /evidence pdf note/i]) ||
       "The PDF copy is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work.",
   );
+  const isCompactReport = isShort;
+  const isWrittenCompactReport = isCompactReport && !hasAttachedPhotos;
 
   function handleEvidencePdfAction() {
     const saveEvent = new CustomEvent("axis1:save-evidence-pdf", {
@@ -2121,6 +2275,7 @@ export function CustomerWebPacket({
       style={vendorAccentStyle}
       className={cx(
         "customer-web-packet packet-shell overflow-hidden bg-[#f7f1e9] text-[#111315] shadow-[0_36px_110px_rgba(17,17,17,0.1)] print:rounded-none print:border-0 print:shadow-none",
+        isCompactReport && "customer-web-packet-short",
         className,
       )}
     >
@@ -2133,9 +2288,19 @@ export function CustomerWebPacket({
         pdfServiceRecordHref={pdfServiceRecordHref}
         onEvidencePdfAction={handleEvidencePdfAction}
         hasVendorPhone={hasVendorPhone}
+        compactReport={isCompactReport}
       />
       <div className="h-1.5 w-full" style={{ backgroundColor: vendorBrandColor }} />
-      <section className="packet-hero-shell relative min-h-[100svh] overflow-hidden bg-[#0f141b] text-white lg:min-h-[720px]">
+      <section
+        className={cx(
+          "packet-hero-shell relative overflow-hidden bg-[#0f141b] text-white",
+          hasAttachedPhotos
+            ? "min-h-[100svh] lg:min-h-[720px]"
+            : isCompactReport
+              ? "min-h-[500px] lg:min-h-[540px]"
+            : "min-h-[560px] lg:min-h-[590px]",
+        )}
+      >
         {afterPhoto ? (
           <Image
             src={afterPhoto.src}
@@ -2158,8 +2323,17 @@ export function CustomerWebPacket({
         />
         <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#0f141b] to-transparent" />
 
-        <div className="relative grid min-h-[100svh] content-between gap-5 px-5 py-5 sm:px-8 sm:py-7 lg:min-h-[720px] lg:grid-cols-[minmax(0,0.9fr)_minmax(390px,0.72fr)] lg:gap-8 lg:px-10 lg:py-10">
-          <div className="lg:col-span-2">
+        <div
+          className={cx(
+            "relative grid gap-5 px-5 py-5 sm:px-8 sm:py-7 lg:gap-8 lg:px-10 lg:py-10",
+            hasAttachedPhotos
+              ? "min-h-[100svh] content-between lg:min-h-[720px] lg:grid-cols-[minmax(0,0.9fr)_minmax(390px,0.72fr)]"
+              : isCompactReport
+                ? "min-h-[500px] content-start lg:min-h-[540px] lg:content-center"
+                : "min-h-[560px] content-between lg:min-h-[590px]",
+          )}
+        >
+          <div className={hasAttachedPhotos ? "lg:col-span-2" : ""}>
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex min-w-0 items-center gap-4">
                 <div
@@ -2170,12 +2344,13 @@ export function CustomerWebPacket({
                   }}
                 >
                   {data.vendor.logoUrl ? (
-                    <Image
+                    <VendorLogoImage
                       src={data.vendor.logoUrl}
                       alt={`${data.vendor.name} logo`}
                       width={52}
                       height={52}
                       className="h-full w-full object-contain p-1.5"
+                      fallbackText={data.vendor.initials}
                     />
                   ) : (
                     <span className="font-semibold">{data.vendor.initials}</span>
@@ -2189,6 +2364,14 @@ export function CustomerWebPacket({
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 sm:justify-end">
+                {isUnbrandedTestLink ? (
+                  <Badge
+                    variant="outline"
+                    className="packet-hero-badge rounded-full border-white/18 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/82 backdrop-blur"
+                  >
+                    Free test link
+                  </Badge>
+                ) : null}
                 <Badge
                   variant="outline"
                   className="packet-hero-badge rounded-full border-white/14 bg-white/9 px-3 py-1.5 text-xs font-medium text-white/82 backdrop-blur"
@@ -2215,8 +2398,13 @@ export function CustomerWebPacket({
             </div>
           </div>
 
-          <div className="flex max-w-3xl flex-col justify-end pb-2 lg:pb-5">
-            <SectionLabel light>Service report link</SectionLabel>
+          <div
+            className={cx(
+              "flex flex-col justify-end pb-2 lg:pb-5",
+              isWrittenCompactReport ? "max-w-4xl" : "max-w-3xl",
+            )}
+          >
+            <SectionLabel light>Service report</SectionLabel>
             <div className="mt-3 flex max-w-2xl flex-wrap gap-2">
               {serviceSiteBadges.map(([label, value]) => (
                 <span
@@ -2328,7 +2516,7 @@ export function CustomerWebPacket({
                   </>
                 )}
               </Button>
-              {hasVendorPhone ? (
+              {hasVendorPhone && !primaryCtaUsesPhoneFallback ? (
                 <Button
                   asChild
                   variant="outline"
@@ -2336,7 +2524,7 @@ export function CustomerWebPacket({
                 >
                   <a href={`tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`}>
                     <IconPhone className="h-4 w-4" />
-                    Call vendor
+                    {providerCallLabel(data.vendor.name)}
                   </a>
                 </Button>
               ) : null}
@@ -2360,6 +2548,7 @@ export function CustomerWebPacket({
               </div>
             ) : null}
 
+            {!isCompactReport ? (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <div className="rounded-[22px] border border-white/13 bg-white/[0.075] px-4 py-3 backdrop-blur-xl">
                 <p
@@ -2384,6 +2573,7 @@ export function CustomerWebPacket({
                 </p>
               </div>
             </div>
+            ) : null}
 
             <div
               className="packet-hero-next-step mt-4 rounded-[22px] border px-4 py-3 backdrop-blur-xl"
@@ -2411,10 +2601,12 @@ export function CustomerWebPacket({
                 />
               ) : null}
             </div>
-            <SystemCoverageBanner
-              education={data.closeout?.coverageEducation}
-              scopeNote={data.scopeNote}
-            />
+            {!isCompactReport ? (
+              <SystemCoverageBanner
+                education={data.closeout?.coverageEducation}
+                scopeNote={data.scopeNote}
+              />
+            ) : null}
           </div>
 
         <div className="hidden self-center lg:block">
@@ -2501,6 +2693,7 @@ export function CustomerWebPacket({
             ) : null}
           </div>
 
+          {!isCompactReport ? (
           <div className="lg:col-span-2">
             <div className="packet-metric-strip grid grid-cols-2 border-y border-white/14 bg-white/[0.025] py-1 backdrop-blur-xl sm:grid-cols-4">
               <Metric label="Result" value={resultMetricValue} />
@@ -2509,21 +2702,37 @@ export function CustomerWebPacket({
               <Metric label="PDF copy" value="Record copy" />
             </div>
           </div>
+          ) : null}
         </div>
       </section>
 
-      <section id="summary" className="packet-result-section scroll-mt-24 grid gap-9 border-b border-[#ded6cc] bg-[#fbfaf7] px-5 py-10 sm:px-8 lg:px-10 lg:py-14 xl:grid-cols-[minmax(300px,0.78fr)_minmax(0,1.22fr)]">
+      <section
+        id="summary"
+        className={cx(
+          "packet-result-section scroll-mt-24 grid border-b border-[#ded6cc] bg-[#fbfaf7] px-5 sm:px-8 lg:px-10",
+          isCompactReport
+            ? "gap-5 py-8 lg:py-10 xl:grid-cols-[minmax(260px,0.52fr)_minmax(0,1.48fr)]"
+            : "gap-9 py-10 lg:py-14 xl:grid-cols-[minmax(300px,0.78fr)_minmax(0,1.22fr)]",
+        )}
+      >
         <div className="max-w-xl">
           <SectionLabel>{serviceResultLabel}</SectionLabel>
-          <h2 className="font-display mt-3 text-[2.65rem] font-semibold leading-[0.94] tracking-[-0.07em] sm:text-[4.1rem]">
-            Here&apos;s the bottom line.
+          <h2
+            className={cx(
+              "font-display mt-3 font-semibold leading-[0.98] tracking-[-0.07em]",
+              isCompactReport ? "text-[2.15rem] sm:text-[3rem]" : "text-[2.65rem] sm:text-[4.1rem]",
+            )}
+          >
+            {isCompactReport ? "Service result." : "Here's the bottom line."}
           </h2>
           <p className="mt-5 text-base leading-7 text-[#6d645b]">
-            {hasOpenAccessItem
-              ? "This page separates completed work from blocked access so the customer can understand the visit without another explanation call."
-              : hasAttachedPhotos
-                ? "This page keeps completed work, attached photos, and the next step easy to understand without another explanation call."
-                : "This page keeps completed work, written-record basis, and the next step easy to understand without another explanation call."}
+            {isCompactReport
+              ? "Completed work, customer action, and the PDF copy are kept together for restaurant records."
+              : hasOpenAccessItem
+                ? "This page separates completed work from blocked access so the customer can understand the visit without another explanation call."
+                : hasAttachedPhotos
+                  ? "This page keeps completed work, attached photos, and the next step easy to understand without another explanation call."
+                  : "This page keeps completed work, written-record basis, and the next step easy to understand without another explanation call."}
           </p>
         </div>
 
@@ -2563,20 +2772,24 @@ export function CustomerWebPacket({
         </div>
       </section>
 
-      <CoverageEducationSection
-        education={data.closeout?.coverageEducation}
-        proofCoverageLabel={proofCoverageLabel}
-        hasAttachedPhotos={hasAttachedPhotos}
-        editConfig={editConfig}
-      />
+      {sections.checklist ? (
+        <CoverageEducationSection
+          education={data.closeout?.coverageEducation}
+          proofCoverageLabel={proofCoverageLabel}
+          hasAttachedPhotos={hasAttachedPhotos}
+          editConfig={editConfig}
+        />
+      ) : null}
 
-      <ExhaustProofSpine
-        routeSegments={data.routeSegments}
-        proofPhotos={data.proofPhotos}
-        proofPolicyRows={data.proofPolicyRows}
-        completedWork={data.completedWork}
-        scopeNote={data.scopeNote}
-      />
+      {sections.routeDetail ? (
+        <ExhaustProofSpine
+          routeSegments={data.routeSegments}
+          proofPhotos={data.proofPhotos}
+          proofPolicyRows={data.proofPolicyRows}
+          completedWork={data.completedWork}
+          scopeNote={data.scopeNote}
+        />
+      ) : null}
 
       {sections.photos && data.proofPhotos.length > 0 ? (
         <section
@@ -2590,16 +2803,10 @@ export function CustomerWebPacket({
             >
               <SectionLabel light>Service photos from this visit</SectionLabel>
               <h2 className="font-display mt-3 max-w-xl text-[2.65rem] font-semibold leading-[0.94] tracking-[-0.07em] sm:text-[4.1rem]">
-                The photos show what changed.
+                {photoSectionTitle}
               </h2>
               <p className="mt-5 max-w-md text-sm leading-7 text-white/62">
-                {hasOpenAccessItem
-                  ? canCompareBeforeAfter
-                    ? "First review the blocked access item. Then compare the completed hood area before and after service."
-                    : "First review the blocked access item. Then review the completed service photos."
-                  : canCompareBeforeAfter
-                    ? "Compare the completed hood area before and after service, then keep the PDF copy for files."
-                    : "Review the completed service photos, then keep the PDF copy for files."}
+                {photoSectionCopy}
               </p>
               <ol className="packet-proof-steps mt-8 hidden border-l border-white/12 pl-5 lg:block">
                 {(hasOpenAccessItem
@@ -2690,7 +2897,7 @@ export function CustomerWebPacket({
                       <ProofCaption photo={beforePhoto} light />
                       <ProofCaption photo={afterPhoto} light />
                     </div>
-                    <ServicePhotoSetRail photos={data.proofPhotos} />
+                    <ServicePhotoSetRail photos={data.proofPhotos} hasComparison />
                   </>
                 ) : hasDistinctPhotoPair && beforePhoto && afterPhoto ? (
                   <>
@@ -2846,7 +3053,7 @@ export function CustomerWebPacket({
               </CardTitle>
               <CardDescription className="mt-4 text-sm leading-7 text-[#6d645b]">
                 {hasOpenAccessItem
-                  ? "Clear the blocked access area, then reply. The vendor will confirm the access revisit before scheduling. The routine service window stays separate."
+                  ? "Clear the blocked access area, then contact the service team. They will confirm the access revisit before scheduling. The routine service window stays separate."
                   : customerCopy(data.customerClose.copy)}
               </CardDescription>
             </CardHeader>
@@ -2877,14 +3084,14 @@ export function CustomerWebPacket({
                     <a href={primaryCtaHref}>{primaryCtaLabel}</a>
                   </Button>
                 ) : null}
-                {hasVendorPhone ? (
+                {hasVendorPhone && !primaryCtaUsesPhoneFallback ? (
                   <Button
                     asChild
                     variant="outline"
                     className="min-h-11 rounded-full border-[#d9d0c5] bg-white px-5 text-sm font-semibold text-[#111315]"
                   >
                     <a href={`tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`}>
-                      Call {data.vendor.name}
+                      Contact {data.vendor.name}
                     </a>
                   </Button>
                 ) : null}

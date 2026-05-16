@@ -18,7 +18,7 @@ const navigation = [
   { href: "/axis-1", label: "Service Report" },
   { href: "/samples/axis-1", label: "Sample" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Account" },
   { href: "/login", label: "Login" },
 ];
 

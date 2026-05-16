@@ -52,7 +52,7 @@ export const axis1ProductPlanPolicies: Record<
     pdfPolicy: "Clean PDF, no watermark",
     historyPolicy: "Customer history and follow-up reminders",
     brandingPolicy: "Saved logo, report color, and contact details",
-    ctaLabel: "Open dashboard",
+    ctaLabel: "Open account",
     ctaHref: "/dashboard",
     isPaid: true,
   },

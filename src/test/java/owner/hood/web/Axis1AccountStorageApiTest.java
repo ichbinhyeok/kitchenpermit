@@ -205,6 +205,76 @@ class Axis1AccountStorageApiTest {
     }
 
     @Test
+    void reportStatusSeparatesAccessItemsFromRoutineAndWrittenRecords() throws Exception {
+        MockHttpSession session = signupSession();
+
+        mockMvc.perform(post("/api/axis1/reports")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(reportPayloadForStatus(
+                                Map.of(
+                                        "propertyName", "Routine Grill",
+                                        "systemName", "Main hood",
+                                        "siteCity", "Austin, TX",
+                                        "serviceDate", "2026-05-01",
+                                        "cadence", "90",
+                                        "scenario", "clean",
+                                        "followUpMode", "none",
+                                        "customerActionOverride", "Reply to confirm the next 90-day service window."
+                                ),
+                                true
+                        )))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.hasOpenItems").value(false))
+                .andExpect(jsonPath("$.historyStatus.code").value("next_service"))
+                .andExpect(jsonPath("$.historyStatus.label").value("Next service"));
+
+        mockMvc.perform(post("/api/axis1/reports")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(reportPayloadForStatus(
+                                Map.of(
+                                        "propertyName", "Written Cafe",
+                                        "systemName", "Prep hood",
+                                        "siteCity", "Austin, TX",
+                                        "serviceDate", "2026-05-02",
+                                        "cadence", "90",
+                                        "scenario", "clean",
+                                        "followUpMode", "none",
+                                        "customerActionOverride", "Keep the PDF copy with the service record."
+                                ),
+                                false
+                        )))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.hasOpenItems").value(false))
+                .andExpect(jsonPath("$.historyStatus.code").value("written_record"))
+                .andExpect(jsonPath("$.historyStatus.label").value("Written record"));
+
+        mockMvc.perform(post("/api/axis1/reports")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(reportPayloadForStatus(
+                                Map.of(
+                                        "propertyName", "Access Tacos",
+                                        "systemName", "Tortilla line",
+                                        "siteCity", "Austin, TX",
+                                        "serviceDate", "2026-05-03",
+                                        "cadence", "90",
+                                        "scenario", "exception",
+                                        "exceptionKinds", List.of("blocked-storage"),
+                                        "exceptionNote", "Stored racks blocked the rear access panel.",
+                                        "followUpMode", "monitor",
+                                        "customerActionOverride", "Clear the access path and reply for the revisit."
+                                ),
+                                true
+                        )))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.hasOpenItems").value(true))
+                .andExpect(jsonPath("$.historyStatus.code").value("open_access"))
+                .andExpect(jsonPath("$.historyStatus.label").value("Open access item"));
+    }
+
+    @Test
     void authenticatedCompanyReportAppearsInAccountHistoryAndPublicLink() throws Exception {
         MockHttpSession session = signupSession();
 
@@ -384,6 +454,38 @@ class Axis1AccountStorageApiTest {
                         ))
                 )
         ));
+    }
+
+    private String reportPayloadForStatus(Map<String, Object> values, boolean includePhoto) throws Exception {
+        String onePixelPng = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lz8p4wAAAABJRU5ErkJggg==";
+        Map<String, Object> payload = new java.util.LinkedHashMap<>();
+        payload.put("productPlan", "company");
+        payload.put("values", values);
+        payload.put(
+                "uploadedFieldPhotos",
+                includePhoto
+                        ? Map.of(
+                        "hood-after", Map.of(
+                                "src", onePixelPng,
+                                "name", "hood-after.png",
+                                "source", "manual",
+                                "confidence", "manual",
+                                "matchLabel", "Hood after"
+                        )
+                )
+                        : Map.of()
+        );
+        payload.put("photoSlotResolutions", Map.of());
+        payload.put("links", Map.of());
+        payload.put("presentationMode", "standard");
+        payload.put("visibleSections", Map.of(
+                "photos", true,
+                "checklist", true,
+                "routeDetail", true,
+                "nextService", true
+        ));
+
+        return objectMapper.writeValueAsString(payload);
     }
 
     private String reportPayloadWithGenericPacketData(String productPlan) throws Exception {

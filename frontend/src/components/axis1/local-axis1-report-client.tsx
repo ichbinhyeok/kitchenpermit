@@ -168,14 +168,36 @@ export function LocalAxis1ReportClient({
   }
 
   return (
-    <main className="min-h-screen bg-[#e9e1d7] px-3 py-4 text-[#151515] sm:px-5 sm:py-6 lg:py-8 print:bg-white print:px-0 print:py-0">
-      <div className="pdf-print-hide mx-auto mb-4 flex w-[min(1080px,100%)] flex-col gap-3 rounded-[22px] border border-black/8 bg-white/90 px-4 py-3 shadow-[0_18px_44px_rgba(17,17,17,0.08)] backdrop-blur md:flex-row md:items-center md:justify-between">
+    <main
+      className={`min-h-screen px-3 text-[#151515] print:bg-white print:px-0 print:py-0 sm:px-5 ${
+        isServiceRecord
+          ? "axis1-service-record-screen bg-[#d8d0c7] py-3 sm:py-5 lg:py-6"
+          : "bg-[#e9e1d7] py-4 sm:py-6 lg:py-8"
+      }`}
+    >
+      <div
+        className={`pdf-print-hide mx-auto flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${
+          isServiceRecord
+            ? "pdf-preview-toolbar mb-3 w-[min(816px,100%)] border border-[#b8b0a7] bg-white px-3 py-2 shadow-[0_10px_28px_rgba(24,20,17,0.12)]"
+            : "mb-4 w-[min(1080px,100%)] rounded-[22px] border border-black/8 bg-white/90 px-4 py-3 shadow-[0_18px_44px_rgba(17,17,17,0.08)] backdrop-blur"
+        }`}
+      >
         <div className="min-w-0">
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#f26a21]">
+          <p
+            className={`font-mono text-[10px] font-bold uppercase ${
+              isServiceRecord
+                ? "tracking-[0.12em] text-[#6f665d]"
+                : "tracking-[0.18em] text-[#f26a21]"
+            }`}
+          >
             {isServiceRecord ? "Service report PDF" : "Service report link"} /{" "}
             {productPolicy.shortLabel}
           </p>
-          <p className="mt-1 text-sm font-semibold leading-6 text-foreground">
+          <p
+            className={`mt-1 font-semibold ${
+              isServiceRecord ? "text-xs leading-5 text-[#423c36]" : "text-sm leading-6 text-foreground"
+            }`}
+          >
             {isServiceRecord
               ? `${productPolicy.pdfPolicy}. Print or save this PDF as the retained service copy.`
               : `${photoCount} photo(s) attached. ${productPolicy.linkPolicy}.`}
@@ -196,14 +218,18 @@ export function LocalAxis1ReportClient({
           <Button
             type="button"
             onClick={printReport}
-            className="rounded-full bg-[#111315] px-4 text-[11px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#111315]/90"
+            className={`bg-[#111315] text-[11px] font-bold uppercase text-white hover:bg-[#111315]/90 ${
+              isServiceRecord
+                ? "rounded-[6px] px-3 tracking-[0.1em]"
+                : "rounded-full px-4 tracking-[0.14em]"
+            }`}
           >
             <Printer className="h-3.5 w-3.5" />
             Save PDF
           </Button>
         </div>
       </div>
-      <div className="mx-auto w-[min(1080px,100%)]">
+      <div className={`mx-auto ${isServiceRecord ? "w-[min(816px,100%)]" : "w-[min(1080px,100%)]"}`}>
         <Axis1PacketDocument
           data={packetData}
           variant="customer-report"

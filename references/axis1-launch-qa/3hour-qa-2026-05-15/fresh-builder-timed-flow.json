@@ -1,0 +1,34 @@
+{
+  "totalMs": 2735,
+  "totalSeconds": 2.7,
+  "under3Min": true,
+  "blockedEmpty": false,
+  "hasFreeOutput": true,
+  "noSampleLeak": true,
+  "marks": [
+    {
+      "name": "loaded",
+      "ms": 838
+    },
+    {
+      "name": "review_clicked",
+      "ms": 1036
+    },
+    {
+      "name": "result_selected_and_blocked",
+      "ms": 1305
+    },
+    {
+      "name": "basics_filled",
+      "ms": 1434
+    },
+    {
+      "name": "written_confirmed",
+      "ms": 1536
+    },
+    {
+      "name": "outputs_clicked",
+      "ms": 1721
+    }
+  ]
+}

@@ -603,7 +603,9 @@ function buildCta(options: {
     enabled,
     reason:
       options.reason ??
-      (enabled ? undefined : "Use the company phone or reply email shown on the service report."),
+      (enabled
+        ? undefined
+        : "Use your normal customer communication channel to confirm this step."),
   };
 }
 

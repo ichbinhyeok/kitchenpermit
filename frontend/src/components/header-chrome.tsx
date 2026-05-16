@@ -24,6 +24,7 @@ type HeaderBrandStaticLinkProps = {
   ariaLabel?: string;
   className?: string;
   markClassName?: string;
+  titleClassName?: string;
   tone?: HeaderTone;
 };
 
@@ -291,6 +292,7 @@ export function HeaderBrandLink({
   ariaLabel,
   className,
   markClassName,
+  titleClassName,
   tone = "light",
 }: HeaderBrandStaticLinkProps) {
   return (
@@ -319,6 +321,7 @@ export function HeaderBrandLink({
           className={cx(
             "block truncate text-sm font-black leading-tight tracking-[-0.05em]",
             subtitle ? "" : "uppercase",
+            titleClassName,
           )}
         >
           {title}

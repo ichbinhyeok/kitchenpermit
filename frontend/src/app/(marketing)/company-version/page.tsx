@@ -26,7 +26,7 @@ const flowItems = [
   ["1. Save company profile", "Logo, report color, and contact details become the default."],
   ["2. Build each job report", "Use the builder for photos, open items, and next actions."],
   ["3. Send branded output", "The restaurant receives a clean link and PDF under the vendor name."],
-  ["4. Work the history", "Dashboard history shows repeat customers, next service timing, and the message to send."],
+  ["4. Work the account history", "Account history shows repeat customers, next service timing, and the message to send."],
 ] as const;
 
 function CtaLink({
@@ -82,7 +82,7 @@ export default function CompanyVersionPage() {
                 Start $79 checkout
               </PaddleCheckoutButton>
               <CtaLink href="/dashboard" tone="light">
-                View dashboard
+                View account
               </CtaLink>
               <CtaLink href="/samples/axis-1" tone="light">
                 View sample report

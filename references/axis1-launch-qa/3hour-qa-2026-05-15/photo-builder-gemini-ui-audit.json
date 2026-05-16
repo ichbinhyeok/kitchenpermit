@@ -1,0 +1,31 @@
+{
+  "textAfterAssistSignals": {
+    "hasGemini": false,
+    "hasFallback": true,
+    "hasBefore": true,
+    "hasAfter": true,
+    "hasAccess": true,
+    "hasUnknownOrNoSafeRole": true,
+    "noCompletionCertification": true
+  },
+  "firstSelectOptions": [
+    "Assign role...",
+    "Before",
+    "After",
+    "Filters",
+    "Access",
+    "Fan",
+    "Grease",
+    "Label"
+  ],
+  "afterAssignSignals": {
+    "hasConfirmedCount": true,
+    "hasLeaveOut": true,
+    "noCompletionCertification": true
+  },
+  "consoleMessages": [],
+  "screenshots": [
+    "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\photo-builder-gemini-assist.png",
+    "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\screenshots\\photo-builder-role-corrected.png"
+  ]
+}

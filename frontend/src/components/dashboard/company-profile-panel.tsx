@@ -1,11 +1,17 @@
 "use client";
 
-import { type ChangeEvent, useEffect, useState } from "react";
 import {
-  Building2,
+  type ChangeEvent,
+  type HTMLInputTypeAttribute,
+  useEffect,
+  useState,
+} from "react";
+import {
   ChevronDown,
   ImageUp,
+  MapPin,
   Pencil,
+  Phone,
   RotateCcw,
   Save,
   ShieldCheck,
@@ -29,26 +35,46 @@ const requiredProfileFields = [
     key: "companyName",
     label: "Company name",
     helper: "Appears at the top of every restaurant report.",
+    placeholder: "Acme Hood Cleaning",
+    type: "text",
+    inputMode: "text",
+    maxLength: 90,
   },
   {
     key: "directLine",
     label: "Phone customers can call",
-    helper: "Used for the report contact line and call action.",
+    helper: "Use a 10-digit phone number so call buttons work cleanly.",
+    placeholder: "(213) 555-0196",
+    type: "tel",
+    inputMode: "tel",
+    maxLength: 14,
   },
   {
     key: "dispatchEmail",
     label: "Reply email",
     helper: "Shown as the backup contact for questions or follow-up.",
+    placeholder: "dispatch@acmehood.com",
+    type: "email",
+    inputMode: "email",
+    maxLength: 120,
   },
   {
     key: "serviceArea",
     label: "Service area",
-    helper: "City or region shown below the company name.",
+    helper: "Recommended format: metro or county | service focus.",
+    placeholder: "Los Angeles County | Commercial kitchen hoods",
+    type: "text",
+    inputMode: "text",
+    maxLength: 90,
   },
 ] as const satisfies ReadonlyArray<{
   key: keyof Axis1CompanyProfile;
   label: string;
   helper: string;
+  placeholder: string;
+  type?: HTMLInputTypeAttribute;
+  inputMode?: "text" | "tel" | "email";
+  maxLength: number;
 }>;
 
 const optionalProfileFields = [
@@ -56,26 +82,46 @@ const optionalProfileFields = [
     key: "certification",
     label: "License or credential",
     helper: "Optional line for a registration, license, or service reference.",
+    placeholder: "NFPA 96 service documentation",
+    type: "text",
+    inputMode: "text",
+    maxLength: 90,
   },
   {
     key: "afterHoursPhone",
     label: "After-hours phone",
     helper: "Optional emergency or night-dispatch line.",
+    placeholder: "(213) 555-0197",
+    type: "tel",
+    inputMode: "tel",
+    maxLength: 14,
   },
   {
     key: "technicianLabel",
     label: "Crew or technician",
     helper: "Optional crew name or generic technician label.",
+    placeholder: "Night crew",
+    type: "text",
+    inputMode: "text",
+    maxLength: 90,
   },
   {
     key: "brandInitials",
     label: "Report initials",
     helper: "Shown only if you do not upload a logo.",
+    placeholder: "AH",
+    type: "text",
+    inputMode: "text",
+    maxLength: 4,
   },
 ] as const satisfies ReadonlyArray<{
   key: keyof Axis1CompanyProfile;
   label: string;
   helper: string;
+  placeholder: string;
+  type?: HTMLInputTypeAttribute;
+  inputMode?: "text" | "tel" | "email";
+  maxLength: number;
 }>;
 
 const reportColorChoices = [
@@ -87,11 +133,13 @@ const reportColorChoices = [
 ] as const;
 const maxLogoBytes = 400 * 1024;
 
-function inputClassName(locked: boolean) {
-  return `mt-2 h-11 w-full rounded-[16px] border border-black/10 px-3 text-sm font-bold outline-none transition placeholder:text-[#8b8178] focus:border-[#f26a21]/42 focus:ring-4 focus:ring-[#f26a21]/10 ${
+function inputClassName(locked: boolean, invalid = false) {
+  return `mt-2 min-h-[46px] w-full border px-3 text-sm font-bold outline-none transition placeholder:text-[#8b8178] focus:ring-4 ${
     locked
       ? "bg-[#f0e7dc] text-[#75695f] opacity-75"
-      : "bg-white text-[#111315]"
+      : invalid
+        ? "border-[#9a4b35]/50 bg-[#fff7f3] text-[#111315] focus:border-[#9a4b35] focus:ring-[#9a4b35]/10"
+        : "border-black/10 bg-white text-[#111315] focus:border-[#f26a21]/42 focus:ring-[#f26a21]/10"
   }`;
 }
 
@@ -107,6 +155,30 @@ function isDefaultProfile(profile: Axis1CompanyProfile) {
     profile.serviceArea === defaultAxis1CompanyProfile.serviceArea &&
     !profile.logoUrl
   );
+}
+
+function formatUsPhoneInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+
+  if (digits.length <= 3) {
+    return digits;
+  }
+
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  }
+
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+function isPhoneField(key: keyof Axis1CompanyProfile) {
+  return key === "directLine" || key === "afterHoursPhone";
+}
+
+function isIncompletePhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+
+  return digits.length > 0 && digits.length < 10;
 }
 
 export function CompanyProfilePanel() {
@@ -134,7 +206,7 @@ export function CompanyProfilePanel() {
 
       setDraft(localProfile);
       setSaved(localProfile);
-      setShowProfileEditor(isDefaultProfile(localProfile));
+      setShowProfileEditor(false);
 
       try {
         const entitlements = await loadAxis1AccountEntitlements();
@@ -157,7 +229,7 @@ export function CompanyProfilePanel() {
         const nextProfile = saveAxis1CompanyProfile(profile);
         setDraft(nextProfile);
         setSaved(nextProfile);
-        setShowProfileEditor(isDefaultProfile(nextProfile));
+        setShowProfileEditor(false);
         setStorageState("server");
       } catch {
         if (!cancelled) {
@@ -174,9 +246,15 @@ export function CompanyProfilePanel() {
   }, []);
 
   function updateField(key: keyof Axis1CompanyProfile, value: string) {
+    const nextValue = isPhoneField(key)
+      ? formatUsPhoneInput(value)
+      : key === "brandInitials"
+        ? value.toUpperCase().slice(0, 4)
+        : value;
+
     setDraft((current) => ({
       ...current,
-      [key]: value,
+      [key]: nextValue,
     }));
   }
 
@@ -216,6 +294,13 @@ export function CompanyProfilePanel() {
     if (storageState === "locked") {
       toast.warning("Company subscription required", {
         description: "Saved logo, report color, and contact info are part of the company version.",
+      });
+      return;
+    }
+
+    if (draft.directLine.replace(/\D/g, "").length !== 10) {
+      toast.warning("Use a 10-digit customer phone", {
+        description: "This keeps the call action on the restaurant report reliable.",
       });
       return;
     }
@@ -289,67 +374,105 @@ export function CompanyProfilePanel() {
   const previewBrandColor = /^#[0-9A-Fa-f]{6}$/.test(draftBrandColor)
     ? draftBrandColor
     : defaultAxis1CompanyProfile.brandColor || "#f26a21";
+  const profileNeedsReview = isDefaultProfile(saved);
 
   return (
     <div
       id="company-profile"
-      className="rounded-[32px] border border-black/8 bg-[#fbf7ef] p-5 shadow-[0_24px_80px_rgba(26,20,16,0.10)] sm:p-6"
+      className="border-b border-black/10 bg-[#fffaf2] px-4 py-3 sm:px-5"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-[#7b6f65]">
-            Company profile
-          </p>
-          <h2 className="mt-3 font-display text-[2.4rem] font-bold leading-[0.9] tracking-[-0.07em]">
-            {storageState === "loading"
-              ? "Checking company access."
-              : profileLocked
-              ? "Company profile locked."
-              : "Company info for every report."}
-          </h2>
-        </div>
-        <Building2 className="h-6 w-6 shrink-0 text-[#f26a21]" />
-      </div>
-
-      {!profileLocked && !showProfileEditor ? (
-        <div className="mt-5 rounded-[24px] border border-black/8 bg-white/82 p-4">
-          <div className="flex items-start gap-3">
-            <div
-              className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[18px] text-sm font-black text-white"
-              style={{ backgroundColor: previewBrandColor }}
-            >
-              {saved.logoUrl ? (
-                <span
-                  aria-hidden="true"
-                  className="h-full w-full bg-white bg-contain bg-center bg-no-repeat"
-                  style={{ backgroundImage: `url(${saved.logoUrl})` }}
-                />
-              ) : (
-                saved.brandInitials
-              )}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div className="flex min-w-0 items-start gap-3">
+          <div
+            className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[18px] text-sm font-black text-white shadow-[0_12px_28px_rgba(17,19,21,0.12)]"
+            style={{ backgroundColor: previewBrandColor }}
+          >
+            {saved.logoUrl ? (
+              <span
+                aria-hidden="true"
+                className="h-full w-full bg-white bg-contain bg-center bg-no-repeat"
+                style={{ backgroundImage: `url(${saved.logoUrl})` }}
+              />
+            ) : (
+              saved.brandInitials
+            )}
+          </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#7b6f65]">
+                Company profile
+              </p>
+              <span
+                className={`rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${
+                  profileLocked
+                    ? "border-[#f26a21]/24 bg-[#fff7ef] text-[#9a3412]"
+                    : profileNeedsReview
+                      ? "border-[#f26a21]/24 bg-[#fff7ef] text-[#9a3412]"
+                      : "border-[#1f7a4d]/22 bg-[#eff8f1] text-[#1f7a4d]"
+                }`}
+              >
+                {storageState === "loading"
+                  ? "Checking"
+                  : profileLocked
+                    ? "Locked"
+                    : profileNeedsReview
+                      ? "Needs review"
+                      : "Ready"}
+              </span>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-black tracking-[-0.03em] text-[#111315]">
-                {saved.companyName}
-              </p>
-              <p className="mt-1 text-xs font-semibold leading-5 text-[#75695f]">
-                Restaurants see this company name, logo/initials, report color,
-                phone, and reply email on the link and PDF.
-              </p>
+            <h2 className="mt-1 truncate text-xl font-black tracking-[-0.04em]">
+              {storageState === "loading"
+                ? "Checking company access."
+                : profileLocked
+                  ? "Company profile locked."
+                  : saved.companyName}
+            </h2>
+            <p className="mt-1 max-w-4xl text-xs font-semibold leading-5 text-[#6f665e]">
+              {profileLocked
+                ? "Saved logo, report color, phone, and reply email unlock with the company version."
+                : profileNeedsReview
+                  ? "Set the company name, phone, service area, logo or initials, and report color before sending paid records."
+                  : `${saved.directLine} / ${saved.dispatchEmail} / ${saved.serviceArea}`}
+            </p>
+            {!profileLocked ? (
               <div
-                className="mt-3 h-1.5 rounded-full"
+                className="mt-2 h-1.5 w-full max-w-[420px] rounded-full"
                 style={{ backgroundColor: previewBrandColor }}
               />
-            </div>
+            ) : null}
           </div>
+        </div>
+
+        {!profileLocked ? (
           <button
             type="button"
-            onClick={() => setShowProfileEditor(true)}
-            className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[11px] font-black uppercase tracking-[0.13em] text-[#111315] transition hover:bg-[#fbf7ef]"
+            onClick={() => setShowProfileEditor((current) => !current)}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[11px] font-black uppercase text-[#111315] shadow-[0_8px_24px_rgba(17,19,21,0.06)] transition hover:bg-[#fbf7ef]"
           >
             <Pencil className="h-3.5 w-3.5" />
-            Edit company info
+            {showProfileEditor
+              ? "Close editor"
+              : profileNeedsReview
+                ? "Set company info"
+                : "Edit company info"}
           </button>
+        ) : null}
+      </div>
+
+      {!profileLocked ? (
+        <div className="mt-3 grid gap-2 border-t border-black/10 pt-3 text-xs font-semibold text-[#5f574f] md:grid-cols-3">
+          <div className="flex items-center gap-2">
+            <Phone className="h-3.5 w-3.5 text-[#1f7a4d]" />
+            Phone format: (213) 555-0196
+          </div>
+          <div className="flex items-center gap-2">
+            <MapPin className="h-3.5 w-3.5 text-[#1f7a4d]" />
+            Area format: Los Angeles County | Hood cleaning
+          </div>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-3.5 w-3.5 text-[#1f7a4d]" />
+            Appears on customer link and PDF
+          </div>
         </div>
       ) : null}
 
@@ -365,7 +488,7 @@ export function CompanyProfilePanel() {
           </p>
           <a
             href="/company-version"
-            className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-[#111315] px-4 text-[11px] font-black uppercase tracking-[0.13em] text-white transition hover:bg-[#26211d]"
+            className="mt-4 inline-flex min-h-10 items-center justify-center bg-[#111315] px-4 text-[11px] font-black uppercase text-white transition hover:bg-[#26211d]"
           >
             Start company version
           </a>
@@ -417,7 +540,7 @@ export function CompanyProfilePanel() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <label
-                    className={`inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[11px] font-black uppercase tracking-[0.13em] text-[#111315] transition hover:bg-[#fbf7ef] ${
+                    className={`inline-flex h-10 cursor-pointer items-center justify-center gap-2 border border-black/10 bg-white px-4 text-[11px] font-black uppercase text-[#111315] transition hover:bg-[#fbf7ef] ${
                       profileReadOnly
                         ? "pointer-events-none cursor-not-allowed opacity-45"
                         : ""
@@ -439,7 +562,7 @@ export function CompanyProfilePanel() {
                       type="button"
                       onClick={() => updateField("logoUrl", "")}
                       disabled={profileReadOnly}
-                      className="ml-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-[#5f574f] transition hover:bg-[#fbf7ef] disabled:cursor-not-allowed disabled:opacity-45"
+                      className="ml-2 inline-flex h-10 w-10 items-center justify-center border border-black/10 bg-white text-[#5f574f] transition hover:bg-[#fbf7ef] disabled:cursor-not-allowed disabled:opacity-45"
                       aria-label="Remove logo"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -469,7 +592,7 @@ export function CompanyProfilePanel() {
                     onClick={() => updateField("brandColor", color.value)}
                     disabled={profileReadOnly}
                     aria-label={`Use ${color.label} as the report color`}
-                    className="flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-3 text-[11px] font-black uppercase tracking-[0.12em] text-[#111315] transition hover:bg-[#fbf7ef] disabled:cursor-not-allowed disabled:opacity-45"
+                    className="flex min-h-10 items-center gap-2 border border-black/10 bg-white px-3 text-[11px] font-black uppercase text-[#111315] transition hover:bg-[#fbf7ef] disabled:cursor-not-allowed disabled:opacity-45"
                     style={{
                       boxShadow:
                         previewBrandColor === color.value
@@ -559,24 +682,58 @@ export function CompanyProfilePanel() {
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {requiredProfileFields.map((field) => (
-          <label key={field.key} className="min-w-0">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#7b6f65]">
-              {field.label}
-            </span>
-            <input
-              value={String(draft[field.key] ?? "")}
-              onChange={(event) => updateField(field.key, event.target.value)}
-              disabled={profileReadOnly}
-              aria-disabled={profileReadOnly}
-              className={inputClassName(profileReadOnly)}
-              maxLength={90}
-            />
-            <span className="mt-1.5 block text-[11px] font-semibold leading-4 text-[#75695f]">
-              {field.helper}
-            </span>
-          </label>
-        ))}
+        {requiredProfileFields.map((field) => {
+          const value = String(draft[field.key] ?? "");
+          const phoneInvalid =
+            field.key === "directLine" && isIncompletePhone(value);
+
+          return (
+            <label key={field.key} className="min-w-0">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#7b6f65]">
+                {field.label}
+              </span>
+              <input
+                type={field.type ?? "text"}
+                inputMode={field.inputMode}
+                value={value}
+                onChange={(event) => updateField(field.key, event.target.value)}
+                disabled={profileReadOnly}
+                aria-disabled={profileReadOnly}
+                aria-invalid={phoneInvalid ? true : undefined}
+                placeholder={field.placeholder}
+                className={inputClassName(profileReadOnly, phoneInvalid)}
+                maxLength={field.maxLength}
+              />
+              <span
+                className={`mt-1.5 block text-[11px] font-semibold leading-4 ${
+                  phoneInvalid ? "text-[#9a4b35]" : "text-[#75695f]"
+                }`}
+              >
+                {phoneInvalid
+                  ? "Enter 10 digits so the report call action can dial correctly."
+                  : field.helper}
+              </span>
+              {field.key === "serviceArea" ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {[
+                    "Los Angeles County | Commercial kitchen hoods",
+                    "Orange County | Restaurant hood service",
+                  ].map((sample) => (
+                    <button
+                      key={sample}
+                      type="button"
+                      onClick={() => updateField("serviceArea", sample)}
+                      disabled={profileReadOnly}
+                      className="border border-black/10 bg-white px-2 py-1 text-[10px] font-black uppercase text-[#5f574f] transition hover:bg-[#fbf7ef] disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      {sample}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </label>
+          );
+        })}
       </div>
 
       <div className="mt-4 rounded-[22px] border border-black/8 bg-white/70 px-4 py-3">
@@ -604,16 +761,29 @@ export function CompanyProfilePanel() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {optionalProfileFields.map((field) => (
               <label key={field.key} className="min-w-0">
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#7b6f65]">
+                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#7b6f65]">
                   {field.label}
                 </span>
                 <input
+                  type={field.type ?? "text"}
+                  inputMode={field.inputMode}
                   value={String(draft[field.key] ?? "")}
                   onChange={(event) => updateField(field.key, event.target.value)}
                   disabled={profileReadOnly}
                   aria-disabled={profileReadOnly}
-                  className={inputClassName(profileReadOnly)}
-                  maxLength={field.key === "brandInitials" ? 4 : 90}
+                  aria-invalid={
+                    field.key === "afterHoursPhone" &&
+                    isIncompletePhone(String(draft[field.key] ?? ""))
+                      ? true
+                      : undefined
+                  }
+                  placeholder={field.placeholder}
+                  className={inputClassName(
+                    profileReadOnly,
+                    field.key === "afterHoursPhone" &&
+                      isIncompletePhone(String(draft[field.key] ?? "")),
+                  )}
+                  maxLength={field.maxLength}
                 />
                 <span className="mt-1.5 block text-[11px] font-semibold leading-4 text-[#75695f]">
                   {field.helper}
@@ -665,7 +835,7 @@ export function CompanyProfilePanel() {
             storageState === "saving" ||
             storageState === "loading"
           }
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[11px] font-black uppercase tracking-[0.13em] text-[#111315] transition hover:bg-[#fbf7ef] disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex h-11 items-center justify-center gap-2 border border-black/10 bg-white px-4 text-[11px] font-black uppercase text-[#111315] transition hover:bg-[#fbf7ef] disabled:cursor-not-allowed disabled:opacity-45"
         >
           <RotateCcw className="h-3.5 w-3.5" />
           Reset
@@ -677,7 +847,7 @@ export function CompanyProfilePanel() {
             storageState === "saving" ||
             storageState === "loading"
           }
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-5 text-[11px] font-black uppercase tracking-[0.13em] text-white transition hover:bg-[#dd5b17] disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex h-11 items-center justify-center gap-2 bg-[#f26a21] px-5 text-[11px] font-black uppercase text-white transition hover:bg-[#dd5b17] disabled:cursor-not-allowed disabled:opacity-45"
         >
           <Save className="h-3.5 w-3.5" />
           Save company profile

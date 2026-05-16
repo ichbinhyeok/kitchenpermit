@@ -1,0 +1,870 @@
+{
+  "generatedAt": "2026-05-15T08:18:34.453Z",
+  "baseUrl": "http://127.0.0.1:8096",
+  "outputDir": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\post-polish-final-local-sim",
+  "accountEmail": "admin@kitchenpermit.com",
+  "accountPassword": "correct-horse-1",
+  "authMode": "login",
+  "entitlements": {
+    "billingProvider": "abstract",
+    "companyAccess": true,
+    "billingStatus": "launch_access",
+    "authenticated": true,
+    "accessSource": "authenticated_account",
+    "enabledFeatures": [
+      "saved_branding",
+      "clean_pdf",
+      "live_links",
+      "report_history",
+      "load_report_into_builder"
+    ]
+  },
+  "companyProfile": {
+    "companyName": "Kitchen Permit Hood Service",
+    "serviceArea": "Los Angeles County | restaurant hood cleaning records",
+    "directLine": "(213) 555-0196",
+    "dispatchEmail": "dispatch@kitchenpermit.example",
+    "afterHoursPhone": "(213) 555-0199",
+    "certification": "CA KEC service record / crew KP-14",
+    "technicianLabel": "Maria J. / Night crew KP-14",
+    "brandInitials": "KP",
+    "logoUrl": "[data-url omitted]",
+    "brandColor": "#1F7A4D",
+    "updatedAt": "2026-05-15T07:41:59.032129Z"
+  },
+  "companyReports": [
+    {
+      "id": "a4ea79f9-8380-4fff-b934-aa02a3b7fe56",
+      "publicId": "93f9cae2068d4eef9e",
+      "href": "/p/server?reportId=93f9cae2068d4eef9e",
+      "toolHref": "/axis-1/tool?step=outputs&account=company&loadReport=93f9cae2068d4eef9e",
+      "productPlan": "company",
+      "title": "Marigold Diner / Main cookline hood",
+      "customerName": "Marigold Diner",
+      "siteName": "Main cookline hood",
+      "serviceDate": "2026-02-15",
+      "nextServiceDate": "2026-05-16",
+      "expiresAt": null,
+      "createdAt": "2026-05-15T07:41:59.631235Z",
+      "updatedAt": "2026-05-15T07:41:59.631235Z",
+      "assetStorage": {
+        "driver": "filesystem",
+        "inlinePhotoCount": 5,
+        "reportId": "93f9cae2068d4eef9e",
+        "target": "external_object_storage",
+        "databaseInlinePhotos": false,
+        "externalObjectStorageReady": false,
+        "mode": "file_reference_payload"
+      },
+      "pdfExport": {
+        "driver": "server-pdfbox",
+        "mode": "stored_asset",
+        "serverDownloadReady": true,
+        "currentAction": "Open the generated PDF copy.",
+        "externalProviderTarget": "axis1_asset_storage",
+        "downloadHref": "/api/axis1/assets/93f9cae2068d4eef9e/service-report.pdf",
+        "fileName": "service-report.pdf",
+        "contentType": "application/pdf",
+        "generatedAt": "2026-05-15T07:41:59.114108800Z"
+      },
+      "retention": {
+        "policy": "live_while_subscribed",
+        "expiresAt": "",
+        "status": "active"
+      },
+      "hasOpenItems": false,
+      "historyStatus": {
+        "tone": "scheduled",
+        "label": "Next service",
+        "code": "next_service"
+      },
+      "customerAction": "Reply to confirm the next 90-day service window before May 16, 2026.",
+      "reused": true,
+      "caseId": "marigold-main-clean-may"
+    },
+    {
+      "id": "5a04862c-a458-4bca-873a-ec510a59ee35",
+      "publicId": "6651bdb3ce5e4a1192",
+      "href": "/p/server?reportId=6651bdb3ce5e4a1192",
+      "toolHref": "/axis-1/tool?step=outputs&account=company&loadReport=6651bdb3ce5e4a1192",
+      "productPlan": "company",
+      "title": "Canal Street Tacos / Tortilla line exhaust",
+      "customerName": "Canal Street Tacos",
+      "siteName": "Tortilla line exhaust",
+      "serviceDate": "2026-02-02",
+      "nextServiceDate": "2026-05-03",
+      "expiresAt": null,
+      "createdAt": "2026-05-15T07:41:59.908601Z",
+      "updatedAt": "2026-05-15T07:41:59.908601Z",
+      "assetStorage": {
+        "driver": "filesystem",
+        "inlinePhotoCount": 4,
+        "reportId": "6651bdb3ce5e4a1192",
+        "target": "external_object_storage",
+        "databaseInlinePhotos": false,
+        "externalObjectStorageReady": false,
+        "mode": "file_reference_payload"
+      },
+      "pdfExport": {
+        "driver": "server-pdfbox",
+        "mode": "stored_asset",
+        "serverDownloadReady": true,
+        "currentAction": "Open the generated PDF copy.",
+        "externalProviderTarget": "axis1_asset_storage",
+        "downloadHref": "/api/axis1/assets/6651bdb3ce5e4a1192/service-report.pdf",
+        "fileName": "service-report.pdf",
+        "contentType": "application/pdf",
+        "generatedAt": "2026-05-15T07:41:59.750732100Z"
+      },
+      "retention": {
+        "policy": "live_while_subscribed",
+        "expiresAt": "",
+        "status": "active"
+      },
+      "hasOpenItems": true,
+      "historyStatus": {
+        "tone": "action",
+        "label": "Open access item",
+        "code": "open_access"
+      },
+      "customerAction": "Clear the rear access path and reply so dispatch can schedule the open access check.",
+      "reused": true,
+      "caseId": "canal-tacos-access-past-due"
+    },
+    {
+      "id": "0191366f-ffdb-4c0c-be86-0dd30055b458",
+      "publicId": "1327a9a403784b558f",
+      "href": "/p/server?reportId=1327a9a403784b558f",
+      "toolHref": "/axis-1/tool?step=outputs&account=company&loadReport=1327a9a403784b558f",
+      "productPlan": "company",
+      "title": "Northside Grill / Charbroiler hood line",
+      "customerName": "Northside Grill",
+      "siteName": "Charbroiler hood line",
+      "serviceDate": "2026-04-23",
+      "nextServiceDate": "2026-06-22",
+      "expiresAt": null,
+      "createdAt": "2026-05-15T07:42:00.091895Z",
+      "updatedAt": "2026-05-15T07:42:00.091895Z",
+      "assetStorage": {
+        "driver": "filesystem",
+        "inlinePhotoCount": 4,
+        "reportId": "1327a9a403784b558f",
+        "target": "external_object_storage",
+        "databaseInlinePhotos": false,
+        "externalObjectStorageReady": false,
+        "mode": "file_reference_payload"
+      },
+      "pdfExport": {
+        "driver": "server-pdfbox",
+        "mode": "stored_asset",
+        "serverDownloadReady": true,
+        "currentAction": "Open the generated PDF copy.",
+        "externalProviderTarget": "axis1_asset_storage",
+        "downloadHref": "/api/axis1/assets/1327a9a403784b558f/service-report.pdf",
+        "fileName": "service-report.pdf",
+        "contentType": "application/pdf",
+        "generatedAt": "2026-05-15T07:41:59.965420700Z"
+      },
+      "retention": {
+        "policy": "live_while_subscribed",
+        "expiresAt": "",
+        "status": "active"
+      },
+      "hasOpenItems": false,
+      "historyStatus": {
+        "tone": "review",
+        "label": "Quote review",
+        "code": "quote_review"
+      },
+      "customerAction": "Review the rooftop condition and reply if you want a quote before the next service window.",
+      "reused": true,
+      "caseId": "northside-grill-rooftop-quote"
+    },
+    {
+      "id": "fe195525-7ff2-479a-8e1d-5569f38e4911",
+      "publicId": "7cc84c2bedf64b1298",
+      "href": "/p/server?reportId=7cc84c2bedf64b1298",
+      "toolHref": "/axis-1/tool?step=outputs&account=company&loadReport=7cc84c2bedf64b1298",
+      "productPlan": "company",
+      "title": "Harbor Wok / High-volume wok line",
+      "customerName": "Harbor Wok",
+      "siteName": "High-volume wok line",
+      "serviceDate": "2026-04-29",
+      "nextServiceDate": "2026-05-29",
+      "expiresAt": null,
+      "createdAt": "2026-05-15T07:42:00.246831Z",
+      "updatedAt": "2026-05-15T07:42:00.246831Z",
+      "assetStorage": {
+        "driver": "filesystem",
+        "inlinePhotoCount": 4,
+        "reportId": "7cc84c2bedf64b1298",
+        "target": "external_object_storage",
+        "databaseInlinePhotos": false,
+        "externalObjectStorageReady": false,
+        "mode": "file_reference_payload"
+      },
+      "pdfExport": {
+        "driver": "server-pdfbox",
+        "mode": "stored_asset",
+        "serverDownloadReady": true,
+        "currentAction": "Open the generated PDF copy.",
+        "externalProviderTarget": "axis1_asset_storage",
+        "downloadHref": "/api/axis1/assets/7cc84c2bedf64b1298/service-report.pdf",
+        "fileName": "service-report.pdf",
+        "contentType": "application/pdf",
+        "generatedAt": "2026-05-15T07:42:00.141739600Z"
+      },
+      "retention": {
+        "policy": "live_while_subscribed",
+        "expiresAt": "",
+        "status": "active"
+      },
+      "hasOpenItems": false,
+      "historyStatus": {
+        "tone": "scheduled",
+        "label": "Next service",
+        "code": "next_service"
+      },
+      "customerAction": "Confirm the next 30-day service window so the high-volume line stays on schedule.",
+      "reused": true,
+      "caseId": "harbor-wok-thirty-day"
+    },
+    {
+      "id": "62f398de-a728-40f6-86ae-a75800d09096",
+      "publicId": "94158c617e294626a3",
+      "href": "/p/server?reportId=94158c617e294626a3",
+      "toolHref": "/axis-1/tool?step=outputs&account=company&loadReport=94158c617e294626a3",
+      "productPlan": "company",
+      "title": "Blue Line Pizza / Oven hood and make-line exhaust",
+      "customerName": "Blue Line Pizza",
+      "siteName": "Oven hood and make-line exhaust",
+      "serviceDate": "2026-05-08",
+      "nextServiceDate": "2026-06-07",
+      "expiresAt": null,
+      "createdAt": "2026-05-15T07:42:00.270483Z",
+      "updatedAt": "2026-05-15T07:42:00.270483Z",
+      "assetStorage": {
+        "driver": "filesystem",
+        "inlinePhotoCount": 0,
+        "reportId": "94158c617e294626a3",
+        "target": "external_object_storage",
+        "databaseInlinePhotos": false,
+        "externalObjectStorageReady": false,
+        "mode": "file_reference_payload"
+      },
+      "pdfExport": {
+        "driver": "server-pdfbox",
+        "mode": "stored_asset",
+        "serverDownloadReady": true,
+        "currentAction": "Open the generated PDF copy.",
+        "externalProviderTarget": "axis1_asset_storage",
+        "downloadHref": "/api/axis1/assets/94158c617e294626a3/service-report.pdf",
+        "fileName": "service-report.pdf",
+        "contentType": "application/pdf",
+        "generatedAt": "2026-05-15T07:42:00.263964100Z"
+      },
+      "retention": {
+        "policy": "live_while_subscribed",
+        "expiresAt": "",
+        "status": "active"
+      },
+      "hasOpenItems": false,
+      "historyStatus": {
+        "tone": "record",
+        "label": "Written record",
+        "code": "written_record"
+      },
+      "customerAction": "Keep the PDF copy with the store service record and reply if the next 30-day date needs to move.",
+      "reused": true,
+      "caseId": "blue-line-pizza-written-record"
+    },
+    {
+      "id": "5c061cd0-f0eb-4399-87f4-359381d361a7",
+      "publicId": "9a66e4a189184307ba",
+      "href": "/p/server?reportId=9a66e4a189184307ba",
+      "toolHref": "/axis-1/tool?step=outputs&account=company&loadReport=9a66e4a189184307ba",
+      "productPlan": "company",
+      "title": "Elm Market Kitchen / Market prep hood",
+      "customerName": "Elm Market Kitchen",
+      "siteName": "Market prep hood",
+      "serviceDate": "2026-03-14",
+      "nextServiceDate": "2026-06-12",
+      "expiresAt": null,
+      "createdAt": "2026-05-15T07:42:00.420985Z",
+      "updatedAt": "2026-05-15T07:42:00.420985Z",
+      "assetStorage": {
+        "driver": "filesystem",
+        "inlinePhotoCount": 4,
+        "reportId": "9a66e4a189184307ba",
+        "target": "external_object_storage",
+        "databaseInlinePhotos": false,
+        "externalObjectStorageReady": false,
+        "mode": "file_reference_payload"
+      },
+      "pdfExport": {
+        "driver": "server-pdfbox",
+        "mode": "stored_asset",
+        "serverDownloadReady": true,
+        "currentAction": "Open the generated PDF copy.",
+        "externalProviderTarget": "axis1_asset_storage",
+        "downloadHref": "/api/axis1/assets/9a66e4a189184307ba/service-report.pdf",
+        "fileName": "service-report.pdf",
+        "contentType": "application/pdf",
+        "generatedAt": "2026-05-15T07:42:00.311891900Z"
+      },
+      "retention": {
+        "policy": "live_while_subscribed",
+        "expiresAt": "",
+        "status": "active"
+      },
+      "hasOpenItems": false,
+      "historyStatus": {
+        "tone": "review",
+        "label": "Monitor / review",
+        "code": "monitor_condition"
+      },
+      "customerAction": "Review the containment note and confirm whether a follow-up quote should be opened.",
+      "reused": true,
+      "caseId": "elm-market-containment-monitor"
+    },
+    {
+      "id": "6d99d925-be32-4fda-a60b-4a0360af4f4e",
+      "publicId": "3c02a55e42ef43cba8",
+      "href": "/p/server?reportId=3c02a55e42ef43cba8",
+      "toolHref": "/axis-1/tool?step=outputs&account=company&loadReport=3c02a55e42ef43cba8",
+      "productPlan": "company",
+      "title": "Marigold Diner / Main cookline hood",
+      "customerName": "Marigold Diner",
+      "siteName": "Main cookline hood",
+      "serviceDate": "2025-11-17",
+      "nextServiceDate": "2026-02-15",
+      "expiresAt": null,
+      "createdAt": "2026-05-15T07:42:00.477678Z",
+      "updatedAt": "2026-05-15T07:42:00.477678Z",
+      "assetStorage": {
+        "driver": "filesystem",
+        "inlinePhotoCount": 2,
+        "reportId": "3c02a55e42ef43cba8",
+        "target": "external_object_storage",
+        "databaseInlinePhotos": false,
+        "externalObjectStorageReady": false,
+        "mode": "file_reference_payload"
+      },
+      "pdfExport": {
+        "driver": "server-pdfbox",
+        "mode": "stored_asset",
+        "serverDownloadReady": true,
+        "currentAction": "Open the generated PDF copy.",
+        "externalProviderTarget": "axis1_asset_storage",
+        "downloadHref": "/api/axis1/assets/3c02a55e42ef43cba8/service-report.pdf",
+        "fileName": "service-report.pdf",
+        "contentType": "application/pdf",
+        "generatedAt": "2026-05-15T07:42:00.444163800Z"
+      },
+      "retention": {
+        "policy": "live_while_subscribed",
+        "expiresAt": "",
+        "status": "active"
+      },
+      "hasOpenItems": false,
+      "historyStatus": {
+        "tone": "record",
+        "label": "Record only",
+        "code": "record_only"
+      },
+      "customerAction": "Prior service record retained for manager review and service history.",
+      "reused": true,
+      "caseId": "marigold-main-previous-cycle"
+    }
+  ],
+  "freeReports": [
+    {
+      "id": "43e3b3f5-d5d7-4d51-9afb-fe8ec4766631",
+      "publicId": "fad473148f26478685",
+      "href": "/p/server?reportId=fad473148f26478685",
+      "toolHref": "/axis-1/tool?step=outputs&account=free&loadReport=fad473148f26478685",
+      "productPlan": "free",
+      "title": "Free Trial Bistro / Main hood test report",
+      "customerName": "Free Trial Bistro",
+      "siteName": "Main hood test report",
+      "serviceDate": "2026-05-13",
+      "nextServiceDate": "2026-08-11",
+      "expiresAt": "2026-05-22T08:18:36.030802Z",
+      "createdAt": "2026-05-15T08:18:36.032803200Z",
+      "updatedAt": "2026-05-15T08:18:36.032803200Z",
+      "assetStorage": {
+        "inlinePhotoCount": 2,
+        "driver": "filesystem",
+        "mode": "file_reference_payload",
+        "externalObjectStorageReady": false,
+        "databaseInlinePhotos": false,
+        "target": "external_object_storage",
+        "reportId": "fad473148f26478685"
+      },
+      "pdfExport": {
+        "driver": "server-pdfbox",
+        "mode": "stored_asset",
+        "serverDownloadReady": true,
+        "currentAction": "Open the generated PDF copy.",
+        "externalProviderTarget": "axis1_asset_storage",
+        "downloadHref": "/api/axis1/assets/fad473148f26478685/service-report.pdf",
+        "fileName": "service-report.pdf",
+        "contentType": "application/pdf",
+        "generatedAt": "2026-05-15T08:18:35.482716500Z"
+      },
+      "retention": {
+        "policy": "free_7_day_link",
+        "expiresAt": "2026-05-22T08:18:36.030802Z",
+        "status": "active"
+      },
+      "hasOpenItems": false,
+      "historyStatus": {
+        "tone": "record",
+        "label": "Record only",
+        "code": "record_only"
+      },
+      "customerAction": "This is a no-login test link. Use the company version for saved branding and history.",
+      "payload": {
+        "productPlan": "free",
+        "values": {
+          "scenario": "clean",
+          "propertyName": "Free Trial Bistro",
+          "siteCity": "Anaheim, CA",
+          "serviceDate": "2026-05-13",
+          "authorizedBy": "Trial manager",
+          "cadence": "90",
+          "serviceWindow": "02:00-03:10",
+          "systemName": "Main hood test report",
+          "exceptionKinds": [],
+          "exceptionNote": "",
+          "followUpMode": "none",
+          "followUpNote": "",
+          "summaryOverride": "",
+          "customerActionOverride": "This is a no-login test link. Use the company version for saved branding and history.",
+          "followUpOverride": "",
+          "recordNoteOverride": ""
+        },
+        "uploadedFieldPhotos": {
+          "hood-before": null,
+          "hood-after": {
+            "src": "/api/axis1/assets/fad473148f26478685/photo-1.jpg",
+            "name": "hood-filters-installed.jpg",
+            "source": "manual",
+            "confidence": "manual",
+            "matchLabel": "Launch QA field photo",
+            "vendorDecision": "confirmed"
+          },
+          "filter-bank": {
+            "src": "/api/axis1/assets/fad473148f26478685/photo-2.jpg",
+            "name": "clean-exhaust-duct.jpg",
+            "source": "manual",
+            "confidence": "manual",
+            "matchLabel": "Launch QA field photo",
+            "vendorDecision": "confirmed"
+          },
+          "access-condition": null,
+          "rooftop-fan": null,
+          "grease-containment": null,
+          "service-label": null
+        },
+        "photoSlotResolutions": {
+          "hood-before": "not-captured",
+          "hood-after": "open",
+          "filter-bank": "open",
+          "access-condition": "not-applicable",
+          "rooftop-fan": "not-captured",
+          "grease-containment": "not-captured",
+          "service-label": "not-captured"
+        },
+        "links": {
+          "pdfHref": "/api/axis1/assets/fad473148f26478685/service-report.pdf"
+        },
+        "presentationMode": "standard",
+        "visibleSections": {
+          "photos": true,
+          "checklist": true,
+          "routeDetail": true,
+          "nextService": true
+        },
+        "qaSeed": {
+          "id": "free-no-login-clean",
+          "generatedAt": "2026-05-15T08:18:34.453Z",
+          "purpose": "Axis 1 launch local simulation"
+        },
+        "_assetStorage": {
+          "inlinePhotoCount": 2,
+          "driver": "filesystem",
+          "mode": "file_reference_payload",
+          "externalObjectStorageReady": false,
+          "databaseInlinePhotos": false,
+          "target": "external_object_storage",
+          "reportId": "fad473148f26478685"
+        },
+        "_pdfExport": {
+          "driver": "server-pdfbox",
+          "mode": "stored_asset",
+          "serverDownloadReady": true,
+          "currentAction": "Open the generated PDF copy.",
+          "externalProviderTarget": "axis1_asset_storage",
+          "downloadHref": "/api/axis1/assets/fad473148f26478685/service-report.pdf",
+          "fileName": "service-report.pdf",
+          "contentType": "application/pdf",
+          "generatedAt": "2026-05-15T08:18:35.482716500Z"
+        }
+      },
+      "caseId": "free-no-login-clean"
+    },
+    {
+      "id": "69891615-66bb-4f0e-8298-96ae1646e7f9",
+      "publicId": "8cbdc29ebfaa454da3",
+      "href": "/p/server?reportId=8cbdc29ebfaa454da3",
+      "toolHref": "/axis-1/tool?step=outputs&account=free&loadReport=8cbdc29ebfaa454da3",
+      "productPlan": "free",
+      "title": "Spoofed Brand Cafe / Cafe hood test report",
+      "customerName": "Spoofed Brand Cafe",
+      "siteName": "Cafe hood test report",
+      "serviceDate": "2026-05-12",
+      "nextServiceDate": "2026-07-11",
+      "expiresAt": "2026-05-22T08:18:36.194244700Z",
+      "createdAt": "2026-05-15T08:18:36.194244700Z",
+      "updatedAt": "2026-05-15T08:18:36.194244700Z",
+      "assetStorage": {
+        "inlinePhotoCount": 2,
+        "driver": "filesystem",
+        "mode": "file_reference_payload",
+        "externalObjectStorageReady": false,
+        "databaseInlinePhotos": false,
+        "target": "external_object_storage",
+        "reportId": "8cbdc29ebfaa454da3"
+      },
+      "pdfExport": {
+        "driver": "server-pdfbox",
+        "mode": "stored_asset",
+        "serverDownloadReady": true,
+        "currentAction": "Open the generated PDF copy.",
+        "externalProviderTarget": "axis1_asset_storage",
+        "downloadHref": "/api/axis1/assets/8cbdc29ebfaa454da3/service-report.pdf",
+        "fileName": "service-report.pdf",
+        "contentType": "application/pdf",
+        "generatedAt": "2026-05-15T08:18:36.098290300Z"
+      },
+      "retention": {
+        "policy": "free_7_day_link",
+        "expiresAt": "2026-05-22T08:18:36.194244700Z",
+        "status": "active"
+      },
+      "hasOpenItems": true,
+      "historyStatus": {
+        "tone": "action",
+        "label": "Open access item",
+        "code": "open_access"
+      },
+      "customerAction": "Use this only as a free test link; company branding should not appear here.",
+      "payload": {
+        "productPlan": "free",
+        "values": {
+          "scenario": "exception",
+          "propertyName": "Spoofed Brand Cafe",
+          "siteCity": "Irvine, CA",
+          "serviceDate": "2026-05-12",
+          "authorizedBy": "Trial user",
+          "cadence": "60",
+          "serviceWindow": "00:10-01:20",
+          "systemName": "Cafe hood test report",
+          "exceptionKinds": [
+            "sealed-panel"
+          ],
+          "exceptionNote": "Panel was sealed during the test service record and remains visible as an open access item.",
+          "followUpMode": "monitor",
+          "followUpNote": "",
+          "summaryOverride": "",
+          "customerActionOverride": "Use this only as a free test link; company branding should not appear here.",
+          "followUpOverride": "",
+          "recordNoteOverride": ""
+        },
+        "uploadedFieldPhotos": {
+          "hood-before": null,
+          "hood-after": {
+            "src": "/api/axis1/assets/8cbdc29ebfaa454da3/photo-1.jpg",
+            "name": "hood-filters-installed.jpg",
+            "source": "manual",
+            "confidence": "manual",
+            "matchLabel": "Launch QA field photo",
+            "vendorDecision": "confirmed"
+          },
+          "filter-bank": null,
+          "access-condition": {
+            "src": "/api/axis1/assets/8cbdc29ebfaa454da3/photo-2.jpg",
+            "name": "grease-duct-before-cleaning.jpg",
+            "source": "manual",
+            "confidence": "manual",
+            "matchLabel": "Launch QA field photo",
+            "vendorDecision": "confirmed"
+          },
+          "rooftop-fan": null,
+          "grease-containment": null,
+          "service-label": null
+        },
+        "photoSlotResolutions": {
+          "hood-before": "not-captured",
+          "hood-after": "open",
+          "filter-bank": "not-captured",
+          "access-condition": "open",
+          "rooftop-fan": "not-captured",
+          "grease-containment": "not-captured",
+          "service-label": "not-captured"
+        },
+        "links": {
+          "pdfHref": "/api/axis1/assets/8cbdc29ebfaa454da3/service-report.pdf"
+        },
+        "presentationMode": "standard",
+        "visibleSections": {
+          "photos": true,
+          "checklist": true,
+          "routeDetail": true,
+          "nextService": true
+        },
+        "qaSeed": {
+          "id": "free-spoof-brand-blocked",
+          "generatedAt": "2026-05-15T08:18:34.453Z",
+          "purpose": "Axis 1 launch local simulation"
+        },
+        "_assetStorage": {
+          "inlinePhotoCount": 2,
+          "driver": "filesystem",
+          "mode": "file_reference_payload",
+          "externalObjectStorageReady": false,
+          "databaseInlinePhotos": false,
+          "target": "external_object_storage",
+          "reportId": "8cbdc29ebfaa454da3"
+        },
+        "_pdfExport": {
+          "driver": "server-pdfbox",
+          "mode": "stored_asset",
+          "serverDownloadReady": true,
+          "currentAction": "Open the generated PDF copy.",
+          "externalProviderTarget": "axis1_asset_storage",
+          "downloadHref": "/api/axis1/assets/8cbdc29ebfaa454da3/service-report.pdf",
+          "fileName": "service-report.pdf",
+          "contentType": "application/pdf",
+          "generatedAt": "2026-05-15T08:18:36.098290300Z"
+        }
+      },
+      "caseId": "free-spoof-brand-blocked"
+    }
+  ],
+  "assetCheck": {
+    "checked": true,
+    "src": "/api/axis1/assets/93f9cae2068d4eef9e/photo-1.jpg",
+    "contentType": "image/jpeg"
+  },
+  "photoAssist": {
+    "mode": "mock",
+    "provider": "mock",
+    "model": "mock-rule-fallback",
+    "warning": "Photo Assist is running in mock mode.",
+    "suggestions": [
+      {
+        "id": "mock:qa-phone-001:0",
+        "photoId": "qa-phone-001",
+        "fileName": "IMG_7421.jpg",
+        "suggestedSlotId": null,
+        "suggestedTone": "unknown",
+        "confidence": 0.34,
+        "needsVendorReview": true,
+        "reason": "No reliable proof slot was found from filename cues. Vendor must choose or reject this photo.",
+        "source": "mock",
+        "vendorDecision": "pending",
+        "confirmedSlotId": null
+      },
+      {
+        "id": "mock:qa-phone-002:1",
+        "photoId": "qa-phone-002",
+        "fileName": "IMG_7422.jpg",
+        "suggestedSlotId": null,
+        "suggestedTone": "unknown",
+        "confidence": 0.34,
+        "needsVendorReview": true,
+        "reason": "No reliable proof slot was found from filename cues. Vendor must choose or reject this photo.",
+        "source": "mock",
+        "vendorDecision": "pending",
+        "confirmedSlotId": null
+      },
+      {
+        "id": "mock:qa-phone-003:2",
+        "photoId": "qa-phone-003",
+        "fileName": "IMG_7423.jpg",
+        "suggestedSlotId": null,
+        "suggestedTone": "unknown",
+        "confidence": 0.34,
+        "needsVendorReview": true,
+        "reason": "No reliable proof slot was found from filename cues. Vendor must choose or reject this photo.",
+        "source": "mock",
+        "vendorDecision": "pending",
+        "confirmedSlotId": null
+      },
+      {
+        "id": "mock:qa-phone-004:3",
+        "photoId": "qa-phone-004",
+        "fileName": "blocked_area_cleaned_questionmark.jpg",
+        "suggestedSlotId": "access-condition",
+        "suggestedTone": "issue",
+        "confidence": 0.86,
+        "needsVendorReview": true,
+        "reason": "Access is suggested from filename cues, but this photo needs vendor review before it can support proof coverage.",
+        "source": "mock",
+        "vendorDecision": "pending",
+        "confirmedSlotId": null
+      }
+    ]
+  },
+  "browserQa": [
+    {
+      "label": "dashboard-admin-history",
+      "url": "http://127.0.0.1:8096/dashboard",
+      "textLength": 4909,
+      "horizontalOverflowPx": 0,
+      "buttonCount": 24,
+      "consoleMessages": [],
+      "actionableConsoleMessages": [],
+      "anchorCount": 60,
+      "imageCount": 0,
+      "loadedImageCount": 0,
+      "screenshotPath": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\post-polish-final-local-sim\\screenshots\\dashboard-admin-history.png"
+    },
+    {
+      "label": "builder-load-saved-report",
+      "url": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company",
+      "textLength": 15697,
+      "horizontalOverflowPx": 0,
+      "buttonCount": 108,
+      "consoleMessages": [],
+      "actionableConsoleMessages": [],
+      "anchorCount": 35,
+      "imageCount": 12,
+      "loadedImageCount": 5,
+      "screenshotPath": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\post-polish-final-local-sim\\screenshots\\builder-load-saved-report.png"
+    },
+    {
+      "label": "fresh-builder-first-report",
+      "url": "http://127.0.0.1:8096/axis-1/tool",
+      "textLength": 1093,
+      "horizontalOverflowPx": 0,
+      "buttonCount": 88,
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/797e433ab948586e-s.p.09zddjkbdep5a.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        },
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        },
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/797e433ab948586e-s.p.09zddjkbdep5a.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        },
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        }
+      ],
+      "actionableConsoleMessages": [],
+      "anchorCount": 25,
+      "imageCount": 0,
+      "loadedImageCount": 0,
+      "screenshotPath": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\post-polish-final-local-sim\\screenshots\\fresh-builder-first-report.png"
+    },
+    {
+      "label": "company-customer-link-desktop",
+      "url": "http://127.0.0.1:8096/p/server?reportId=6651bdb3ce5e4a1192",
+      "textLength": 5086,
+      "horizontalOverflowPx": 0,
+      "buttonCount": 2,
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/797e433ab948586e-s.p.09zddjkbdep5a.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        },
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        },
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/797e433ab948586e-s.p.09zddjkbdep5a.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        },
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        }
+      ],
+      "actionableConsoleMessages": [],
+      "anchorCount": 14,
+      "imageCount": 9,
+      "loadedImageCount": 8,
+      "screenshotPath": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\post-polish-final-local-sim\\screenshots\\company-customer-link-desktop.png"
+    },
+    {
+      "label": "company-service-record-pdf",
+      "url": "http://127.0.0.1:8096/p/server?reportId=6651bdb3ce5e4a1192&format=pdf",
+      "textLength": 10918,
+      "horizontalOverflowPx": 0,
+      "buttonCount": 1,
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/797e433ab948586e-s.p.09zddjkbdep5a.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        },
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        }
+      ],
+      "actionableConsoleMessages": [],
+      "anchorCount": 0,
+      "imageCount": 2,
+      "loadedImageCount": 2,
+      "screenshotPath": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\post-polish-final-local-sim\\screenshots\\company-service-record-pdf.png"
+    },
+    {
+      "label": "free-customer-link-desktop",
+      "url": "http://127.0.0.1:8096/p/server?reportId=fad473148f26478685",
+      "textLength": 3479,
+      "horizontalOverflowPx": 0,
+      "buttonCount": 2,
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/797e433ab948586e-s.p.09zddjkbdep5a.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        },
+        {
+          "type": "warning",
+          "text": "The resource http://127.0.0.1:8096/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+        }
+      ],
+      "actionableConsoleMessages": [],
+      "anchorCount": 9,
+      "imageCount": 4,
+      "loadedImageCount": 4,
+      "screenshotPath": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\post-polish-final-local-sim\\screenshots\\free-customer-link-desktop.png"
+    },
+    {
+      "label": "company-customer-link-mobile",
+      "url": "http://127.0.0.1:8096/p/server?reportId=6651bdb3ce5e4a1192",
+      "textLength": 4303,
+      "horizontalOverflowPx": 0,
+      "buttonCount": 2,
+      "consoleMessages": [],
+      "actionableConsoleMessages": [],
+      "anchorCount": 14,
+      "imageCount": 9,
+      "loadedImageCount": 5,
+      "screenshotPath": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\3hour-qa-2026-05-15\\post-polish-final-local-sim\\screenshots\\company-customer-link-mobile.png"
+    }
+  ],
+  "findings": [
+    "Photo Assist did not return live Gemini mode; check AXIS1_PHOTO_ASSIST_MODE and GEMINI_API_KEY inheritance."
+  ],
+  "prompt": "다음 작업자는 C:\\Development\\Owner\\hood에서 Axis 1 런칭 직전 실사용 QA를 이어서 수행한다.\n\n반드시 먼저 references/axis1-core-skeleton-full-context-2026-05-13.md를 처음부터 끝까지 읽는다. 그 다음 현재 로컬 서버와 결과 문서 링크를 연다.\n\n제품 기준:\n- Axis 1은 hood cleaning service 업체가 식당/고객에게 보낼 수 있는 branded service report link/PDF를 만드는 제품이다.\n- $79/월을 낼 회사 사용자가 원하는 것은 복잡한 도구가 아니라, 고객이 inspection, manager review, landlord/insurance/documentation 때 저장할 수 있는 믿을 만한 기록이다.\n- 고객 전면에는 \"proof link\", \"packet\", \"vendor\", \"closeout\" 같은 내부어가 과하게 보이면 안 된다.\n- invoice/payment link, mailto: 노출, 개발자스러운 링크는 실패로 본다.\n- 무료는 no-login test link다. 회사명/로고/연락처/히스토리/지속 링크는 회사 버전의 이유여야 한다.\n- 브랜드 색상은 앱 테마가 아니라 고객 링크/PDF의 업체 accent color로 보이는지 확인한다.\n- 저장 리포트의 PDF CTA는 반드시 /p/server?reportId=<id>&format=pdf React service-record route여야 한다. 고객 전면에서 /api/axis1/assets/<id>/service-report.pdf를 누르게 만들면 회귀다.\n\n실사용 시나리오:\n1. admin@kitchenpermit.com으로 로그인해서 /dashboard를 연다.\n2. 회사 프로필이 Kitchen Permit Hood Service로 보이고, 저장된 리포트 히스토리가 실제 고객/현장처럼 묶여 있는지 본다.\n3. due soon, past due, open item, clean record, no-photo written record가 한눈에 식별되는지 본다.\n4. 각 리포트의 Open customer link, PDF 화면, Edit report 링크를 연다.\n5. 고객 링크는 웹페이지처럼 풍부해도 되지만, PDF 화면은 조용한 service record retained copy처럼 보여야 한다.\n6. 무료 링크는 회사 브랜딩이 제거되고 7일 테스트 링크처럼 보여야 한다.\n7. Gemini Photo Assist 결과는 사진을 정리만 하고, 서비스 완료를 판정하거나 compliance/inspection/certificate류 표현을 쓰면 안 된다.\n8. 데스크톱과 모바일에서 텍스트 겹침, 가로 overflow, 깨진 이미지, 콘솔 에러, 샘플 데이터(Sample Restaurant Group / Austin, TX) 누수를 찾는다.\n\n평가 질문:\n- 식당 매니저가 이 링크를 저장하고 나중에 보여줘도 부끄럽지 않은가?\n- 업체 사장이 이 대시보드를 보고 \"내 고객 기록이 쌓인다\"고 느끼는가?\n- $79/월 회사 버전의 이유가 무료 테스트 링크와 명확히 갈리는가?\n- PDF 화면이 웹 기능이 아니라 보관/제출 가능한 서비스 기록처럼 보이는가?\n- 사진이 고객 기록에 도움이 되지만 업체에게 분류 노동을 강요하지 않는가?\n- 링크와 PDF가 실제 운영에서 문자/이메일로 보낼 수 있는 톤인가?\n\n작업 규칙:\n- unrelated change는 revert하지 않는다.\n- Next build와 Gradle test를 병렬로 돌리지 않는다.\n- 수동 파일 수정은 apply_patch를 우선 사용한다.\n- 결과는 references/axis1-launch-qa/local-sim-2026-05-14 아래에 남기고, 브라우저로 바로 열 수 있는 localhost 링크를 포함한다."
+}

@@ -56,6 +56,64 @@ function cx(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function isRenderableLogoSrc(src: string) {
+  if (!src.startsWith("data:")) {
+    return true;
+  }
+
+  const [, metadata = "", base64 = ""] = src.match(/^data:([^,]+),(.+)$/) ?? [];
+
+  if (!metadata.includes(";base64") || !base64) {
+    return false;
+  }
+
+  try {
+    const binary = atob(base64);
+
+    if (metadata.startsWith("image/png")) {
+      return binary.startsWith("\u0089PNG\r\n\u001a\n") && binary.slice(-12, -8) === "IEND";
+    }
+
+    if (metadata.startsWith("image/jpeg") || metadata.startsWith("image/jpg")) {
+      return binary.charCodeAt(0) === 0xff &&
+        binary.charCodeAt(1) === 0xd8 &&
+        binary.charCodeAt(binary.length - 2) === 0xff &&
+        binary.charCodeAt(binary.length - 1) === 0xd9;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function LogoImage({
+  src,
+  alt,
+  className,
+  width,
+  height,
+  fallbackText,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+  width: number;
+  height: number;
+  fallbackText: string;
+}) {
+  if (!isRenderableLogoSrc(src)) {
+    return <span className="font-semibold">{fallbackText}</span>;
+  }
+
+  if (src.startsWith("data:")) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt={alt} className={className} width={width} height={height} />;
+  }
+
+  return <Image src={src} alt={alt} width={width} height={height} className={className} />;
+}
+
 function hexToRgb(hex: string) {
   const normalized = /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex.slice(1) : "f26a21";
 
@@ -106,6 +164,13 @@ function serviceRecordCopy(value: string) {
     .replace(/\bseparate trade service\b/gi, "separate corrective work")
     .replace(/\bseparate corrective work and follow-up work\b/gi, "separate corrective or follow-up work")
     .replace(/\bfollow-up work authorization\b/gi, "follow-up go-ahead")
+    .replace(/\breply\s+so\b/gi, "contact the service team so")
+    .replace(/\breply\s+when\b/gi, "contact the service team when")
+    .replace(/\breply\s+if\b/gi, "contact the service team if")
+    .replace(/\breply\s+to\b/gi, "contact the service team to")
+    .replace(/\breply\s+before\b/gi, "contact the service team before")
+    .replace(/\breply\s+after\b/gi, "contact the service team after")
+    .replace(/\bnext reply\b/gi, "next response")
     .replace(/\bservice close-out\b/gi, "service record")
     .replace(/\bcustomer handoff\b/gi, "customer service record")
     .replace(/\bhandoff\b/gi, "service record")
@@ -571,13 +636,7 @@ function ServiceEvidenceRecord({
     getRecordValue(data.packetHeader.quickFacts, ["Report ID"], "") ||
     getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-SAMPLE-0424");
   const nextWindow = getNextServiceWindow(data);
-  const recommendedInterval = getRecordValue(data.frequencyRows, ["Recommended interval"], "Interval recorded");
   const conditionOnly = isConditionOnlyRecord(data);
-  const blockedAreaRecorded = primaryOpenItem
-    ? "Yes - see excluded area"
-    : conditionOnly
-      ? "No blocked area; condition recorded"
-      : "No";
   const reachablePathCompleted = conditionOnly
     ? "No cleaning completion claimed; condition recorded only"
     : primaryOpenItem
@@ -594,13 +653,13 @@ function ServiceEvidenceRecord({
   const hasEvidencePhotos = data.proofPhotos.length > 0;
   const completedAreas = componentList(data.componentStatusRows, isCompletedComponentStatus);
   const excludedAreas = componentList(data.componentStatusRows, isExcludedComponentStatus);
-  const recordedOnlyAreas = componentList(data.componentStatusRows, (status) =>
-    isRecordedOnlyComponentStatus(status) && !isCompletedComponentStatus(status),
-  );
   const ductStatus = componentStatusLine(data.componentStatusRows, /duct|plenum|access/i);
   const fanStatus = componentStatusLine(data.componentStatusRows, /fan|roof/i);
   const greaseStatus = componentStatusLine(data.componentStatusRows, /grease|containment/i);
   const hasCompanyCredential = data.vendor.certification.trim().length > 0;
+  const photoStatus = hasEvidencePhotos
+    ? `${data.proofPhotos.length} attached photo${data.proofPhotos.length === 1 ? "" : "s"}`
+    : "Written record; no photos attached";
 
   const recordRows = [
     ["Record type", "Kitchen exhaust service report PDF copy"],
@@ -608,16 +667,14 @@ function ServiceEvidenceRecord({
     ["Customer / property", data.packetHeader.title],
     ["Service location", location],
     ["System reference", systemRef],
-    ["Line served", lineServed],
     ["Service date / window", serviceWindow],
     ["Service provider", data.vendor.name],
     ["Person performing work", data.vendor.technician],
-    ["Service result", status],
-    ["Record basis", hasEvidencePhotos ? "Service record with attached field photos" : "Written service record; no photos attached"],
+    ["Result", status],
+    ["Photo status", photoStatus],
   ] as const;
 
   const serviceBoundaryRows = [
-    ["Document class", "Customer-retained service report copy"],
     [
       "Service outcome",
       conditionOnly
@@ -626,37 +683,35 @@ function ServiceEvidenceRecord({
           ? "Completed with excluded area listed"
           : "Completed - no blocked area listed",
     ],
-    ["Hood / filters", componentStatusLine(data.componentStatusRows, /hood|filter/i)],
-    ["Duct / access status", ductStatus],
-    ["Rooftop fan status", fanStatus],
-    ["Grease path status", greaseStatus],
     ["Areas completed / cleaned", completedAreas],
-    ["Recorded only", recordedOnlyAreas],
-    ["Blocked / inaccessible area recorded", blockedAreaRecorded],
-    ["Reachable service path", reachablePathCompleted],
-    ["Deficiencies / exceptions", primaryOpenItem ? transform(primaryOpenItem.issue) : "None recorded"],
     ["Areas not cleaned / excluded", excludedAreas],
-    ["Before / after photo evidence", hasEvidencePhotos ? `Included - ${data.proofPhotos.length} photos` : "No photos attached"],
+    ["Customer action item", primaryOpenItem ? transform(primaryOpenItem.ownerAction) : "No blocked-access action recorded"],
+    ["Exception / condition", primaryOpenItem ? transform(primaryOpenItem.issue) : "None recorded"],
+    ["Reachable service path", reachablePathCompleted],
+    ["Line served", lineServed],
+    ["Duct / access", ductStatus],
+    ["Rooftop fan", fanStatus],
+    ["Grease path", greaseStatus],
+    ["Photo status", photoStatus],
     ["Service label / notice", serviceNotice],
-    ["Record maintained on premises", "Customer to retain with kitchen exhaust service records"],
-    ["Service provider copy", "Customer copy and service provider archive retained"],
-    ["Recommended interval", recommendedInterval],
     ["Next service window", nextWindow],
     ["Reviewer note", "Manager, landlord, insurer, or AHJ may apply separate requirements"],
-  ] as const;
+  ]
+    .map(([label, value]) => [label, value] as Row)
+    .filter(([, value]) => value.trim().length > 0);
 
   return (
-    <section className="pdf-document-section border-b border-[#ded7cf] bg-white px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
+    <section className="pdf-document-section service-record-identification border-b border-[#ded7cf] bg-white px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)] lg:items-start">
         <div
-          className="service-evidence-card min-w-0 rounded-[24px] border border-[#d8d0c7] bg-[#fbfaf7] px-5 py-5"
+          className="service-evidence-card service-record-box min-w-0 rounded-[24px] border border-[#d8d0c7] bg-[#fbfaf7] px-5 py-5"
           style={{ breakInside: "avoid" }}
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-          <SectionKicker>Kitchen exhaust service report</SectionKicker>
+              <SectionKicker>Report identification</SectionKicker>
               <h3 className="mt-3 font-display text-[1.95rem] font-bold leading-[0.92] tracking-[-0.06em] text-[#151515] sm:text-[2.55rem]">
-                Service report for customer files.
+                Service record for retained files.
               </h3>
             </div>
             <span className="rounded-full border border-[#f3c0a2] bg-[#fff0e7] px-3 py-1.5 text-xs font-semibold text-[#a9431f]">
@@ -675,12 +730,12 @@ function ServiceEvidenceRecord({
         </div>
 
         <div
-          className="service-evidence-card min-w-0 rounded-[24px] border border-[#ded7cf] bg-[#f5f1ea] px-5 py-5"
+          className="service-evidence-card service-record-box min-w-0 rounded-[24px] border border-[#ded7cf] bg-[#f5f1ea] px-5 py-5"
           style={{ breakInside: "avoid" }}
         >
-          <SectionKicker>Report sheet fields</SectionKicker>
+          <SectionKicker>Service scope and status</SectionKicker>
           <h3 className="mt-3 font-display text-[1.55rem] font-bold leading-[0.96] tracking-[-0.055em] text-[#151515]">
-            Component status, exclusions, and retained evidence are separated.
+            Completed areas, exclusions, and evidence stay separated.
           </h3>
           <div className="mt-5">
             <DenseLedger rows={serviceBoundaryRows} />
@@ -820,8 +875,8 @@ function ServiceEvidenceControls({
 
   return (
     <section className="pdf-document-section service-evidence-controls border-b border-[#ded7cf] bg-white px-4 py-6 sm:px-8 sm:py-7 lg:px-10">
-      <div className="mb-6 rounded-[18px] border border-[#ded7cf] bg-[#fbfaf7] px-4 py-4">
-        <SectionKicker>Record completeness check</SectionKicker>
+      <div className="service-record-index mb-6 rounded-[18px] border border-[#ded7cf] bg-[#fbfaf7] px-4 py-4">
+        <SectionKicker>Record index</SectionKicker>
         <div className="mt-3 grid gap-3 md:grid-cols-4">
           {requiredFormatRows.map(([label, value]) => (
             <div key={label} className="min-w-0 border-t border-[#e7e0d8] pt-3 first:border-t-0 md:border-l md:border-t-0 md:pl-3 md:first:border-l-0 md:first:pt-3">
@@ -838,7 +893,7 @@ function ServiceEvidenceControls({
         <div className="min-w-0">
           <SectionKicker>Document control</SectionKicker>
           <h3 className="mt-3 font-display text-[1.5rem] font-bold leading-[1] tracking-[-0.04em] text-[#151515]">
-            Record identifiers and retained copies.
+            Identifiers and retained copies.
           </h3>
           <div className="mt-4">
             <DenseLedger rows={documentControlRows} />
@@ -848,7 +903,7 @@ function ServiceEvidenceControls({
         <div className="min-w-0">
           <SectionKicker>Customer / property fields</SectionKicker>
           <h3 className="mt-3 font-display text-[1.5rem] font-bold leading-[1] tracking-[-0.04em] text-[#151515]">
-            Fields used for outside record requests.
+            Fields used for record requests.
           </h3>
           <div className="mt-4">
             <DenseLedger rows={propertyRows.map(([label, value]) => [label, transform(value)] as const)} />
@@ -906,7 +961,7 @@ function OutputRoleBlock({
     ? `This ${recordName} summarizes the service date, work areas, photo evidence, inaccessible or not-serviced areas, findings, and next recommended service window for customer files, manager review, insurance, landlord, or documentation requests.`
     : customerFacing
       ? "This link shows completed work, action items, attached photos, and next action. Use the PDF copy for retained records or outside documentation requests."
-      : `This ${recordName} shows what was cleaned, what stayed open, what the photos prove, and what the customer should do next without waiting for another explanation call.`;
+      : `This ${recordName} shows what was cleaned, what stayed open, what the attached photos show, and what the customer should do next without waiting for another explanation call.`;
   const chips = serviceRecord
     ? ["Service record cover", "Report sheet fields", "Photo evidence appendix"]
     : customerFacing
@@ -1563,6 +1618,17 @@ export function Axis1PacketDocument({
   const documentReportId =
     getRecordValue(data.packetHeader.quickFacts, ["Report ID"], "") ||
     getRecordValue(data.serviceRecordRows, ["Report ID"], "HDS-SAMPLE-0424");
+  const headerServiceDate = getRecordValue(
+    data.packetHeader.quickFacts,
+    ["Service date"],
+    "Service date recorded",
+  );
+  const headerLocation = getRecordValue(
+    data.packetHeader.quickFacts,
+    ["Location"],
+    "Location recorded",
+  );
+  const packetHeaderQuickFacts = mapRows(data.packetHeader.quickFacts, copy);
   const systemIdentityRows = mapRows(data.systemIdentityRows, copy);
   const serviceRecordRows = mapRows(data.serviceRecordRows, copy);
   const proofPolicyRows = mapRows(data.proofPolicyRows, copy);
@@ -1597,6 +1663,21 @@ export function Axis1PacketDocument({
   const displayedCustomerCloseActionItems = isServiceRecord
     ? serviceRecordActionRows(customerCloseActionItems)
     : customerCloseActionItems;
+  const hasProofPhotos = data.proofPhotos.length > 0;
+  const serviceRecordSummaryRows = [
+    ["Result", documentState],
+    [
+      "Open item",
+      getPrimaryOpenItem(data) ? "Excluded area listed" : "None recorded",
+    ],
+    ["Next service", getNextServiceWindow(data)],
+    [
+      "Photos",
+      hasProofPhotos
+        ? `${data.proofPhotos.length} attached`
+        : "Written record",
+    ],
+  ] as const;
   const hasVendorContact =
     data.vendor.directLine.trim().length > 0 ||
     data.vendor.dispatch.trim().length > 0 ||
@@ -1607,7 +1688,6 @@ export function Axis1PacketDocument({
       ? data.vendor.brandColor
       : "#111315";
   const vendorAccentStyle = accentVariables(vendorBrandColor);
-  const hasProofPhotos = data.proofPhotos.length > 0;
   const conditionOnly = isConditionOnlyRecord(data);
   const showPhotoCoverage =
     sections.checklist && (!isCustomerReport || hasProofPhotos);
@@ -1622,7 +1702,7 @@ export function Axis1PacketDocument({
   const compactWorkSection = !sections.routeDetail;
   const componentStatusTitle = isCustomerReport
     ? "What was handled, what stayed open."
-    : "The usual vendor checklist becomes a clean customer record.";
+    : "The usual service checklist becomes a clean customer record.";
   const componentStatusCopy = isCustomerReport
     ? "Use this list to see which parts of the exhaust system were cleaned, documented, or left for follow-up."
     : "This is the premium-company layer: component status, evidence reference, and customer-readable notes in one place.";
@@ -1632,7 +1712,7 @@ export function Axis1PacketDocument({
       ? "Photos attached."
       : "Photos, label, and archive are accounted for.";
   const photoEvidenceTitle = isCustomerReport
-    ? "Photos are organized as evidence."
+    ? "Attached photos stay tied to the record."
     : "Photos are evidence, not a dump.";
   const serviceRecordProofPhotos = [
     data.proofPhotos.find((photo) => photo.tone === "before"),
@@ -1654,32 +1734,45 @@ export function Axis1PacketDocument({
         className="h-1.5 w-full"
         style={{ backgroundColor: vendorBrandColor }}
       />
-      <header className="pdf-document-section px-4 py-5 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+      <header
+        className={cx(
+          "pdf-document-section px-4 py-5 sm:px-8 sm:py-8 lg:px-10 lg:py-10",
+          isServiceRecord && "service-record-masthead",
+        )}
+      >
         <div className="packet-header-grid grid gap-7 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-start">
           <div className="min-w-0">
             <div className="flex min-w-0 items-start gap-4">
               <div
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#111315] font-display text-xl font-bold text-white sm:h-13 sm:w-13 sm:rounded-[17px] sm:text-2xl"
+                className={cx(
+                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#111315] font-display text-xl font-bold text-white sm:h-13 sm:w-13 sm:rounded-[17px] sm:text-2xl",
+                  isServiceRecord && "service-record-logo-mark",
+                )}
                 style={{
                   background: data.vendor.logoUrl ? "#ffffff" : vendorBrandColor,
                   color: data.vendor.logoUrl ? "#151515" : "#ffffff",
                 }}
               >
                 {data.vendor.logoUrl ? (
-                  <Image
+                  <LogoImage
                     src={data.vendor.logoUrl}
                     alt={`${data.vendor.name} logo`}
                     width={52}
                     height={52}
                     className="h-full w-full rounded-[16px] object-contain p-1.5"
-                    priority={false}
+                    fallbackText={data.vendor.initials}
                   />
                 ) : (
                   data.vendor.initials
                 )}
               </div>
               <div className="min-w-0">
-                <p className="font-display text-[1.55rem] font-bold leading-[0.98] tracking-[-0.06em] text-[#151515] sm:text-[2.35rem]">
+                <p
+                  className={cx(
+                    "font-display text-[1.55rem] font-bold leading-[0.98] tracking-[-0.06em] text-[#151515] sm:text-[2.35rem]",
+                    isServiceRecord && "service-record-provider-name",
+                  )}
+                >
                   {data.vendor.name}
                 </p>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-[#746b62]">
@@ -1692,20 +1785,54 @@ export function Axis1PacketDocument({
 
             <div className="mt-7 max-w-3xl sm:mt-9">
               <SectionKicker>
-                {isServiceRecord ? "PDF copy" : "Service report link"}
+                {isServiceRecord ? "Customer-retained copy" : "Service report link"}
               </SectionKicker>
-              <h2 className="mt-3 font-display text-[2.05rem] font-bold leading-[0.92] tracking-[-0.065em] text-[#151515] sm:text-[3.65rem]">
-                {data.packetHeader.title}
+              <h2
+                className={cx(
+                  "mt-3 font-display text-[2.05rem] font-bold leading-[0.92] tracking-[-0.065em] text-[#151515] sm:text-[3.65rem]",
+                  isServiceRecord && "service-record-document-title",
+                )}
+              >
+                {isServiceRecord ? "Kitchen Exhaust Cleaning Service Report" : data.packetHeader.title}
               </h2>
+              {isServiceRecord ? (
+                <div className="service-record-subject mt-4 grid gap-1 border-y border-[#ded7cf] py-3">
+                  <p className="text-base font-semibold leading-6 text-[#151515]">
+                    {data.packetHeader.title}
+                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#746b62]">
+                    {headerLocation} / {headerServiceDate} / Report {documentReportId}
+                  </p>
+                </div>
+              ) : null}
               <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[#5f574f]">
-                {isShort
+                {isServiceRecord
+                  ? "Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records."
+                  : isShort
                   ? copy(data.summaryCards[0]?.copy ?? data.packetHeader.copy)
                   : copy(data.packetHeader.copy)}
               </p>
+              {isServiceRecord ? (
+                <div className="service-record-mobile-summary mt-4 grid gap-2 sm:hidden">
+                  {serviceRecordSummaryRows.map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="grid grid-cols-[92px_minmax(0,1fr)] gap-3 border-t border-[#ded7cf] pt-2 text-xs"
+                    >
+                      <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[#8b8178]">
+                        {label}
+                      </span>
+                      <span className="break-words font-semibold leading-5 text-[#151515]">
+                        {copy(value)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               {!isServiceRecord ? (
                 <div className="mt-4 flex flex-wrap gap-2 lg:hidden">
                   <span className="rounded-full border border-[#ded7cf] bg-white/75 px-2.5 py-1 text-[11px] font-medium text-[#5f574f]">
-                    {data.packetHeader.quickFacts[0]?.[1] ?? "Service visit"}
+                    {packetHeaderQuickFacts[0]?.[1] ?? "Service visit"}
                   </span>
                   <StatusMark status={documentState} />
                 </div>
@@ -1726,13 +1853,13 @@ export function Axis1PacketDocument({
                     ? "PDF copy"
                     : "Service report link"
                   : data.vendor.brandingApplied
-                    ? "Branded vendor version"
+                    ? "Branded company version"
                     : "Public sample shell"}
               </span>
               <StatusMark status={documentState} />
             </div>
             <div className="mt-5">
-              <DataLedger rows={data.packetHeader.quickFacts} />
+              <DataLedger rows={packetHeaderQuickFacts} />
             </div>
           </aside>
         </div>
@@ -2000,7 +2127,12 @@ export function Axis1PacketDocument({
         </section>
       ) : null}
 
-      <section className="pdf-document-section packet-final-section grid gap-8 px-4 py-7 sm:px-8 sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:px-10">
+      <section
+        className={cx(
+          "pdf-document-section packet-final-section grid gap-8 px-4 py-7 sm:px-8 sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:px-10",
+          isServiceRecord && "service-record-final-section lg:grid-cols-1",
+        )}
+      >
         {!isServiceRecord ? (
           <div className="min-w-0">
             <SectionKicker>{data.notesSection.label}</SectionKicker>
@@ -2042,7 +2174,35 @@ export function Axis1PacketDocument({
         ) : null}
 
         <div className="packet-final-sidebar min-w-0 space-y-6">
-          {sections.nextService ? (
+          {sections.nextService && isServiceRecord ? (
+          <div className="pdf-document-card service-record-next-box rounded-[24px] border border-[#ded7cf] bg-white px-5 py-5">
+            <div className="flex items-start justify-between gap-5">
+              <div className="min-w-0">
+                <SectionKicker>Next service / customer action</SectionKicker>
+                <h3 className="mt-3 font-display text-[1.72rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[2rem]">
+                  {data.customerClose.title}
+                </h3>
+              </div>
+              {data.scenario === "exception" ? (
+                <AlertTriangle
+                  className="mt-1 h-5 w-5 shrink-0"
+                  style={{ color: "var(--axis1-vendor-accent, #f26a21)" }}
+                />
+              ) : (
+                <CheckCircle2
+                  className="mt-1 h-5 w-5 shrink-0"
+                  style={{ color: "var(--axis1-vendor-accent, #f26a21)" }}
+                />
+              )}
+            </div>
+            <p className="mt-4 text-sm leading-7 text-[#5f574f]">{copy(data.customerClose.copy)}</p>
+            <div className="mt-5">
+              <DenseLedger rows={displayedCustomerCloseActionItems} />
+            </div>
+          </div>
+          ) : null}
+
+          {sections.nextService && !isServiceRecord ? (
           <div className="pdf-document-card packet-customer-close rounded-[24px] bg-[#111315] px-5 py-5 text-white print:hidden">
             <div className="flex items-start justify-between gap-5">
               <div className="min-w-0">
@@ -2085,7 +2245,7 @@ export function Axis1PacketDocument({
           </div>
           ) : null}
 
-          {sections.nextService ? (
+          {sections.nextService && !isServiceRecord ? (
           <div className="packet-print-customer-close hidden rounded-[16px] border border-[#ded7cf] bg-white px-4 py-4 print:hidden">
             <SectionKicker>What to do next</SectionKicker>
             <h3 className="mt-3 font-display text-[1.8rem] font-bold leading-[0.95] tracking-[-0.055em]">

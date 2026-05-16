@@ -273,6 +273,7 @@ type ScopeStatusOption = {
 type PhotoAssistNotice = {
   tone: "idle" | "success" | "warning" | "error";
   message: string;
+  meta?: string;
 };
 type PreparedPhotoPreview =
   | {
@@ -2048,6 +2049,52 @@ const builderSteps = [
   copy: string;
 }>;
 
+function localInputDate(date = new Date()) {
+  const localTime = date.getTime() - date.getTimezoneOffset() * 60_000;
+  return new Date(localTime).toISOString().slice(0, 10);
+}
+
+function createAxis1BuilderStartValues(): Axis1BuilderFormValues {
+  return {
+    ...axis1BuilderDefaults,
+    scenario: "clean",
+    propertyName: "",
+    siteCity: "",
+    serviceDate: localInputDate(),
+    authorizedBy: "",
+    serviceWindow: "Service visit",
+    systemName: "Kitchen exhaust system",
+    exceptionKinds: [],
+    followUpMode: "none",
+  };
+}
+
+function jobBasicsMissingFields(values: Axis1BuilderFormValues) {
+  const missing: string[] = [];
+
+  if (!values.propertyName.trim()) {
+    missing.push("customer");
+  }
+
+  if (!values.siteCity.trim()) {
+    missing.push("site");
+  }
+
+  if (!values.serviceDate.trim()) {
+    missing.push("date");
+  }
+
+  if (!values.authorizedBy.trim()) {
+    missing.push("reviewer");
+  }
+
+  if (!values.systemName.trim()) {
+    missing.push("system");
+  }
+
+  return missing;
+}
+
 const standardPacketSections: Axis1PacketDocumentSectionVisibility = {
   photos: true,
   checklist: true,
@@ -2499,9 +2546,10 @@ export function PacketBuilder({
 }: {
   initialProductPlan?: Axis1ProductPlan;
 } = {}) {
+  const [initialBuilderValues] = useState(createAxis1BuilderStartValues);
   const form = useForm<Axis1BuilderFormValues>({
     resolver: zodResolver(axis1BuilderSchema),
-    defaultValues: axis1BuilderDefaults,
+    defaultValues: initialBuilderValues,
     mode: "onChange",
   });
   const watched = useWatch({
@@ -2516,6 +2564,12 @@ export function PacketBuilder({
     ...axis1BuilderDefaults,
     ...watched,
   } as Axis1BuilderFormValues;
+  const missingJobBasics = jobBasicsMissingFields(values);
+  const jobBasicsReady = missingJobBasics.length === 0;
+  const jobBasicsMissingLabel = missingJobBasics.join(", ");
+  const jobBasicsSummary = jobBasicsReady
+    ? `${values.propertyName.trim()} - ${values.serviceDate}`
+    : `Needed before output: ${jobBasicsMissingLabel}`;
   const selectedAccessCount = values.exceptionKinds.filter((kind) =>
     axis1ExceptionOptions.find((option) => option.value === kind)?.group === "access",
   ).length;
@@ -2623,7 +2677,7 @@ export function PacketBuilder({
       ? "/company-version"
       : loginHref;
   const paidFeatureCtaLabel = hasCompanyAccess
-    ? "Open dashboard"
+    ? "Open account"
     : isAuthenticated
       ? "Start company version"
       : "Login / subscribe";
@@ -3092,20 +3146,25 @@ export function PacketBuilder({
   const readyToSendWithoutReview =
     closeoutEngine.canGeneratePacket &&
     hasJobOutcomeSelected &&
+    jobBasicsReady &&
     sendReadinessBlockers.length === 0 &&
     !hasOutputReviewItems &&
     !hasVendorReviewChecks;
   const customerOutputsReadyWithChecks =
     closeoutEngine.canGeneratePacket &&
     hasJobOutcomeSelected &&
+    jobBasicsReady &&
     sendReadinessBlockers.length === 0 &&
     (hasOutputReviewItems || hasVendorReviewChecks);
   const canPreviewProofLink =
     closeoutEngine.canGeneratePacket &&
     hasJobOutcomeSelected &&
+    jobBasicsReady &&
     sendReadinessBlockers.length === 0;
   const previewBlockedBy =
-    scopeNeedsReviewRows.length > 0
+    !jobBasicsReady
+      ? "basics"
+      : scopeNeedsReviewRows.length > 0
       ? "review"
       : scopeWrittenOnlyNeedsConfirmation
         ? "notes"
@@ -3116,11 +3175,15 @@ export function PacketBuilder({
     ? "Confirm result first"
     : canPreviewProofLink
       ? "Go to Outputs"
+      : previewBlockedBy === "basics"
+        ? "Add job details"
       : previewBlockedBy === "notes"
         ? "Continue with written record"
         : "Fix area status";
   const reportStatusLabel = !closeoutEngine.canGeneratePacket
     ? "Result required"
+    : !jobBasicsReady
+      ? "Job details needed"
     : readyToSendWithoutReview
       ? "Ready"
       : customerOutputsReadyWithChecks
@@ -3133,6 +3196,12 @@ export function PacketBuilder({
           title: "Confirm the result first",
           copy: "Confirm what happened before outputs are generated.",
         }
+      : !jobBasicsReady
+        ? {
+            tone: "review",
+            title: "Add customer details",
+            copy: `Needed before output: ${jobBasicsMissingLabel}.`,
+          }
       : sendReadinessBlockers.length > 0
       ? {
           tone: "review",
@@ -3333,15 +3402,15 @@ export function PacketBuilder({
             ? "Start the company version to save your company details."
             : "Login and subscribe to save your company details.",
           copy: isAuthenticated
-            ? "You are logged in. An active company subscription unlocks saved logo, report color, contact details, and dashboard defaults."
-            : "The free builder stays neutral so vendors can test the report quickly. Login and an active subscription unlock saved company details from the dashboard.",
+            ? "You are logged in. An active company subscription unlocks saved logo, report color, contact details, and account defaults."
+            : "The free builder stays neutral so vendors can test the report quickly. Login and an active subscription unlock saved company details from Account.",
         }
       : paidFeatureNotice === "history"
         ? {
             eyebrow: "History is locked",
             title: isAuthenticated
               ? "Report history unlocks with the company version."
-              : "Saved reports belong in the company dashboard.",
+              : "Saved reports belong in the company account workspace.",
             copy: isAuthenticated
               ? "An active company subscription stores completed service reports, keeps photos and links available, and lets you load past jobs back into the tool."
               : "After login and an active subscription, completed service reports can be stored, searched, loaded back into the tool, and sorted by next recommended service date for follow-up.",
@@ -3405,7 +3474,9 @@ export function PacketBuilder({
   const enginePrimaryCtaStatus =
     enginePrimaryCta?.enabled
       ? "Connected"
-      : "The report will use the company phone or reply email.";
+      : isCompanyPlan
+        ? "The report will use the company phone or reply email."
+        : "Free test links use your normal customer communication channel.";
   const engineWarningLabel =
     closeoutEngine.vendorSendReadinessWarnings.length > 0
       ? closeoutEngine.vendorSendReadinessWarnings[0].copy
@@ -3496,6 +3567,8 @@ export function PacketBuilder({
       ? closeoutEngine.evidenceBasis === "no_photos"
         ? "Customer written record is ready."
         : "Service report link and PDF are ready."
+      : hasJobOutcomeSelected && !jobBasicsReady
+      ? "Add customer and service details."
       : sendReadinessBlockers.length > 0
       ? "Confirm before outputs."
       : "Confirm a result before outputs are generated.";
@@ -3982,7 +4055,7 @@ export function PacketBuilder({
       : "You changed the suggested answer. The report now follows your selected result.";
 
   function resetBuilder() {
-    form.reset(axis1BuilderDefaults);
+    form.reset(createAxis1BuilderStartValues());
     setHasJobOutcomeSelected(false);
     setAutoDraftedJobPatternId(null);
     setUploadedFieldPhotos(emptyFieldPhotoState());
@@ -4000,6 +4073,7 @@ export function PacketBuilder({
     setCloseoutLinks({});
     selectBuilderStep("photos");
     setShowPacketDetails(false);
+    setShowJobBasics(false);
     setShowAllPhotoSlots(false);
     setShowProofDetails(false);
     setShowTimingEditor(false);
@@ -4022,9 +4096,30 @@ export function PacketBuilder({
     }, 120);
   }
 
+  function focusJobBasicsPanel() {
+    window.setTimeout(() => {
+      document
+        .querySelector("[data-axis-job-basics-panel]")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+  }
+
+  function showJobBasicsBlocker() {
+    setShowJobBasics(true);
+    toast.error("Add customer and service details first.", {
+      description: `Needed before output: ${jobBasicsMissingLabel}.`,
+    });
+    focusJobBasicsPanel();
+  }
+
   function handleJobPrimaryAction() {
     if (!hasJobOutcomeSelected) {
       toast.error("Pick today's result first.");
+      return;
+    }
+
+    if (previewBlockedBy === "basics") {
+      showJobBasicsBlocker();
       return;
     }
 
@@ -4056,7 +4151,21 @@ export function PacketBuilder({
       step = "review";
     }
 
-    if ((step === "outputs") && hasJobOutcomeSelected && sendReadinessBlockers.length > 0) {
+    if ((step === "outputs") && hasJobOutcomeSelected && !jobBasicsReady) {
+      setShowJobBasics(true);
+      shouldFocusScopePanel = false;
+      toast.error("Add customer and service details first.", {
+        description: `Needed before output: ${jobBasicsMissingLabel}.`,
+      });
+      step = "review";
+    }
+
+    if (
+      (step === "outputs") &&
+      hasJobOutcomeSelected &&
+      jobBasicsReady &&
+      sendReadinessBlockers.length > 0
+    ) {
       setShowScopeDetails(true);
       shouldFocusScopePanel = true;
       toast.error("Confirm the area status before sending.", {
@@ -4079,6 +4188,8 @@ export function PacketBuilder({
       window.setTimeout(() => scrollPacketWorkspaceBelowHeader("auto"), 90);
       if (shouldFocusScopePanel) {
         focusScopeReviewPanel();
+      } else if (step === "review" && hasJobOutcomeSelected && !jobBasicsReady) {
+        focusJobBasicsPanel();
       }
     });
   }
@@ -4145,6 +4256,12 @@ export function PacketBuilder({
         description: "The tool will not create outputs from untouched defaults.",
       });
       selectBuilderStep("review");
+      return;
+    }
+
+    if (!jobBasicsReady) {
+      selectBuilderStep("review");
+      showJobBasicsBlocker();
       return;
     }
 
@@ -4733,24 +4850,10 @@ export function PacketBuilder({
       tone: "idle",
       message:
         origin === "auto-upload"
-          ? "Reading photo content. Phone filenames are normal."
-          : "Checking job photos.",
+          ? "Checking photo content. Phone filenames are normal; suggestions still need review."
+          : "Checking job photos with Photo Assist.",
+      meta: "Live Gemini is used when available; any fallback is labeled as local hints.",
     });
-
-    if (!process.env.NEXT_PUBLIC_API_BASE_URL?.trim()) {
-      const suggestions = buildMockAxis1PhotoAssistSuggestions(photos);
-
-      mergePhotoAssistSuggestions(suggestions);
-      setPhotoAssistNotice({
-        tone: "warning",
-        message:
-          "Local photo hints used filename and slot cues. Unclear photos stay saved as extras unless attached.",
-      });
-      setShowProofDetails(false);
-      setShowAllPhotoSlots(false);
-      setIsPhotoAssistRunning(false);
-      return;
-    }
 
     try {
       const response = await fetchApi("/api/axis1/photo-assist", {
@@ -4773,8 +4876,12 @@ export function PacketBuilder({
         message:
           data.warning ??
           (data.provider === "gemini"
-            ? "AI read the photos. Clear matches are attached; uncertain photos stay saved as extras."
-            : "Photo hints are ready. Unclear photos stay saved as extras."),
+            ? "Photo Assist read the photos. Clear matches are attached; uncertain photos stay saved as extras for your review."
+            : "Local photo hints are ready. Unclear photos stay saved as extras."),
+        meta:
+          data.provider === "gemini"
+            ? `Live Gemini (${data.model}) - vendor must confirm each photo role.`
+            : `Local hints (${data.model}) - vendor must confirm each photo role.`,
       });
       setShowProofDetails(false);
       setShowAllPhotoSlots(false);
@@ -4785,7 +4892,8 @@ export function PacketBuilder({
       setPhotoAssistNotice({
         tone: "warning",
         message:
-          "Photo Assist could not read this set. Continue as a written report; attach photos only if they help.",
+          "Photo Assist API was unavailable, so local photo hints were used. Continue as a written report; attach photos only if they help.",
+        meta: "Local hints only - Photo Assist API did not return live suggestions.",
       });
       setShowProofDetails(false);
       setShowAllPhotoSlots(false);
@@ -4794,7 +4902,7 @@ export function PacketBuilder({
     }
   }
 
-  async function runGeminiPhotoAssist() {
+  async function runPhotoAssist() {
     const photos = await collectPhotoAssistInputs({ onlyUnconfirmed: true });
 
     if (photos.length === 0) {
@@ -5181,6 +5289,9 @@ export function PacketBuilder({
     setShowWordingEditor(false);
     setShowTimingEditor(false);
     setShowExceptionDetails(false);
+    if (!jobBasicsReady) {
+      setShowJobBasics(true);
+    }
     setActiveCustomerLineEditorSurface(null);
     setActivePreviewEditTarget(null);
   }
@@ -5560,6 +5671,10 @@ export function PacketBuilder({
       return;
     }
 
+    if (!jobBasicsReady) {
+      setShowJobBasics(true);
+    }
+
     selectBuilderStep("review");
   }
 
@@ -5649,10 +5764,10 @@ export function PacketBuilder({
       id="packet-builder-workspace"
       className={
         isPhotoStep
-          ? "min-h-svh scroll-mt-0 bg-[#101214] px-3 py-3 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white sm:px-4 md:px-5 md:py-5 md:pb-8"
+          ? "min-h-svh scroll-mt-0 bg-[#101214] px-3 py-3 pb-[calc(8.5rem+env(safe-area-inset-bottom))] text-white sm:px-4 md:px-5 md:py-5 md:pb-8"
           : isOutputStep
-            ? "workspace-shell scroll-mt-[6.5rem] pt-3 pb-[calc(13rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pt-6 md:pb-24"
-            : "workspace-shell scroll-mt-[6.5rem] pt-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pt-6 md:pb-20"
+            ? "workspace-shell scroll-mt-[6.5rem] pt-3 pb-[calc(15rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pt-6 md:pb-24"
+            : "workspace-shell scroll-mt-[6.5rem] pt-3 pb-[calc(12.5rem+env(safe-area-inset-bottom))] md:scroll-mt-0 md:pt-6 md:pb-20"
       }
     >
       <Axis1BuilderHeader
@@ -5862,7 +5977,9 @@ export function PacketBuilder({
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-[#f26a21]" />
                   <span className="text-[11px] font-semibold leading-4 text-foreground">
-                    Local preview. Customer actions use the company phone or reply email from the report.
+                    {isCompanyPlan
+                      ? "Local preview. Customer actions use the company phone or reply email from the report."
+                      : "Free preview. This is an unbranded test link; use your normal customer communication channel."}
                   </span>
                 </div>
               </motion.div>
@@ -6375,10 +6492,16 @@ export function PacketBuilder({
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
                     <div className="min-w-0">
                       <p className={labelClassName()}>
-                        {hasJobOutcomeSelected ? "Outputs ready" : "Outputs pending"}
+                        {!jobBasicsReady && hasJobOutcomeSelected
+                          ? "Job details needed"
+                          : hasJobOutcomeSelected
+                            ? "Outputs ready"
+                            : "Outputs pending"}
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        {hasJobOutcomeSelected
+                        {!jobBasicsReady && hasJobOutcomeSelected
+                          ? `Add ${jobBasicsMissingLabel} before Axis 1 creates the customer link or PDF.`
+                          : hasJobOutcomeSelected
                           ? "Everything below comes from this service record. Customer-safe wording follows area status."
                           : "Pick the job result before Axis 1 generates the customer report link, PDF, follow-up, revisit, and next-service copy."}
                       </p>
@@ -6447,21 +6570,43 @@ export function PacketBuilder({
                   )}
                 </div>
 
-                <div className="mt-4 overflow-hidden rounded-[18px] border border-black/8 bg-[rgba(17,17,17,0.025)]">
+                <div
+                  data-axis-job-basics-panel
+                  className={`mt-4 overflow-hidden rounded-[18px] border ${
+                    jobBasicsReady
+                      ? "border-black/8 bg-[rgba(17,17,17,0.025)]"
+                      : "border-[#f26a21]/24 bg-[#fff7ef]"
+                  }`}
+                >
                   <button
                     type="button"
                     onClick={() => setShowJobBasics((current) => !current)}
                     className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left"
                   >
                     <div className="min-w-0">
-                      <p className={labelClassName()}>Job basics</p>
-                      <p className="mt-1 truncate text-sm font-semibold text-foreground">
-                        {values.propertyName || "Customer"} -{" "}
-                        {values.serviceDate || "Today"}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className={labelClassName()}>Job basics</p>
+                        {!jobBasicsReady ? (
+                          <span className="rounded-full border border-[#f26a21]/22 bg-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#a94410]">
+                            Required
+                          </span>
+                        ) : null}
+                      </div>
+                      <p
+                        className={`mt-1 truncate text-sm font-semibold ${
+                          jobBasicsReady ? "text-foreground" : "text-[#a94410]"
+                        }`}
+                      >
+                        {jobBasicsSummary}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {jobBasicsReady
+                          ? "These details appear on the customer link, PDF, and saved history."
+                          : "Add real customer details before creating a link or PDF. The tool will not send untouched defaults."}
                       </p>
                     </div>
                     <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                      {showJobBasics ? "Hide" : "Edit"}
+                      {showJobBasics ? "Hide" : jobBasicsReady ? "Edit" : "Add details"}
                       {showJobBasics ? (
                         <ChevronUp className="h-3.5 w-3.5" />
                       ) : (
@@ -6487,6 +6632,7 @@ export function PacketBuilder({
                               id="propertyName"
                               className={fieldClassName()}
                               maxLength={textFieldLimits.propertyName}
+                              placeholder="Canal Street Tacos"
                               {...form.register("propertyName")}
                             />
                           </div>
@@ -6498,6 +6644,7 @@ export function PacketBuilder({
                               id="siteCity"
                               className={fieldClassName()}
                               maxLength={textFieldLimits.siteCity}
+                              placeholder="Glendale, CA"
                               {...form.register("siteCity")}
                             />
                           </div>
@@ -6518,11 +6665,12 @@ export function PacketBuilder({
                                 Authorized by
                               </label>
                               <input
-                                id="authorizedBy"
-                                className={fieldClassName()}
-                                maxLength={textFieldLimits.authorizedBy}
-                                {...form.register("authorizedBy")}
-                              />
+                              id="authorizedBy"
+                              className={fieldClassName()}
+                              maxLength={textFieldLimits.authorizedBy}
+                              placeholder="Manager on duty"
+                              {...form.register("authorizedBy")}
+                            />
                             </div>
                           </div>
                         </div>
@@ -7642,20 +7790,21 @@ export function PacketBuilder({
                                 : `${vendorConfirmedPhotoCount} vendor-confirmed photo role(s)`}
                             </p>
                             <p className="mt-1 text-xs leading-5 text-white/52">
-                              Axis keeps unsure photos visible. Customer outputs do
-                              not mention them unless you attach a role.
+                              Gemini checks uploaded photos when the API is live. Local
+                              hints are labeled as local; customer outputs never use
+                              uncertain photos until you attach a role.
                             </p>
                           </div>
                           <button
                             type="button"
-                            onClick={() => void runGeminiPhotoAssist()}
+                            onClick={() => void runPhotoAssist()}
                             disabled={
                               isPhotoAssistRunning || pendingPhotoAssistCount === 0
                             }
                             title={
                               pendingPhotoAssistCount === 0
                                 ? "All usable photo roles are already confirmed."
-                                : "Read unconfirmed photos with AI."
+                                : "Read unconfirmed photos with Photo Assist."
                             }
                             className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-white/14 bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[#111315] disabled:cursor-not-allowed disabled:opacity-55"
                           >
@@ -7682,17 +7831,24 @@ export function PacketBuilder({
                           ))}
                         </div>
                         {photoAssistNotice ? (
-                          <p
-                            className={`mt-3 text-xs font-semibold leading-5 ${
-                              photoAssistNotice.tone === "error"
-                                ? "text-[#ffd2c7]"
-                                : photoAssistNotice.tone === "success"
-                                  ? "text-[#cfe9da]"
-                                  : "text-[#ffcfb5]"
-                            }`}
-                          >
-                            {photoAssistNotice.message}
-                          </p>
+                          <div className="mt-3">
+                            <p
+                              className={`text-xs font-semibold leading-5 ${
+                                photoAssistNotice.tone === "error"
+                                  ? "text-[#ffd2c7]"
+                                  : photoAssistNotice.tone === "success"
+                                    ? "text-[#cfe9da]"
+                                    : "text-[#ffcfb5]"
+                              }`}
+                            >
+                              {photoAssistNotice.message}
+                            </p>
+                            {photoAssistNotice.meta ? (
+                              <p className="mt-1 text-[11px] font-semibold leading-5 text-white/42">
+                                {photoAssistNotice.meta}
+                              </p>
+                            ) : null}
+                          </div>
                         ) : null}
                       </div>
                     ) : null}
@@ -8366,6 +8522,8 @@ export function PacketBuilder({
                   {closeoutFormatLabel}:{" "}
                   {!closeoutEngine.canGeneratePacket
                     ? "pick a result before sending."
+                    : !jobBasicsReady
+                      ? `add ${jobBasicsMissingLabel} before creating the link or PDF.`
                     : sendReadinessBlockers.length > 0
                       ? sendReadinessBlockers[0]
                     : values.scenario === "clean"
@@ -8389,18 +8547,24 @@ export function PacketBuilder({
                     </span>
                     <span className="min-w-0">
                       <span className="axis-proof-eyebrow">
-                        {closeoutEngine.canGeneratePacket
+                        {closeoutEngine.canGeneratePacket && jobBasicsReady
                           ? "Generated from selected result"
+                          : !jobBasicsReady
+                            ? "Waiting on customer details"
                           : "Waiting on result confirmation"}
                       </span>
                       <span className="axis-proof-title">
-                        {closeoutEngine.canGeneratePacket
+                        {closeoutEngine.canGeneratePacket && jobBasicsReady
                           ? "Customer report, PDF, and follow-up outputs generated"
+                          : !jobBasicsReady
+                            ? "Add job basics to create the report"
                           : "Select the job result to build the report"}
                       </span>
                       <span className="axis-proof-subtitle">
-                        {closeoutEngine.canGeneratePacket
+                        {closeoutEngine.canGeneratePacket && jobBasicsReady
                           ? "Service report link, PDF copy, revisit or quote copy, and next-service text are derived from this same vendor-confirmed service record."
+                          : !jobBasicsReady
+                            ? "Customer, site, date, reviewer, and system details must be real before a link or PDF is generated."
                           : "Outputs stay locked until the vendor confirms what happened. Photos can organize the record, but they do not decide the final claim."}
                       </span>
                     </span>

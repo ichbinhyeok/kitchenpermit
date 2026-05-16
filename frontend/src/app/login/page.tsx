@@ -1,87 +1,87 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "@/components/navigation/static-link";
 import { Suspense } from "react";
+import { ArrowRight, Flame } from "lucide-react";
 import { LoginForm } from "@/components/auth/login-form";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
+import { LoginProductPreview } from "@/components/auth/login-product-preview";
+import { HeaderBrandLink } from "@/components/header-chrome";
+import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Login",
+  title: "Account Login",
   description:
     "Log in or create an account to manage the Axis 1 company version. Active subscription unlocks saved branding, clean PDFs, live links, and report history.",
 };
 
 function LoginFallback() {
   return (
-    <div className="min-h-[260px] rounded-[32px] border border-black/8 bg-white p-6 text-sm font-semibold text-[#75695f]">
-      Loading login options...
+    <div className="min-h-[260px] rounded-2xl border border-black/10 bg-white p-6 text-sm font-semibold text-[#75695f]">
+      Loading account access...
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <>
-      <SiteHeader />
-      <main className="min-h-screen bg-[#eee6db] px-3 py-6 text-[#111315] sm:px-5 sm:py-8">
-        <section className="mx-auto grid w-[min(1120px,100%)] gap-7 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-          <div className="py-6 lg:py-12">
-            <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[#7b6f65]">
-              Company version
-            </p>
-            <h1 className="mt-4 max-w-[10ch] font-display text-[clamp(3.4rem,9vw,7.4rem)] font-bold leading-[0.83] tracking-[-0.09em]">
-              Sign in when the report needs to stay.
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-[#5f574f]">
-              Free reports are for testing. Sign in to manage the company
-              version; an active subscription unlocks saved company details,
-              clean PDFs, live service report links, and report history.
-            </p>
-            <div className="mt-7 grid max-w-2xl gap-3 border-y border-black/10 py-5 sm:grid-cols-3">
-              {[
-                ["Company details", "Logo, phone, email, and report color prefill every report."],
-                ["Clean PDF", "No free-builder watermark."],
-                ["History", "Past service reports stay findable."],
-              ].map(([title, copy]) => (
-                <div key={title}>
-                  <p className="text-sm font-black tracking-[-0.035em]">{title}</p>
-                  <p className="mt-1 text-xs font-semibold leading-5 text-[#75695f]">
-                    {copy}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <Link
-              href="/axis-1/tool"
-              className="mt-7 inline-flex min-h-10 items-center text-sm font-black uppercase tracking-[0.12em] text-[#f26a21] underline-offset-4 hover:underline"
-            >
-              Use free builder without login
-            </Link>
-          </div>
+    <main className="min-h-screen bg-[#f3eee5] px-3 py-4 text-[#111315] sm:px-5 sm:py-5">
+      <div className="mx-auto flex w-[min(1120px,100%)] items-center justify-between gap-3 pb-4">
+        <HeaderBrandLink
+          href="/"
+          icon={<Flame className="h-5 w-5 text-[#ff7a1a]" strokeWidth={2.1} />}
+          title={siteConfig.name.toUpperCase()}
+          tone="light"
+          className="px-0"
+        />
+        <Link
+          href="/axis-1/tool"
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-black/10 bg-white/70 px-3 text-[11px] font-black uppercase text-[#111315]/70 transition hover:bg-white hover:text-[#111315]"
+        >
+          Free builder
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
 
-          <div className="rounded-[36px] bg-[#f7f1e8] p-4 shadow-[0_32px_100px_rgba(26,20,16,0.16)] sm:p-6">
-            <div className="rounded-[30px] border border-black/10 bg-[#fffaf3] p-5 sm:p-6">
-              <div className="mb-6 flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-[#7b6f65]">
-                    Login
-                  </p>
-                  <h2 className="mt-3 font-display text-4xl font-bold leading-[0.92] tracking-[-0.07em]">
-                    Google or email password.
-                  </h2>
-                </div>
-                <span className="rounded-full bg-[#111315] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white">
-                  Simple account
-                </span>
+      <section className="mx-auto grid w-[min(1120px,100%)] overflow-hidden rounded-[28px] border border-black/10 bg-[#fffaf3] shadow-[0_28px_90px_rgba(26,20,16,0.12)] lg:grid-cols-[minmax(0,1fr)_430px]">
+        <LoginProductPreview />
+
+        <aside className="flex flex-col justify-between p-5 sm:p-7 lg:p-8">
+          <div>
+            <div className="flex items-start justify-between gap-4 border-b border-black/10 pb-5">
+              <div>
+                <p className="font-mono text-[10px] uppercase text-[#7b6f65]">
+                  Sign in
+                </p>
+                <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
+                  Account access
+                </h2>
+                <p className="mt-2 max-w-sm text-sm font-semibold leading-6 text-[#6f665e]">
+                  Use the same account that stores company details and service
+                  report history.
+                </p>
               </div>
+              <span className="rounded-md border border-[#111315] bg-[#111315] px-3 py-1.5 text-[10px] font-black uppercase text-white">
+                Company
+              </span>
+            </div>
+
+            <div className="pt-5">
               <Suspense fallback={<LoginFallback />}>
                 <LoginForm />
               </Suspense>
             </div>
           </div>
-        </section>
-      </main>
-      <SiteFooter />
-    </>
+
+          <div className="mt-8 border-t border-black/10 pt-5">
+            <Link
+              href="/axis-1/tool"
+              className="group inline-flex min-h-11 items-center justify-center gap-2 text-sm font-black text-[#b94d11] underline-offset-4 hover:underline"
+            >
+              Use free builder without login
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+        </aside>
+      </section>
+    </main>
   );
 }
