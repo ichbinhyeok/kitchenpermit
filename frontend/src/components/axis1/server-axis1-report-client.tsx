@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Printer, TriangleAlert } from "lucide-react";
+import { FileDown, Printer, TriangleAlert } from "lucide-react";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
@@ -31,16 +31,6 @@ type ReportLoadState =
 
 function serviceRecordPdfViewHref(publicId: string) {
   return `/p/server?reportId=${encodeURIComponent(publicId)}&format=pdf`;
-}
-
-function hostedPdfHref(
-  response: Awaited<ReturnType<typeof loadAxis1ServerReport>>,
-) {
-  const downloadHref = response.pdfExport?.serverDownloadReady
-    ? response.pdfExport.downloadHref?.trim()
-    : "";
-
-  return downloadHref || serviceRecordPdfViewHref(response.publicId);
 }
 
 function withServerPdfHref(
@@ -175,7 +165,7 @@ function toHostedRecord(
     return null;
   }
 
-  const pdfHref = hostedPdfHref(response);
+  const pdfHref = serviceRecordPdfViewHref(response.publicId);
   const hostedPacketData = isUsableHostedPacketData(payload.packetData)
     ? withServerPdfHref(payload.packetData, pdfHref)
     : undefined;
@@ -317,6 +307,7 @@ export function ServerAxis1ReportClient({
   const isServiceRecord = outputIntent === "service-record";
   const productPlan = record.productPlan ?? "free";
   const productPolicy = getAxis1ProductPlanPolicy(productPlan);
+  const generatedPdfDownloadHref = `/api/axis1/assets/${encodeURIComponent(publicId)}/service-report.pdf`;
   const reportVisibleSections = isServiceRecord
     ? visibleSections
     : {
@@ -347,6 +338,14 @@ export function ServerAxis1ReportClient({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <a
+              href={generatedPdfDownloadHref}
+              download="service-report.pdf"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[6px] border border-[#b8b0a7] bg-white px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-[#423c36] transition hover:bg-[#f5efe8]"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              Download file
+            </a>
             <Button
               type="button"
               onClick={printReport}

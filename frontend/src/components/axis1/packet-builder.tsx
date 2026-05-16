@@ -2959,7 +2959,9 @@ export function PacketBuilder({
   const firstMissingSlots = missingRequiredSlots.slice(0, 4);
   const proofReadinessTitle =
     hasPendingPhotoAssist
-      ? `${totalFieldPhotoCount} photos added`
+      ? pendingPhotoAssistCount === 1
+        ? "1 photo needs a role"
+        : `${pendingPhotoAssistCount} photos need roles`
       : hasAfterOnly
         ? "After-only record is ready"
         : hasBeforeOnly
@@ -3896,8 +3898,12 @@ export function PacketBuilder({
       label: "Photo / record basis",
       value: closeoutEngine.proofCoverage.label,
       source:
-        totalFieldPhotoCount > 0
-          ? `${uploadedProofCount} attached photo(s) / ${claimLevelLabel}`
+        vendorConfirmedPhotoCount > 0
+          ? `${vendorConfirmedPhotoCount} confirmed photo role${
+              vendorConfirmedPhotoCount === 1 ? "" : "s"
+            } used / ${claimLevelLabel}`
+          : totalFieldPhotoCount > 0
+            ? `Photos saved as extras; 0 used in report / ${claimLevelLabel}`
           : "Written service record",
       action: "Edit photos",
       editor: "photo-record" as const,
@@ -6372,13 +6378,13 @@ export function PacketBuilder({
                         </div>
                       </div>
                     ) : null}
-                    {hasJobOutcomeSelected && unplacedFieldPhotos.length > 0 ? (
+                    {hasJobOutcomeSelected && pendingPhotoAssistCount > 0 ? (
                       <div className="rounded-[16px] border border-black/8 bg-[rgba(17,17,17,0.025)] px-3 py-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className={labelClassName()}>Saved photos, not used yet</p>
+                            <p className={labelClassName()}>Photo roles needed</p>
                             <p className="mt-1 text-sm font-bold leading-5 text-foreground">
-                              {unplacedFieldPhotos.length} photo(s) are saved outside the customer report.
+                              {pendingPhotoAssistCount} photo(s) are saved but not used in the customer report.
                             </p>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
                               They stay in the job record, but customer outputs will not mention them until you attach one to a service area.
@@ -7546,9 +7552,9 @@ export function PacketBuilder({
                       <div className="grid gap-2 md:w-[310px]">
                         <div className="grid grid-cols-3 gap-2">
                           {[
-                            ["Confirmed", `${vendorConfirmedPhotoCount}`],
-                            ["Extra saved", `${pendingPhotoAssistCount}`],
-                            ["Extra", `${unplacedFieldPhotos.length}`],
+                            ["Used in report", `${vendorConfirmedPhotoCount}`],
+                            ["Needs role", `${pendingPhotoAssistCount}`],
+                            ["Unassigned", `${unplacedFieldPhotos.length}`],
                           ].map(([label, value]) => (
                             <div
                               key={label}
@@ -7834,7 +7840,7 @@ export function PacketBuilder({
                             </p>
                             <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-white">
                               {pendingPhotoAssistCount > 0
-                                ? `${pendingPhotoAssistCount} photo(s) saved as extra photos`
+                                ? `${pendingPhotoAssistCount} photo(s) need a role before customer output`
                                 : `${vendorConfirmedPhotoCount} vendor-confirmed photo role(s)`}
                             </p>
                             <p className="mt-1 text-xs leading-5 text-white/52">
@@ -7862,7 +7868,7 @@ export function PacketBuilder({
                         </div>
                         <div className="mt-3 grid gap-2 sm:grid-cols-2">
                           {[
-                            ["Extra saved", `${pendingPhotoAssistCount}`],
+                            ["Needs role", `${pendingPhotoAssistCount}`],
                             ["Used in report", `${vendorConfirmedPhotoCount}`],
                           ].map(([label, value]) => (
                             <div
