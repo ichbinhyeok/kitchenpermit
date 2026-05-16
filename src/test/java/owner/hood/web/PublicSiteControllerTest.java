@@ -90,6 +90,34 @@ class PublicSiteControllerTest {
     }
 
     @Test
+    void seoResourcePagesServeExportedFrontendAndSitemap() throws Exception {
+        expectFrontendPage("/resources");
+        expectFrontendPage("/hood-cleaning-service-report-template");
+        expectFrontendPage("/kitchen-exhaust-cleaning-report-sample");
+        expectFrontendPage("/nfpa-96-hood-cleaning-photo-checklist");
+        expectFrontendPage("/blocked-access-service-report-template");
+        expectFrontendPage("/hood-cleaning-customer-closeout-email-template");
+
+        assertStaticResourceContains(
+                "static/hood-cleaning-service-report-template.html",
+                "Hood cleaning service report template",
+                "Minimum fields",
+                "Build a free report"
+        );
+        assertStaticResourceContains(
+                "static/sitemap.xml",
+                "https://kitchenpermit.com/hood-cleaning-service-report-template",
+                "https://kitchenpermit.com/resources"
+        );
+        assertStaticResourceDoesNotContain("static/sitemap.xml", "/axis-2");
+        assertStaticResourceContains(
+                "static/robots.txt",
+                "Sitemap: https://kitchenpermit.com/sitemap.xml",
+                "Disallow: /p/"
+        );
+    }
+
+    @Test
     void manifestServesWithWebManifestContentType() throws Exception {
         mockMvc.perform(get("/manifest.webmanifest"))
                 .andExpect(status().isOk())
@@ -110,7 +138,8 @@ class PublicSiteControllerTest {
                 "static/samples/axis-2.html",
                 "3 masked rows from a 10-opportunity batch",
                 "Protected fields in the paid version include direct contact paths",
-                "The list is the hook. The packet sharpens the motion."
+                "The list is the hook. The packet sharpens the motion.",
+                "noindex, nofollow"
         );
     }
 
@@ -128,5 +157,13 @@ class PublicSiteControllerTest {
         for (String fragment : List.of(fragments)) {
             assertThat(body).contains(fragment);
         }
+    }
+
+    private void assertStaticResourceDoesNotContain(String resourcePath, String fragment) throws IOException {
+        ClassPathResource resource = new ClassPathResource(resourcePath);
+        assertThat(resource.exists()).isTrue();
+
+        String body = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+        assertThat(body).doesNotContain(fragment);
     }
 }

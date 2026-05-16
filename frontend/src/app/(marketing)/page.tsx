@@ -1,9 +1,18 @@
 ﻿import Image from "next/image";
 import Link from "@/components/navigation/static-link";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/marketing/reveal";
 import { AXIS1_COMPANY_MONTHLY_PRICE } from "@/lib/axis1-product-policy";
+import { publicPageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = publicPageMetadata({
+  title: "Service reports for hood cleaning jobs",
+  description:
+    "Turn hood cleaning photos, blocked access notes, and next actions into one customer-ready service report link and PDF.",
+  path: "/",
+});
 
 const inputRows = [
   ["Job photos", "Hood, filter, fan, and access photos"],

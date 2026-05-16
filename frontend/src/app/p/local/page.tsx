@@ -1,6 +1,14 @@
 ﻿import { Suspense } from "react";
 import { LocalAxis1ProofPageContent } from "@/components/axis1/local-axis1-proof-page-content";
 import { Panel } from "@/components/ui/panel";
+import type { Metadata } from "next";
+import { noIndexMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = noIndexMetadata({
+  title: "Local Service Report Link",
+  description: "Browser-local customer-facing hood service report link.",
+  path: "/p/local",
+});
 
 export default function LocalAxis1ProofPage() {
   return (

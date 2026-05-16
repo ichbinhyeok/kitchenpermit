@@ -6,12 +6,14 @@ import { LoginForm } from "@/components/auth/login-form";
 import { LoginProductPreview } from "@/components/auth/login-product-preview";
 import { HeaderBrandLink } from "@/components/header-chrome";
 import { siteConfig } from "@/lib/site";
+import { noIndexMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = noIndexMetadata({
   title: "Account Login",
   description:
     "Log in or create an account to manage the Axis 1 company version. Active subscription unlocks saved branding, clean PDFs, live links, and report history.",
-};
+  path: "/login",
+});
 
 function LoginFallback() {
   return (

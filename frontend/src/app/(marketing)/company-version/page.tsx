@@ -8,12 +8,14 @@ import {
   AXIS1_COMPANY_MONTHLY_PRICE,
   AXIS1_DESIGN_HELP_STARTING_PRICE,
 } from "@/lib/axis1-product-policy";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Company Version",
   description:
     "The paid KitchenPermit company version for saved company details, live service report links, clean PDFs, and report history.",
-};
+  path: "/company-version",
+});
 
 const storedItems = [
   ["Company identity", "Company name, logo, report color, service area, and customer-facing contact."],

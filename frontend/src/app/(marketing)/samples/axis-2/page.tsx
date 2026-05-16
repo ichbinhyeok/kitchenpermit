@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/marketing/page-header";
 import { Panel } from "@/components/ui/panel";
+import { noIndexMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = noIndexMetadata({
   title: "Axis 2 Sample",
   description: "Masked sample of the Axis 2 list and first-touch packet.",
-};
+  path: "/samples/axis-2",
+});
 
 const sampleRows = [
   {

@@ -5,10 +5,14 @@ import { ArrowLeft, Flame } from "lucide-react";
 import { PasswordResetConfirmForm } from "@/components/auth/password-reset-confirm-form";
 import { HeaderBrandLink } from "@/components/header-chrome";
 import { siteConfig } from "@/lib/site";
+import { noIndexMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Set New Password",
-  description: "Set a new password from a one-time KitchenPermit reset link.",
+  ...noIndexMetadata({
+    title: "Set New Password",
+    description: "Set a new password from a one-time KitchenPermit reset link.",
+    path: "/reset-password",
+  }),
   referrer: "no-referrer",
 };
 

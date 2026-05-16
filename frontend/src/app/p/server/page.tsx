@@ -1,6 +1,14 @@
 import { Suspense } from "react";
 import { ServerAxis1ProofPageContent } from "@/components/axis1/server-axis1-proof-page-content";
 import { Panel } from "@/components/ui/panel";
+import type { Metadata } from "next";
+import { noIndexMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = noIndexMetadata({
+  title: "Hosted Service Report Link",
+  description: "Hosted customer-facing hood service report link.",
+  path: "/p/server",
+});
 
 export default function ServerAxis1ProofPage() {
   return (

@@ -1,5 +1,13 @@
 ﻿import { Suspense } from "react";
 import { FreeAxis1ProofPageContent } from "@/components/axis1/free-axis1-proof-page-content";
+import type { Metadata } from "next";
+import { noIndexMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = noIndexMetadata({
+  title: "Free Service Report Link",
+  description: "Temporary free customer-facing hood service report link.",
+  path: "/p/free",
+});
 
 export default function FreeAxis1ProofPage() {
   return (

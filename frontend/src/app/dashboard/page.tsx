@@ -17,12 +17,14 @@ import { CompanyProfilePanel } from "@/components/dashboard/company-profile-pane
 import { ReportHistoryPanel } from "@/components/dashboard/report-history-panel";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { noIndexMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = noIndexMetadata({
   title: "Account",
   description:
     "Company account workspace for service records, follow-up dates, company details, and saved restaurant report links.",
-};
+  path: "/dashboard",
+});
 
 const workspaceActions = [
   {

@@ -5,11 +5,13 @@ import { ArrowLeft, Flame } from "lucide-react";
 import { PasswordResetRequestForm } from "@/components/auth/password-reset-request-form";
 import { HeaderBrandLink } from "@/components/header-chrome";
 import { siteConfig } from "@/lib/site";
+import { noIndexMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = noIndexMetadata({
   title: "Reset Password",
   description: "Request a one-time password reset link for a KitchenPermit account.",
-};
+  path: "/forgot-password",
+});
 
 function ResetRequestFallback() {
   return (

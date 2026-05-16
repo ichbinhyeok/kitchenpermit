@@ -3,12 +3,14 @@ import Link from "next/link";
 import { ArrowRight, Check, MapPinned, Radar, Rows3, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/marketing/page-header";
 import { Panel } from "@/components/ui/panel";
+import { noIndexMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = noIndexMetadata({
   title: "Axis 2",
   description:
     "A deduped opportunity list plus first-touch packet structure for kitchen exhaust vendors buying live outbound inventory.",
-};
+  path: "/axis-2",
+});
 
 const rules = [
   "Restaurant remodel and finish-out focus beats generic lead-gen language.",

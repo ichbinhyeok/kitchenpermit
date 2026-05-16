@@ -7,12 +7,14 @@ import {
   AXIS1_COMPANY_MONTHLY_PRICE,
   AXIS1_DESIGN_HELP_STARTING_PRICE,
 } from "@/lib/axis1-product-policy";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Pricing",
   description:
     "Pricing for the free service report builder, company version, and optional design help.",
-};
+  path: "/pricing",
+});
 
 const offerTracks = [
   {

@@ -3,11 +3,13 @@ import Link from "@/components/navigation/static-link";
 import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/marketing/page-header";
 import { Panel } from "@/components/ui/panel";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Samples",
   description: "Public sample service report for hood cleaning customers after service.",
-};
+  path: "/samples",
+});
 
 const samples = [
   {

@@ -5,6 +5,8 @@ import { siteConfig } from "@/lib/site";
 const footerLinks = [
   { href: "/axis-1", label: "Service Report" },
   { href: "/samples/axis-1", label: "Sample" },
+  { href: "/resources", label: "Resources" },
+  { href: "/hood-cleaning-service-report-template", label: "Report Template" },
   { href: "/pricing", label: "Pricing" },
   { href: "/dashboard", label: "Account" },
 ];
@@ -54,7 +56,7 @@ export function SiteFooter() {
                 Product
               </p>
               <nav className="grid gap-2 text-sm uppercase tracking-[0.12em] text-white/52">
-                {footerLinks.slice(0, 4).map((link) => (
+                {footerLinks.slice(0, 5).map((link) => (
                   <Link
                     key={link.label}
                     href={link.href}

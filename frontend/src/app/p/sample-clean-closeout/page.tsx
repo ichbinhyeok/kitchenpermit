@@ -1,12 +1,14 @@
 ﻿import type { Metadata } from "next";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { buildAxis1SampleProofData } from "@/lib/axis1-sample-packets";
+import { noIndexMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = noIndexMetadata({
   title: "Sample Clean Closeout Service Report",
   description:
     "A customer-facing clean hood service report sample.",
-};
+  path: "/p/sample-clean-closeout",
+});
 
 const reportData = buildAxis1SampleProofData("clean");
 

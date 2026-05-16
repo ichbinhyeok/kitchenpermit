@@ -11,12 +11,14 @@ import {
 import { ButtonLink } from "@/components/ui/button-link";
 import { Panel } from "@/components/ui/panel";
 import { SectionLabel } from "@/components/ui/section-label";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Branded Service Reports for Hood Cleaning Jobs",
   description:
     "Branded service report links and inspection-ready PDFs for hood vendors after every cleaning job.",
-};
+  path: "/axis-1",
+});
 
 const roleFrames = [
   {

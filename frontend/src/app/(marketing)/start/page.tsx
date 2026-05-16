@@ -4,11 +4,13 @@ import { PageHeader } from "@/components/marketing/page-header";
 import { Panel } from "@/components/ui/panel";
 import { buildEmailDraftUrl } from "@/lib/start-request";
 import { siteConfig } from "@/lib/site";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Design Help Request",
   description: "Request optional design help for a company-branded hood service report version.",
-};
+  path: "/start",
+});
 
 export default function StartPage() {
   const genericDraftUrl = buildEmailDraftUrl({});
