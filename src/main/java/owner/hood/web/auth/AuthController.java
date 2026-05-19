@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.view.RedirectView;
 import owner.hood.application.auth.AccountUserDetailsService;
+import owner.hood.application.auth.EmailVerificationService;
+import owner.hood.application.auth.EmailVerificationService.EmailVerificationResult;
 import owner.hood.application.auth.PasswordResetRateLimiter;
 import owner.hood.application.auth.PasswordResetService;
 import owner.hood.application.auth.PasswordResetService.ResetPasswordResult;
@@ -41,8 +45,10 @@ public class AuthController {
     private final UserDetailsService userDetailsService;
     private final PasswordResetService passwordResetService;
     private final PasswordResetRateLimiter passwordResetRateLimiter;
+    private final EmailVerificationService emailVerificationService;
     private final String siteBaseUrl;
     private final boolean exposeDevResetLink;
+    private final boolean exposeDevVerificationLink;
 
     public AuthController(
             ObjectProvider<ClientRegistrationRepository> clientRegistrations,
@@ -51,8 +57,10 @@ public class AuthController {
             UserDetailsService userDetailsService,
             PasswordResetService passwordResetService,
             PasswordResetRateLimiter passwordResetRateLimiter,
+            EmailVerificationService emailVerificationService,
             @Value("${hood.site.base-url:https://kitchenpermit.com}") String siteBaseUrl,
-            @Value("${hood.auth.password-reset.expose-dev-link:false}") boolean exposeDevResetLink
+            @Value("${hood.auth.password-reset.expose-dev-link:false}") boolean exposeDevResetLink,
+            @Value("${hood.auth.email-verification.expose-dev-link:false}") boolean exposeDevVerificationLink
     ) {
         this.clientRegistrations = clientRegistrations;
         this.accountUsers = accountUsers;
@@ -60,8 +68,10 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
         this.passwordResetService = passwordResetService;
         this.passwordResetRateLimiter = passwordResetRateLimiter;
+        this.emailVerificationService = emailVerificationService;
         this.siteBaseUrl = siteBaseUrl;
         this.exposeDevResetLink = exposeDevResetLink;
+        this.exposeDevVerificationLink = exposeDevVerificationLink;
     }
 
     @GetMapping("/auth/google")
@@ -111,7 +121,60 @@ public class AuthController {
 
         authenticateNewAccount(normalizedEmail, request);
 
-        return new RedirectView(SecurityConfig.safeNextPath(next, "/dashboard"), true);
+        Optional<String> verificationHref = Optional.empty();
+        String redirect = SecurityConfig.safeNextPath(next, "/dashboard");
+
+        if (emailVerificationService.isRequired() || shouldExposeVerificationHref()) {
+            verificationHref = emailVerificationService.issueVerification(account);
+            if (verificationHref.isPresent()) {
+                redirect = appendQueryParam(redirect, "verify", "sent");
+            }
+        }
+
+        if (shouldExposeVerificationHref() && verificationHref.isPresent()) {
+            redirect = appendQueryParam(redirect, "verification", verificationHref.get());
+        }
+
+        return new RedirectView(redirect, true);
+    }
+
+    @PostMapping("/auth/email-verification/request")
+    public RedirectView requestEmailVerification(Authentication authentication) {
+        Optional<String> accountEmail = authenticatedEmail(authentication);
+
+        if (accountEmail.isEmpty()) {
+            return new RedirectView("/login?auth=verify-email-required", true);
+        }
+
+        var verificationHref = emailVerificationService.requestVerification(accountEmail.get());
+        String redirect = appendQueryParam(
+                "/dashboard",
+                "verify",
+                verificationHref.isPresent() ? "sent" : "already"
+        );
+
+        if (shouldExposeVerificationHref() && verificationHref.isPresent()) {
+            redirect = appendQueryParam(redirect, "verification", verificationHref.get());
+        }
+
+        return new RedirectView(redirect, true);
+    }
+
+    @GetMapping("/auth/email-verification/confirm")
+    public RedirectView confirmEmailVerification(
+            @RequestParam(name = "token", required = false) String token
+    ) {
+        EmailVerificationResult result = emailVerificationService.confirmVerification(token);
+
+        if (result == EmailVerificationResult.SUCCESS) {
+            return new RedirectView("/login?auth=email-verified", true);
+        }
+
+        if (result == EmailVerificationResult.EXPIRED_TOKEN) {
+            return new RedirectView("/login?auth=email-verification-expired", true);
+        }
+
+        return new RedirectView("/login?auth=email-verification-invalid", true);
     }
 
     @PostMapping("/auth/password-reset/request")
@@ -190,7 +253,11 @@ public class AuthController {
 
         return Map.of(
                 "authenticated", authenticated,
-                "name", authenticated ? authentication.getName() : ""
+                "name", authenticated ? authentication.getName() : "",
+                "emailVerified", authenticated && authenticatedEmail(authentication)
+                        .map(emailVerificationService::isVerified)
+                        .orElse(false),
+                "emailVerificationRequired", emailVerificationService.isRequired()
         );
     }
 
@@ -211,6 +278,51 @@ public class AuthController {
 
     private boolean shouldExposeResetHref() {
         return exposeDevResetLink;
+    }
+
+    private boolean shouldExposeVerificationHref() {
+        return exposeDevVerificationLink;
+    }
+
+    private Optional<String> authenticatedEmail(Authentication authentication) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            return Optional.empty();
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof OAuth2User oauth2User) {
+            Object email = oauth2User.getAttributes().get("email");
+
+            if (email instanceof String emailString) {
+                String normalized = AccountUserDetailsService.normalizeEmail(emailString);
+                return normalized.isBlank() ? Optional.empty() : Optional.of(normalized);
+            }
+        }
+
+        String normalized = AccountUserDetailsService.normalizeEmail(authentication.getName());
+        return normalized.isBlank() ? Optional.empty() : Optional.of(normalized);
+    }
+
+    private static String appendQueryParam(String path, String name, String value) {
+        String hash = "";
+        String base = path;
+        int hashIndex = path.indexOf('#');
+
+        if (hashIndex >= 0) {
+            hash = path.substring(hashIndex);
+            base = path.substring(0, hashIndex);
+        }
+
+        String separator = base.contains("?") ? "&" : "?";
+        return base
+                + separator
+                + URLEncoder.encode(name, StandardCharsets.UTF_8)
+                + "="
+                + URLEncoder.encode(value, StandardCharsets.UTF_8)
+                + hash;
     }
 
     private void authenticateNewAccount(String email, HttpServletRequest request) {

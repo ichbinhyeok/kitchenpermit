@@ -4,6 +4,8 @@ import java.util.List;
 
 public record Axis1AccountEntitlement(
         boolean authenticated,
+        boolean emailVerified,
+        boolean emailVerificationRequired,
         boolean companyAccess,
         String billingProvider,
         String billingStatus,

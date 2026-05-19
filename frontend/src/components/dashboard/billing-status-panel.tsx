@@ -73,13 +73,45 @@ function billingNoticeCopy(value: string | null): BillingNoticeContent | null {
   return null;
 }
 
+function emailVerificationNoticeCopy(value: string | null): BillingNoticeContent | null {
+  if (value === "sent") {
+    return {
+      title: "Verification email sent.",
+      copy:
+        "Open the link in that inbox before saving company branding, clean paid reports, or starting checkout.",
+      tone: "warn" as const,
+    };
+  }
+
+  if (value === "needed") {
+    return {
+      title: "Verify your email first.",
+      copy:
+        "Dashboard stays open, but company output and checkout stay locked until this account email is verified.",
+      tone: "warn" as const,
+    };
+  }
+
+  if (value === "already") {
+    return {
+      title: "Email already verified.",
+      copy:
+        "This account can use company features when subscription access is active.",
+      tone: "good" as const,
+    };
+  }
+
+  return null;
+}
+
 function BillingNotice({ compact = false }: { compact?: boolean }) {
   const searchParams = useSearchParams();
   const billing = searchParams.get("billing");
+  const verify = searchParams.get("verify");
   const access = searchParams.get("access");
   const notice = useMemo(
-    () => billingNoticeCopy(billing),
-    [billing],
+    () => billingNoticeCopy(billing) ?? emailVerificationNoticeCopy(verify),
+    [billing, verify],
   );
 
   useEffect(() => {
@@ -166,11 +198,19 @@ function describeBillingStatus({
   companyAccess,
   billingStatus,
   provider,
+  emailVerified,
+  emailVerificationRequired,
 }: {
   companyAccess: boolean;
   billingStatus: string;
   provider: string;
+  emailVerified: boolean;
+  emailVerificationRequired: boolean;
 }) {
+  if (emailVerificationRequired && !emailVerified) {
+    return "Email verification is required before company branding, clean PDFs, live paid links, report history, and checkout unlock.";
+  }
+
   if (companyAccess) {
     return provider === "abstract"
       ? "Company access is active for local testing."
@@ -216,11 +256,15 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
   }, []);
 
   const entitlements = state.status === "ready" ? state.entitlements : null;
+  const emailVerified = entitlements?.emailVerified ?? false;
+  const emailVerificationRequired = entitlements?.emailVerificationRequired ?? false;
   const companyAccess = entitlements?.companyAccess ?? false;
   const accountStatus = companyAccess
     ? "Company active"
     : entitlements?.authenticated
-      ? "Logged in, subscription required"
+      ? !emailVerificationRequired || emailVerified
+        ? "Logged in, subscription required"
+        : "Email verification required"
       : state.status === "error"
         ? "Account API unavailable"
         : "Checking account";
@@ -230,6 +274,8 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
     companyAccess,
     billingStatus,
     provider,
+    emailVerified,
+    emailVerificationRequired,
   });
 
   return (
@@ -246,6 +292,11 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
               <StatusPill tone={companyAccess ? "good" : "warn"}>
                 {accountStatus}
               </StatusPill>
+              {entitlements?.authenticated && (emailVerified || emailVerificationRequired) ? (
+                <StatusPill tone={emailVerified ? "good" : "warn"}>
+                  {emailVerified ? "Email verified" : emailVerificationRequired ? "Verify email" : "Email unverified"}
+                </StatusPill>
+              ) : null}
               <span className="text-xs font-bold text-[#75695f]">
                 {AXIS1_COMPANY_MONTHLY_PRICE}
               </span>
@@ -257,7 +308,16 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
             </p>
           </div>
 
-          {companyAccess ? (
+          {entitlements?.authenticated && emailVerificationRequired && !emailVerified ? (
+            <form action="/auth/email-verification/request" method="post">
+              <button
+                type="submit"
+                className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#111315] px-4 text-[11px] font-black uppercase text-white transition hover:bg-[#27221e]"
+              >
+                Send verification email
+              </button>
+            </form>
+          ) : companyAccess ? (
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/axis-1/tool?step=outputs&account=company"

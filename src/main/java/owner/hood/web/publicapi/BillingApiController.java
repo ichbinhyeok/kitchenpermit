@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientResponseException;
 import owner.hood.application.auth.AccountUserDetailsService;
+import owner.hood.application.auth.EmailVerificationService;
 import owner.hood.application.billing.PaddleBillingService;
 import owner.hood.application.billing.PaddleCheckoutSession;
 import owner.hood.application.billing.PaddleWebhookResult;
@@ -28,15 +29,18 @@ public class BillingApiController {
     private final PaddleBillingService paddleBillingService;
     private final PaddleWebhookVerifier paddleWebhookVerifier;
     private final PaddleWebhookService paddleWebhookService;
+    private final EmailVerificationService emailVerificationService;
 
     public BillingApiController(
             PaddleBillingService paddleBillingService,
             PaddleWebhookVerifier paddleWebhookVerifier,
-            PaddleWebhookService paddleWebhookService
+            PaddleWebhookService paddleWebhookService,
+            EmailVerificationService emailVerificationService
     ) {
         this.paddleBillingService = paddleBillingService;
         this.paddleWebhookVerifier = paddleWebhookVerifier;
         this.paddleWebhookService = paddleWebhookService;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @GetMapping("/api/billing/paddle/config")
@@ -52,6 +56,14 @@ public class BillingApiController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Login is required before starting the company version checkout.",
                     "loginHref", "/login?mode=signup&next=/company-version"
+            ));
+        }
+
+        if (emailVerificationService.isRequired() && !emailVerificationService.isVerified(accountEmail.get())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "message", "Verify your email before starting company version checkout.",
+                    "code", "email_unverified",
+                    "resendHref", "/auth/email-verification/request"
             ));
         }
 

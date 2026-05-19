@@ -13,7 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import owner.hood.infrastructure.persistence.AccountUserRepository;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.List;
 import java.util.UUID;
@@ -38,6 +40,9 @@ class Axis1AccountStorageApiTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private AccountUserRepository accountUsers;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -488,6 +493,11 @@ class Axis1AccountStorageApiTest {
                         .param("next", "/dashboard"))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
+
+        var account = accountUsers.findByEmail(email).orElseThrow();
+        account.setEmailVerified(true);
+        account.setEmailVerifiedAt(Instant.now());
+        accountUsers.save(account);
 
         return (MockHttpSession) signup.getRequest().getSession(false);
     }

@@ -625,6 +625,8 @@ public class Axis1AccountStorageApiController {
     private Map<String, Object> entitlementResponse(Axis1AccountEntitlement entitlement) {
         return Map.of(
                 "authenticated", entitlement.authenticated(),
+                "emailVerified", entitlement.emailVerified(),
+                "emailVerificationRequired", entitlement.emailVerificationRequired(),
                 "companyAccess", entitlement.companyAccess(),
                 "billingProvider", entitlement.billingProvider(),
                 "billingStatus", entitlement.billingStatus(),
@@ -636,9 +638,13 @@ public class Axis1AccountStorageApiController {
     private Map<String, Object> companyAccessRequiredResponse(Axis1AccountEntitlement entitlement) {
         return Map.of(
                 "companyAccessRequired", true,
+                "emailVerified", entitlement.emailVerified(),
+                "emailVerificationRequired", entitlement.emailVerificationRequired(),
                 "billingProvider", entitlement.billingProvider(),
                 "billingStatus", entitlement.billingStatus(),
-                "message", "Company branding, report history, and builder reload require an active company subscription."
+                "message", entitlement.emailVerificationRequired() && !entitlement.emailVerified()
+                        ? "Verify your email before saving company branding, report history, or clean paid customer links."
+                        : "Company branding, report history, and builder reload require an active company subscription."
         );
     }
 

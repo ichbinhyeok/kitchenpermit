@@ -78,6 +78,38 @@ function statusMessage(
     };
   }
 
+  if (value === "email-verified") {
+    return {
+      tone: "success" as const,
+      title: "Email verified",
+      copy: "Log in to continue company setup, checkout, and saved service records.",
+    };
+  }
+
+  if (value === "email-verification-expired") {
+    return {
+      tone: "warning" as const,
+      title: "Verification link expired",
+      copy: "Log in and send a fresh verification email from the account workspace.",
+    };
+  }
+
+  if (value === "email-verification-invalid") {
+    return {
+      tone: "error" as const,
+      title: "Verification link is not valid",
+      copy: "Log in and send a fresh verification email from the account workspace.",
+    };
+  }
+
+  if (value === "verify-email-required") {
+    return {
+      tone: "warning" as const,
+      title: "Log in to verify email",
+      copy: "Use the account that should receive the verification link.",
+    };
+  }
+
   return null;
 }
 
@@ -226,8 +258,8 @@ export function LoginForm() {
           />
           {isSignup ? (
             <span className="text-[11px] font-semibold leading-4 text-[#75695f]">
-              Use an email you can access. Password reset links and account
-              notices are sent there.
+              Use an email you can access. Verification links and account
+              notices are sent to this inbox.
             </span>
           ) : null}
         </label>

@@ -4,14 +4,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = "hood.auth.email-verification.required=true")
 @AutoConfigureMockMvc
 class BillingApiControllerTest {
 
@@ -33,5 +37,21 @@ class BillingApiControllerTest {
         mockMvc.perform(post("/api/billing/paddle/checkout"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.loginHref").value("/login?mode=signup&next=/company-version"));
+    }
+
+    @Test
+    void paddleCheckoutRequiresVerifiedEmailBeforePayment() throws Exception {
+        MvcResult signup = mockMvc.perform(post("/auth/signup")
+                        .param("email", "checkout-" + UUID.randomUUID() + "@example.com")
+                        .param("password", "correct-horse-1")
+                        .param("confirmPassword", "correct-horse-1")
+                        .param("next", "/company-version"))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+
+        mockMvc.perform(post("/api/billing/paddle/checkout")
+                        .session((MockHttpSession) signup.getRequest().getSession(false)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("email_unverified"));
     }
 }

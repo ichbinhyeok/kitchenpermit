@@ -19,11 +19,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
         "hood.site.base-url=http://127.0.0.1:8096",
         "hood.auth.password-reset.expose-dev-link=true",
+        "hood.auth.email-verification.expose-dev-link=true",
+        "hood.auth.email-verification.required=true",
         "hood.auth.password-reset.max-requests-per-hour=2",
         "hood.auth.password-reset.cooldown-seconds=0"
 })
@@ -74,15 +78,55 @@ class AuthFlowTest {
         MvcResult signup = mockMvc.perform(post("/auth/signup")
                         .param("email", email)
                         .param("password", "correct-horse-1")
-                        .param("confirmPassword", "correct-horse-1")
-                        .param("next", "/dashboard"))
+                .param("confirmPassword", "correct-horse-1")
+                .param("next", "/dashboard"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard"))
+                .andExpect(redirectedUrlPattern("/dashboard?verify=sent*"))
                 .andReturn();
 
         mockMvc.perform(get("/dashboard").session((MockHttpSession) signup.getRequest().getSession(false)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
+    }
+
+    @Test
+    void emailVerificationUsesOneTimeEmailLinkAndUnlocksCompanyAccess() throws Exception {
+        String email = "owner-" + UUID.randomUUID() + "@example.com";
+
+        MvcResult signup = mockMvc.perform(post("/auth/signup")
+                        .param("email", email)
+                        .param("password", "correct-horse-1")
+                        .param("confirmPassword", "correct-horse-1")
+                        .param("next", "/dashboard"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/dashboard?verify=sent*"))
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) signup.getRequest().getSession(false);
+
+        mockMvc.perform(get("/api/account/entitlements").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authenticated").value(true))
+                .andExpect(jsonPath("$.emailVerified").value(false))
+                .andExpect(jsonPath("$.companyAccess").value(false))
+                .andExpect(jsonPath("$.billingStatus").value("email_unverified"));
+
+        String token = verificationTokenFromRedirect(signup.getResponse().getRedirectedUrl());
+
+        mockMvc.perform(get("/auth/email-verification/confirm")
+                        .param("token", token))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?auth=email-verified"));
+
+        mockMvc.perform(get("/api/account/entitlements").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.emailVerified").value(true))
+                .andExpect(jsonPath("$.companyAccess").value(true));
+
+        mockMvc.perform(get("/auth/email-verification/confirm")
+                        .param("token", token))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?auth=email-verification-invalid"));
     }
 
     @Test
@@ -214,5 +258,14 @@ class AuthFlowTest {
         String resetHref = URLDecoder.decode(resetParam, StandardCharsets.UTF_8);
 
         return URI.create(resetHref).getQuery().replace("token=", "");
+    }
+
+    private String verificationTokenFromRedirect(String redirectedUrl) {
+        String verificationParam = redirectedUrl.substring(
+                redirectedUrl.indexOf("verification=") + "verification=".length()
+        );
+        String verificationHref = URLDecoder.decode(verificationParam, StandardCharsets.UTF_8);
+
+        return URI.create(verificationHref).getQuery().replace("token=", "");
     }
 }

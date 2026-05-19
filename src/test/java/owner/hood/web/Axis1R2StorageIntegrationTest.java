@@ -13,7 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import owner.hood.application.axis1.Axis1ReportAssetStorage;
 import owner.hood.application.axis1.R2Axis1ReportAssetStorage;
+import owner.hood.infrastructure.persistence.AccountUserRepository;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,6 +37,9 @@ class Axis1R2StorageIntegrationTest {
 
     @Autowired
     private Axis1ReportAssetStorage assetStorage;
+
+    @Autowired
+    private AccountUserRepository accountUsers;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -90,6 +95,11 @@ class Axis1R2StorageIntegrationTest {
                         .param("next", "/dashboard"))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
+
+        var account = accountUsers.findByEmail(email).orElseThrow();
+        account.setEmailVerified(true);
+        account.setEmailVerifiedAt(Instant.now());
+        accountUsers.save(account);
 
         return (MockHttpSession) signup.getRequest().getSession(false);
     }

@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import owner.hood.infrastructure.persistence.AccountUserRepository;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -36,6 +37,9 @@ class PaddleWebhookIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private AccountUserRepository accountUsers;
 
     @Test
     void paidPaddleWebhookUnlocksCompanyEntitlement() throws Exception {
@@ -189,6 +193,11 @@ class PaddleWebhookIntegrationTest {
                         .param("next", "/dashboard"))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();
+
+        var account = accountUsers.findByEmail(email).orElseThrow();
+        account.setEmailVerified(true);
+        account.setEmailVerifiedAt(Instant.now());
+        accountUsers.save(account);
 
         return (MockHttpSession) signup.getRequest().getSession(false);
     }

@@ -66,6 +66,8 @@ type PaddleCheckoutButtonProps = {
 type AccountAccessState = {
   checking: boolean;
   authenticated: boolean | null;
+  emailVerified: boolean;
+  emailVerificationRequired: boolean;
   companyAccess: boolean;
 };
 
@@ -80,6 +82,8 @@ export function PaddleCheckoutButton({
   const [accountAccess, setAccountAccess] = useState<AccountAccessState>({
     checking: true,
     authenticated: null,
+    emailVerified: false,
+    emailVerificationRequired: false,
     companyAccess: false,
   });
 
@@ -92,6 +96,8 @@ export function PaddleCheckoutButton({
           setAccountAccess({
             checking: false,
             authenticated: entitlements.authenticated,
+            emailVerified: entitlements.emailVerified,
+            emailVerificationRequired: entitlements.emailVerificationRequired,
             companyAccess: entitlements.companyAccess,
           });
         }
@@ -101,6 +107,8 @@ export function PaddleCheckoutButton({
           setAccountAccess({
             checking: false,
             authenticated: null,
+            emailVerified: false,
+            emailVerificationRequired: false,
             companyAccess: false,
           });
         }
@@ -126,6 +134,11 @@ export function PaddleCheckoutButton({
       return;
     }
 
+    if (accountAccess.emailVerificationRequired && !accountAccess.emailVerified) {
+      router.push("/dashboard?verify=needed");
+      return;
+    }
+
     setError("");
     setBusy(true);
 
@@ -143,7 +156,11 @@ export function PaddleCheckoutButton({
       }
 
       if (!response.ok) {
-        const body = (await response.json().catch(() => ({}))) as { message?: string };
+        const body = (await response.json().catch(() => ({}))) as { message?: string; code?: string };
+        if (response.status === 403 && body.code === "email_unverified") {
+          router.push("/dashboard?verify=needed");
+          return;
+        }
         throw new Error(body.message ?? `Checkout failed with status ${response.status}`);
       }
 
@@ -222,6 +239,8 @@ export function PaddleCheckoutButton({
 
   const buttonLabel = accountAccess.companyAccess
       ? activeChildren
+      : accountAccess.authenticated && accountAccess.emailVerificationRequired && !accountAccess.emailVerified
+        ? "Verify email first"
       : busy
         ? "Opening checkout..."
         : children;

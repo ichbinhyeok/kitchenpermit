@@ -74,6 +74,8 @@ export type Axis1ServerReportRecord = {
 
 export type Axis1AccountEntitlements = {
   authenticated: boolean;
+  emailVerified: boolean;
+  emailVerificationRequired: boolean;
   companyAccess: boolean;
   billingProvider: string;
   billingStatus: string;

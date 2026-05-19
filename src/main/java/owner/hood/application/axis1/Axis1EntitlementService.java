@@ -2,6 +2,8 @@ package owner.hood.application.axis1;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import owner.hood.domain.auth.AccountUser;
+import owner.hood.infrastructure.persistence.AccountUserRepository;
 import owner.hood.infrastructure.persistence.BillingSubscriptionRepository;
 
 import java.util.List;
@@ -25,14 +27,20 @@ public class Axis1EntitlementService {
     private static final List<String> ACTIVE_BILLING_STATUSES = List.of("active", "trialing");
 
     private final BillingSubscriptionRepository subscriptions;
+    private final AccountUserRepository accountUsers;
     private final String billingProvider;
+    private final boolean emailVerificationRequired;
 
     public Axis1EntitlementService(
             BillingSubscriptionRepository subscriptions,
-            @Value("${hood.billing.provider:abstract}") String billingProvider
+            AccountUserRepository accountUsers,
+            @Value("${hood.billing.provider:abstract}") String billingProvider,
+            @Value("${hood.auth.email-verification.required:false}") boolean emailVerificationRequired
     ) {
         this.subscriptions = subscriptions;
+        this.accountUsers = accountUsers;
         this.billingProvider = billingProvider == null ? "abstract" : billingProvider.trim().toLowerCase(Locale.ROOT);
+        this.emailVerificationRequired = emailVerificationRequired;
     }
 
     public Axis1AccountEntitlement resolve(Optional<String> accountEmail) {
@@ -40,9 +48,26 @@ public class Axis1EntitlementService {
             return new Axis1AccountEntitlement(
                     false,
                     false,
+                    emailVerificationRequired,
+                    false,
                     provider(),
                     "anonymous",
                     "free_builder",
+                    FREE_FEATURES
+            );
+        }
+
+        boolean emailVerified = emailVerified(accountEmail.get());
+
+        if (emailVerificationRequired && !emailVerified) {
+            return new Axis1AccountEntitlement(
+                    true,
+                    false,
+                    true,
+                    false,
+                    provider(),
+                    "email_unverified",
+                    "email_verification_required",
                     FREE_FEATURES
             );
         }
@@ -52,6 +77,8 @@ public class Axis1EntitlementService {
 
             return new Axis1AccountEntitlement(
                     true,
+                    emailVerified,
+                    emailVerificationRequired,
                     active,
                     "paddle",
                     active ? "active_subscription" : "login_no_subscription",
@@ -63,6 +90,8 @@ public class Axis1EntitlementService {
         // Non-Paddle environments keep launch access so local/demo flows remain usable.
         return new Axis1AccountEntitlement(
                 true,
+                emailVerified,
+                emailVerificationRequired,
                 true,
                 provider(),
                 "launch_access",
@@ -73,5 +102,12 @@ public class Axis1EntitlementService {
 
     private String provider() {
         return billingProvider.isBlank() ? "abstract" : billingProvider;
+    }
+
+    private boolean emailVerified(String email) {
+        return accountUsers.findByEmail(email)
+                .map(AccountUser::isEmailVerified)
+                // OAuth-only accounts may not have a local password row; rely on the identity provider.
+                .orElse(true);
     }
 }
