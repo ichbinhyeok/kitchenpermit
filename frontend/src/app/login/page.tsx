@@ -83,6 +83,23 @@ export default function LoginPage() {
               Use free builder without login
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
+            <nav
+              aria-label="Legal"
+              className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-black uppercase text-[#75695f]"
+            >
+              <Link href="/terms" className="underline-offset-4 hover:underline">
+                Terms
+              </Link>
+              <Link href="/privacy" className="underline-offset-4 hover:underline">
+                Privacy
+              </Link>
+              <Link
+                href="/refund-policy"
+                className="underline-offset-4 hover:underline"
+              >
+                Refund Policy
+              </Link>
+            </nav>
           </div>
         </aside>
       </section>
