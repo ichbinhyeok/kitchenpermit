@@ -1,0 +1,43 @@
+name: Inspect production mail
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect mail environment and recent logs
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USERNAME }}
+          key: ${{ secrets.OCI_KEY }}
+          command_timeout: 10m
+          script: |
+            set -eu
+            cd ~/deploy/hood
+            echo "Mail env presence:"
+            docker compose exec -T app sh -lc '
+              for key in \
+                SPRING_MAIL_HOST \
+                SPRING_MAIL_PORT \
+                SPRING_MAIL_USERNAME \
+                SPRING_MAIL_PASSWORD \
+                SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH \
+                SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE \
+                HOOD_AUTH_PASSWORD_RESET_MAIL_FROM \
+                HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM
+              do
+                if [ -n "$(printenv "$key" 2>/dev/null || true)" ]; then
+                  echo "$key=present"
+                else
+                  echo "$key=missing"
+                fi
+              done
+            '
+            echo "Recent mail-related logs:"
+            docker compose logs --since 30m app \
+              | sed -E 's/(token=)[^[:space:]]+/\1[redacted]/g; s#(/reset-password\?token=)[^[:space:]]+#\1[redacted]#g' \
+              | grep -Ei 'mail|smtp|zoho|password reset|MailSend|Authentication|Exception|ERROR|WARN' \
+              | tail -240
