@@ -51,6 +51,10 @@ Create these repository secrets:
 - `HOOD_BILLING_PROVIDER` (`paddle` when billing is ready)
 - `HOOD_BILLING_ENVIRONMENT` (`sandbox` while testing, `production` when live)
 - `PADDLE_COMPANY_PRICE_ID`
+- `PADDLE_API_KEY`
+- `PADDLE_CLIENT_TOKEN`
+- `PADDLE_WEBHOOK_SECRET`
+- `PADDLE_WEBHOOK_TOLERANCE_SECONDS` (`300`)
 
 The workflow maps those Cloudflare secret names into Spring-friendly
 `HOOD_AXIS1_R2_*` environment variables inside the app container.

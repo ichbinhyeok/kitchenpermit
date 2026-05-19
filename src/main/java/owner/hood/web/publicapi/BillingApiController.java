@@ -66,7 +66,7 @@ public class BillingApiController {
             return ResponseEntity.ok(checkoutResponse(paddleBillingService.createCompanyCheckout(accountEmail.get())));
         } catch (RestClientResponseException exception) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
-                    "message", "Paddle could not create a checkout transaction. Check the sandbox API key and price id.",
+                    "message", "Paddle could not create a checkout transaction. Check the Paddle API key, environment, and price id.",
                     "status", exception.getStatusCode().value()
             ));
         } catch (IllegalStateException exception) {

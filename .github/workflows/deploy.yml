@@ -73,6 +73,7 @@ jobs:
           host: ${{ secrets.OCI_HOST }}
           username: ${{ secrets.OCI_USERNAME }}
           key: ${{ secrets.OCI_KEY }}
+          command_timeout: 30m
           script: |
             mkdir -p ~/deploy/hood
             mkdir -p ~/deploy/hood/storage
@@ -131,7 +132,6 @@ jobs:
                       memory: 1024M
             EOF
 
-            docker compose down --remove-orphans || true
             docker compose pull
             docker compose up -d --remove-orphans
             sleep 20
