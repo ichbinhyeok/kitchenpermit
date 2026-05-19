@@ -1,0 +1,100 @@
+"use client";
+
+import { Printer } from "lucide-react";
+import { useSyncExternalStore } from "react";
+import { Axis1PacketDocument } from "@/components/axis1/packet-document";
+import { Button } from "@/components/ui/button";
+import {
+  buildAxis1SampleProofData,
+  type Axis1SampleProofVariant,
+} from "@/lib/axis1-sample-packets";
+
+type SampleAxis1ProofPageContentProps = {
+  scenario: Axis1SampleProofVariant;
+};
+
+function subscribeToLocationChanges(onStoreChange: () => void) {
+  window.addEventListener("popstate", onStoreChange);
+  return () => {
+    window.removeEventListener("popstate", onStoreChange);
+  };
+}
+
+function getLocationSearch() {
+  return window.location.search;
+}
+
+function getServerLocationSearch() {
+  return "";
+}
+
+function printReport() {
+  document.documentElement.classList.add("app-printing");
+
+  const clearPrintUiLock = () => {
+    document.documentElement.classList.remove("app-printing");
+  };
+
+  window.addEventListener("afterprint", clearPrintUiLock, { once: true });
+  window.setTimeout(() => {
+    window.print();
+    window.setTimeout(clearPrintUiLock, 900);
+  }, 120);
+}
+
+export function SampleAxis1ProofPageContent({
+  scenario,
+}: SampleAxis1ProofPageContentProps) {
+  const queryString = useSyncExternalStore(
+    subscribeToLocationChanges,
+    getLocationSearch,
+    getServerLocationSearch,
+  );
+  const searchParams = new URLSearchParams(queryString);
+  const isServiceRecord = searchParams.get("format") === "pdf";
+  const reportData = buildAxis1SampleProofData(scenario);
+
+  return (
+    <main
+      className={`min-h-screen text-[#151515] print:bg-white print:px-0 print:py-0 ${
+        isServiceRecord
+          ? "axis1-service-record-screen bg-[#d8d0c7] px-3 py-3 sm:px-5 sm:py-5 lg:py-6"
+          : "bg-[#e4dbcf]"
+      }`}
+    >
+      {isServiceRecord ? (
+        <div className="pdf-preview-toolbar pdf-print-hide mx-auto mb-3 flex w-[min(816px,100%)] flex-col gap-3 border border-[#b8b0a7] bg-white px-3 py-2 shadow-[0_10px_28px_rgba(24,20,17,0.12)] md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#6f665d]">
+              Sample service report PDF
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-[#423c36]">
+              Print or save this retained service copy.
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={printReport}
+            className="rounded-[6px] bg-[#111315] px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-white hover:bg-[#111315]/90"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            Save as PDF
+          </Button>
+        </div>
+      ) : null}
+      <div
+        className={
+          isServiceRecord
+            ? "mx-auto w-[min(816px,100%)]"
+            : "relative mx-auto w-[min(1180px,100%)]"
+        }
+      >
+        <Axis1PacketDocument
+          data={reportData}
+          variant="customer-report"
+          outputIntent={isServiceRecord ? "service-record" : "customer-link"}
+        />
+      </div>
+    </main>
+  );
+}
