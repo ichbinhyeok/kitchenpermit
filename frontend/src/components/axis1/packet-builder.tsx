@@ -612,8 +612,7 @@ function isVendorConfirmedPhoto(photo: UploadedFieldPhoto | null | undefined) {
     Boolean(photo) &&
     (photo?.confidence === "manual" ||
       photo?.vendorDecision === "confirmed" ||
-      photo?.vendorDecision === "edited" ||
-      isFastConfirmableSuggestedPhoto(photo))
+      photo?.vendorDecision === "edited")
   );
 }
 
@@ -2218,7 +2217,10 @@ function CompanyUpgradeCallout({
           Locked in free
         </span>
       </div>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <p className="mt-2 text-[11px] font-semibold leading-4 text-muted-foreground sm:hidden">
+        Logo/contact, clean PDF, retained links, and report history.
+      </p>
+      <div className="mt-3 hidden gap-2 sm:grid sm:grid-cols-2">
         {companyUpgradeHighlights.map(({ title, copy, Icon }) => (
           <div
             key={title}
@@ -3542,7 +3544,11 @@ export function PacketBuilder({
       : "Save PDF";
   const photoStepPrimaryLabel =
     totalFieldPhotoCount === 0
-      ? "Review record"
+      ? hasJobOutcomeSelected
+        ? jobBasicsReady
+          ? "Create report"
+          : "Add job details"
+        : "Create normal report"
       : hasJobOutcomeSelected
         ? "Review report"
         : hasBeforeOnly || hasAfterOnly
@@ -4531,7 +4537,7 @@ export function PacketBuilder({
 
   function handleMobilePrimaryAction() {
     if (builderStep === "photos") {
-      proceedFromPhotoStep();
+      handlePhotoStepPrimaryAction();
       return;
     }
 
@@ -5186,7 +5192,7 @@ export function PacketBuilder({
               suggestion.source === "gemini"
                 ? suggestion.needsVendorReview
                   ? "Possible role - saved as extra photo"
-                  : "AI attached photo"
+                  : "AI suggested role"
                 : photo.matchLabel,
             ...createPhotoAssistMetadata(suggestion),
           };
@@ -5199,7 +5205,7 @@ export function PacketBuilder({
             suggestion.source === "gemini"
               ? suggestion.needsVendorReview
                 ? "Possible role - saved as extra photo"
-                : "AI attached photo"
+                : "AI suggested role"
               : photo.matchLabel,
           ...createPhotoAssistMetadata(suggestion),
         };
@@ -5215,7 +5221,7 @@ export function PacketBuilder({
             suggestion.source === "gemini"
               ? suggestion.needsVendorReview
                 ? "Possible role - saved as extra photo"
-                : "AI attached photo"
+                : "AI suggested role"
               : photo.matchLabel,
           ...createPhotoAssistMetadata(suggestion),
         };
@@ -5327,14 +5333,14 @@ export function PacketBuilder({
         message:
           data.warning ??
           (data.provider === "gemini"
-            ? "Photo Assist read the photos. Clear matches are attached; uncertain photos stay saved as extras for your review."
+            ? "Photo Assist drafted photo roles. Confirm or change a role before it appears in the customer report."
             : "Local photo hints are ready. Unclear photos stay saved as extras."),
         meta:
           data.provider === "gemini"
             ? `Live Gemini (${data.model}) - vendor must confirm each photo role.`
             : `Local hints (${data.model}) - vendor must confirm each photo role.`,
       });
-      setShowProofDetails(false);
+      setShowProofDetails(true);
       setShowAllPhotoSlots(false);
     } catch {
       const suggestions = buildMockAxis1PhotoAssistSuggestions(photos);
@@ -5346,7 +5352,7 @@ export function PacketBuilder({
           "Photo Assist API was unavailable, so local photo hints were used. Continue as a written report; attach photos only if they help.",
         meta: "Local hints only - Photo Assist API did not return live suggestions.",
       });
-      setShowProofDetails(false);
+      setShowProofDetails(true);
       setShowAllPhotoSlots(false);
     } finally {
       setIsPhotoAssistRunning(false);
@@ -6122,11 +6128,35 @@ export function PacketBuilder({
       return;
     }
 
+    if (
+      totalFieldPhotoCount === 0 &&
+      hasJobOutcomeSelected &&
+      values.scenario === "clean"
+    ) {
+      setScopeAssumptionsAccepted(true);
+    }
+
     if (!jobBasicsReady) {
       setShowJobBasics(true);
     }
 
-    selectBuilderStep("review");
+    selectBuilderStep(
+      totalFieldPhotoCount === 0 &&
+        hasJobOutcomeSelected &&
+        values.scenario === "clean" &&
+        jobBasicsReady
+        ? "outputs"
+        : "review",
+    );
+  }
+
+  function handlePhotoStepPrimaryAction() {
+    if (totalFieldPhotoCount === 0 && !hasJobOutcomeSelected) {
+      useNormalCloseoutPath();
+      return;
+    }
+
+    proceedFromPhotoStep();
   }
 
   function useNormalCloseoutPath() {
@@ -6138,9 +6168,11 @@ export function PacketBuilder({
       setShowJobBasics(true);
     }
 
-    selectBuilderStep("review");
+    selectBuilderStep(jobBasicsReady ? "outputs" : "review");
     toast.success("Completed service selected", {
-      description: "Axis 1 will package this as a written service record. Photos can still be added later.",
+      description: jobBasicsReady
+        ? "Axis 1 packaged this as a written service record. Photos can still be added later."
+        : "Add the customer, site, date, reviewer, and system details next.",
     });
   }
 
@@ -8030,7 +8062,7 @@ export function PacketBuilder({
                             onClick={() => confirmAutoPlacedPhotoRoles("review")}
                             className="h-10 rounded-full bg-white px-4 text-[10px] font-black uppercase tracking-[0.13em] text-[#111315] shadow-[0_16px_38px_rgba(0,0,0,0.22)]"
                           >
-                            Accept AI attachments
+                            Confirm suggested roles
                           </button>
                         ) : null}
                       </div>
@@ -8300,8 +8332,8 @@ export function PacketBuilder({
                             </p>
                             <p className="mt-1 text-xs leading-5 text-white/52">
                               Gemini checks uploaded photos when the API is live. Local
-                              hints are labeled as local; customer outputs never use
-                              uncertain photos until you attach a role.
+                              hints are labeled as local; customer outputs use only
+                              roles you confirm or edit.
                             </p>
                           </div>
                           <button
@@ -8435,7 +8467,7 @@ export function PacketBuilder({
                                       className="h-10 min-w-0 rounded-full border border-white/12 bg-white px-3 text-xs font-semibold text-[#111315] outline-none sm:w-[220px]"
                                       aria-label={`Assign ${photo.name} to a photo role`}
                                     >
-                                      <option value="">Assign role...</option>
+                                      <option value="">Assign correct role...</option>
                                       {fieldPhotoSlots.map((targetSlot) => (
                                         <option key={targetSlot.id} value={targetSlot.id}>
                                           {targetSlot.shortLabel}
@@ -8460,8 +8492,8 @@ export function PacketBuilder({
                     {hasSuggestedPhotoRoles ? (
                       <div className="mx-4 mt-3 rounded-[16px] border border-[#ffb489]/24 bg-[#ffb489]/10 px-3 py-2 sm:mx-5">
                         <p className="text-xs font-semibold leading-5 text-[#ffcfb5]">
-                          Clear photo attachments can support the report. You can still
-                          correct a role before sending.
+                          Photo Assist roles are drafts. Confirm the ones that are right,
+                          or change the role before sending.
                         </p>
                       </div>
                     ) : null}
@@ -8956,18 +8988,20 @@ export function PacketBuilder({
                       {shouldShowProofDetails ? "Hide roles" : "Review photos"}
                     </button>
                   ) : null}
-                  {!hasProofWorkStarted ? (
+                  {!hasProofWorkStarted &&
+                  hasJobOutcomeSelected &&
+                  activeJobPatternId !== "clean-close" ? (
                     <button
                       type="button"
                       onClick={useNormalCloseoutPath}
                       className="rounded-full border border-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/62"
                     >
-                      Use normal closeout
+                      Switch to normal completed
                     </button>
                   ) : null}
                   <button
                     type="button"
-                    onClick={proceedFromPhotoStep}
+                    onClick={handlePhotoStepPrimaryAction}
                     className="rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#111315]"
                   >
                     {photoStepPrimaryLabel}
@@ -9465,7 +9499,7 @@ export function PacketBuilder({
                   </p>
                 </div>
               </div>
-              <div className="order-4 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3 text-[#111315]">
+              <div className="order-6 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3 text-[#111315]">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                     Area status
@@ -9522,7 +9556,7 @@ export function PacketBuilder({
                     })}
                 </div>
               </div>
-              <div className="order-5 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
+              <div className="order-7 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                     Customer-safe copy
@@ -9570,7 +9604,7 @@ export function PacketBuilder({
                   })}
                 </div>
               </div>
-              <div className="order-2 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
+              <div className="order-4 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                     Output items
@@ -9618,7 +9652,7 @@ export function PacketBuilder({
                   </p>
                 ) : null}
               </div>
-              <div className="order-3 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
+              <div className="order-5 mt-3 rounded-[18px] border border-black/8 bg-white/78 p-3">
                 <div className="flex items-center justify-between gap-3 px-1 pb-2">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                     Next actions
@@ -9665,7 +9699,7 @@ export function PacketBuilder({
                     setReportOutputMode(value);
                   }
                 }}
-                className="tool-segmented-control order-6 mt-3 rounded-full bg-white/72"
+                className="tool-segmented-control order-2 mt-3 rounded-full bg-white/72"
               >
                 <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-[11px]">
                   Customer link
@@ -9674,7 +9708,7 @@ export function PacketBuilder({
                   Service report PDF
                 </SegmentedControlItem>
               </SegmentedControl>
-              <div className="order-7 mt-2.5 flex items-center justify-between gap-3">
+              <div className="order-3 mt-2.5 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-[11px] leading-4 opacity-70">
                   {reportOutputMode === "link"
                     ? isCompanyPlan
@@ -10331,7 +10365,7 @@ export function PacketBuilder({
                   </div>
                   {!isCompanyPlan ? (
                     <CompanyUpgradeCallout
-                      className="mt-3 md:max-w-xl"
+                      className="mt-3 hidden md:block md:max-w-xl"
                       onUpgrade={handleBrandingUpgradeIntent}
                     />
                   ) : null}
@@ -10538,7 +10572,7 @@ export function PacketBuilder({
                   }}
                   className="h-11 rounded-[16px] bg-[#111315] text-[11px] font-bold uppercase tracking-[0.12em] text-white"
                 >
-                  {hasSuggestedPhotoRoles ? "Accept AI attachments" : previewProofLinkLabel}
+                  {hasSuggestedPhotoRoles ? "Confirm suggested roles" : previewProofLinkLabel}
                 </button>
               </DrawerFooter>
             </>

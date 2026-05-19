@@ -1097,6 +1097,16 @@ export function ReportHistoryPanel() {
     useState<ReportViewPreset>("attention");
   const [companyAccess, setCompanyAccess] = useState(false);
 
+  const companyReports = useMemo(
+    () => reports.filter((report) => report.productPlan === "company"),
+    [reports],
+  );
+  const freeTestReports = useMemo(
+    () => reports.filter((report) => report.productPlan === "free"),
+    [reports],
+  );
+  const operationalReports = companyAccess ? companyReports : freeTestReports;
+
   const reportGroups = useMemo(() => {
     const groups = new Map<
       string,
@@ -1107,7 +1117,7 @@ export function ReportHistoryPanel() {
       }
     >();
 
-    reports.forEach((report) => {
+    operationalReports.forEach((report) => {
       const key = getCustomerSiteKey(report);
       const existing = groups.get(key);
 
@@ -1137,13 +1147,21 @@ export function ReportHistoryPanel() {
           (getDateOnly(b.reports[0]?.serviceDate)?.getTime() ?? 0) -
           (getDateOnly(a.reports[0]?.serviceDate)?.getTime() ?? 0),
       );
-  }, [reports]);
+  }, [operationalReports]);
 
   const dateSortedReports = useMemo(() => {
-    return [...reports].sort(
+    return [...operationalReports].sort(
       (a, b) => compareReports(a, b, sortMode, sortDirection),
     );
-  }, [reports, sortDirection, sortMode]);
+  }, [operationalReports, sortDirection, sortMode]);
+
+  const freeTestDateSortedReports = useMemo(() => {
+    return [...freeTestReports].sort(
+      (a, b) =>
+        (getDateOnly(b.serviceDate)?.getTime() ?? 0) -
+        (getDateOnly(a.serviceDate)?.getTime() ?? 0),
+    );
+  }, [freeTestReports]);
 
   const sortedReportGroups = useMemo(() => {
     return reportGroups
@@ -1174,7 +1192,7 @@ export function ReportHistoryPanel() {
   }, [reportGroups, sortDirection, sortMode]);
 
   const followUpQueue = useMemo(() => {
-    return reports
+    return operationalReports
       .map((report) => {
         const followUp = getFollowUpStatus(report);
         const historyStatus = getHistoryStatus(report);
@@ -1217,18 +1235,18 @@ export function ReportHistoryPanel() {
       })
       .filter((item): item is Exclude<typeof item, null> => item !== null)
       .sort((a, b) => compareReports(a.report, b.report, sortMode, sortDirection));
-  }, [reports, sortDirection, sortMode]);
+  }, [operationalReports, sortDirection, sortMode]);
 
   const stats = useMemo(() => {
-    const pastDueCount = reports.filter(
+    const pastDueCount = operationalReports.filter(
       (report) => (daysUntil(report.nextServiceDate) ?? 1) < 0,
     ).length;
-    const upcomingCount = reports.filter((report) => {
+    const upcomingCount = operationalReports.filter((report) => {
       const days = daysUntil(report.nextServiceDate);
 
       return days !== null && days >= 0 && days <= dueSoonWindowDays;
     }).length;
-    const openItemCount = reports.filter((report) => {
+    const openItemCount = operationalReports.filter((report) => {
       const status = getHistoryStatus(report);
 
       return (
@@ -1242,7 +1260,7 @@ export function ReportHistoryPanel() {
     return [
       {
         label: "Reports",
-        value: reports.length,
+        value: operationalReports.length,
         icon: History,
       },
       {
@@ -1261,7 +1279,7 @@ export function ReportHistoryPanel() {
         icon: AlertCircle,
       },
     ];
-  }, [reportGroups.length, reports]);
+  }, [operationalReports, reportGroups.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1394,7 +1412,7 @@ export function ReportHistoryPanel() {
       key: "recent",
       label: "Recent reports",
       copy: "Latest service records first",
-      count: reports.length,
+      count: operationalReports.length,
       viewMode: "dates",
       sortMode: "serviceDate",
     },
@@ -1460,12 +1478,12 @@ export function ReportHistoryPanel() {
             </h2>
             <p className="mt-1 max-w-2xl text-sm font-semibold leading-6 text-[#6f665e]">
               {companyAccess
-                ? "See what needs attention, resend customer records, open PDF copies, or edit a previous report."
+                ? "See company records that need attention, resend customer links, open PDF copies, or edit a previous report."
                 : "Logged-in free reports stay here as test copies so the first report is not lost before upgrading."}
             </p>
             <p className="mt-1 max-w-2xl text-[11px] font-semibold leading-5 text-[#8a7d72]">
               {companyAccess
-                ? "Tracked link activity shows when the customer link was opened. It is not proof of the recipient's identity; vendor Preview links are not counted."
+                ? "Free test copies are listed separately below. Operational stats and queues count company records only."
                 : "Free test reports are unbranded, watermarked, and temporary. Company reports are branded, retained, and saved to customer history."}
             </p>
           </div>
@@ -1599,53 +1617,94 @@ export function ReportHistoryPanel() {
             </>
           ) : (
             <div className="p-5 text-sm font-semibold leading-6 text-[#75695f]">
-              No next service dates or open items yet. Reports without a follow-up
-              still live under Customers and Date list.
+              {companyReports.length === 0
+                ? "No saved company records yet. Build a company report, or open a free test below and create a company copy."
+                : "No next service dates or open items yet. Reports without a follow-up still live under Customers and Date list."}
             </div>
           )}
         </div>
       ) : null}
 
       {status === "ready" && companyAccess && viewMode === "customers" ? (
-        <div className="divide-y divide-black/10">
-          {sortedReportGroups.map((group) => (
-            <section key={group.key} className="bg-[#fffdf9]">
-              <div className="flex flex-wrap items-center justify-between gap-3 bg-[#eee6db] px-3 py-3 sm:px-4">
-                <div>
-                  <h3 className="text-sm font-black tracking-[-0.025em]">
-                    {group.label}
-                  </h3>
-                  <p className="mt-1 text-xs font-semibold text-[#75695f]">
-                    {group.reports.length} saved report
-                    {group.reports.length === 1 ? "" : "s"} / latest service{" "}
-                    {formatDate(group.reports[0]?.serviceDate)}
-                  </p>
+        companyReports.length > 0 ? (
+          <div className="divide-y divide-black/10">
+            {sortedReportGroups.map((group) => (
+              <section key={group.key} className="bg-[#fffdf9]">
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-[#eee6db] px-3 py-3 sm:px-4">
+                  <div>
+                    <h3 className="text-sm font-black tracking-[-0.025em]">
+                      {group.label}
+                    </h3>
+                    <p className="mt-1 text-xs font-semibold text-[#75695f]">
+                      {group.reports.length} saved report
+                      {group.reports.length === 1 ? "" : "s"} / latest service{" "}
+                      {formatDate(group.reports[0]?.serviceDate)}
+                    </p>
+                  </div>
+                  <CheckCircle2 className="h-4 w-4 text-[#1f7a4d]" />
                 </div>
-                <CheckCircle2 className="h-4 w-4 text-[#1f7a4d]" />
-              </div>
-              <ReportListHeader />
-              {group.reports.map((report) => (
-                <ReportRow
-                  key={report.publicId}
-                  report={report}
-                  compact
-                  companyAccess={companyAccess}
-                  onCopy={(item, format) => void copyDeliveryMessage(item, format)}
-                  onCopyLink={(item) => void copyReportLink(item)}
-                  onDelete={(item) => void deleteReport(item)}
-                />
-              ))}
-            </section>
-          ))}
-        </div>
+                <ReportListHeader />
+                {group.reports.map((report) => (
+                  <ReportRow
+                    key={report.publicId}
+                    report={report}
+                    compact
+                    companyAccess={companyAccess}
+                    onCopy={(item, format) => void copyDeliveryMessage(item, format)}
+                    onCopyLink={(item) => void copyReportLink(item)}
+                    onDelete={(item) => void deleteReport(item)}
+                  />
+                ))}
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="p-5 text-sm font-semibold leading-6 text-[#75695f]">
+            No customer history from company records yet. Free tests are kept below as temporary copies.
+          </div>
+        )
       ) : null}
 
       {status === "ready" && companyAccess && viewMode === "dates" ? (
-        <div>
-          <ReportListHeader />
-          {dateSortedReports.map((report) => (
+        companyReports.length > 0 ? (
+          <div>
+            <ReportListHeader />
+            {dateSortedReports.map((report) => (
+              <ReportRow
+                key={`date-${report.publicId}`}
+                report={report}
+                companyAccess={companyAccess}
+                onCopy={(item, format) => void copyDeliveryMessage(item, format)}
+                onCopyLink={(item) => void copyReportLink(item)}
+                onDelete={(item) => void deleteReport(item)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="p-5 text-sm font-semibold leading-6 text-[#75695f]">
+            No company records saved yet. Create a company copy from a free test below when the report is ready for customer delivery.
+          </div>
+        )
+      ) : null}
+
+      {status === "ready" && companyAccess && freeTestReports.length > 0 ? (
+        <section className="border-t border-black/10 bg-[#fbf2e6]">
+          <div className="px-3 py-3 sm:px-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#9a6a42]">
+              Free test copies
+            </p>
+            <h3 className="mt-1 text-sm font-black tracking-[-0.025em] text-[#2f281f]">
+              Temporary tests kept separate from company records
+            </h3>
+            <p className="mt-1 max-w-2xl text-xs font-semibold leading-5 text-[#7b6f65]">
+              These do not count in due-soon, open-item, or customer history stats.
+              Use Company copy only when a test should become a retained branded record.
+            </p>
+          </div>
+          <FreeTestReportListHeader />
+          {freeTestDateSortedReports.map((report) => (
             <ReportRow
-              key={`date-${report.publicId}`}
+              key={`paid-free-test-${report.publicId}`}
               report={report}
               companyAccess={companyAccess}
               onCopy={(item, format) => void copyDeliveryMessage(item, format)}
@@ -1653,7 +1712,7 @@ export function ReportHistoryPanel() {
               onDelete={(item) => void deleteReport(item)}
             />
           ))}
-        </div>
+        </section>
       ) : null}
     </div>
   );
