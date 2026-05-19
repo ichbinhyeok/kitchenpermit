@@ -132,7 +132,7 @@ jobs:
                       memory: 1024M
             EOF
 
-            docker compose pull
+            timeout 90s docker compose pull || true
             docker compose up -d --remove-orphans
             sleep 20
             docker compose ps
