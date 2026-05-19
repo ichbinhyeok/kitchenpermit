@@ -1,0 +1,81 @@
+{
+  "baseURL": "http://127.0.0.1:8097",
+  "email": "axis1.fix.1779174796924@example.com",
+  "screenshots": {
+    "01-dashboard-after-signup": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\fix-pass-2026-05-19T07-13-16-712Z\\01-dashboard-after-signup.png",
+    "02-tool-company-default": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\fix-pass-2026-05-19T07-13-16-712Z\\02-tool-company-default.png",
+    "03-tool-outputs-guard": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\fix-pass-2026-05-19T07-13-16-712Z\\03-tool-outputs-guard.png",
+    "04-customer-link-saved-report": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\fix-pass-2026-05-19T07-13-16-712Z\\04-customer-link-saved-report.png",
+    "05-react-pdf-route": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\fix-pass-2026-05-19T07-13-16-712Z\\05-react-pdf-route.png",
+    "06-load-saved-report": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\fix-pass-2026-05-19T07-13-16-712Z\\06-load-saved-report.png",
+    "07-invalid-reset-token": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\fix-pass-2026-05-19T07-13-16-712Z\\07-invalid-reset-token.png"
+  },
+  "checks": {
+    "signupLandsDashboard": true,
+    "sessionAuthenticated": true,
+    "companyAccess": true,
+    "entitlements": {
+      "billingProvider": "abstract",
+      "companyAccess": true,
+      "billingStatus": "launch_access",
+      "authenticated": true,
+      "accessSource": "authenticated_account",
+      "enabledFeatures": [
+        "saved_branding",
+        "clean_pdf",
+        "live_links",
+        "report_history",
+        "load_report_into_builder"
+      ]
+    },
+    "profileSaveOk": true,
+    "blankPhonesStayBlank": true,
+    "savedProfile": {
+      "companyName": "Regression Hood Co",
+      "serviceArea": "Fort Worth, TX kitchen exhaust service",
+      "directLine": "",
+      "dispatchEmail": "dispatch@regressionhood.example",
+      "afterHoursPhone": "",
+      "certification": "NFPA 96 documentation ready",
+      "technicianLabel": "QA crew",
+      "brandInitials": "RH",
+      "logoUrl": "",
+      "brandColor": "#115E59",
+      "updatedAt": "2026-05-19T07:13:17.705940300Z"
+    },
+    "toolDefaultsCompanyMode": true,
+    "toolBannerNoLeadingSlash": true,
+    "outputsGuardMovesToPhotos": true,
+    "reportCreateOk": true,
+    "reportProductPlanCompany": true,
+    "assetPhotoCountDeduped": true,
+    "photoReferencesSameAsset": true,
+    "historyContainsCreatedReport": true,
+    "historyPhotoCountIsOne": false,
+    "historyProductPlanCompany": true,
+    "customerShowsSavedData": true,
+    "customerNoSampleBleed": true,
+    "customerNoFakePhone": true,
+    "customerPhotoPresent": true,
+    "pdfUsesReactRoute": true,
+    "pdfShowsSavedData": true,
+    "pdfNoFakePhone": true,
+    "loadReportShowsSavedRecord": true,
+    "loadReportRestoresBlockedState": true,
+    "invalidResetEndpoint": true,
+    "invalidResetVisible": false,
+    "consoleErrorCount": 0,
+    "failedRequestCount": 0
+  },
+  "links": {
+    "toolAutoCompany": "http://127.0.0.1:8097/axis-1/tool?account=company",
+    "toolOutputsGuard": "http://127.0.0.1:8097/axis-1/tool?step=photos&account=company",
+    "customer": "http://127.0.0.1:8097/p/server?reportId=b9c0e9034ed64ab181",
+    "pdf": "http://127.0.0.1:8097/p/server?reportId=b9c0e9034ed64ab181&format=pdf",
+    "apiPdfDownload": "http://127.0.0.1:8097/api/axis1/assets/b9c0e9034ed64ab181/service-report.pdf",
+    "loadReport": "http://127.0.0.1:8097/axis-1/tool?loadReport=b9c0e9034ed64ab181&account=company"
+  },
+  "consoleErrors": [],
+  "failedRequests": [],
+  "resultFile": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\evidence\\fix-pass-2026-05-19T07-13-16-712Z.json"
+}

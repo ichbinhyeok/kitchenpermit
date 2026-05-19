@@ -1,0 +1,201 @@
+{
+  "shot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\dashboard-row-buttons-visible.png",
+  "visibleButtons": [
+    {
+      "disabled": false,
+      "href": null,
+      "i": 19,
+      "rect": {
+        "h": 36,
+        "w": 157.8984375,
+        "x": 36,
+        "y": 65.5
+      },
+      "tag": "BUTTON",
+      "text": "NEEDS ATTENTION 1",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 20,
+      "rect": {
+        "h": 36,
+        "w": 167.6796875,
+        "x": 201.8984375,
+        "y": 65.5
+      },
+      "tag": "BUTTON",
+      "text": "UPCOMING SERVICE 1",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 21,
+      "rect": {
+        "h": 36,
+        "w": 154.234375,
+        "x": 377.578125,
+        "y": 65.5
+      },
+      "tag": "BUTTON",
+      "text": "RECENT REPORTS 1",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 22,
+      "rect": {
+        "h": 36,
+        "w": 125.5703125,
+        "x": 539.8125,
+        "y": 65.5
+      },
+      "tag": "BUTTON",
+      "text": "CUSTOMERS 1",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 23,
+      "rect": {
+        "h": 36,
+        "w": 72.265625,
+        "x": 912.671875,
+        "y": 183.5
+      },
+      "tag": "BUTTON",
+      "text": "TEXT",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 24,
+      "rect": {
+        "h": 36,
+        "w": 74.2265625,
+        "x": 990.9375,
+        "y": 183.5
+      },
+      "tag": "BUTTON",
+      "text": "EMAIL",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b&preview=1",
+      "i": 25,
+      "rect": {
+        "h": 36,
+        "w": 89.6953125,
+        "x": 1071.1640625,
+        "y": 183.5
+      },
+      "tag": "A",
+      "text": "PREVIEW",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b&format=pdf&preview=1",
+      "i": 26,
+      "rect": {
+        "h": 36,
+        "w": 62.140625,
+        "x": 1166.859375,
+        "y": 183.5
+      },
+      "tag": "A",
+      "text": "PDF",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/axis-1/tool?step=outputs&account=company&loadReport=2ebf30e7c3ab4db98b",
+      "i": 27,
+      "rect": {
+        "h": 36,
+        "w": 65.015625,
+        "x": 1121.984375,
+        "y": 225.5
+      },
+      "tag": "A",
+      "text": "EDIT",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 28,
+      "rect": {
+        "h": 36,
+        "w": 36,
+        "x": 1193,
+        "y": 225.5
+      },
+      "tag": "BUTTON",
+      "text": "",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/company-version",
+      "i": 29,
+      "rect": {
+        "h": 46,
+        "w": 311.2578125,
+        "x": 879.2421875,
+        "y": 499.5
+      },
+      "tag": "A",
+      "text": "SET UP COMPANY REPORTS",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/axis-1",
+      "i": 30,
+      "rect": {
+        "h": 40,
+        "w": 310.796875,
+        "x": 528.8984375,
+        "y": 705.5
+      },
+      "tag": "A",
+      "text": "SERVICE REPORT",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/company-version",
+      "i": 36,
+      "rect": {
+        "h": 40,
+        "w": 310.8046875,
+        "x": 879.6953125,
+        "y": 705.5
+      },
+      "tag": "A",
+      "text": "COMPANY REPORTS",
+      "visible": true
+    }
+  ],
+  "copyResults": [
+    {
+      "label": "TEXT",
+      "count": 1,
+      "clipboard": "Hi Cedar & 5th Grill, following up on the hood cleaning visit for Kitchen exhaust system. Report/PDF for your records: http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b Next step: Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the ne...",
+      "afterShot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\dashboard-copy-text-after-scroll.png"
+    },
+    {
+      "label": "EMAIL",
+      "count": 1,
+      "clipboard": "Hi Cedar & 5th Grill, we are following up on the hood cleaning visit for Kitchen exhaust system from May 19, 2026.\n\nHere is the service report for your records:\nhttp://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b\n\nIt includes the PDF copy, the recorded access item, and the recommended next step.\n\nRecommended next step: Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the ne...",
+      "afterShot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\dashboard-copy-email-after-scroll.png"
+    }
+  ]
+}

@@ -35,6 +35,8 @@ import {
   FileText,
   GripVertical,
   Link2,
+  Mail,
+  MessageSquare,
   PencilLine,
   RotateCcw,
   Settings2,
@@ -180,7 +182,12 @@ type BuilderStep = "photos" | "review" | "outputs";
 type MobileSheetView = "photo-review" | "report-actions";
 type PacketPresentationMode = "standard" | "short";
 type ReportOutputMode = "link" | "pdf";
-type SetupNoticeAction = "copy-link" | "open-link" | "print-pdf";
+type SetupNoticeAction =
+  | "copy-link"
+  | "open-link"
+  | "print-pdf"
+  | "copy-text"
+  | "copy-email";
 type AuthSessionStatus = "checking" | "authenticated" | "anonymous";
 type PaidFeatureNotice = "company-plan" | "branding" | "history";
 type SavedReportLink = {
@@ -2114,24 +2121,24 @@ function PhotoPlacementReview({
 const builderSteps = [
   {
     value: "photos",
-    label: "Photos & notes",
-    navLabel: "Photos",
-    title: "Add photos and notes",
-    copy: "Drop job photos or one short note. The builder drafts a customer-ready service report from there.",
+    label: "Declare job",
+    navLabel: "Declare",
+    title: "Tell Axis 1 what happened.",
+    copy: "Pick the job result first. Add photos only if the crew captured proof.",
   },
   {
     value: "review",
-    label: "Review report",
-    navLabel: "Review",
-    title: "Review service summary",
-    copy: "Fix only wrong or uncertain parts in the preview.",
+    label: "Package report",
+    navLabel: "Package",
+    title: "Package the customer service record.",
+    copy: "Check the restaurant name, service date, open item, next action, and next service window.",
   },
   {
     value: "outputs",
-    label: "Outputs",
-    navLabel: "Outputs",
-    title: "Preview link and PDF",
-    copy: "Check the service report link and PDF copy before using the paid company version.",
+    label: "Send report",
+    navLabel: "Send",
+    title: "Send the customer link or save the PDF.",
+    copy: "Copy the customer text, email body, link, or PDF from the same service record.",
   },
 ] as const satisfies ReadonlyArray<{
   value: BuilderStep;
@@ -2143,18 +2150,18 @@ const builderSteps = [
 
 const builderQuickStartSteps = [
   {
-    title: "Add photos or notes",
-    copy: "Drop the phone batch if you have it. One written note is enough to start.",
-    icon: IconPhotoScan,
-  },
-  {
-    title: "Confirm what happened",
-    copy: "Pick the result and correct only the uncertain parts before sending.",
+    title: "Declare the result",
+    copy: "Completed, blocked, or condition found. This drives the customer wording.",
     icon: ClipboardCheck,
   },
   {
-    title: "Share link or save PDF",
-    copy: "Use the customer link for delivery and the PDF copy for records.",
+    title: "Add proof if captured",
+    copy: "Drop a phone batch, or skip photos and keep a written service record.",
+    icon: IconPhotoScan,
+  },
+  {
+    title: "Send link, text, or PDF",
+    copy: "Copy the customer message, open the report link, or save the PDF.",
     icon: Link2,
   },
 ] as const;
@@ -3598,7 +3605,33 @@ export function PacketBuilder({
   const activePreviewSections =
     reportOutputMode === "pdf" ? packetSections : standardPacketSections;
   const setupNoticeMeta =
-    setupNoticeAction === "print-pdf"
+    setupNoticeAction === "copy-text"
+      ? {
+          eyebrow: "Before copying customer text",
+          title: isCompanyPlan
+            ? "Copy the customer-ready text message."
+            : "Copy a free test message.",
+          actionLabel: "Continue and copy text",
+          copy: isCompanyPlan
+            ? "Company mode copies a customer-ready text with your branded hosted service report link and keeps the record in account history."
+            : isAuthenticated
+              ? "Free output copies a test message with an unbranded 7-day link. Company version is the version meant for sending under your company name."
+              : "Free output is allowed without login: it copies a test message with an unbranded 7-day link. Company version is the version meant for sending under your company name.",
+        }
+      : setupNoticeAction === "copy-email"
+        ? {
+            eyebrow: "Before copying email body",
+            title: isCompanyPlan
+              ? "Copy the customer-ready email."
+              : "Copy a free test email.",
+            actionLabel: "Continue and copy email",
+            copy: isCompanyPlan
+              ? "Company mode copies a customer-ready email body with your branded hosted service report link and keeps the record in account history."
+              : isAuthenticated
+                ? "Free output copies a test email body with an unbranded 7-day link. Company version is the version meant for sending under your company name."
+                : "Free output is allowed without login: it copies a test email body with an unbranded 7-day link. Company version is the version meant for sending under your company name.",
+          }
+        : setupNoticeAction === "print-pdf"
       ? {
           eyebrow: "Before saving PDF",
           title: isCompanyPlan
@@ -4532,6 +4565,16 @@ export function PacketBuilder({
       return;
     }
 
+    if (action === "copy-text") {
+      await copyReportDeliveryMessage("text");
+      return;
+    }
+
+    if (action === "copy-email") {
+      await copyReportDeliveryMessage("email");
+      return;
+    }
+
     if (action === "open-link") {
       const savedReport = await saveCurrentReportLink();
 
@@ -4655,6 +4698,89 @@ export function PacketBuilder({
     } catch {
       toast.error("Could not copy automatically", {
         description: "Select the visible URL field, or open the report and copy the browser address.",
+      });
+    }
+  }
+
+  function buildReportDeliveryMessage(
+    savedReport: SavedReportLink,
+    format: "text" | "email",
+  ) {
+    const customerName =
+      previewPacket.packetHeader.title || values.propertyName.trim() || "the restaurant";
+    const serviceDate = findPacketRowValue(
+      previewPacket.packetHeader.quickFacts,
+      "Service date",
+      values.serviceDate || "service date recorded",
+    );
+    const resultLine =
+      previewPacket.summaryCards[0]?.copy || previewPacket.packetHeader.copy;
+    const actionLine =
+      findPacketRowValue(
+        previewPacket.customerClose.actionItems,
+        "Reply or action",
+        previewPacket.customerClose.copy,
+      ) || previewPacket.customerClose.copy;
+    const nextWindow =
+      findPacketRowValue(
+        previewPacket.customerClose.actionItems,
+        "Next visit window",
+        `${selectedCadenceOption.label} cadence`,
+      ) || `${selectedCadenceOption.label} cadence`;
+    const companyName =
+      isCompanyPlan && companyProfile.companyName.trim()
+        ? companyProfile.companyName.trim()
+        : "the service team";
+
+    if (format === "text") {
+      return `Service report for ${customerName} (${serviceDate}): ${resultLine} ${actionLine} Next service: ${nextWindow}. ${savedReport.url}`;
+    }
+
+    return [
+      `Subject: Service report - ${customerName} - ${serviceDate}`,
+      "",
+      "Hi,",
+      "",
+      `Here is the service report from ${serviceDate} for ${customerName}:`,
+      savedReport.url,
+      "",
+      resultLine,
+      actionLine,
+      `Next service: ${nextWindow}.`,
+      "",
+      "Please keep the link or PDF with your service records for manager review, landlord, insurance, or inspection documentation.",
+      "",
+      `-${companyName}`,
+    ].join("\n");
+  }
+
+  async function copyReportDeliveryMessage(
+    format: "text" | "email",
+    savedReportOverride?: SavedReportLink | null,
+  ) {
+    const savedReport = savedReportOverride ?? (await saveCurrentReportLink());
+
+    if (!savedReport) {
+      return;
+    }
+
+    setLastSavedReportLink(savedReport);
+
+    try {
+      await copyTextToClipboard(buildReportDeliveryMessage(savedReport, format));
+      toast.success(
+        format === "text" ? "Customer text copied" : "Customer email copied",
+        {
+          description:
+            savedReport.storage === "server"
+              ? "The message includes the hosted service report link."
+              : "The message includes a browser fallback link for local testing.",
+        },
+      );
+    } catch {
+      toast.error("Could not copy automatically", {
+        description:
+          "The generated service report link is visible below. Copy the URL first, then paste it into your customer message.",
       });
     }
   }
@@ -5973,6 +6099,21 @@ export function PacketBuilder({
     selectBuilderStep("review");
   }
 
+  function useNormalCloseoutPath() {
+    applyJobPattern(getJobPatternById("clean-close"));
+    setScopeAssumptionsAccepted(true);
+    setShowScopeDetails(false);
+
+    if (!jobBasicsReady) {
+      setShowJobBasics(true);
+    }
+
+    selectBuilderStep("review");
+    toast.success("Completed service selected", {
+      description: "Axis 1 will package this as a written service record. Photos can still be added later.",
+    });
+  }
+
   function dismissUnplacedPhoto(photoId: string) {
     const photo = unplacedFieldPhotos.find((item) => item.id === photoId);
     const relatedPhotoIds = new Set(
@@ -6100,7 +6241,10 @@ export function PacketBuilder({
           </p>
           {isCompanyPlan ? (
             <p className="mt-1 text-xs font-semibold leading-5 text-white/42">
-              {companyProfile.directLine} / {companyProfile.dispatchEmail}
+              {[companyProfile.directLine, companyProfile.dispatchEmail]
+                .map((value) => value.trim())
+                .filter(Boolean)
+                .join(" / ") || companyProfile.serviceArea}
             </p>
           ) : null}
         </div>
@@ -7415,22 +7559,22 @@ export function PacketBuilder({
                 <div className="flex items-start justify-between gap-5">
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                      Photos & notes
+                      Declare job
                     </p>
                     {builderStep === "photos" ? (
                       <h1
                         className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]"
                         data-axis-tool-page-heading
                       >
-                        Create the restaurant-ready hood cleaning report.
+                        What happened on this hood cleaning job?
                       </h1>
                     ) : (
                       <h2 className="mt-2 text-2xl font-bold leading-[0.92] tracking-[-0.055em] text-white md:text-[2.45rem]">
-                        Create the restaurant-ready hood cleaning report.
+                        What happened on this hood cleaning job?
                       </h2>
                     )}
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-white/54 md:text-[14px] md:leading-6">
-                      Add job photos if you have them. One short note is enough when the crew needs a clean report link and PDF for the restaurant.
+                      Pick the job result first. Axis 1 packages the service record, then you can send the customer link, text, email body, or PDF.
                     </p>
                   </div>
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] md:h-11 md:w-11">
@@ -7438,14 +7582,14 @@ export function PacketBuilder({
                   </div>
                 </div>
 
-                <div className="hidden">
+                <div className="mt-4 rounded-[24px] border border-[#ffb489]/20 bg-black/18 px-4 py-4 sm:mt-5 sm:px-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                        Job result
+                        Start here
                       </p>
                       <p className="mt-1 text-sm font-bold text-white">
-                        Start here, then add photos if you have them.
+                        Choose the customer-safe result. Photos are optional proof, not a sorting chore.
                       </p>
                     </div>
                     <span className="rounded-full border border-white/12 bg-black/14 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/54">
@@ -7490,7 +7634,7 @@ export function PacketBuilder({
                               ? "Selected"
                               : recommended
                                 ? "Suggested"
-                                : "Pick if true"}
+                                : option.helper}
                           </span>
                         </button>
                       );
@@ -7559,7 +7703,7 @@ export function PacketBuilder({
                 >
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffb489]">
-                      {hasProofWorkStarted ? "Add more" : "Job photos"}
+                      {hasProofWorkStarted ? "Add more proof" : "Optional proof"}
                     </p>
                     <p
                       className={`mt-3 font-bold text-white ${
@@ -7568,12 +7712,12 @@ export function PacketBuilder({
                           : "max-w-[14ch] text-[2rem] leading-[0.94] tracking-[-0.05em] sm:max-w-[11ch] sm:text-[3.55rem] sm:leading-[0.88] sm:tracking-[-0.07em]"
                       }`}
                     >
-                      {hasProofWorkStarted ? "Add extra photos" : "Drop photos if you have them"}
+                      {hasProofWorkStarted ? "Add extra photos" : "Drop photos if captured"}
                     </p>
                     <p className="mt-3 max-w-md text-xs leading-5 text-white/58 sm:mt-4 sm:text-sm sm:leading-6 md:text-[15px]">
                       {hasProofWorkStarted
                         ? "Drop only the missing or extra photos. The current report stays intact."
-                        : "Before, after, fan, filter, access, label, and issue photos can all go in one batch."}
+                        : "Before, after, fan, filter, access, label, and issue photos can all go in one batch. A no-photo written record is valid."}
                     </p>
                     <div
                       className={`mt-4 flex flex-wrap gap-2 sm:mt-5 ${
@@ -7625,14 +7769,14 @@ export function PacketBuilder({
                     className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]"
                     htmlFor="quickCloseoutNote"
                   >
-                    Optional note
+                    Optional job note
                   </label>
                   <textarea
                     id="quickCloseoutNote"
                     rows={2}
                     className="mt-2 min-h-[92px] w-full resize-none rounded-[16px] border border-white/10 bg-black/18 px-3 py-2 text-sm leading-6 text-white outline-none placeholder:text-white/30 focus:border-[#ffb489]/55 focus:ring-2 focus:ring-[#ffb489]/15 sm:min-h-[72px]"
                     maxLength={textFieldLimits.followUpNote}
-                    placeholder="Example: fan access blocked by locked roof hatch, or duct not part of this visit."
+                    placeholder="Example: service completed, manager requested next visit in 90 days; or fan access blocked by locked roof hatch."
                     {...form.register("followUpNote")}
                   />
                 </div>
@@ -8782,6 +8926,15 @@ export function PacketBuilder({
                       {shouldShowProofDetails ? "Hide roles" : "Review photos"}
                     </button>
                   ) : null}
+                  {!hasProofWorkStarted ? (
+                    <button
+                      type="button"
+                      onClick={useNormalCloseoutPath}
+                      className="rounded-full border border-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/62"
+                    >
+                      Use normal closeout
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     onClick={proceedFromPhotoStep}
@@ -8952,6 +9105,48 @@ export function PacketBuilder({
                       </span>
                     </span>
                     <IconArrowRight className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!canPreviewProofLink}
+                    onClick={() => {
+                      setReportOutputMode("link");
+                      requestFreeReportOutput("copy-text");
+                    }}
+                    className="axis-proof-action"
+                  >
+                    <span className="axis-proof-action-icon">
+                      <MessageSquare className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="axis-proof-action-label">
+                        Copy customer text
+                      </span>
+                      <span className="axis-proof-action-copy">
+                        Text message with the report link.
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!canPreviewProofLink}
+                    onClick={() => {
+                      setReportOutputMode("link");
+                      requestFreeReportOutput("copy-email");
+                    }}
+                    className="axis-proof-action"
+                  >
+                    <span className="axis-proof-action-icon">
+                      <Mail className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="axis-proof-action-label">
+                        Copy customer email
+                      </span>
+                      <span className="axis-proof-action-copy">
+                        Email body with the report link.
+                      </span>
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -9582,7 +9777,25 @@ export function PacketBuilder({
                             className="tool-action-btn tool-action-primary tool-action-mini"
                           >
                             <Copy className="h-3.5 w-3.5" />
-                      Copy customer link
+                            Copy customer link
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => requestFreeReportOutput("copy-text")}
+                            className="tool-action-btn tool-action-secondary tool-action-mini"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            Copy text
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => requestFreeReportOutput("copy-email")}
+                            className="tool-action-btn tool-action-secondary tool-action-mini"
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                            Copy email
                           </Button>
                           <Button
                             type="button"
@@ -10168,6 +10381,26 @@ export function PacketBuilder({
                         <Copy className="h-3.5 w-3.5" />
                         Copy again
                       </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void copyReportDeliveryMessage("text", lastSavedReportLink)
+                        }
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-[10px] font-black uppercase tracking-[0.13em] text-foreground"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        Text
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void copyReportDeliveryMessage("email", lastSavedReportLink)
+                        }
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-[10px] font-black uppercase tracking-[0.13em] text-foreground"
+                      >
+                        <Mail className="h-3.5 w-3.5" />
+                        Email
+                      </button>
                     </div>
                   </div>
                   <input
@@ -10284,10 +10517,10 @@ export function PacketBuilder({
           {mobileSheet === "report-actions" ? (
             <>
               <DrawerHeader>
-                <DrawerTitle>PDF / print options</DrawerTitle>
+                <DrawerTitle>Send service record</DrawerTitle>
                 <DrawerDescription>
-                  The service report link is for delivery. Print / save creates the
-                  service report PDF.
+                  Copy the customer text or email body, open the report link, or
+                  save the PDF.
                 </DrawerDescription>
               </DrawerHeader>
               <div className="min-h-0 overflow-y-auto px-4 pb-4">
@@ -10334,6 +10567,22 @@ export function PacketBuilder({
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     Open link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => requestFreeReportOutput("copy-text")}
+                    className="tool-action-btn tool-action-secondary h-11 px-3"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    Copy text
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => requestFreeReportOutput("copy-email")}
+                    className="tool-action-btn tool-action-secondary h-11 px-3"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    Copy email
                   </button>
                 </div>
                 <div className="mt-3 grid gap-2">
@@ -10388,7 +10637,7 @@ export function PacketBuilder({
                   }}
                   className="tool-action-btn tool-action-secondary h-12"
                 >
-                  Back to service photos
+                  Back to declaration
                 </button>
                 <button
                   type="button"

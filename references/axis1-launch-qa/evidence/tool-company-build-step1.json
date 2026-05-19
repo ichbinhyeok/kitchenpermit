@@ -1,0 +1,899 @@
+{
+  "startedUrl": "http://127.0.0.1:8096/axis-1/tool?account=company",
+  "blockedCount": 0,
+  "noteCount": 1,
+  "afterNoteShot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\tool-company-note-blocked.png",
+  "afterNoteText": "K Kitchen PERMIT 1 PHOTOS & NOTES Optional 2 REVIEW REPORT 3 OUTPUTS MENU COMPANY VERSION COMPANY ACCESS ACTIVE Company mode: Summit Fire Hood Cleaning details are applied. Reports save to history and customer links/PDFs stay available after creation. (512) 555-0148 / service@summithood.test FREE COMPANY OPEN ACCOUNT PHOTOS & NOTES Create the restaurant-ready hood cleaning report. Add job photos if you have them. One short note is enough when the crew needs a clean report link and PDF for the restaurant. QUICK START PHOTOS OPTIONAL STEP 1 Add photos or notes Drop the phone batch if you have it. One written note is enough to start. STEP 2 Confirm what happened Pick the result and correct only the uncertain parts before sending. STEP 3 Share link or save PDF Use the customer link for delivery and the PDF copy for records. JOB PHOTOS Drop photos if you have them Before, after, fan, filter, access, label, and issue photos can all go in one batch. CHOOSE PHOTOS Photos optional Saved with report OPTIONAL NOTE WHAT WAS INCLUDED? Hood cleaning Hood, duct, fan, and grease path expected. Leave standard unless this visit was filters-only, fan-only, access revisit, or condition-only. THIS VISIT ONLY STANDARD HOOD + FAN FILTERS ONLY FAN ONLY ACCESS REVISIT CONDITION ONLY NO PHOTOS? Review written record Create the written service record first, then fix only wrong or uncertain parts. NEXT No photos is okay. The next screen creates a written record without claiming missing photos. REVIEW RECORD",
+  "reviewCount": 1,
+  "reviewShot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\tool-company-review-record.png",
+  "reviewText": "K Kitchen PERMIT 1 PHOTOS & NOTES 2 REVIEW REPORT Required 3 OUTPUTS MENU COMPANY VERSION COMPANY ACCESS ACTIVE Company mode: Summit Fire Hood Cleaning details are applied. Reports save to history and customer links/PDFs stay available after creation. (512) 555-0148 / service@summithood.test FREE COMPANY OPEN ACCOUNT REVIEW REPORT Review the service summary. No photos is okay. Confirm the result once so Axis 1 writes a safe service record. CHOOSE RESULT VISIT COVERAGE Hood cleaning Expected in this report: Hood, Duct, Fan, Grease. Pick narrower coverage or change an area before sending. STANDARD SERVICE RECORD STANDARD Hood cleaning Hood, duct, fan, and grease path expected. HOOD + FAN Full exhaust path Use when fan and duct were part of the visit. FILTERS ONLY Filter service Only hood/filter work is expected. FAN ONLY Rooftop fan Fan and rooftop grease path only. ACCESS REVISIT Blocked area return Only the access path is expected. CONDITION ONLY Record condition No cleaning completion is assumed. CONFIRM RESULT One tap confirms what happened. The report preview below is what the vendor should actually review. PICK ONE COMPLETED Completed Included work completed; no customer action needed. RECOMMENDED BLOCKED / NO ACCESS Completed where reachable One area needs access, revisit, or area clarification. CONDITION FOUND Service done, condition noted Condition should drive quote, revisit, or next-service follow-up. Why this result: No photos or result are confirmed yet. Pick what happened to build a written record. CUSTOMER-STYLE REPORT PREVIEW Confirm result first Confirm the result above, then review the report preview instead of filling a form. 0 PHOTO AREAS 4 NOTES-ONLY AREAS STANDARD Hood / filters COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Duct / access path COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Rooftop fan COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Grease path COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Label / notice NOT PART OF THIS JOB This area stays out of the customer message. SEPARATE CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job SHOW LESS READY OUTPUTS PENDING Pick the job result before Axis 1 generates the customer report link, PDF, follow-up, revisit, and next-service copy. CHOOSE RESULT Pick a result to fill the customer result, follow-up note, and next step. JOB BASICS REQUIRED Needed before output: customer, site, reviewer Add real customer details before creating a link or PDF. The tool will not send untouched defaults. HIDE PROPERTY / CUSTOMER SITE / CITY SERVICE DATE AUTHORIZED BY NEXT VISIT 90 days window CHANGE IF NEEDED Default next window selected. Change ",
+  "reviewInputs": [
+    {
+      "i": 0,
+      "label": "CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 1,
+      "label": "CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 2,
+      "label": "CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 3,
+      "label": "CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 4,
+      "label": "CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "not-in-scope"
+    },
+    {
+      "i": 5,
+      "label": "PROPERTY / CUSTOMER",
+      "name": "propertyName",
+      "placeholder": "Canal Street Tacos",
+      "tag": "INPUT",
+      "type": "text",
+      "value": ""
+    },
+    {
+      "i": 6,
+      "label": "SITE / CITY",
+      "name": "siteCity",
+      "placeholder": "Glendale, CA",
+      "tag": "INPUT",
+      "type": "text",
+      "value": ""
+    },
+    {
+      "i": 7,
+      "label": "SERVICE DATE",
+      "name": "serviceDate",
+      "placeholder": "",
+      "tag": "INPUT",
+      "type": "date",
+      "value": "2026-05-19"
+    },
+    {
+      "i": 8,
+      "label": "AUTHORIZED BY",
+      "name": "authorizedBy",
+      "placeholder": "Manager on duty",
+      "tag": "INPUT",
+      "type": "text",
+      "value": ""
+    },
+    {
+      "i": 9,
+      "label": "Job photosDrop photos if you have themBefore, after, fan, filter, access, label, and issue photos can all go in one batch.Choose photosPhotos optionalSaved with report",
+      "name": "",
+      "placeholder": "",
+      "tag": "INPUT",
+      "type": "file",
+      "value": ""
+    },
+    {
+      "i": 10,
+      "label": "Optional note",
+      "name": "followUpNote",
+      "placeholder": "Example: fan access blocked by locked roof hatch, or duct not part of this visit.",
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "value": "Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit."
+    },
+    {
+      "i": 11,
+      "label": "Before photoChoose beforeBest starting point if the crew captured a dirty-start photo.CoreChange later",
+      "name": "",
+      "placeholder": "",
+      "tag": "INPUT",
+      "type": "file",
+      "value": ""
+    },
+    {
+      "i": 12,
+      "label": "After photoChoose afterBest starting point if the crew captured a clean-finish photo.CoreChange later",
+      "name": "",
+      "placeholder": "",
+      "tag": "INPUT",
+      "type": "file",
+      "value": ""
+    },
+    {
+      "i": 13,
+      "label": "Hood / filtersWritten onlyNotesCompleted + photoCompleted, no photoBlocked / no accessNot completedCondition onlyNot part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 14,
+      "label": "Duct / access pathWritten onlyNotesCompleted + photoCompleted, no photoBlocked / no accessNot completedCondition onlyNot part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 15,
+      "label": "Rooftop fanWritten onlyNotesCompleted + photoCompleted, no photoBlocked / no accessNot completedCondition onlyNot part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 16,
+      "label": "Grease pathWritten onlyNotesCompleted + photoCompleted, no photoBlocked / no accessNot completedCondition onlyNot part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 17,
+      "label": "HoodNotesCompleted + photoCompleted, no photoBlocked / no accessNot completedCondition onlyNot part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 18,
+      "label": "DuctNotesCompleted + photoCompleted, no photoBlocked / no accessNot completedCondition onlyNot part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 19,
+      "label": "FanNotesCompleted + photoCompleted, no photoBlocked / no accessNot completedCondition onlyNot part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    },
+    {
+      "i": 20,
+      "label": "GreaseNotesCompleted + photoCompleted, no photoBlocked / no accessNot completedCondition onlyNot part of this job",
+      "name": "",
+      "placeholder": "",
+      "tag": "SELECT",
+      "type": "select-one",
+      "value": "done-no-photo"
+    }
+  ],
+  "reviewButtons": [
+    {
+      "href": "http://127.0.0.1:8096/",
+      "i": 0,
+      "tag": "A",
+      "text": "KITCHENPERMIT"
+    },
+    {
+      "href": "http://127.0.0.1:8096/",
+      "i": 1,
+      "tag": "A",
+      "text": "Home"
+    },
+    {
+      "href": "http://127.0.0.1:8096/axis-1",
+      "i": 2,
+      "tag": "A",
+      "text": "Service Report"
+    },
+    {
+      "href": "http://127.0.0.1:8096/samples/axis-1",
+      "i": 3,
+      "tag": "A",
+      "text": "Sample"
+    },
+    {
+      "href": "http://127.0.0.1:8096/resources",
+      "i": 4,
+      "tag": "A",
+      "text": "Resources"
+    },
+    {
+      "href": "http://127.0.0.1:8096/pricing",
+      "i": 5,
+      "tag": "A",
+      "text": "Pricing"
+    },
+    {
+      "href": "http://127.0.0.1:8096/dashboard",
+      "i": 6,
+      "tag": "A",
+      "text": "Account"
+    },
+    {
+      "href": "http://127.0.0.1:8096/company-version",
+      "i": 7,
+      "tag": "A",
+      "text": "Company Reports"
+    },
+    {
+      "href": null,
+      "i": 8,
+      "tag": "BUTTON",
+      "text": "Menu"
+    },
+    {
+      "href": "http://127.0.0.1:8096/axis-1/tool",
+      "i": 9,
+      "tag": "A",
+      "text": "K Kitchen PERMIT"
+    },
+    {
+      "href": null,
+      "i": 10,
+      "tag": "BUTTON",
+      "text": "1 PHOTOS & NOTES"
+    },
+    {
+      "href": null,
+      "i": 11,
+      "tag": "BUTTON",
+      "text": "2 REVIEW REPORT Required"
+    },
+    {
+      "href": null,
+      "i": 12,
+      "tag": "BUTTON",
+      "text": "3 OUTPUTS"
+    },
+    {
+      "href": null,
+      "i": 13,
+      "tag": "BUTTON",
+      "text": "MENU"
+    },
+    {
+      "href": null,
+      "i": 14,
+      "tag": "BUTTON",
+      "text": "FREE"
+    },
+    {
+      "href": null,
+      "i": 15,
+      "tag": "BUTTON",
+      "text": "COMPANY"
+    },
+    {
+      "href": "http://127.0.0.1:8096/dashboard",
+      "i": 16,
+      "tag": "A",
+      "text": "OPEN ACCOUNT"
+    },
+    {
+      "href": null,
+      "i": 17,
+      "tag": "BUTTON",
+      "text": "1. Photos & notesOptionalAdd photos and notesDrop job photos or one short note. The builder drafts a customer-ready service report from there."
+    },
+    {
+      "href": null,
+      "i": 18,
+      "tag": "BUTTON",
+      "text": "2. Review reportRequiredReview service summaryFix only wrong or uncertain parts in the preview."
+    },
+    {
+      "href": null,
+      "i": 19,
+      "tag": "BUTTON",
+      "text": "3. OutputsLockedPreview link and PDFCheck the service report link and PDF copy before using the paid company version."
+    },
+    {
+      "href": null,
+      "i": 20,
+      "tag": "BUTTON",
+      "text": "CHOOSE RESULT"
+    },
+    {
+      "href": null,
+      "i": 21,
+      "tag": "BUTTON",
+      "text": "STANDARD Hood cleaning Hood, duct, fan, and grease path expected."
+    },
+    {
+      "href": null,
+      "i": 22,
+      "tag": "BUTTON",
+      "text": "HOOD + FAN Full exhaust path Use when fan and duct were part of the visit."
+    },
+    {
+      "href": null,
+      "i": 23,
+      "tag": "BUTTON",
+      "text": "FILTERS ONLY Filter service Only hood/filter work is expected."
+    },
+    {
+      "href": null,
+      "i": 24,
+      "tag": "BUTTON",
+      "text": "FAN ONLY Rooftop fan Fan and rooftop grease path only."
+    },
+    {
+      "href": null,
+      "i": 25,
+      "tag": "BUTTON",
+      "text": "ACCESS REVISIT Blocked area return Only the access path is expected."
+    },
+    {
+      "href": null,
+      "i": 26,
+      "tag": "BUTTON",
+      "text": "CONDITION ONLY Record condition No cleaning completion is assumed."
+    },
+    {
+      "href": null,
+      "i": 27,
+      "tag": "BUTTON",
+      "text": "COMPLETED Completed Included work completed; no customer action needed. RECOMMENDED"
+    },
+    {
+      "href": null,
+      "i": 28,
+      "tag": "BUTTON",
+      "text": "BLOCKED / NO ACCESS Completed where reachable One area needs access, revisit, or area clarification."
+    },
+    {
+      "href": null,
+      "i": 29,
+      "tag": "BUTTON",
+      "text": "CONDITION FOUND Service done, condition noted Condition should drive quote, revisit, or next-service follow-up."
+    },
+    {
+      "href": null,
+      "i": 30,
+      "tag": "BUTTON",
+      "text": "SHOW LESS"
+    },
+    {
+      "href": null,
+      "i": 31,
+      "tag": "BUTTON",
+      "text": "CHOOSE RESULT"
+    },
+    {
+      "href": null,
+      "i": 32,
+      "tag": "BUTTON",
+      "text": "JOB BASICS REQUIRED Needed before output: customer, site, reviewer Add real customer details before creating a link or PDF. The tool will not send untouched defaults. HIDE"
+    },
+    {
+      "href": null,
+      "i": 33,
+      "tag": "BUTTON",
+      "text": "CHANGE IF NEEDED"
+    },
+    {
+      "href": null,
+      "i": 34,
+      "tag": "BUTTON",
+      "text": "Continue to Outputs"
+    },
+    {
+      "href": null,
+      "i": 35,
+      "tag": "BUTTON",
+      "text": "Record details"
+    },
+    {
+      "href": null,
+      "i": 36,
+      "tag": "BUTTON",
+      "text": "Today's resultCompleted: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or s"
+    },
+    {
+      "href": null,
+      "i": 37,
+      "tag": "BUTTON",
+      "text": "Report statusNo responsibility boundary can be shown until the visit outcome is selected.Shown as closedEdit line"
+    },
+    {
+      "href": null,
+      "i": 38,
+      "tag": "BUTTON",
+      "text": "Customer next stepSelect what happened today before the tool writes a customer next action.Default next stepEdit line"
+    },
+    {
+      "href": null,
+      "i": 39,
+      "tag": "BUTTON",
+      "text": "Photo / documentationWritten service recordWritten service recordEdit photos"
+    },
+    {
+      "href": null,
+      "i": 40,
+      "tag": "BUTTON",
+      "text": "Next serviceAug 12-17, 202690 days selectedEdit timing"
+    },
+    {
+      "href": null,
+      "i": 41,
+      "tag": "BUTTON",
+      "text": "CompletedCompletedSuggested"
+    },
+    {
+      "href": null,
+      "i": 42,
+      "tag": "BUTTON",
+      "text": "Blocked / no accessCompleted where reachablePick if true"
+    },
+    {
+      "href": null,
+      "i": 43,
+      "tag": "BUTTON",
+      "text": "Condition foundService done, condition notedPick if true"
+    },
+    {
+      "href": null,
+      "i": 44,
+      "tag": "BUTTON",
+      "text": "Standard"
+    },
+    {
+      "href": null,
+      "i": 45,
+      "tag": "BUTTON",
+      "text": "Hood + fan"
+    },
+    {
+      "href": null,
+      "i": 46,
+      "tag": "BUTTON",
+      "text": "Filters only"
+    },
+    {
+      "href": null,
+      "i": 47,
+      "tag": "BUTTON",
+      "text": "Fan only"
+    },
+    {
+      "href": null,
+      "i": 48,
+      "tag": "BUTTON",
+      "text": "Access revisit"
+    },
+    {
+      "href": null,
+      "i": 49,
+      "tag": "BUTTON",
+      "text": "Condition only"
+    },
+    {
+      "href": null,
+      "i": 50,
+      "tag": "BUTTON",
+      "text": "No photos?Review written recordCreate the written service record first, then fix only wrong or uncertain parts."
+    },
+    {
+      "href": null,
+      "i": 51,
+      "tag": "BUTTON",
+      "text": "Review written record"
+    },
+    {
+      "href": null,
+      "i": 52,
+      "tag": "BUTTON",
+      "text": "Review record"
+    },
+    {
+      "href": null,
+      "i": 53,
+      "tag": "BUTTON",
+      "text": "Reset quick mode"
+    },
+    {
+      "href": null,
+      "i": 54,
+      "tag": "BUTTON",
+      "text": "Print / save PDF"
+    },
+    {
+      "href": null,
+      "i": 55,
+      "tag": "BUTTON",
+      "text": "Copy customer link"
+    },
+    {
+      "href": null,
+      "i": 56,
+      "tag": "BUTTON",
+      "text": "Copy customer linkConfirm result first"
+    },
+    {
+      "href": null,
+      "i": 57,
+      "tag": "BUTTON",
+      "text": "Save service report PDFPDF record from the same service record."
+    },
+    {
+      "href": null,
+      "i": 58,
+      "tag": "BUTTON",
+      "text": "Today's resultAdjustCompleted: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete"
+    },
+    {
+      "href": null,
+      "i": 59,
+      "tag": "BUTTON",
+      "text": "Report statusAdjustNo responsibility boundary can be shown until the visit outcome is selected.Shown as closed"
+    },
+    {
+      "href": null,
+      "i": 60,
+      "tag": "BUTTON",
+      "text": "Customer next stepAdjustSelect what happened today before the tool writes a customer next action.Default next step"
+    },
+    {
+      "href": null,
+      "i": 61,
+      "tag": "BUTTON",
+      "text": "Customer link"
+    },
+    {
+      "href": null,
+      "i": 62,
+      "tag": "BUTTON",
+      "text": "Service report PDF"
+    },
+    {
+      "href": null,
+      "i": 63,
+      "tag": "BUTTON",
+      "text": "Copy customer link"
+    },
+    {
+      "href": null,
+      "i": 64,
+      "tag": "BUTTON",
+      "text": "Edit customer wording"
+    },
+    {
+      "href": null,
+      "i": 65,
+      "tag": "BUTTON",
+      "text": "Copy customer link"
+    },
+    {
+      "href": null,
+      "i": 66,
+      "tag": "BUTTON",
+      "text": "Open link"
+    },
+    {
+      "href": null,
+      "i": 67,
+      "tag": "BUTTON",
+      "text": "Save PDF layout"
+    },
+    {
+      "href": null,
+      "i": 68,
+      "tag": "BUTTON",
+      "text": "Customer link"
+    },
+    {
+      "href": null,
+      "i": 69,
+      "tag": "BUTTON",
+      "text": "Service report PDF"
+    },
+    {
+      "href": null,
+      "i": 70,
+      "tag": "BUTTON",
+      "text": "Customer linkPrimary outputWeb report - best for customer clarity, follow-up items, and reply."
+    },
+    {
+      "href": null,
+      "i": 71,
+      "tag": "BUTTON",
+      "text": "PDF / printPDF copyFormal service report PDF - best for archive, attachment, print, and outside record requests."
+    },
+    {
+      "href": null,
+      "i": 72,
+      "tag": "BUTTON",
+      "text": "Copy link"
+    },
+    {
+      "href": null,
+      "i": 73,
+      "tag": "BUTTON",
+      "text": "Open"
+    },
+    {
+      "href": null,
+      "i": 74,
+      "tag": "BUTTON",
+      "text": "Full PDF"
+    },
+    {
+      "href": null,
+      "i": 75,
+      "tag": "BUTTON",
+      "text": "Short PDF"
+    },
+    {
+      "href": null,
+      "i": 80,
+      "tag": "BUTTON",
+      "text": "Use shorter wording"
+    },
+    {
+      "href": null,
+      "i": 81,
+      "tag": "BUTTON",
+      "text": "Restore recommended copy"
+    },
+    {
+      "href": null,
+      "i": 82,
+      "tag": "BUTTON",
+      "text": "Use saved company info"
+    },
+    {
+      "href": null,
+      "i": 83,
+      "tag": "BUTTON",
+      "text": "Report history"
+    },
+    {
+      "href": null,
+      "i": 84,
+      "tag": "BUTTON",
+      "text": "Customer link"
+    },
+    {
+      "href": null,
+      "i": 85,
+      "tag": "BUTTON",
+      "text": "Service report PDF"
+    },
+    {
+      "href": "http://127.0.0.1:8096/axis-1/tool?account=company&step=review#report-top",
+      "i": 86,
+      "tag": "A",
+      "text": "AQHSummit Fire Hood CleaningService report link"
+    },
+    {
+      "href": "http://127.0.0.1:8096/axis-1/tool?account=company&step=review#summary",
+      "i": 87,
+      "tag": "A",
+      "text": "Summary"
+    },
+    {
+      "href": "http://127.0.0.1:8096/axis-1/tool?account=company&step=review#record",
+      "i": 88,
+      "tag": "A",
+      "text": "Record"
+    },
+    {
+      "href": "http://127.0.0.1:8096/axis-1/tool?account=company&step=review#contact",
+      "i": 89,
+      "tag": "A",
+      "text": "Contact"
+    },
+    {
+      "href": null,
+      "i": 90,
+      "tag": "BUTTON",
+      "text": "PDF"
+    },
+    {
+      "href": "tel:5125550148",
+      "i": 91,
+      "tag": "A",
+      "text": "Contact service team"
+    },
+    {
+      "href": null,
+      "i": 92,
+      "tag": "BUTTON",
+      "text": "Menu"
+    },
+    {
+      "href": "tel:5125550148",
+      "i": 93,
+      "tag": "A",
+      "text": "Contact service team"
+    },
+    {
+      "href": null,
+      "i": 94,
+      "tag": "BUTTON",
+      "text": "PDF copy"
+    },
+    {
+      "href": "tel:5125550148",
+      "i": 95,
+      "tag": "A",
+      "text": "Contact to confirm next service"
+    },
+    {
+      "href": null,
+      "i": 96,
+      "tag": "BUTTON",
+      "text": "Save PDF copy"
+    },
+    {
+      "href": null,
+      "i": 97,
+      "tag": "BUTTON",
+      "text": "HD/FL · Step 01Hood canopy and filtersCompleted from notesHood body, baffle filters, tracks, and nearby grease collection points were included in this visit. Completed from service"
+    },
+    {
+      "href": null,
+      "i": 98,
+      "tag": "BUTTON",
+      "text": "PL/DK · Step 02Plenum, duct path, and accessCompleted from notesReachable plenum, duct path, and access points were included instead of stopping at the visible hood face. Completed"
+    },
+    {
+      "href": null,
+      "i": 99,
+      "tag": "BUTTON",
+      "text": "RF-01 · Step 03Rooftop fanCompleted from notesRooftop fan, hinge/curb, belt/pulley visibility, and discharge-area status were included in the service record. Completed from service"
+    },
+    {
+      "href": null,
+      "i": 100,
+      "tag": "BUTTON",
+      "text": "GC-01 · Step 04Grease path and containmentCompleted from notesGrease path, grease cups, containment, drip points, buckets, or roof grease trail were included in the service record."
+    },
+    {
+      "href": null,
+      "i": 101,
+      "tag": "BUTTON",
+      "text": "Save PDF copy"
+    },
+    {
+      "href": "tel:5125550148",
+      "i": 102,
+      "tag": "A",
+      "text": "Contact to confirm next service"
+    },
+    {
+      "href": "tel:5125550148",
+      "i": 103,
+      "tag": "A",
+      "text": "Contact service team"
+    },
+    {
+      "href": null,
+      "i": 104,
+      "tag": "BUTTON",
+      "text": "PDF copy"
+    },
+    {
+      "href": null,
+      "i": 105,
+      "tag": "BUTTON",
+      "text": "Add photos"
+    },
+    {
+      "href": null,
+      "i": 106,
+      "tag": "BUTTON",
+      "text": "Choose result"
+    },
+    {
+      "href": "http://127.0.0.1:8096/company-version",
+      "i": 107,
+      "tag": "A",
+      "text": "Set Up Company Reports"
+    },
+    {
+      "href": "http://127.0.0.1:8096/axis-1",
+      "i": 108,
+      "tag": "A",
+      "text": "Service Report"
+    },
+    {
+      "href": "http://127.0.0.1:8096/samples/axis-1",
+      "i": 109,
+      "tag": "A",
+      "text": "Sample"
+    },
+    {
+      "href": "http://127.0.0.1:8096/resources",
+      "i": 110,
+      "tag": "A",
+      "text": "Resources"
+    },
+    {
+      "href": "http://127.0.0.1:8096/hood-cleaning-service-report-template",
+      "i": 111,
+      "tag": "A",
+      "text": "Report Template"
+    },
+    {
+      "href": "http://127.0.0.1:8096/send-hood-cleaning-report-after-service",
+      "i": 112,
+      "tag": "A",
+      "text": "After Service"
+    },
+    {
+      "href": "http://127.0.0.1:8096/pricing",
+      "i": 113,
+      "tag": "A",
+      "text": "Pricing"
+    },
+    {
+      "href": "http://127.0.0.1:8096/company-version",
+      "i": 114,
+      "tag": "A",
+      "text": "Company Reports"
+    },
+    {
+      "href": "http://127.0.0.1:8096/start",
+      "i": 115,
+      "tag": "A",
+      "text": "Design Help"
+    },
+    {
+      "href": "http://127.0.0.1:8096/start",
+      "i": 116,
+      "tag": "A",
+      "text": "Request Support"
+    },
+    {
+      "href": "http://127.0.0.1:8096/terms",
+      "i": 117,
+      "tag": "A",
+      "text": "Terms"
+    },
+    {
+      "href": "http://127.0.0.1:8096/privacy",
+      "i": 118,
+      "tag": "A",
+      "text": "Privacy"
+    },
+    {
+      "href": "http://127.0.0.1:8096/refund-policy",
+      "i": 119,
+      "tag": "A",
+      "text": "Refund Policy"
+    }
+  ]
+}

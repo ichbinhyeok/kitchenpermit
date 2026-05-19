@@ -1,6 +1,11 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
 import {
   IconAlertTriangleFilled,
@@ -104,6 +109,13 @@ const defaultSections: CustomerWebPacketSectionVisibility = {
 
 function cx(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function isPublicSamplePacket(data: Axis1PacketPreviewData) {
+  return (
+    data.reportUrl.includes("/p/sample-") ||
+    data.sampleFooter.some(([label]) => /^sample variant$/i.test(label))
+  );
 }
 
 function hexToRgb(hex: string) {
@@ -487,6 +499,75 @@ function getLocalEvidencePdfHref() {
 
   currentUrl.searchParams.set("format", "pdf");
   return `${currentUrl.pathname}${currentUrl.search}`;
+}
+
+function PublicSampleBanner() {
+  return (
+    <div
+      id="public-sample-note"
+      className="pdf-print-hide scroll-mt-20 border-b border-[#f2d3bd] bg-[#fff4ea] px-5 py-3 text-[#5f2b14] sm:px-8 lg:px-10"
+    >
+      <div className="mx-auto flex max-w-[1180px] flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-[#c8581e]">
+          Public sample
+        </p>
+        <p className="min-w-0 max-w-3xl break-words text-sm font-semibold leading-6">
+          <span className="sm:hidden">
+            Sample details. Actions do not contact a real vendor.
+          </span>
+          <span className="hidden sm:inline">
+            Example company details. Real records use the vendor&apos;s reply,
+            call, and PDF flows.
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function PublicSampleActionNotice({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div
+      className="pdf-print-hide fixed inset-0 z-[220] grid place-items-center bg-[#080a0c]/76 px-4 backdrop-blur-sm print:hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="public-sample-action-title"
+    >
+      <div className="w-full max-w-[440px] rounded-[28px] border border-white/12 bg-[#f7efe4] p-5 text-[#111315] shadow-[0_32px_110px_rgba(0,0,0,0.42)]">
+        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#c8581e]">
+          Public sample
+        </p>
+        <h2
+          id="public-sample-action-title"
+          className="mt-3 text-3xl font-black leading-none tracking-normal"
+        >
+          This sample does not contact the service company.
+        </h2>
+        <p className="mt-4 text-sm font-semibold leading-7 text-[#665c53]">
+          Live customer records can open the vendor&apos;s reply, call, revisit,
+          or PDF flow. This public sample only shows the restaurant-facing
+          closeout format.
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#111315] px-4 text-sm font-black text-white"
+        >
+          Continue viewing
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function getRowValue(rows: readonly (readonly [string, string])[], labels: string[]) {
@@ -2011,8 +2092,10 @@ export function CustomerWebPacket({
   editConfig,
 }: CustomerWebPacketProps) {
   const [showMobileDock, setShowMobileDock] = useState(false);
+  const [publicSampleNoticeOpen, setPublicSampleNoticeOpen] = useState(false);
   const HeroHeading = heroHeadingLevel;
   const sections = { ...defaultSections, ...visibleSections };
+  const isPublicSample = isPublicSamplePacket(data);
   const isShort = presentationMode === "short";
   const closeoutOutcomeType = data.closeout?.outcomeType;
   const isBlockedAccessOutcome = closeoutOutcomeType === "blocked_access";
@@ -2068,7 +2151,7 @@ export function CustomerWebPacket({
   ].filter(([, value]) => value.trim().length > 0);
   const resultSubcopy = customerCopy(previewResultEditValue || data.packetHeader.copy);
   const mobileResultSubcopy = isBlockedAccessOutcome
-    ? "Reachable work was completed. The blocked area is listed separately and is not presented as cleaned."
+    ? "Reachable work was completed. Blocked access stays separate."
     : isConditionReviewOutcome
       ? "Service was completed. One recorded condition is listed for follow-up or next-service planning."
       : hasAttachedPhotos
@@ -2133,7 +2216,8 @@ export function CustomerWebPacket({
         ? conditionHeadline
         : "Ready for records";
   const hasVendorPhone = data.vendor.directLine.trim().length > 0;
-  const vendorPhoneHref = hasVendorPhone
+  const canUseVendorPhone = hasVendorPhone && !isPublicSample;
+  const vendorPhoneHref = canUseVendorPhone
     ? `tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`
     : undefined;
   const vendorBrandColor =
@@ -2189,10 +2273,12 @@ export function CustomerWebPacket({
     }, [])
     .slice(0, 6);
   const scopeGroups = groupScopeRows([...data.componentStatusRows]);
-  const primaryCtaHref =
-    primaryCta?.href ??
-    vendorPhoneHref;
-  const primaryCtaEnabled = primaryCta?.href
+  const primaryCtaHref = isPublicSample
+    ? "#public-sample-note"
+    : primaryCta?.href ?? vendorPhoneHref;
+  const primaryCtaEnabled = isPublicSample
+    ? true
+    : primaryCta?.href
     ? primaryCta.enabled
     : Boolean(primaryCtaHref);
   const primaryCtaReason =
@@ -2291,6 +2377,39 @@ export function CustomerWebPacket({
     };
   }, []);
 
+  useEffect(() => {
+    if (!isPublicSample) {
+      return undefined;
+    }
+
+    const handlePublicSampleClick = (event: globalThis.MouseEvent) => {
+      const target = event.target;
+
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const link = target.closest("a");
+      const href = link?.getAttribute("href") ?? "";
+
+      if (
+        href === "#sample-action" ||
+        href === "#public-sample-note" ||
+        href.startsWith("tel:")
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        setPublicSampleNoticeOpen(true);
+      }
+    };
+
+    document.addEventListener("click", handlePublicSampleClick, true);
+
+    return () => {
+      document.removeEventListener("click", handlePublicSampleClick, true);
+    };
+  }, [isPublicSample]);
+
   return (
     <article
       id="report-top"
@@ -2309,9 +2428,10 @@ export function CustomerWebPacket({
         primaryCtaEnabled={primaryCtaEnabled}
         pdfServiceRecordHref={pdfServiceRecordHref}
         onEvidencePdfAction={handleEvidencePdfAction}
-        hasVendorPhone={hasVendorPhone}
+        hasVendorPhone={canUseVendorPhone}
         compactReport={isCompactReport}
       />
+      {isPublicSample ? <PublicSampleBanner /> : null}
       <div className="h-1.5 w-full" style={{ backgroundColor: vendorBrandColor }} />
       <section
         className={cx(
@@ -2461,7 +2581,7 @@ export function CustomerWebPacket({
             <p className="mt-5 hidden max-w-2xl text-base leading-7 text-white/72 lg:block">
               {resultSubcopy}
             </p>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-white/68 lg:hidden">
+            <p className="mt-4 max-w-[20rem] text-sm leading-6 text-white/68 lg:hidden">
               {mobileResultSubcopy}
             </p>
 
@@ -2478,7 +2598,7 @@ export function CustomerWebPacket({
               accessRevisitWindow={accessRevisitWindow}
               nextServiceWindow={nextServiceWindow}
               hasOpenAccessItem={hasOpenAccessItem}
-              hasVendorPhone={hasVendorPhone}
+              hasVendorPhone={canUseVendorPhone}
             />
 
             <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-[22px] border border-white/13 bg-white/[0.075] backdrop-blur-xl sm:grid-cols-4">
@@ -2538,7 +2658,7 @@ export function CustomerWebPacket({
                   </>
                 )}
               </Button>
-              {hasVendorPhone && !primaryCtaUsesPhoneFallback ? (
+              {canUseVendorPhone && !primaryCtaUsesPhoneFallback ? (
                 <Button
                   asChild
                   variant="outline"
@@ -3131,7 +3251,7 @@ export function CustomerWebPacket({
                     <a href={primaryCtaHref}>{primaryCtaLabel}</a>
                   </Button>
                 ) : null}
-                {hasVendorPhone && !primaryCtaUsesPhoneFallback ? (
+                {canUseVendorPhone && !primaryCtaUsesPhoneFallback ? (
                   <Button
                     asChild
                     variant="outline"
@@ -3412,6 +3532,10 @@ export function CustomerWebPacket({
           )}
         </div>
       </div>
+      <PublicSampleActionNotice
+        open={publicSampleNoticeOpen}
+        onClose={() => setPublicSampleNoticeOpen(false)}
+      />
     </article>
   );
 }

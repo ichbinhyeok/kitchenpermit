@@ -1,0 +1,87 @@
+{
+  "consoleErrors": [],
+  "failedRequests": [],
+  "checks": [
+    {
+      "name": "builder heading is declare-first",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "declare step visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "normal no-photo path visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "copy link action enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "copy text action enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "copy email action enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "save pdf action enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "saved customer report uses public report route",
+      "ok": true,
+      "detail": "http://127.0.0.1:8097/p/server?reportId=2026eaade9ac4e1e92"
+    },
+    {
+      "name": "react pdf route renders service record",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "pricing has first report setup CTA",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "company version prioritizes first report setup",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile declare heading available",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile no-photo normal path available",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "urls": {
+    "customerReport": "http://127.0.0.1:8097/p/server?reportId=2026eaade9ac4e1e92",
+    "reactPdf": "http://127.0.0.1:8097/p/server?reportId=2026eaade9ac4e1e92&format=pdf"
+  },
+  "screenshots": {
+    "tool-declare-desktop": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-49-02-609Z\\tool-declare-desktop.png",
+    "tool-send-actions-desktop": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-49-02-609Z\\tool-send-actions-desktop.png",
+    "tool-copy-text-boundary-modal": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-49-02-609Z\\tool-copy-text-boundary-modal.png",
+    "tool-generated-link": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-49-02-609Z\\tool-generated-link.png",
+    "react-pdf-service-record": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-49-02-609Z\\react-pdf-service-record.png",
+    "pricing-first-report-setup": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-49-02-609Z\\pricing-first-report-setup.png",
+    "company-version-first-report-setup": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-49-02-609Z\\company-version-first-report-setup.png",
+    "tool-declare-mobile": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-49-02-609Z\\tool-declare-mobile.png"
+  },
+  "shotDir": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-49-02-609Z",
+  "generatedAt": "2026-05-19T07:49:10.380Z"
+}

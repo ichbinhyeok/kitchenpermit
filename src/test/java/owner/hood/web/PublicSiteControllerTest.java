@@ -84,7 +84,7 @@ class PublicSiteControllerTest {
         );
         assertStaticResourceContains(
                 "static/axis-1/tool.html",
-                "Add photos and notes",
+                "Tell Axis 1 what happened.",
                 "Free builder: no login, neutral test link, no company logo/contact"
         );
     }

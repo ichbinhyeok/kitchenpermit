@@ -128,9 +128,9 @@ public class Axis1AccountStorageApiController {
         profile.setAccountEmail(accountEmail.get());
         profile.setCompanyName(clean(body.get("companyName"), "Acme Hood Cleaning", 90));
         profile.setServiceArea(clean(body.get("serviceArea"), "Austin, TX | kitchen exhaust service", 120));
-        profile.setDirectLine(clean(body.get("directLine"), "(555) 014-2201", 40));
+        profile.setDirectLine(clean(body.get("directLine"), "", 40));
         profile.setDispatchEmail(clean(body.get("dispatchEmail"), "dispatch@acmehood.example", 120));
-        profile.setAfterHoursPhone(clean(body.get("afterHoursPhone"), "(555) 014-2209", 40));
+        profile.setAfterHoursPhone(clean(body.get("afterHoursPhone"), "", 40));
         profile.setCertification(clean(body.get("certification"), "Service license / certification", 90));
         profile.setTechnicianLabel(clean(body.get("technicianLabel"), "Technician / crew", 72));
         profile.setBrandInitials(cleanBrandInitials(body.get("brandInitials"), profile.getCompanyName()));

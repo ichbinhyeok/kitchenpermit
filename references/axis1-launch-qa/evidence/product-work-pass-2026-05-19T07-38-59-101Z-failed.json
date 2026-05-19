@@ -1,0 +1,28 @@
+{
+  "consoleErrors": [],
+  "failedRequests": [],
+  "checks": [
+    {
+      "name": "builder heading is declare-first",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "declare step visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "normal no-photo path visible",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "urls": {},
+  "screenshots": {
+    "tool-declare-desktop": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-38-59-101Z\\tool-declare-desktop.png"
+  },
+  "shotDir": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-38-59-101Z",
+  "generatedAt": "2026-05-19T07:39:10.270Z",
+  "error": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Copy customer link').first() to be visible\u001b[22m\n\u001b[2m    24 × locator resolved to hidden <button type=\"button\" data-slot=\"button\" data-size=\"default\" data-variant=\"default\" class=\"inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-…>…</button>\u001b[22m\n\n    at [stdin]:40:54"
+}

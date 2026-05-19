@@ -1,0 +1,64 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - paragraph [ref=e5]: Service report PDF / Company
+        - paragraph [ref=e6]: Clean retained PDF, no watermark. Print or save this PDF as the retained service copy.
+      - button "Save as PDF" [ref=e8]:
+        - img
+        - text: Save as PDF
+    - article [ref=e10]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]
+          - complementary [ref=e27]
+        - generic [ref=e90]:
+          - generic [ref=e91]
+          - generic [ref=e94]
+          - generic [ref=e97]
+          - generic [ref=e100]
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - generic [ref=e106]
+          - paragraph [ref=e111]: Prepared for customer files, manager review, landlord, insurance, or documentation requests. It identifies the property, service provider, service date, completed areas, excluded areas, photo status, label details, and retained-copy trail.
+          - generic [ref=e113]
+        - generic [ref=e144]:
+          - paragraph [ref=e145]: Service scope and status
+          - heading "Completed areas, exclusions, and evidence stay separated." [level=3] [ref=e146]
+          - generic [ref=e148]
+          - generic [ref=e191]
+          - generic [ref=e198]
+      - generic [ref=e202]:
+        - generic [ref=e203]:
+          - paragraph [ref=e204]: Record index
+          - generic [ref=e205]
+        - generic [ref=e218]:
+          - generic [ref=e219]
+          - generic [ref=e257]
+          - generic [ref=e274]
+          - generic [ref=e297]
+          - generic [ref=e317]
+      - generic [ref=e339]:
+        - paragraph [ref=e340]: Frequency basis
+        - generic [ref=e342]:
+          - generic [ref=e343]
+          - generic [ref=e346]
+          - generic [ref=e349]
+          - generic [ref=e352]
+          - generic [ref=e355]
+          - generic [ref=e358]
+      - generic [ref=e362]:
+        - generic [ref=e363]:
+          - generic [ref=e364]
+          - paragraph [ref=e370]: Review the noted condition and contact the service team if you want a follow-up quote before the next service window. This is a written service record, photo evidence is not attached to this visit. Recorded conditions and follow-up paths are separate from this cleaning record.
+          - generic [ref=e372]
+        - generic [ref=e385]:
+          - generic [ref=e386]
+          - generic [ref=e394]
+          - generic [ref=e419]
+        - generic [ref=e422]:
+          - paragraph [ref=e423]: Customer file note
+          - heading "The service record has a clear trail." [level=3] [ref=e424]
+          - generic [ref=e426]
+  - region "Notifications alt+T"
+  - alert [ref=e445]

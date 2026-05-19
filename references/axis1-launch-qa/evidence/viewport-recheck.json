@@ -1,0 +1,97 @@
+[
+  {
+    "slug": "home-viewport",
+    "path": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\home-viewport.png",
+    "vis": {
+      "styles": [
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(255, 255, 255)",
+          "display": "block",
+          "opacity": "1",
+          "rect": {
+            "h": 357.625,
+            "w": 1024,
+            "x": 20,
+            "y": 154.5
+          },
+          "text": "Send a restaurant-ready service report after every hood cleaning job."
+        }
+      ],
+      "topText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE RESOURCES PRICING ACCOUNT LOGIN Company Reports FOR HOOD CLEANING COMPANIES Send a restaurant-ready service report after every hood cleaning job. Turn job photos, blocked access notes, and next actions into one branded link/PDF the restaurant can save for inspection records. Try free builder View sample report Set up company reports Free: No login. Unbranded 7-day test link and watermarked PDF. Company: $79/mo. Your logo/contact, clean PDFs, live links, and history. SAMPLE SERVICE REPORT FROM THE FIELD What the crew sends in JOB PHOTOS Hood, filter, fan, and access photos OPEN ITEM Rear access panel blocked NEXT ACTION Clear access before the next visit WHAT THE RESTAURANT GETS One report, ready to save WORK RESULT Reachable hood, filters, and duct path cleaned PHOTO EVIDENCE Before/after photos grouped by hood area OPEN ITEM Blocked access kept separate from completed work SAVED COPY Link/PDF for inspection records AFTER SERVICE The cleaning is",
+      "url": "http://127.0.0.1:8096/"
+    }
+  },
+  {
+    "slug": "samples-axis-1-viewport",
+    "path": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\samples-axis-1-viewport.png",
+    "vis": {
+      "styles": [
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(255, 255, 255)",
+          "display": "block",
+          "opacity": "1",
+          "rect": {
+            "h": 551.015625,
+            "w": 536.84375,
+            "x": 20,
+            "y": 128.5
+          },
+          "text": "See the branded service report a restaurant receives."
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(255, 255, 255)",
+          "display": "block",
+          "opacity": "1",
+          "rect": {
+            "h": 545.2578125,
+            "w": 617.21875,
+            "x": 61,
+            "y": 1529.015625
+          },
+          "text": "Reachable work completed.\n1 area needs your action."
+        },
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(255, 255, 255)",
+          "display": "block",
+          "opacity": "1",
+          "rect": {
+            "h": 259.0625,
+            "w": 726.2265625,
+            "x": 41,
+            "y": 12184.96875
+          },
+          "text": "A branded service report, exactly as the restaurant would receive it."
+        }
+      ],
+      "topText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE RESOURCES PRICING ACCOUNT LOGIN Company Reports SAMPLE REPORT See the branded service report a restaurant receives. This is the link and PDF a restaurant can save after service, with the result, photos, open items, and next action in one place. RESTAURANT VIEW Opens result, photos, and next action. INSPECTION PDF Saves a copy with inspection records. Open restaurant view See PDF copy Use this under my company name HL Summit Hood Service Co. Sent to Sample Restaurant Group APR 24 RESULT Reachable work completed. OPEN ITEM 1 area needs customer action. PHOTO EVIDENCE Photos support the record. INSPECTION COPY Inspection-ready PDF. Service date Included Customer action Included Photo evidence Included File it with inspection records. SAMPLE RESTAURANT VIEW Below is the sample report a restaurant would receive: the view they open, plus the PDF they save for inspection. kitchenpermit.com/p/summit/restaurant-view RESTAURANT VIEW INSPECTION PDF Summit ",
+      "url": "http://127.0.0.1:8096/samples/axis-1"
+    }
+  },
+  {
+    "slug": "axis-1-viewport",
+    "path": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\axis-1-viewport.png",
+    "vis": {
+      "styles": [
+        {
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(17, 17, 17)",
+          "display": "block",
+          "opacity": "1",
+          "rect": {
+            "h": 476.90625,
+            "w": 486.8984375,
+            "x": 75.5,
+            "y": 191.5
+          },
+          "text": "Send a branded service report after every hood cleaning job."
+        }
+      ],
+      "topText": "KITCHENPERMIT HOME SERVICE REPORT SAMPLE RESOURCES PRICING ACCOUNT LOGIN Company Reports FOR HOOD SERVICE VENDORS Send a branded service report after every hood cleaning job. Restaurant clients get one clean link/PDF they can save for inspections, with photos, open items, and the next action. VIEW SAMPLE REPORT SET UP COMPANY REPORTS See how this would look for my company Try free builder BRANDED SERVICE REPORT INSPECTION-READY PDF CLEAR OPEN-ITEM RECORD BRANDED SERVICE REPORT + PDF Restaurant-ready service report BRANDED RECORD Vendor logo, contact, job result, and PDF copy in one report. INSPECTION FILE Restaurant client can save the link/PDF with service reports. NEXT ACTION Photos, open items, and the next service step stay clear. NEXT STEP Clear the blocked area or confirm the next visit window. WHY VENDORS PAY The customer can understand the job and save the record for files. WHAT CHANGES AFTER EACH VISIT The customer should not need a callback to understand the job. The visit en",
+      "url": "http://127.0.0.1:8096/axis-1"
+    }
+  }
+]

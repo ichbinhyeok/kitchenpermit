@@ -1,0 +1,826 @@
+{
+  "url": "http://127.0.0.1:8096/axis-1/tool?account=company&step=outputs",
+  "shotInitial": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\tool-company-outputs-direct.png",
+  "textInitial": "K Kitchen PERMIT 1 PHOTOS & NOTES 2 REVIEW REPORT 3 OUTPUTS Locked MENU COMPANY VERSION COMPANY ACCESS ACTIVE Company mode: Summit Fire Hood Cleaning details are applied. Reports save to history and customer links/PDFs stay available after creation. (512) 555-0148 / service@summithood.test FREE COMPANY OPEN ACCOUNT RESULT REQUIRED Confirm a result before outputs are generated. WHAT HAPPENS NEXT Waiting for selected result: pick a result before sending. WAITING ON CUSTOMER DETAILS Add job basics to create the report Customer, site, date, reviewer, and system details must be real before a link or PDF is generated. 0 READY 3 REVIEW 1 CHECKS Copy customer link Confirm result first Save service report PDF PDF record from the same service record. SERVICE AREAS Change status here; every output updates from the same service record. Hood / filters WRITTEN ONLY NOTES Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Duct / access path WRITTEN ONLY NOTES Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Rooftop fan WRITTEN ONLY NOTES Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Grease path WRITTEN ONLY NOTES Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job OUTPUT ITEMS One service record, multiple customer, PDF, revisit, quote, and next-service uses. Service report link Vendor must declare the job result before the customer report link and PDF are generated. REVIEW PDF copy Vendor must declare the job result before the customer report link and PDF are generated. REVIEW Follow-up quote copy No condition follow-up can be selected before the result is declared. N/A Revisit copy No revisit action can be selected before the result is declared. N/A Next-service copy Vendor must declare the job result before the customer report link and PDF are generated. N/A Vendor send check Select the service result before outputs are created. REVIEW NEXT CLEANING / FOLLOW-UP Turns the same service record into rebook, revisit, quote, or monitor action. Schedule next cleaning Clear access or follow-up before using normal rebook copy. REVIEW Schedule revisit after access is clear No revisit request is needed for the current result. N/A Send follow-up quote No quoted condition is selected. N/A Monitor condition No monitor-only condition is selected. N/A Select today's service result before generating a link or PDF. CUSTOMER LINK PREVIEW BRANDED CUSTOMER-READY OUTPUT Branded customer link from this job Company mode uses your saved company logo/contact and keeps paid service report links available after creation. Current mode: Saved logo, report color, and contact details, Retained restaurant report links, Clean retained PDF, no watermark, Customer history and follow-up reminders. Company version: saved branding, clean retained PDF, retained report links, and account history. USE SAVED COMPANY INFO REPORT HISTORY Customer link Service report PDF AQH Summit Fire Hood Cleaning SERVICE REPORT LINK SUMMARY RECORD CONTACT PDF Contact service team AQH Summit Fire Hood Cleaning Austin, TX | Restaurant hood cleaning May 19, 2026 Ready for records SERVICE REPORT Service completed. Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. RESULT Pick result DOCUMENTATION Written record CUSTOMER ACTION Contact service team PDF COPY Record copy Contact to confirm next service Save PDF copy DOCUMENTATION Written service record PDF COPY Record copy for archive, submission, or print. CUSTOMER NEXT STEP Select what happened today before the tool writes a customer next action. WHAT THIS SERVICE COVERED Hood canopy and filters Reachable plenum, duct path, and access Rooftop fan and roof discharge Grease path and containment Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. RESULT Pick result DOCUMENTATION Written record CUSTOMER ACTION Contact service team PDF COPY Record copy MAY 19 SERVICE RESULT Here's the bottom line. This page keeps completed work, written service documentation, and the next step easy to understand without another explanation call. COMPLETED THIS VISIT Completed areas are listed by area. Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. NO BLOCKED AREA No blocked area remained at the end of the visit. The service can be kept with kitchen exhaust maintenance records. CUSTOMER ACTION Pick result first Select what happened today before the tool writes a customer next action. RECORD NOTE Keep the PDF copy with kitchen exhaust files. The PDF copy is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work. SERVICE COVERAGE What this service covered Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. Service Closeout Record. Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. COVERED Hood canopy and filters Hood bo",
+  "visibleControlsInitial": [
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/axis-1",
+      "i": 2,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "A",
+      "text": "Service Report",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/company-version",
+      "i": 7,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "A",
+      "text": "Company Reports",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/axis-1/tool",
+      "i": 9,
+      "rect": {
+        "h": 48,
+        "w": 110.515625,
+        "x": 59.5,
+        "y": 33
+      },
+      "tag": "A",
+      "text": "K Kitchen PERMIT",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 10,
+      "rect": {
+        "h": 44,
+        "w": 306.078125,
+        "x": 186.015625,
+        "y": 35
+      },
+      "tag": "BUTTON",
+      "text": "1 PHOTOS & NOTES",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 11,
+      "rect": {
+        "h": 44,
+        "w": 306.0859375,
+        "x": 496.09375,
+        "y": 35
+      },
+      "tag": "BUTTON",
+      "text": "2 REVIEW REPORT",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 12,
+      "rect": {
+        "h": 44,
+        "w": 306.078125,
+        "x": 806.1796875,
+        "y": 35
+      },
+      "tag": "BUTTON",
+      "text": "3 OUTPUTS Locked",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 13,
+      "rect": {
+        "h": 44,
+        "w": 77.2421875,
+        "x": 1128.2578125,
+        "y": 35
+      },
+      "tag": "BUTTON",
+      "text": "MENU",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 14,
+      "rect": {
+        "h": 40,
+        "w": 59.3125,
+        "x": 907.546875,
+        "y": 147.5
+      },
+      "tag": "BUTTON",
+      "text": "FREE",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 15,
+      "rect": {
+        "h": 40,
+        "w": 89.96875,
+        "x": 974.859375,
+        "y": 147.5
+      },
+      "tag": "BUTTON",
+      "text": "COMPANY",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/dashboard",
+      "i": 16,
+      "rect": {
+        "h": 40,
+        "w": 132.671875,
+        "x": 1072.828125,
+        "y": 147.5
+      },
+      "tag": "A",
+      "text": "OPEN ACCOUNT",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 17,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "1. Photos & notesOptionalAdd photos and notesDrop job photos or one short note. The builder drafts a customer-ready service report from there.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 18,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "2. Review reportRequiredReview service summaryFix only wrong or uncertain parts in the preview.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 19,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "3. OutputsLockedPreview link and PDFCheck the service report link and PDF copy before using the paid company version.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 27,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "CompletedCompletedIncluded work completed; no customer action needed.Recommended",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 32,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Job basicsRequiredNeeded before output: customer, site, reviewerAdd real customer details before creating a link or PDF. The tool will not send untouched defaults.Add details",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 34,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Continue to Outputs",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 37,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Report statusNo responsibility boundary can be shown until the visit outcome is selected.Shown as closedEdit line",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 38,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer next stepSelect what happened today before the tool writes a customer next action.Default next stepEdit line",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 54,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Print / save PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 55,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy customer link",
+      "visible": false
+    },
+    {
+      "disabled": true,
+      "href": null,
+      "i": 56,
+      "rect": {
+        "h": 76,
+        "w": 380.125,
+        "x": 54,
+        "y": 470.40625
+      },
+      "tag": "BUTTON",
+      "text": "Copy customer link Confirm result first",
+      "visible": true
+    },
+    {
+      "disabled": true,
+      "href": null,
+      "i": 57,
+      "rect": {
+        "h": 76,
+        "w": 249.359375,
+        "x": 443.71875,
+        "y": 470.40625
+      },
+      "tag": "BUTTON",
+      "text": "Save service report PDF PDF record from the same service record.",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 59,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Report statusAdjustNo responsibility boundary can be shown until the visit outcome is selected.Shown as closed",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 60,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer next stepAdjustSelect what happened today before the tool writes a customer next action.Default next step",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 61,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 62,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Service report PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 63,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 65,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Report statusEdit lineNo responsibility boundary can be shown until the visit outcome is selected.Shown as closed",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 66,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer next stepEdit lineSelect what happened today before the tool writes a customer next action.Default next step",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 69,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 70,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Save PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 71,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Edit customer-safe copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 72,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 73,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Open link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 74,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Save PDF layout",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 75,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 76,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Service report PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 77,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer linkPrimary outputWeb report - best for customer clarity, follow-up items, and reply.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 78,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "PDF / printPDF copyFormal service report PDF - best for archive, attachment, print, and outside record requests.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 79,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 80,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Open",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 81,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Full PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 82,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Short PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 88,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Restore recommended copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 89,
+      "rect": {
+        "h": 36,
+        "w": 192.6640625,
+        "x": 67,
+        "y": 1406.015625
+      },
+      "tag": "BUTTON",
+      "text": "USE SAVED COMPANY INFO",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 90,
+      "rect": {
+        "h": 36,
+        "w": 132.1875,
+        "x": 267.6640625,
+        "y": 1406.015625
+      },
+      "tag": "BUTTON",
+      "text": "REPORT HISTORY",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 91,
+      "rect": {
+        "h": 36,
+        "w": 133,
+        "x": 923,
+        "y": 1323.515625
+      },
+      "tag": "BUTTON",
+      "text": "Customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 92,
+      "rect": {
+        "h": 36,
+        "w": 133,
+        "x": 1060,
+        "y": 1323.515625
+      },
+      "tag": "BUTTON",
+      "text": "Service report PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/axis-1/tool?account=company&step=outputs#report-top",
+      "i": 93,
+      "rect": {
+        "h": 48,
+        "w": 234.484375,
+        "x": 106,
+        "y": 1504.015625
+      },
+      "tag": "A",
+      "text": "AQH Summit Fire Hood Cleaning SERVICE REPORT LINK",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 97,
+      "rect": {
+        "h": 40,
+        "w": 67.078125,
+        "x": 869.3203125,
+        "y": 1508.015625
+      },
+      "tag": "BUTTON",
+      "text": "PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 101,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "PDF copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 103,
+      "rect": {
+        "h": 48,
+        "w": 149.8125,
+        "x": 384.5546875,
+        "y": 2187.2265625
+      },
+      "tag": "BUTTON",
+      "text": "Save PDF copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 108,
+      "rect": {
+        "h": 44,
+        "w": 147.8125,
+        "x": 137,
+        "y": 8327.34375
+      },
+      "tag": "BUTTON",
+      "text": "Save PDF copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 111,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "PDF copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/company-version",
+      "i": 112,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "A",
+      "text": "Set Up Company Reports",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/axis-1",
+      "i": 113,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "A",
+      "text": "Service Report",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/hood-cleaning-service-report-template",
+      "i": 116,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "A",
+      "text": "Report Template",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/company-version",
+      "i": 119,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "A",
+      "text": "Company Reports",
+      "visible": false
+    }
+  ],
+  "copyLinkCount": 5,
+  "beforeClipboard": "",
+  "copyClickError": "Timed out after 3000ms waiting for selector button >> internal:has-text=\"Copy customer link\"i >> nth=4: Browser Use encountered an error interacting with this webpage: Error: Element is not visible\n    at <anonymous>:203:767\n    at <anonymous>:203:1372\n    at <anonymous>:204:11\nwaiting on click for selector button >> internal:has-text=\"Copy customer link\"i >> nth=4",
+  "afterCopyShot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\tool-company-outputs-after-copy.png",
+  "afterCopyText": "K Kitchen PERMIT 1 PHOTOS & NOTES 2 REVIEW REPORT 3 OUTPUTS Locked MENU COMPANY VERSION COMPANY ACCESS ACTIVE Company mode: Summit Fire Hood Cleaning details are applied. Reports save to history and customer links/PDFs stay available after creation. (512) 555-0148 / service@summithood.test FREE COMPANY OPEN ACCOUNT RESULT REQUIRED Confirm a result before outputs are generated. WHAT HAPPENS NEXT Waiting for selected result: pick a result before sending. WAITING ON CUSTOMER DETAILS Add job basics to create the report Customer, site, date, reviewer, and system details must be real before a link or PDF is generated. 0 READY 3 REVIEW 1 CHECKS Copy customer link Confirm result first Save service report PDF PDF record from the same service record. SERVICE AREAS Change status here; every output updates from the same service record. Hood / filters WRITTEN ONLY NOTES Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Duct / access path WRITTEN ONLY NOTES Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Rooftop fan WRITTEN ONLY NOTES Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Grease path WRITTEN ONLY NOTES Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job OUTPUT ITEMS One service record, multiple customer, PDF, revisit, quote, and next-service uses. Service report link Vendor must declare the job result before the customer report link and PDF are generated. REVIEW PDF copy Vendor must declare the job result before the customer report link and PDF are generated. REVIEW Follow-up quote copy No condition follow-up can be selected before the result is declared. N/A Revisit copy No revisit action can be selected before the result is declared. N/A Next-service copy Vendor must declare the job result before the customer report link and PDF are generated. N/A Vendor send check Select the service result before outputs are created. REVIEW NEXT CLEANING / FOLLOW-UP Turns the same service record into rebook, revisit, quote, or monitor action. Schedule next cleaning Clear access or follow-up before using normal rebook copy. REVIEW Schedule revisit after access is clear No revisit request is needed for the current result. N/A Send follow-up quote No quoted condition is selected. N/A Monitor condition No monitor-only condition is selected. N/A Select today's service result before generating a link or PDF. CUSTOMER LINK PREVIEW BRANDED CUSTOMER-READY OUTPUT Branded customer link from this job Company mode uses your saved company logo/contact and keeps paid service report links available after creation. Current mode: Saved logo, report color, and contact details, Retained restaurant report links, Clean retained PDF, no watermark, Customer history and follow-up reminders. Company version: saved branding, clean retained PDF, retained report links, and account history. USE SAVED COMPANY INFO REPORT HISTORY Customer link Service report PDF AQH Summit Fire Hood Cleaning SERVICE REPORT LINK SUMMARY RECORD CONTACT PDF Contact service team AQH Summit Fire Hood Cleaning Austin, TX | Restaurant hood cleaning May 19, 2026 Ready for records SERVICE REPORT Service completed. Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. RESULT Pick result DOCUMENTATION Written record CUSTOMER ACTION Contact service team PDF COPY Record copy Contact to confirm next service Save PDF copy DOCUMENTATION Written service record PDF COPY Record copy for archive, submission, or print. CUSTOMER NEXT STEP Select what happened today before the tool writes a customer next action. WHAT THIS SERVICE COVERED Hood canopy and filters Reachable plenum, duct path, and access Rooftop fan and roof discharge Grease path and containment Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. RESULT Pick result DOCUMENTATION Written record CUSTOMER ACTION Contact service team PDF COPY Record copy MAY 19 SERVICE RESULT Here's the bottom line. This page keeps completed work, written service documentation, and the next step easy to understand without another explanation call. COMPLETED THIS VISIT Completed areas are listed by area. Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. NO BLOCKED AREA No blocked area remained at the end of the visit. The service can be kept with kitchen exhaust maintenance records. CUSTOMER ACTION Pick result first Select what happened today before the tool writes a customer next action. RECORD NOTE Keep the PDF copy with kitchen exhaust files. The PDF copy is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work. SERVICE COVERAGE What this service covered Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. Service Closeout Record. Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. COVERED Hood canopy and filters Hood body, baffle filters, tracks, and nearby grease collection points were included in this visit. Completed from service notes, no field photo is attached for this area. COVERED Reachable plenum, duct path, and access Reachable plenum, duct path, and access points were included instead of stopping at the visible hood face. Completed from service notes, no field photo is attached for this area. COVERED Rooftop fan and roof discharge Rooftop fan, hinge/curb, belt/pulley visibility, and discharge-area s",
+  "afterClipboard": "",
+  "logs": []
+}

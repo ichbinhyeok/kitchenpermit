@@ -1,0 +1,133 @@
+{
+  "reportId": "2ebf30e7c3ab4db98b",
+  "signOutCount": 1,
+  "afterSignOutUrl": "http://127.0.0.1:8096/login?signed_out=1",
+  "afterSignOutText": "KITCHENPERMIT FREE BUILDER KITCHENPERMIT ACCOUNT Report history after sign-in Company Sign in to manage saved service records. Account keeps company details, restaurant-ready links, PDF copies, and next-service dates connected to each job. AFTER SIGN-IN Account stores the company version Company profile Name, phone, service area, logo, and customer-facing accent color. Saved service records Restaurant links and retained PDF copies stay connected to each job. Next-service queue Upcoming service dates and open items are easier to find after login. Company profile, customer links, and retained PDF copies stay tied to the service history. SIGN IN Account access Use the same account that stores company details and service report history. COMPANY Signed out Use Google or email/password to return to your account workspace. Continue with Google EMAIL PASSWORD LOG IN CREATE ACCOUNT WORK EMAIL PASSWORD FORGOT PASSWORD? Log in Account manages company output Free builder stays open. Sign in to man",
+  "checks": [
+    {
+      "name": "customer",
+      "url": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b",
+      "shot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\anon-customer.png",
+      "state": {
+        "brokenImages": [],
+        "buttons": [
+          {
+            "disabled": false,
+            "i": 0,
+            "text": "CONFIRM RECEIVED"
+          },
+          {
+            "disabled": false,
+            "i": 1,
+            "text": "Menu"
+          }
+        ],
+        "links": [
+          {
+            "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b#report-top",
+            "i": 0,
+            "text": "AQH Summit Fire Hood Cleaning SERVICE REPORT"
+          },
+          {
+            "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b#summary",
+            "i": 1,
+            "text": "RESULT"
+          },
+          {
+            "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b#record",
+            "i": 2,
+            "text": "RECORD"
+          },
+          {
+            "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b&format=pdf",
+            "i": 3,
+            "text": "PDF"
+          },
+          {
+            "href": "tel:5125550148",
+            "i": 4,
+            "text": "Contact after clearing access"
+          },
+          {
+            "href": "tel:5125550148",
+            "i": 5,
+            "text": "Contact after clearing access"
+          },
+          {
+            "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b&format=pdf",
+            "i": 6,
+            "text": "PDF copy"
+          },
+          {
+            "href": "tel:5125550148",
+            "i": 7,
+            "text": "Contact after clearing access"
+          },
+          {
+            "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b&format=pdf",
+            "i": 8,
+            "text": "Open PDF copy"
+          },
+          {
+            "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b&format=pdf",
+            "i": 9,
+            "text": "Open PDF copy"
+          },
+          {
+            "href": "tel:5125550148",
+            "i": 10,
+            "text": "Contact after clearing access"
+          },
+          {
+            "href": "tel:5125550148",
+            "i": 11,
+            "text": "Contact after clearing access"
+          },
+          {
+            "href": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b&format=pdf",
+            "i": 12,
+            "text": "PDF copy"
+          }
+        ],
+        "text": "RECEIPT CONFIRMATION Confirm that this service report was received and can be kept with kitchen exhaust service records. CONFIRM RECEIVED AQH Summit Fire Hood Cleaning SERVICE REPORT RESULT RECORD PDF Contact after clearing access AQH Summit Fire Hood Cleaning Austin, TX | Restaurant hood cleaning May 19, 2026 1 area needs your action SERVICE REPORT Property: Cedar & 5th Grill Location: Austin, TX Reviewed: Maria Lopez, manager Reachable work completed. 1 area needs your action. Completed: Hood canopy and filters, Rooftop fan and roof discharge, Grease path and containment. Blocked / no access: Reachable plenum, duct path, and access. This is a written service record, so photos are not implied. RESULT Action needed DOCUMENTATION Access record CUSTOMER ACTION Contact after clearing access PDF COPY Record copy Contact after clearing access Open PDF copy CUSTOMER NEXT STEP Move the stored equipment or obstruction away from the access point, then contact the service team so a revisit can be scheduled. MAY 19 SERVICE RESULT Service result. Completed work, customer action, and the PDF copy are kept together for restaurant records. COMPLETED THIS VISIT Completed areas are listed by area. Completed: Hood canopy and filters, Rooftop fan and roof discharge, Grease path and containment. Blocked / no access: Reachable plenum, duct path, and access. This is a written service record, so photos are not implied. NEEDS CUSTOMER ACTION Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit. Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit. This area is not listed as cleaned until the follow-up condition is cleared. CUSTOMER ACTION Clear access, then schedule revisit Move the stored equipment or obstruction away from the access point, then contact the service team so a revisit can be scheduled. RECORD NOTE Keep the PDF copy with kitchen exhaust files. The PDF copy is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work. BLOCKED AREA This area was not completed because access was blocked. Completed work and blocked access are separated, so this visit is not mistaken for full-access service. CUSTOMER ACTION Clear the access path and contact the service team so dispatch can schedule a revisit or close the next window cleanly. Area Rear duct access panel Status Not shown as completed Reason Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit. Follow-up Open Keep this record. Keep this record with your kitchen exhaust maintenance files. It includes the service date, completed areas, photo status, blocked or not-completed areas, and recommended next service window. A PDF copy is available for files, manager review, insurance, or documentation requests. It stays separate from corrective or follow-up work. Open PDF copy Access revisit and routine window. Clear the blocked access area, then contact the service team. They will confirm the access revisit before scheduling. The routine service window stays separate. Access revisit After rear duct access is cleared Next routine service Aug 12-17, 2026 Reason Current grease load and line volume support a 90-day cycle. Customer action Move the stored equipment or obstruction away from the access point, then contact the service team so a revisit can be scheduled. Contact after clearing access Summit Fire Hood Cleaning This link summarizes this service visit from the service provider's records. Use the PDF copy as the retained copy for files, manager review, insurance, landlord, or documentation requests. A manager, landlord, insurer, or reviewer may still apply their own requirements, and separate corrective or follow-up work needs a separate go-ahead.",
+        "title": "Hosted Service Report Link | KitchenPermit",
+        "url": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b"
+      },
+      "logs": []
+    },
+    {
+      "name": "pdf",
+      "url": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b&format=pdf",
+      "shot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\anon-pdf.png",
+      "state": {
+        "brokenImages": [],
+        "buttons": [
+          {
+            "disabled": false,
+            "i": 0,
+            "text": "SAVE AS PDF"
+          }
+        ],
+        "links": [],
+        "text": "SERVICE REPORT PDF / COMPANY Clean retained PDF, no watermark. Print or save this PDF as the retained service copy. SAVE AS PDF AQH Summit Fire Hood Cleaning Austin, TX | Restaurant hood cleaning CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Cedar & 5th Grill AUSTIN, TX / MAY 19, 2026 / REPORT SR-2EBF30E7 Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Action item visible Service date May 19, 2026 Location Austin, TX System Kitchen exhaust system Today's result Completed with open access exception Report ID SR-2EBF30E7 Documentation Written record Report type Access Issue Record Documentation support Written service record Photo status No photos attached Customer next step contact the service team after clearing access Visit type Hood cleaning What this service covered Completed: Hood canopy and filters, Rooftop fan and roof discharge, Grease path and containment. Blocked / no access: Reachable plenum, duct path, and access. This is a written service record, so photos are not implied. Areas completed Hood canopy and filters, Rooftop fan and roof discharge, Grease path and containment Recorded for follow-up None recorded Blocked / no access Reachable plenum, duct path, and access Not completed None recorded Not part of this visit None recorded Needs review None recorded DIRECT LINE (512) 555-0148 DISPATCH service@summithood.test CREDENTIAL Service license / certification AFTER-HOURS After-hours phone REPORT IDENTIFICATION Service record for retained files. Excluded area listed Prepared for customer files, manager review, landlord, insurance, or documentation requests. It identifies the property, service provider, service date, completed areas, excluded areas, photo status, label details, and retained-copy trail. Record type Kitchen exhaust service report PDF copy Report ID SR-2EBF30E7 Customer / property Cedar & 5th Grill Service location Austin, TX System reference SYS-01 / Kitchen exhaust system Service date / window May 19, 2026 | Service visit Service provider Summit Fire Hood Cleaning Person performing work Technician / crew Result Completed with documented exception Photo status Written record, no photos attached SERVICE SCOPE AND STATUS Completed areas, exclusions, and evidence stay separated. Service outcome Completed with excluded area listed Areas completed / cleaned Hood canopy and filters, Rooftop fan and roof discharge, Grease path and containment Areas not cleaned / excluded Plenum, duct path, and access Customer action item Clear the access path and contact the service team so dispatch can schedule a revisit or close the next window cleanly. Exception / condition Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit. Reachable service path Accessible sections completed, excluded area listed separately Line served Kitchen exhaust system Duct / access Not completed - inaccessible - Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit. This area is not listed as cleaned until the follow-up condition is cleared. Rooftop fan Completed from notes - Rooftop fan, hinge/curb, belt/pulley visibility, and discharge-area status were included in the service record. Completed from service notes, no field photo is attached for this area. Grease path Completed from notes - Grease path, grease cups, containment, drip points, buckets, or roof grease trail were included in the service record. Completed from service notes, no field photo is attached for this area. Photo status Written record, no photos attached Service label / notice open item photo Next service window Aug 12-17, 2026 Reviewer note Manager, landlord, insurer, or AHJ may apply separate requirements TECHNICIAN Technician / crew COMPANY CREDENTIAL Service license / certification PREPARED BY / SIGNATURE Summit Fire Hood Cleaning | Technician / crew - electronically prepared service record RECORD INDEX IDENTITY Provider, worker, customer, location, system, date, report ID AREAS Hood, filters, duct/access, fan, grease path, excluded areas EVIDENCE Photo status, component status, label ref, retained archive BOUNDARY Separate from corrective work and outside reviewer requirements DOCUMENT CONTROL Identifiers and retained copies. Report ID SR-2EBF30E7 Document title Kitchen exhaust service report Prepared date May 19, 2026 Service date / window May 19, 2026 | Service visit Servicing company Summit Fire Hood Cleaning Person performing work Technician / crew System reference SYS-01 / Kitchen exhaust system Service provider archive Retained Customer copy PDF service report copy Photo archive No photos attached Service label / sticker ref open item photo CUSTOMER / PROPERTY FIELDS Fields used for record requests. Customer / property Cedar & 5th Grill Service location Austin, TX System SYS-01 / Kitchen exhaust system Line / area served Kitchen exhaust system SUBMISSION USE What this record can and cannot support. Use for Customer records, manager review, landlord, insurance, or documentation requests Does not authorize Separate corrective or follow-up work Reviewer boundary Manager, landlord, insurer, or AHJ may apply separate requirements Record source Service facts and route status recorded by the service provider, no photos attached Area limit Blocked or inaccessible areas are excluded until access is provided Premises copy Maintain this record with kitchen exhaust service records SERVICE LABEL / STICKER Field label details tied to the service record. Label / sticker reference open item photo Label status Yes - service date + report reference Posted location Kitchen area / serviced hood system Date cleaned May 19, 2026 Next due Aug 17, 2026 EXCLUDED AREAS Any area outside completed work. Area service area Rear duct access panel Reason Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit. Status Open Required action Clear the access path and contact the service team so dispatch can schedule a revisit or close the next window cleanly. Revisit condition After access is clear and customer replies FREQUENCY BASIS Cooking line type Main Type I cookline Observed grease load Moderate to heavy Operating pattern High-volume dinner service Recommended interval 90-day cycle Next service window Aug 12-17, 2026 Interval note Current grease load and line volume support a 90-day cycle. NEXT SERVICE / CUSTOMER ACTION Clear access, then schedule revisit Move the stored equipment or obstruction away from the access point, then contact the service team so a revisit can be scheduled. This is a written service record, photo evidence is not attached to this visit. Inaccessible areas are listed separately and a",
+        "title": "Hosted Service Report Link | KitchenPermit",
+        "url": "http://127.0.0.1:8096/p/server?reportId=2ebf30e7c3ab4db98b&format=pdf"
+      },
+      "logs": []
+    },
+    {
+      "name": "missing",
+      "url": "http://127.0.0.1:8096/p/server?reportId=missing-report-id",
+      "shot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\anon-missing.png",
+      "state": {
+        "brokenImages": [],
+        "buttons": [],
+        "links": [],
+        "text": "HOSTED SERVICE REPORT LINK UNAVAILABLE This saved report could not be loaded. Open the builder and create a fresh service report if this link was deleted or never finished saving.",
+        "title": "Hosted Service Report Link | KitchenPermit",
+        "url": "http://127.0.0.1:8096/p/server?reportId=missing-report-id"
+      },
+      "logs": []
+    }
+  ]
+}

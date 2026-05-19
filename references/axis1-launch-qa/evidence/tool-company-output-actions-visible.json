@@ -1,0 +1,24 @@
+{
+  "afterResultShot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\tool-company-after-result-current.png",
+  "scrolledShot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\tool-company-output-actions-visible.png",
+  "scrolledState": {
+    "scrollY": 1321.5,
+    "text": "K Kitchen PERMIT 1 PHOTOS & NOTES 2 REVIEW REPORT Blocked / no access 3 OUTPUTS MENU COMPANY VERSION COMPANY ACCESS ACTIVE Company mode: Summit Fire Hood Cleaning details are applied. Reports save to history and customer links/PDFs stay available after creation. (512) 555-0148 / service@summithood.test FREE COMPANY OPEN ACCOUNT REVIEW REPORT Review the service report. Read it like the customer will. Change only wrong statuses; every output updates together. CONFIRM RESULT Result is set. Change only if the visit outcome is wrong. CHANGED BY YOU COMPLETED Completed RECOMMENDED BLOCKED / NO ACCESS Completed where reachable SELECTED CONDITION FOUND Service done, condition noted Current result: You changed the suggested answer. The report now follows your selected result. OPTIONAL NOTE Leave blank to keep the default record wording. 164/220 ADVANCED DETAILS CUSTOMER-STYLE REPORT PREVIEW Confirm written service record Edit the status chips inside this preview. Service report link, PDF, follow-up, revisit, and next-service copy all use the same record. 0 PHOTO AREAS 4 NOTES-ONLY AREAS STANDARD CUSTOMER-READY COPY Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. Move the stored equipment or obstruction away from the access point, then reply so a revisit can be scheduled. WRITTEN RECORD VENDOR NOTE NEEDS PLACEMENT Duct looks blocked \"Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit.\" is saved, but it is not yet reflected in an area status. APPLY TO DUCT AS BLOCKED NOTES-BASED RECORD Hood, Duct, Fan, Grease have no photo. The report will use service notes for these areas. Change any area that was blocked, skipped, or not part of this visit. USE WRITTEN RECORD Hood / filters COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Duct / access path COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Rooftop fan COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Grease path COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Label / notice NOT PART OF THIS JOB This area stays out of the customer message. SEPARATE CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job SHOW LESS OUTPUTS READY Everything below comes from this service record. Customer-safe wording follows area status. TODAY'S RESULT Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. EDIT LINE ACCESS NOTE Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit. EDIT LINE CUSTOMER NEXT STEP Move the stored equipment or obstruction away from the access point, then reply so a revisit can be scheduled. EDIT LINE JOB BASICS Cedar & 5th Grill - 2026-05-19 These details appear on the customer link, PDF, and saved history. HIDE PROPERTY / CUSTOMER SITE / CITY SERVICE DATE AUTHORIZED BY NEXT VISIT 90 days window CHANGE IF NEEDED Default next window selected. Change only when this visit needs a different schedule.",
+    "visibleButtons": [
+      {
+        "disabled": false,
+        "href": null,
+        "i": 31,
+        "rect": {
+          "h": 40,
+          "w": 170.7265625,
+          "x": 891.7734375,
+          "y": 27
+        },
+        "tag": "BUTTON",
+        "text": "USE WRITTEN RECORD",
+        "visible": true
+      }
+    ]
+  }
+}

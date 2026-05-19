@@ -1,0 +1,262 @@
+{
+  "checkedAt": "2026-05-19T10:25:06.121Z",
+  "base": "https://kitchenpermit.com",
+  "results": [
+    {
+      "pagePath": "/",
+      "url": "https://kitchenpermit.com/",
+      "responseStatus": 200,
+      "title": "Service reports for hood cleaning jobs | KitchenPermit",
+      "h1s": [
+        "Send a restaurant-ready service report after every hood cleaning job."
+      ],
+      "criteria": {
+        "https": true,
+        "productDescription": true,
+        "pricingVisible": true,
+        "featuresVisible": true,
+        "termsLink": true,
+        "privacyLink": true,
+        "refundLink": true,
+        "checkoutOrPaddleMention": true,
+        "brokenImages": 0
+      },
+      "linkCount": 32,
+      "images": [
+        {
+          "src": "https://kitchenpermit.com/images/packet-proof/ai-baffle-filters.jpg",
+          "alt": "Clean baffle filters after kitchen exhaust service",
+          "complete": true,
+          "naturalWidth": 900,
+          "naturalHeight": 900
+        }
+      ],
+      "consoleMessages": [],
+      "requestFailures": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\home-desktop.png"
+    },
+    {
+      "pagePath": "/company-version",
+      "url": "https://kitchenpermit.com/company-version",
+      "responseStatus": 200,
+      "title": "Company Version | KitchenPermit",
+      "h1s": [
+        "Save your company info once. Send every report under your name."
+      ],
+      "criteria": {
+        "https": true,
+        "productDescription": true,
+        "pricingVisible": true,
+        "featuresVisible": true,
+        "termsLink": true,
+        "privacyLink": true,
+        "refundLink": true,
+        "checkoutOrPaddleMention": true,
+        "brokenImages": 0
+      },
+      "linkCount": 26,
+      "images": [],
+      "consoleMessages": [],
+      "requestFailures": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\company-version-desktop.png"
+    },
+    {
+      "pagePath": "/pricing",
+      "url": "https://kitchenpermit.com/pricing",
+      "responseStatus": 200,
+      "title": "Pricing | KitchenPermit",
+      "h1s": [
+        "Free builder. $79/mo company version."
+      ],
+      "criteria": {
+        "https": true,
+        "productDescription": true,
+        "pricingVisible": true,
+        "featuresVisible": true,
+        "termsLink": true,
+        "privacyLink": true,
+        "refundLink": true,
+        "checkoutOrPaddleMention": true,
+        "brokenImages": 0
+      },
+      "linkCount": 32,
+      "images": [],
+      "consoleMessages": [],
+      "requestFailures": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\pricing-desktop.png"
+    },
+    {
+      "pagePath": "/terms",
+      "url": "https://kitchenpermit.com/terms",
+      "responseStatus": 200,
+      "title": "Terms of Service | KitchenPermit",
+      "h1s": [
+        "Terms of Service"
+      ],
+      "criteria": {
+        "https": true,
+        "productDescription": true,
+        "pricingVisible": false,
+        "featuresVisible": true,
+        "termsLink": true,
+        "privacyLink": true,
+        "refundLink": true,
+        "checkoutOrPaddleMention": true,
+        "brokenImages": 0
+      },
+      "linkCount": 22,
+      "images": [],
+      "consoleMessages": [],
+      "requestFailures": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\terms-desktop.png"
+    },
+    {
+      "pagePath": "/privacy",
+      "url": "https://kitchenpermit.com/privacy",
+      "responseStatus": 200,
+      "title": "Privacy Policy | KitchenPermit",
+      "h1s": [
+        "Privacy Policy"
+      ],
+      "criteria": {
+        "https": true,
+        "productDescription": true,
+        "pricingVisible": false,
+        "featuresVisible": true,
+        "termsLink": true,
+        "privacyLink": true,
+        "refundLink": true,
+        "checkoutOrPaddleMention": true,
+        "brokenImages": 0
+      },
+      "linkCount": 22,
+      "images": [],
+      "consoleMessages": [],
+      "requestFailures": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\privacy-desktop.png"
+    },
+    {
+      "pagePath": "/refund-policy",
+      "url": "https://kitchenpermit.com/refund-policy",
+      "responseStatus": 200,
+      "title": "Refund Policy | KitchenPermit",
+      "h1s": [
+        "Refund Policy"
+      ],
+      "criteria": {
+        "https": true,
+        "productDescription": true,
+        "pricingVisible": false,
+        "featuresVisible": true,
+        "termsLink": true,
+        "privacyLink": true,
+        "refundLink": true,
+        "checkoutOrPaddleMention": true,
+        "brokenImages": 0
+      },
+      "linkCount": 22,
+      "images": [],
+      "consoleMessages": [],
+      "requestFailures": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\refund-policy-desktop.png"
+    },
+    {
+      "pagePath": "/login?next=%2Fcompany-version",
+      "url": "https://kitchenpermit.com/login?next=%2Fcompany-version",
+      "responseStatus": 200,
+      "title": "Account Login | KitchenPermit",
+      "h1s": [
+        "Sign in to manage saved service records."
+      ],
+      "criteria": {
+        "https": true,
+        "productDescription": true,
+        "pricingVisible": false,
+        "featuresVisible": true,
+        "termsLink": false,
+        "privacyLink": false,
+        "refundLink": false,
+        "checkoutOrPaddleMention": true,
+        "brokenImages": 0
+      },
+      "linkCount": 5,
+      "images": [],
+      "consoleMessages": [],
+      "requestFailures": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\login-next-2Fcompany-version-desktop.png"
+    },
+    {
+      "pagePath": "/api/billing/paddle/config",
+      "url": "https://kitchenpermit.com/api/billing/paddle/config",
+      "responseStatus": 200,
+      "title": "",
+      "h1s": [],
+      "criteria": {
+        "https": true,
+        "productDescription": false,
+        "pricingVisible": false,
+        "featuresVisible": false,
+        "termsLink": false,
+        "privacyLink": false,
+        "refundLink": false,
+        "checkoutOrPaddleMention": true,
+        "brokenImages": 0
+      },
+      "linkCount": 0,
+      "images": [],
+      "consoleMessages": [],
+      "requestFailures": [],
+      "screenshot": null
+    }
+  ],
+  "mobileFindings": [
+    {
+      "pagePath": "/",
+      "status": 200,
+      "horizontalOverflow": false,
+      "bodyStart": "KITCHENPERMIT FOR HOOD CLEANING COMPANIES Send a restaurant-ready service report after every hood cleaning job. Turn job photos, blocked access notes, and next actions into one branded link/PDF the restaurant can save",
+      "warnings": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\home-mobile.png"
+    },
+    {
+      "pagePath": "/company-version",
+      "status": 200,
+      "horizontalOverflow": false,
+      "bodyStart": "KITCHENPERMIT COMPANY VERSION // $79/MO Save your company info once. Send every report under your name. The paid path for saved company details, clean inspection PDFs, live service report links, customer history, and ",
+      "warnings": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\company-version-mobile.png"
+    },
+    {
+      "pagePath": "/pricing",
+      "status": 200,
+      "horizontalOverflow": false,
+      "bodyStart": "KITCHENPERMIT PRICING Free builder. $79/mo company version. The free builder proves the output. The company version is the paid product: company logo/contact, clean PDF, live restaurant report links, customer history, a",
+      "warnings": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\pricing-mobile.png"
+    },
+    {
+      "pagePath": "/terms",
+      "status": 200,
+      "horizontalOverflow": false,
+      "bodyStart": "KITCHENPERMIT LEGAL Terms of Service Last updated: May 13, 2026. These terms describe the rules for usingKitchenPermit and its paid subscription features. 1. Service KitchenPermit provides software that helps kitche",
+      "warnings": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\terms-mobile.png"
+    },
+    {
+      "pagePath": "/privacy",
+      "status": 200,
+      "horizontalOverflow": false,
+      "bodyStart": "KITCHENPERMIT LEGAL Privacy Policy Last updated: May 13, 2026. This policy explains how KitchenPermit handles information for its SaaS report builder and hosted report links. Information We Collect We collect accoun",
+      "warnings": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\privacy-mobile.png"
+    },
+    {
+      "pagePath": "/refund-policy",
+      "status": 200,
+      "horizontalOverflow": false,
+      "bodyStart": "KITCHENPERMIT LEGAL Refund Policy Last updated: May 13, 2026. This policy explains how subscription cancellations and refund requests are handled. Subscription Refunds If you believe a charge was made in error, cont",
+      "warnings": [],
+      "screenshot": "C:\\Development\\Owner\\hood\\references\\paddle-live-readiness\\refund-policy-mobile.png"
+    }
+  ]
+}

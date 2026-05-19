@@ -1,0 +1,57 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - paragraph [ref=e10]: Receipt confirmation
+        - paragraph [ref=e11]: Confirm that this service report was received and can be kept with kitchen exhaust service records.
+      - button "Confirm received" [ref=e12]:
+        - img
+        - text: Confirm received
+    - article [ref=e14]:
+      - generic [ref=e17]:
+        - link "Back to report top" [ref=e18] [cursor=pointer]:
+          - /url: "#report-top"
+          - generic [ref=e20]: AQH
+          - generic [ref=e21]
+        - generic [ref=e24]:
+          - navigation "Service report sections" [ref=e25]
+          - link "PDF" [ref=e29] [cursor=pointer]:
+            - /url: /p/server?reportId=a0eb3d3820df46b7ba&format=pdf
+          - link "Contact about follow-up quote" [ref=e34] [cursor=pointer]:
+            - /url: tel:5125550148
+      - generic [ref=e42]:
+        - generic [ref=e44]:
+          - generic [ref=e45]
+          - generic [ref=e51]
+        - generic [ref=e54]:
+          - paragraph [ref=e55]: Service report
+          - generic [ref=e56]
+          - heading "Service completed. 1 condition recorded." [level=1] [ref=e63]
+          - paragraph [ref=e65]: "Completed: Reachable plenum, duct path, and access, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. Recorded for follow-up: Hood canopy and filters, Rooftop fan and roof discharge. Condition recorded from service note, no condition photo is attached. This is a written service record, so photos are not implied."
+          - generic [ref=e66]
+          - generic [ref=e79]
+          - generic [ref=e82]
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - paragraph [ref=e87]: May 19 service result
+          - heading "Service result." [level=2] [ref=e88]
+          - paragraph [ref=e89]: Completed work, customer action, and the PDF copy are kept together for restaurant records.
+        - generic [ref=e90]:
+          - article [ref=e91]
+          - article [ref=e99]
+          - article [ref=e107]
+          - article [ref=e115]
+      - generic [ref=e124]:
+        - generic [ref=e125]:
+          - generic [ref=e126]
+          - generic [ref=e132]
+        - generic [ref=e135]:
+          - generic [ref=e136]
+          - generic [ref=e142]
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - img [ref=e158]
+          - generic [ref=e160]: Summit Fire Hood Cleaning
+        - paragraph [ref=e161]: This link summarizes this service visit from the service provider's records. Use the PDF copy as the retained copy for files, manager review, insurance, landlord, or documentation requests. A manager, landlord, insurer, or reviewer may still apply their own requirements, and separate corrective or follow-up work needs a separate go-ahead.
+  - region "Notifications alt+T"
+  - alert [ref=e6]

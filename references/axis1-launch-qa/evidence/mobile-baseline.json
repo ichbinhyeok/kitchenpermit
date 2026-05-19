@@ -1,0 +1,1085 @@
+[
+  {
+    "slug": "home-mobile",
+    "path": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\home-mobile.png",
+    "data": {
+      "brokenImages": [],
+      "buttons": [
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "KITCHENPERMIT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "Home"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1",
+          "tag": "A",
+          "text": "Service Report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "Sample"
+        },
+        {
+          "href": "http://127.0.0.1:8096/resources",
+          "tag": "A",
+          "text": "Resources"
+        },
+        {
+          "href": "http://127.0.0.1:8096/pricing",
+          "tag": "A",
+          "text": "Pricing"
+        },
+        {
+          "href": "http://127.0.0.1:8096/dashboard",
+          "tag": "A",
+          "text": "Account"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Company Reports"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Menu"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1/tool?account=free",
+          "tag": "A",
+          "text": "Try free builder"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "View sample report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Set up company reports"
+        },
+        {
+          "href": "http://127.0.0.1:8096/hood-cleaning-service-report-template",
+          "tag": "A",
+          "text": "TEMPLATE Hood cleaning service report template"
+        },
+        {
+          "href": "http://127.0.0.1:8096/restaurant-hood-cleaning-report",
+          "tag": "A",
+          "text": "RESTAURANT RECORD Restaurant hood cleaning report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/hood-cleaning-before-after-photo-report",
+          "tag": "A",
+          "text": "PHOTO REPORT Hood cleaning before and after photo report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/send-hood-cleaning-report-after-service",
+          "tag": "A",
+          "text": "AFTER SERVICE Send a hood cleaning report after service"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1/tool?account=free",
+          "tag": "A",
+          "text": "Try free builder"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "View sample report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Set up company reports"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "SET UP COMPANY REPORTS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1",
+          "tag": "A",
+          "text": "SERVICE REPORT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "SAMPLE"
+        },
+        {
+          "href": "http://127.0.0.1:8096/resources",
+          "tag": "A",
+          "text": "RESOURCES"
+        },
+        {
+          "href": "http://127.0.0.1:8096/hood-cleaning-service-report-template",
+          "tag": "A",
+          "text": "REPORT TEMPLATE"
+        },
+        {
+          "href": "http://127.0.0.1:8096/send-hood-cleaning-report-after-service",
+          "tag": "A",
+          "text": "AFTER SERVICE"
+        },
+        {
+          "href": "http://127.0.0.1:8096/pricing",
+          "tag": "A",
+          "text": "PRICING"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "COMPANY REPORTS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/start",
+          "tag": "A",
+          "text": "DESIGN HELP"
+        },
+        {
+          "href": "http://127.0.0.1:8096/start",
+          "tag": "A",
+          "text": "REQUEST SUPPORT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/terms",
+          "tag": "A",
+          "text": "TERMS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/privacy",
+          "tag": "A",
+          "text": "PRIVACY"
+        },
+        {
+          "href": "http://127.0.0.1:8096/refund-policy",
+          "tag": "A",
+          "text": "REFUND POLICY"
+        }
+      ],
+      "clientWidth": 375,
+      "h1Rects": [
+        {
+          "h": 207.65625,
+          "text": "Send a restaurant-ready service report after every hood cleaning job.",
+          "w": 343,
+          "x": 16,
+          "y": 132.5
+        }
+      ],
+      "scrollWidth": 375,
+      "textStart": "KITCHENPERMIT FOR HOOD CLEANING COMPANIES Send a restaurant-ready service report after every hood cleaning job. Turn job photos, blocked access notes, and next actions into one branded link/PDF the restaurant can save for inspection records. Try free builder View sample report Set up company reports Free: No login. Unbranded 7-day test link and watermarked PDF. Company: $79/mo. Your logo/contact, clean PDFs, live links, and history. SAMPLE SERVICE REPORT FROM THE FIELD What the crew sends in JOB PHOTOS Hood, filter, fan, and access photos OPEN ITEM Rear access panel blocked NEXT ACTION Clear access before the next visit WHAT THE RESTAURANT GETS One report, ready to save WORK RESULT Reachable hood, filters, and duct path cleaned PHOTO EVIDENCE Before/after photos grouped by hood area OPEN ITEM Blocked access kept separate from completed work SAVED COPY Link/PDF for inspection records AFTER SERVICE The cleaning is done. The customer still needs the record. RESTAURANT Sees what was done, what is still open, and what to save. HOOD COMPANY Looks organized without rewriting photo texts after the crew leaves. OFFICE Gets a cleaner service report for revisit, records, or follow-up. WHAT TH",
+      "title": "Service reports for hood cleaning jobs | KitchenPermit",
+      "url": "http://127.0.0.1:8096/"
+    },
+    "logs": []
+  },
+  {
+    "slug": "axis-1-mobile",
+    "path": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\axis-1-mobile.png",
+    "data": {
+      "brokenImages": [],
+      "buttons": [
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "KITCHENPERMIT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "Home"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1",
+          "tag": "A",
+          "text": "Service Report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "Sample"
+        },
+        {
+          "href": "http://127.0.0.1:8096/resources",
+          "tag": "A",
+          "text": "Resources"
+        },
+        {
+          "href": "http://127.0.0.1:8096/pricing",
+          "tag": "A",
+          "text": "Pricing"
+        },
+        {
+          "href": "http://127.0.0.1:8096/dashboard",
+          "tag": "A",
+          "text": "Account"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Company Reports"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Menu"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "VIEW SAMPLE REPORT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "SET UP COMPANY REPORTS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "See how this would look for my company"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1/tool?account=free",
+          "tag": "A",
+          "text": "Try free builder"
+        },
+        {
+          "href": "http://127.0.0.1:8096/hood-cleaning-service-report-template",
+          "tag": "A",
+          "text": "TEMPLATE Hood cleaning service report template"
+        },
+        {
+          "href": "http://127.0.0.1:8096/restaurant-hood-cleaning-report",
+          "tag": "A",
+          "text": "RESTAURANT RECORD Restaurant hood cleaning report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/hood-cleaning-before-after-photo-report",
+          "tag": "A",
+          "text": "PHOTO REPORT Hood cleaning before and after photo report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/send-hood-cleaning-report-after-service",
+          "tag": "A",
+          "text": "AFTER SERVICE Send a hood cleaning report after service"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "VIEW SAMPLE REPORT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "SET UP COMPANY REPORTS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1/tool?account=free",
+          "tag": "A",
+          "text": "TRY FREE BUILDER"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "SET UP COMPANY REPORTS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1",
+          "tag": "A",
+          "text": "SERVICE REPORT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "SAMPLE"
+        },
+        {
+          "href": "http://127.0.0.1:8096/resources",
+          "tag": "A",
+          "text": "RESOURCES"
+        },
+        {
+          "href": "http://127.0.0.1:8096/hood-cleaning-service-report-template",
+          "tag": "A",
+          "text": "REPORT TEMPLATE"
+        },
+        {
+          "href": "http://127.0.0.1:8096/send-hood-cleaning-report-after-service",
+          "tag": "A",
+          "text": "AFTER SERVICE"
+        },
+        {
+          "href": "http://127.0.0.1:8096/pricing",
+          "tag": "A",
+          "text": "PRICING"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "COMPANY REPORTS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/start",
+          "tag": "A",
+          "text": "DESIGN HELP"
+        },
+        {
+          "href": "http://127.0.0.1:8096/start",
+          "tag": "A",
+          "text": "REQUEST SUPPORT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/terms",
+          "tag": "A",
+          "text": "TERMS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/privacy",
+          "tag": "A",
+          "text": "PRIVACY"
+        },
+        {
+          "href": "http://127.0.0.1:8096/refund-policy",
+          "tag": "A",
+          "text": "REFUND POLICY"
+        }
+      ],
+      "clientWidth": 375,
+      "h1Rects": [
+        {
+          "h": 210.5859375,
+          "text": "Send a branded service report after every hood cleaning job.",
+          "w": 309,
+          "x": 33,
+          "y": 168
+        }
+      ],
+      "scrollWidth": 375,
+      "textStart": "KITCHENPERMIT FOR HOOD SERVICE VENDORS Send a branded service report after every hood cleaning job. Restaurant clients get one clean link/PDF they can save for inspections, with photos, open items, and the next action. VIEW SAMPLE REPORT SET UP COMPANY REPORTS See how this would look for my company Try free builder BRANDED SERVICE REPORT + PDF Restaurant-ready service report BRANDED RECORD Vendor logo, contact, job result, and PDF copy in one report. INSPECTION FILE Restaurant client can save the link/PDF with service reports. NEXT ACTION Photos, open items, and the next service step stay clear. NEXT STEP Clear the blocked area or confirm the next visit window. WHY VENDORS PAY The customer can understand the job and save the record for files. WHAT CHANGES AFTER EACH VISIT The customer should not need a callback to understand the job. The visit ends with one readable service report that explains what was done, what stayed open, and what the customer needs to do next. CUSTOMER SEES One branded service report link/PDF they can save with restaurant files. VENDOR GETS A same-day service report that makes the job easier to trust, file, and defend. WHY VENDORS BUY IT The first value is fe",
+      "title": "Branded Service Reports for Hood Cleaning Jobs | KitchenPermit",
+      "url": "http://127.0.0.1:8096/axis-1"
+    },
+    "logs": []
+  },
+  {
+    "slug": "samples-axis-1-mobile",
+    "path": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\samples-axis-1-mobile.png",
+    "data": {
+      "brokenImages": [],
+      "buttons": [
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "KITCHENPERMIT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "Home"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1",
+          "tag": "A",
+          "text": "Service Report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "Sample"
+        },
+        {
+          "href": "http://127.0.0.1:8096/resources",
+          "tag": "A",
+          "text": "Resources"
+        },
+        {
+          "href": "http://127.0.0.1:8096/pricing",
+          "tag": "A",
+          "text": "Pricing"
+        },
+        {
+          "href": "http://127.0.0.1:8096/dashboard",
+          "tag": "A",
+          "text": "Account"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Company Reports"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Menu"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Open restaurant view"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "See PDF copy"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Use this under my company name"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "RESTAURANT VIEW"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "INSPECTION PDF"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1#report-top",
+          "tag": "A",
+          "text": "Summit Hood Service Co. SERVICE REPORT LINK"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1#summary",
+          "tag": "A",
+          "text": "Summary"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1#proof-story",
+          "tag": "A",
+          "text": "Photos"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1#record",
+          "tag": "A",
+          "text": "Record"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1#contact",
+          "tag": "A",
+          "text": "Contact"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "PDF"
+        },
+        {
+          "href": "tel:5125550148",
+          "tag": "A",
+          "text": "Contact after clearing access"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Menu"
+        },
+        {
+          "href": "tel:5125550148",
+          "tag": "A",
+          "text": "Contact after clearing access"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Photos"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "PDF copy"
+        },
+        {
+          "href": "tel:5125550148",
+          "tag": "A",
+          "text": "Contact after clearing access"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Save PDF copy"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "HD-01 · Step 01Hood canopyCompletedDegreased and wiped accessible hood interior surfaces."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "FL-01 · Step 02Filter bankCompletedRemoved, cleaned, checked, and returned to service."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "PL-01 · Step 03Plenum / duct pathCompletedReachable path cleaned and documented in service scope."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "DK-02 · Step 04Rear duct accessInaccessibleNot completed: Stored equipment blocked the rear duct acc"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "RF-01 · Step 05Rooftop fan areaRecordedVisible rooftop and containment conditions stay on record so "
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Save PDF copy"
+        },
+        {
+          "href": "tel:5125550148",
+          "tag": "A",
+          "text": "Contact after clearing access"
+        },
+        {
+          "href": "tel:5125550148",
+          "tag": "A",
+          "text": "Contact after clearing access"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "PDF copy"
+        },
+        {
+          "href": "http://127.0.0.1:8096/p/sample-blocked-access",
+          "tag": "A",
+          "text": "Open full restaurant view"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Show inspection PDF"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "SET UP COMPANY REPORTS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1",
+          "tag": "A",
+          "text": "SERVICE REPORT"
+        }
+      ],
+      "clientWidth": 375,
+      "h1Rects": [
+        {
+          "h": 157.4375,
+          "text": "See the branded service report a restaurant receives.",
+          "w": 351,
+          "x": 12,
+          "y": 130.5
+        },
+        {
+          "h": 227.1796875,
+          "text": "Reachable work completed.\n1 area needs your action.",
+          "w": 273.1953125,
+          "x": 33,
+          "y": 2016.9375
+        },
+        {
+          "h": 112.625,
+          "text": "A branded service report, exactly as the restaurant would receive it.",
+          "w": 317,
+          "x": 29,
+          "y": 15410.2109375
+        }
+      ],
+      "scrollWidth": 375,
+      "textStart": "KITCHENPERMIT SAMPLE REPORT See the branded service report a restaurant receives. This is the link and PDF a restaurant can save after service, with the result, photos, open items, and next action in one place. RESTAURANT VIEW Opens result, photos, and next action. INSPECTION PDF Saves a copy with inspection records. Open restaurant view See PDF copy Use this under my company name HL Summit Hood Service Co. Sent to Sample Restaurant Group APR 24 RESULT Reachable work completed. OPEN ITEM 1 area needs customer action. PHOTO EVIDENCE Photos support the record. INSPECTION COPY Inspection-ready PDF. Service date Included Customer action Included Photo evidence Included File it with inspection records. SAMPLE RESTAURANT VIEW Below is the sample report a restaurant would receive: the view they open, plus the PDF they save for inspection. kitchenpermit.com/p/summit/restaurant-view RESTAURANT VIEW INSPECTION PDF Summit Hood Service Co. SERVICE REPORT LINK Summit Hood Service Co. Austin, TX | 24/7 dispatch Apr 24, 2026 1 area needs your action SERVICE REPORT Property: Sample Restaurant Group Location: Austin, TX Reviewed: Store manager Reachable work completed. 1 area needs your action. Rea",
+      "title": "Customer Service Report Link and PDF Sample | KitchenPermit",
+      "url": "http://127.0.0.1:8096/samples/axis-1"
+    },
+    "logs": []
+  },
+  {
+    "slug": "pricing-mobile",
+    "path": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\pricing-mobile.png",
+    "data": {
+      "brokenImages": [],
+      "buttons": [
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "KITCHENPERMIT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "Home"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1",
+          "tag": "A",
+          "text": "Service Report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "Sample"
+        },
+        {
+          "href": "http://127.0.0.1:8096/resources",
+          "tag": "A",
+          "text": "Resources"
+        },
+        {
+          "href": "http://127.0.0.1:8096/pricing",
+          "tag": "A",
+          "text": "Pricing"
+        },
+        {
+          "href": "http://127.0.0.1:8096/dashboard",
+          "tag": "A",
+          "text": "Account"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Company Reports"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Menu"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Set up company reports"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1/tool?account=free",
+          "tag": "A",
+          "text": "Try free builder"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "View sample report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1/tool?account=free",
+          "tag": "A",
+          "text": "Try free builder"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Set up company reports"
+        },
+        {
+          "href": "http://127.0.0.1:8096/start",
+          "tag": "A",
+          "text": "Request design help"
+        },
+        {
+          "href": "http://127.0.0.1:8096/hood-cleaning-service-report-template",
+          "tag": "A",
+          "text": "TEMPLATE Hood cleaning service report template"
+        },
+        {
+          "href": "http://127.0.0.1:8096/restaurant-hood-cleaning-report",
+          "tag": "A",
+          "text": "RESTAURANT RECORD Restaurant hood cleaning report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/hood-cleaning-before-after-photo-report",
+          "tag": "A",
+          "text": "PHOTO REPORT Hood cleaning before and after photo report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/send-hood-cleaning-report-after-service",
+          "tag": "A",
+          "text": "AFTER SERVICE Send a hood cleaning report after service"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "SET UP COMPANY REPORTS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1",
+          "tag": "A",
+          "text": "SERVICE REPORT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "SAMPLE"
+        },
+        {
+          "href": "http://127.0.0.1:8096/resources",
+          "tag": "A",
+          "text": "RESOURCES"
+        },
+        {
+          "href": "http://127.0.0.1:8096/hood-cleaning-service-report-template",
+          "tag": "A",
+          "text": "REPORT TEMPLATE"
+        },
+        {
+          "href": "http://127.0.0.1:8096/send-hood-cleaning-report-after-service",
+          "tag": "A",
+          "text": "AFTER SERVICE"
+        },
+        {
+          "href": "http://127.0.0.1:8096/pricing",
+          "tag": "A",
+          "text": "PRICING"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "COMPANY REPORTS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/start",
+          "tag": "A",
+          "text": "DESIGN HELP"
+        },
+        {
+          "href": "http://127.0.0.1:8096/start",
+          "tag": "A",
+          "text": "REQUEST SUPPORT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/terms",
+          "tag": "A",
+          "text": "TERMS"
+        },
+        {
+          "href": "http://127.0.0.1:8096/privacy",
+          "tag": "A",
+          "text": "PRIVACY"
+        },
+        {
+          "href": "http://127.0.0.1:8096/refund-policy",
+          "tag": "A",
+          "text": "REFUND POLICY"
+        }
+      ],
+      "clientWidth": 375,
+      "h1Rects": [
+        {
+          "h": 141.28125,
+          "text": "Free builder. $79/mo company version.",
+          "w": 306.0234375,
+          "x": 33,
+          "y": 172
+        }
+      ],
+      "scrollWidth": 375,
+      "textStart": "KITCHENPERMIT PRICING Free builder. $79/mo company version. The free builder proves the output. The company version is the paid product: company logo/contact, clean PDF, retained restaurant report links, customer history, and follow-up workflow. Set up company reports Try free builder View sample report PRODUCT POLICY Test the report free. Pay when it carries your company name. Free builder: no login, no company logo/contact, 7-day link, watermarked PDF. Company version: $79/mo for saved company details, retained service report links, clean PDFs, customer history, and follow-up reminders. Design help: optional from $249, only when a vendor wants brand/report polish. FREE BUILDER Try the report flow without an account. Free Create an unbranded test report from job photos and notes. This is for evaluating the output before using it under your company name. No login required No company logo or contact line 7-day report link lifespan Watermarked PDF No report history Try free builder COMPANY VERSION Use the report under your company name. $79/mo For vendors who want reports under their company name, clean PDFs, saved company details, customer history, and follow-up reminders after each",
+      "title": "Pricing | KitchenPermit",
+      "url": "http://127.0.0.1:8096/pricing"
+    },
+    "logs": []
+  },
+  {
+    "slug": "login-mobile",
+    "path": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\login-mobile.png",
+    "data": {
+      "brokenImages": [],
+      "buttons": [
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "KITCHENPERMIT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1/tool",
+          "tag": "A",
+          "text": "FREE BUILDER"
+        },
+        {
+          "href": "http://127.0.0.1:8096/auth/google?next=%2Fdashboard",
+          "tag": "A",
+          "text": "Continue with Google"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "LOG IN"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "CREATE ACCOUNT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/forgot-password",
+          "tag": "A",
+          "text": "FORGOT PASSWORD?"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Log in"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1/tool",
+          "tag": "A",
+          "text": "Use free builder without login"
+        }
+      ],
+      "clientWidth": 375,
+      "h1Rects": [
+        {
+          "h": 110.53125,
+          "text": "Sign in to manage saved service records.",
+          "w": 309,
+          "x": 33,
+          "y": 1091.672119140625
+        }
+      ],
+      "scrollWidth": 375,
+      "textStart": "KITCHENPERMIT FREE BUILDER KITCHENPERMIT ACCOUNT Report history after sign-in Company Sign in to manage saved service records. Account keeps company details, restaurant-ready links, PDF copies, and next-service dates connected to each job. AFTER SIGN-IN Account stores the company version Company profile Name, phone, service area, logo, and customer-facing accent color. Saved service records Restaurant links and retained PDF copies stay connected to each job. Next-service queue Upcoming service dates and open items are easier to find after login. Company profile, customer links, and retained PDF copies stay tied to the service history. SIGN IN Account access Use the same account that stores company details and service report history. COMPANY Continue with Google EMAIL PASSWORD LOG IN CREATE ACCOUNT WORK EMAIL PASSWORD FORGOT PASSWORD? Log in Account manages company output Free builder stays open. Sign in to manage the company version; active subscription access unlocks saved company details, clean PDFs, live service report links, and account history. Use free builder without login",
+      "title": "Account Login | KitchenPermit",
+      "url": "http://127.0.0.1:8096/login?next=%2Fdashboard"
+    },
+    "logs": []
+  },
+  {
+    "slug": "tool-mobile",
+    "path": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\tool-mobile.png",
+    "data": {
+      "brokenImages": [],
+      "buttons": [
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "KITCHENPERMIT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/",
+          "tag": "A",
+          "text": "Home"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1",
+          "tag": "A",
+          "text": "Service Report"
+        },
+        {
+          "href": "http://127.0.0.1:8096/samples/axis-1",
+          "tag": "A",
+          "text": "Sample"
+        },
+        {
+          "href": "http://127.0.0.1:8096/resources",
+          "tag": "A",
+          "text": "Resources"
+        },
+        {
+          "href": "http://127.0.0.1:8096/pricing",
+          "tag": "A",
+          "text": "Pricing"
+        },
+        {
+          "href": "http://127.0.0.1:8096/dashboard",
+          "tag": "A",
+          "text": "Account"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "Company Reports"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Menu"
+        },
+        {
+          "href": "http://127.0.0.1:8096/axis-1/tool",
+          "tag": "A",
+          "text": "K Kitchen PERMIT"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "1"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "2"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "3"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Menu"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "FREE"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "COMPANY"
+        },
+        {
+          "href": "http://127.0.0.1:8096/company-version",
+          "tag": "A",
+          "text": "START COMPANY VERSION"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "1. Photos & notesOptionalAdd photos and notesDrop job photos or one short note. The builder drafts a"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "2. Review reportRequiredReview service summaryFix only wrong or uncertain parts in the preview."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "3. OutputsLockedPreview link and PDFCheck the service report link and PDF copy before using the paid"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Choose result"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "StandardHood cleaningHood, duct, fan, and grease path expected."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Hood + fanFull exhaust pathUse when fan and duct were part of the visit."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Filters onlyFilter serviceOnly hood/filter work is expected."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Fan onlyRooftop fanFan and rooftop grease path only."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Access revisitBlocked area returnOnly the access path is expected."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Condition onlyRecord conditionNo cleaning completion is assumed."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "CompletedCompletedIncluded work completed; no customer action needed.Recommended"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Blocked / no accessCompleted where reachableOne area needs access, revisit, or area clarification."
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Condition foundService done, condition notedCondition should drive quote, revisit, or next-service f"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Show less"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Choose result"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Job basicsRequiredNeeded before output: customer, site, reviewerAdd real customer details before cre"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Change if needed"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Continue to Outputs"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Record details"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Today's resultCompleted: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop f"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Report statusNo responsibility boundary can be shown until the visit outcome is selected.Shown as cl"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Customer next stepSelect what happened today before the tool writes a customer next action.Default n"
+        },
+        {
+          "href": null,
+          "tag": "BUTTON",
+          "text": "Photo / documentationWritten service recordWritten service recordEdit photos"
+        }
+      ],
+      "clientWidth": 375,
+      "h1Rects": [
+        {
+          "h": 66.234375,
+          "text": "Create the restaurant-ready hood cleaning report.",
+          "w": 261,
+          "x": 27,
+          "y": 385
+        }
+      ],
+      "scrollWidth": 375,
+      "textStart": "K Kitchen PERMIT 1 2 3 FREE BUILDER LOGGED IN, FREE MODE Free builder: no login, neutral test link, no company logo/contact, watermarked PDF, and no report history. FREE COMPANY START COMPANY VERSION PHOTOS & NOTES Create the restaurant-ready hood cleaning report. Add job photos if you have them. One short note is enough when the crew needs a clean report link and PDF for the restaurant. QUICK START PHOTOS OPTIONAL STEP 1 Add photos or notes Drop the phone batch if you have it. One written note is enough to start. STEP 2 Confirm what happened Pick the result and correct only the uncertain parts before sending. STEP 3 Share link or save PDF Use the customer link for delivery and the PDF copy for records. JOB PHOTOS Drop photos if you have them Before, after, fan, filter, access, label, and issue photos can all go in one batch. CHOOSE PHOTOS Photos optional Saved with report OPTIONAL NOTE WHAT WAS INCLUDED? Hood cleaning Hood, duct, fan, and grease path expected. Leave standard unless this visit was filters-only, fan-only, access revisit, or condition-only. THIS VISIT ONLY STANDARD HOOD + FAN FILTERS ONLY FAN ONLY ACCESS REVISIT CONDITION ONLY NO PHOTOS? Review written record Create ",
+      "title": "Service Report Builder | KitchenPermit",
+      "url": "http://127.0.0.1:8096/axis-1/tool"
+    },
+    "logs": []
+  }
+]

@@ -26,7 +26,7 @@ const storedItems = [
 
 const flowItems = [
   ["1. Save company profile", "Logo, report color, and contact details become the default."],
-  ["2. Build each job report", "Use the builder for photos, open items, and next actions."],
+  ["2. Declare each job result", "Tell Axis 1 what happened, add photos only if the crew captured them, and confirm the next action."],
   ["3. Send branded output", "The restaurant receives a clean link and PDF under the vendor name."],
   ["4. Work the account history", "Account history shows repeat customers, next service timing, and the message to send."],
 ] as const;
@@ -80,9 +80,12 @@ export default function CompanyVersionPage() {
               carry their name.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <CtaLink href="/start" tone="accent">
+                Set up my first report
+              </CtaLink>
               <PaddleCheckoutButton
                 activeChildren="Set up company branding"
-                className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.26)] hover:bg-[#dd5b17]"
+                className="border border-white/16 bg-white/8 text-white hover:bg-white/14"
               >
                 Start $79 checkout
               </PaddleCheckoutButton>
@@ -96,6 +99,11 @@ export default function CompanyVersionPage() {
                 View pricing
               </CtaLink>
             </div>
+            <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-white/54">
+              Have one recent job? Send the company name, logo if you have it,
+              and the job details. We can shape the first branded report before
+              you commit to a self-serve workflow.
+            </p>
           </div>
 
           <div className="rounded-[34px] border border-white/12 bg-white/[0.055] p-4 shadow-[0_36px_120px_rgba(0,0,0,0.34)] backdrop-blur sm:p-5">
@@ -158,11 +166,14 @@ export default function CompanyVersionPage() {
                 simple follow-up workspace.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <CtaLink href="/start" tone="accent">
+                  Request first report setup
+                </CtaLink>
                 <PaddleCheckoutButton
                   activeChildren="Set up company branding"
-                  className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.26)] hover:bg-[#dd5b17]"
+                  className="border border-white/16 bg-white/8 text-white hover:bg-white/14"
                 >
-                  Start company version
+                  Start checkout
                 </PaddleCheckoutButton>
                 <CtaLink href="/axis-1/tool?step=outputs&account=company" tone="light">
                   Preview company mode

@@ -23,7 +23,7 @@ const offerTracks = [
     title: "Try the report flow without an account.",
     price: "Free",
     copy:
-      "Create an unbranded test report from job photos and notes. This is for evaluating the output before using it under your company name.",
+      "Create an unbranded test report from a job result, optional photos, and notes. This is for evaluating the output before using it under your company name.",
     href: "/axis-1/tool?account=free",
     cta: "Try free builder",
     icon: FileText,
@@ -139,6 +139,43 @@ export default function PricingPage() {
                 {item}
               </div>
             ))}
+          </div>
+        </Panel>
+      </section>
+
+      <section className="container-shell pb-8">
+        <Panel className="grid gap-5 border-[#f26a21]/24 bg-[#fff7ef] px-5 py-5 md:grid-cols-[0.86fr_1.14fr] md:px-8 md:py-7">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.24em] text-accent">
+              First report setup
+            </p>
+            <h2 className="mt-3 max-w-2xl font-display text-[2.1rem] font-bold leading-[0.94] tracking-[-0.06em] text-foreground md:text-4xl">
+              Not ready to learn a tool? Start with one real job.
+            </h2>
+          </div>
+          <div className="grid content-center gap-4">
+            <p className="text-sm font-semibold leading-6 text-muted-foreground md:text-base md:leading-7">
+              Send your company name, logo if you have it, and one recent hood
+              cleaning job. We can help shape the first branded service report,
+              then you can decide whether the {AXIS1_COMPANY_MONTHLY_PRICE}
+              company version is worth keeping.
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Link
+                href="/start"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#111315] px-5 text-sm font-black text-white transition hover:bg-[#20262d]"
+              >
+                Request first report setup
+                <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
+              </Link>
+              <Link
+                href="/samples/axis-1"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border-strong bg-white/80 px-5 text-sm font-black text-foreground transition hover:bg-white"
+              >
+                View sample report
+                <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
+              </Link>
+            </div>
           </div>
         </Panel>
       </section>

@@ -1,0 +1,39 @@
+{
+  "createCount": 1,
+  "shot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\auth-signup-tab.png",
+  "text": "KITCHENPERMIT FREE BUILDER KITCHENPERMIT ACCOUNT Report history after sign-in Company Sign in to manage saved service records. Account keeps company details, restaurant-ready links, PDF copies, and next-service dates connected to each job. AFTER SIGN-IN Account stores the company version Company profile Name, phone, service area, logo, and customer-facing accent color. Saved service records Restaurant links and retained PDF copies stay connected to each job. Next-service queue Upcoming service dates and open items are easier to find after login. Company profile, customer links, and retained PDF copies stay tied to the service history. SIGN IN Account access Use the same account that stores company details and service report history. COMPANY Continue with Google EMAIL PASSWORD LOG IN CREATE ACCOUNT WORK EMAIL Use an email you can access. Password reset links and account notices are sent there. PASSWORD CONFIRM PASSWORD Create account Account manages company output Free builder stays open. Sign in to manage the company version; active subscription access unlocks saved company details, clean PDFs, live service report links, and account history. Use free builder without login",
+  "inputs": [
+    {
+      "autocomplete": "",
+      "i": 0,
+      "minLength": -1,
+      "name": "next",
+      "placeholder": "",
+      "type": "hidden"
+    },
+    {
+      "autocomplete": "email",
+      "i": 1,
+      "minLength": -1,
+      "name": "email",
+      "placeholder": "owner@yourcompany.com",
+      "type": "email"
+    },
+    {
+      "autocomplete": "new-password",
+      "i": 2,
+      "minLength": 8,
+      "name": "password",
+      "placeholder": "At least 8 characters",
+      "type": "password"
+    },
+    {
+      "autocomplete": "new-password",
+      "i": 3,
+      "minLength": 8,
+      "name": "confirmPassword",
+      "placeholder": "Repeat password",
+      "type": "password"
+    }
+  ]
+}

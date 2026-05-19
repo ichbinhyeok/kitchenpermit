@@ -1,0 +1,624 @@
+{
+  "useWrittenCount": 1,
+  "afterUseUrl": "http://127.0.0.1:8096/axis-1/tool?account=company&step=review",
+  "afterUseShot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\tool-company-use-written-result.png",
+  "afterUseText": "K Kitchen PERMIT 1 PHOTOS & NOTES 2 REVIEW REPORT Blocked / no access 3 OUTPUTS MENU COMPANY VERSION COMPANY ACCESS ACTIVE Company mode: Summit Fire Hood Cleaning details are applied. Reports save to history and customer links/PDFs stay available after creation. (512) 555-0148 / service@summithood.test FREE COMPANY OPEN ACCOUNT REVIEW REPORT Review the service report. Read it like the customer will. Change only wrong statuses; every output updates together. OPEN OUTPUTS CONFIRM RESULT Result is set. Change only if the visit outcome is wrong. CHANGED BY YOU COMPLETED Completed RECOMMENDED BLOCKED / NO ACCESS Completed where reachable SELECTED CONDITION FOUND Service done, condition noted Current result: You changed the suggested answer. The report now follows your selected result. OPTIONAL NOTE Leave blank to keep the default record wording. 164/220 ADVANCED DETAILS CUSTOMER-STYLE REPORT PREVIEW Ready to generate Edit the status chips inside this preview. Service report link, PDF, follow-up, revisit, and next-service copy all use the same record. 0 PHOTO AREAS 4 NOTES-ONLY AREAS STANDARD CONFIRMED CUSTOMER-READY COPY Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. Move the stored equipment or obstruction away from the access point, then reply so a revisit can be scheduled. WRITTEN RECORD VENDOR NOTE NEEDS PLACEMENT Duct looks blocked \"Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit.\" is saved, but it is not yet reflected in an area status. APPLY TO DUCT AS BLOCKED Hood / filters COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Duct / access path COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Rooftop fan COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Grease path COMPLETED, NO PHOTO Assumed complete from the standard closeout; no field photo is attached for this area. WRITTEN ONLY CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job Label / notice NOT PART OF THIS JOB This area stays out of the customer message. SEPARATE CHANGE STATUS Completed + photo Completed, no photo Blocked / no access Not completed Condition only Not part of this job SHOW LESS READY OUTPUTS READY Everything below comes from this service record. Customer-safe wording follows area status. GO TO OUTPUTS TODAY'S RESULT Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Rooftop fan and roof discharge, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. This is a written service record, so photos are not implied. EDIT LINE ACCESS NOTE Rear duct access panel was blocked by stored dry goods. Hood, filters, and reachable plenum were cleaned. Manager should clear access before the next service visit. EDIT LINE CUSTOMER NEXT STEP Move the stored equipment or obstruction away from the access point, then reply so a revisit can be scheduled. EDIT LINE JOB BASICS Cedar & 5th Grill - 2026-05-19 These details appear on the customer link, PDF, and saved history. HIDE PROPERTY / CUSTOMER SITE / CITY SERVICE DATE AUTHORIZED BY NEXT VISIT 90 days window CHANGE IF NEEDED Default next window selected. Change only when this visit needs a different schedule.",
+  "visibleButtons": [
+    {
+      "disabled": false,
+      "href": null,
+      "i": 12,
+      "rect": {
+        "h": 44,
+        "w": 306.078125,
+        "x": 806.1796875,
+        "y": -973.5
+      },
+      "tag": "BUTTON",
+      "text": "3 OUTPUTS",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/dashboard",
+      "i": 16,
+      "rect": {
+        "h": 40,
+        "w": 132.671875,
+        "x": 1072.828125,
+        "y": -861
+      },
+      "tag": "A",
+      "text": "OPEN ACCOUNT",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 17,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "1. Photos & notesOptionalAdd photos and notesDrop job photos or one short note. The builder drafts a customer-ready service report from there.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 19,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "3. OutputsReadyPreview link and PDFCheck the service report link and PDF copy before using the paid company version.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 20,
+      "rect": {
+        "h": 34,
+        "w": 138.5234375,
+        "x": 949.9765625,
+        "y": -690.5
+      },
+      "tag": "BUTTON",
+      "text": "OPEN OUTPUTS",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 31,
+      "rect": {
+        "h": 40,
+        "w": 209.09375,
+        "x": 202.5,
+        "y": 262
+      },
+      "tag": "BUTTON",
+      "text": "APPLY TO DUCT AS BLOCKED",
+      "visible": true
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 33,
+      "rect": {
+        "h": 27,
+        "w": 122,
+        "x": 949.5,
+        "y": 1152
+      },
+      "tag": "BUTTON",
+      "text": "GO TO OUTPUTS",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 36,
+      "rect": {
+        "h": 128.5,
+        "w": 264,
+        "x": 798.5,
+        "y": 1229
+      },
+      "tag": "BUTTON",
+      "text": "CUSTOMER NEXT STEP Move the stored equipment or obstruction away from the access point, then reply so a revisit can be scheduled. EDIT LINE",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 37,
+      "rect": {
+        "h": 87,
+        "w": 910,
+        "x": 177.5,
+        "y": 1480.5
+      },
+      "tag": "BUTTON",
+      "text": "JOB BASICS Cedar & 5th Grill - 2026-05-19 These details appear on the customer link, PDF, and saved history. HIDE",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 39,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Continue to Outputs",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 42,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Access noteReachable sections were completed. The blocked section stays listed separately until access is cleared.Shown to customerEdit line",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 43,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer next stepMove the stored equipment or obstruction away from the access point, then reply so a revisit can be scheduled.Default next stepEdit line",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 59,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Print / save PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 60,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 61,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy customer linkCustomer link from this service record.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 62,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Save service report PDFPDF record from the same service record.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 65,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Access noteAdjustReachable sections were completed. The blocked section stays listed separately until access is cleared.Shown to customer",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 66,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer next stepAdjustMove the stored equipment or obstruction away from the access point, then reply so a revisit can be scheduled.Default next step",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 67,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 68,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Service report PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 69,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 70,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Edit customer wording",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 71,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 72,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Open link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 73,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Save PDF layout",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 74,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 75,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Service report PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 76,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer linkPrimary outputWeb report - best for customer clarity, follow-up items, and reply.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 77,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "PDF / printPDF copyFormal service report PDF - best for archive, attachment, print, and outside record requests.",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 78,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Copy link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 79,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Open",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 80,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Full PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 81,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Short PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 87,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Restore recommended copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 89,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Report history",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 90,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Customer link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 91,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Service report PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": "http://127.0.0.1:8096/axis-1/tool?account=company&step=review#report-top",
+      "i": 92,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "A",
+      "text": "AQHSummit Fire Hood CleaningService report link",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 96,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "PDF",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 100,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "PDF copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 102,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Save PDF copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 107,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Save PDF copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 110,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "PDF copy",
+      "visible": false
+    },
+    {
+      "disabled": false,
+      "href": null,
+      "i": 112,
+      "rect": {
+        "h": 0,
+        "w": 0,
+        "x": 0,
+        "y": 0
+      },
+      "tag": "BUTTON",
+      "text": "Go to Outputs",
+      "visible": false
+    }
+  ]
+}

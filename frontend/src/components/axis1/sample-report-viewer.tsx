@@ -190,7 +190,7 @@ function EditedArtifactHero({
           <p className="font-mono text-[11px] uppercase tracking-[0.34em] text-[#ffb27c]">
             Sample report
           </p>
-          <h1 className="mt-4 text-[clamp(3rem,10vw,7rem)] font-black leading-[0.82] tracking-[-0.09em]">
+          <h1 className="mt-4 max-w-[10.5ch] text-[2.65rem] font-black leading-[1.02] tracking-normal sm:text-6xl md:text-7xl lg:text-8xl xl:text-[6.8rem]">
             See the branded service report a restaurant receives.
           </h1>
           <p className="mt-6 max-w-xl text-base leading-8 text-white/68 sm:text-lg">

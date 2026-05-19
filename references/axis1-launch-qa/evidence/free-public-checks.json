@@ -1,0 +1,81 @@
+[
+  {
+    "name": "freeCustomer",
+    "url": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e",
+    "shot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\freeCustomer.png",
+    "state": {
+      "brokenImages": [],
+      "buttons": [
+        {
+          "disabled": false,
+          "i": 0,
+          "text": "Menu"
+        }
+      ],
+      "links": [
+        {
+          "href": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e#report-top",
+          "i": 0,
+          "text": "SR Service report SERVICE REPORT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e#summary",
+          "i": 1,
+          "text": "RESULT"
+        },
+        {
+          "href": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e#record",
+          "i": 2,
+          "text": "RECORD"
+        },
+        {
+          "href": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e&format=pdf",
+          "i": 3,
+          "text": "PDF"
+        },
+        {
+          "href": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e&format=pdf",
+          "i": 4,
+          "text": "PDF copy"
+        },
+        {
+          "href": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e&format=pdf",
+          "i": 5,
+          "text": "Open PDF copy"
+        },
+        {
+          "href": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e&format=pdf",
+          "i": 6,
+          "text": "Open PDF copy"
+        },
+        {
+          "href": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e&format=pdf",
+          "i": 7,
+          "text": "PDF copy"
+        }
+      ],
+      "text": "SR Service report SERVICE REPORT RESULT RECORD PDF SR Service report Free test link May 19, 2026 1 condition recorded SERVICE REPORT Property: Free Trial Diner Location: Round Rock, TX Reviewed: Jordan, shift lead Service completed. 1 condition recorded. Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. Recorded for follow-up: Rooftop fan and roof discharge. Condition recorded from service note, no condition photo is attached. This is a written service record, so photos are not implied. RESULT Review item DOCUMENTATION Condition record CUSTOMER ACTION Request quote PDF COPY Record copy Open PDF copy Use your normal customer communication channel to confirm this step. CUSTOMER NEXT STEP Review the noted condition and contact the service team if you want a follow-up quote before the next service window. MAY 19 SERVICE RESULT Service result. Completed work, customer action, and the PDF copy are kept together for restaurant records. COMPLETED THIS VISIT Completed areas are listed by area. Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. Recorded for follow-up: Rooftop fan and roof discharge. Condition recorded from service note, no condition photo is attached. This is a written service record, so photos are not implied. CONDITION RECORDED Filter bank was cleaned and reinstalled. Rooftop fan hinge is worn and should be reviewed before the next quarterly service. Filter bank was cleaned and reinstalled. Rooftop fan hinge is worn and should be reviewed before the next quarterly service. This area is not listed as cleaned until the follow-up condition is cleared. CUSTOMER ACTION Review condition for quote Review the noted condition and contact the service team if you want a follow-up quote before the next service window. RECORD NOTE Keep the PDF copy with kitchen exhaust files. The PDF copy is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work. Keep this record. Keep this record with your kitchen exhaust maintenance files. It includes the service date, completed areas, photo status, blocked or not-completed areas, and recommended next service window. A PDF copy is available for files, manager review, insurance, or documentation requests. It stays separate from corrective or follow-up work. Open PDF copy Next recommended step. Review the noted condition and contact the service team if you want a follow-up quote before the next service window. This is a written service record, photo evidence is not attached to this visit. Recorded conditions and follow-up paths are separate from this cleaning record. Recommended window Aug 12-17, 2026 Reason Current grease load and line volume support a 90-day cycle. Customer action Review the noted condition and contact the service team if you want a follow-up quote before the next service window. Service report This link summarizes this service visit from the service provider's records. Use the PDF copy as the retained copy for files, manager review, insurance, landlord, or documentation requests. A manager, landlord, insurer, or reviewer may still apply their own requirements, and separate corrective or follow-up work needs a separate go-ahead.",
+      "url": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e"
+    },
+    "logs": []
+  },
+  {
+    "name": "freePdf",
+    "url": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e&format=pdf",
+    "shot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\freePdf.png",
+    "state": {
+      "brokenImages": [],
+      "buttons": [
+        {
+          "disabled": false,
+          "i": 0,
+          "text": "SAVE AS PDF"
+        }
+      ],
+      "links": [],
+      "text": "SERVICE REPORT PDF / FREE Watermarked PDF. Print or save this PDF as the retained service copy. SAVE AS PDF SR Service report CUSTOMER-RETAINED COPY Kitchen Exhaust Cleaning Service Report Free Trial Diner ROUND ROCK, TX / MAY 19, 2026 / REPORT SR-5F04FE0A Prepared for restaurant files, manager review, landlord or insurance documentation, and routine kitchen exhaust service records. PDF copy Action item visible Service date May 19, 2026 Location Round Rock, TX System Kitchen exhaust system Today's result Completed with recorded condition Report ID SR-5F04FE0A Documentation Written record Report type Service Closeout Record Documentation support Written service record Photo status No photos attached Customer next step Request follow-up quote Visit type Hood cleaning What this service covered Completed: Hood canopy and filters, Reachable plenum, duct path, and access, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. Recorded for follow-up: Rooftop fan and roof discharge. Condition recorded from service note, no condition photo is attached. This is a written service record, so photos are not implied. Areas completed Hood canopy and filters, Reachable plenum, duct path, and access, Grease path and containment Recorded for follow-up Rooftop fan and roof discharge Blocked / no access None recorded Not completed None recorded Not part of this visit None recorded Needs review None recorded REPORT IDENTIFICATION Service record for retained files. No excluded area Prepared for customer files, manager review, landlord, insurance, or documentation requests. It identifies the property, service provider, service date, completed areas, excluded areas, photo status, label details, and retained-copy trail. Record type Kitchen exhaust service report PDF copy Report ID SR-5F04FE0A Customer / property Free Trial Diner Service location Round Rock, TX System reference SYS-01 / Kitchen exhaust system Service date / window May 19, 2026 | Service visit Service provider Service report Person performing work Technician / crew Result Completed Photo status Written record, no photos attached SERVICE SCOPE AND STATUS Completed areas, exclusions, and evidence stay separated. Service outcome Completed - no blocked area listed Areas completed / cleaned Hood canopy and filters, Plenum, duct path, and access, Grease path and containment Areas not cleaned / excluded None recorded Customer action item No blocked-access action recorded Exception / condition None recorded Reachable service path Accessible sections completed Line served Kitchen exhaust system Duct / access Completed from notes - Reachable plenum, duct path, and access points were included instead of stopping at the visible hood face. Completed from service notes, no field photo is attached for this area. Rooftop fan Recorded condition - Filter bank was cleaned and reinstalled. Rooftop fan hinge is worn and should be reviewed before the next quarterly service. This area is not listed as cleaned until the follow-up condition is cleared. Grease path Completed from notes - Grease path, grease cups, containment, drip points, buckets, or roof grease trail were included in the service record. Completed from service notes, no field photo is attached for this area. Photo status Written record, no photos attached Service label / notice COND-0424-RF01 Next service window Aug 12-17, 2026 Reviewer note Manager, landlord, insurer, or AHJ may apply separate requirements TECHNICIAN Technician / crew PREPARED BY / SIGNATURE Technician / crew - electronically prepared service record RECORD INDEX IDENTITY Provider, worker, customer, location, system, date, report ID AREAS Hood, filters, duct/access, fan, grease path, excluded areas EVIDENCE Photo status, component status, label ref, retained archive BOUNDARY Separate from corrective work and outside reviewer requirements DOCUMENT CONTROL Identifiers and retained copies. Report ID SR-5F04FE0A Document title Kitchen exhaust service report Prepared date May 19, 2026 Service date / window May 19, 2026 | Service visit Servicing company Service report Person performing work Technician / crew System reference SYS-01 / Kitchen exhaust system Service provider archive Retained Customer copy PDF service report copy Photo archive No photos attached Service label / sticker ref COND-0424-RF01 CUSTOMER / PROPERTY FIELDS Fields used for record requests. Customer / property Free Trial Diner Service location Round Rock, TX System SYS-01 / Kitchen exhaust system Line / area served Kitchen exhaust system SUBMISSION USE What this record can and cannot support. Use for Customer records, manager review, landlord, insurance, or documentation requests Does not authorize Separate corrective or follow-up work Reviewer boundary Manager, landlord, insurer, or AHJ may apply separate requirements Record source Service facts and route status recorded by the service provider, no photos attached Area limit Blocked or inaccessible areas are excluded until access is provided Premises copy Maintain this record with kitchen exhaust service records SERVICE LABEL / STICKER Field label details tied to the service record. Label / sticker reference COND-0424-RF01 Label status Yes - next due date shown Posted location Kitchen area / serviced hood system Date cleaned May 19, 2026 Next due Aug 17, 2026 EXCLUDED AREAS Any area outside completed work. Area None recorded Reason No inaccessible area recorded Status Closed Required action Retain record and confirm next service window Revisit condition Routine service window only FREQUENCY BASIS Cooking line type Main Type I cookline Observed grease load Moderate to heavy Operating pattern High-volume dinner service Recommended interval 90-day cycle Next service window Aug 12-17, 2026 Interval note Current grease load and line volume support a 90-day cycle. NEXT SERVICE / CUSTOMER ACTION Review condition for quote Review the noted condition and contact the service team if you want a follow-up quote before the next service window. This is a written service record, photo evidence is not attached to this visit. Recorded conditions and follow-up paths are separate from this cleaning record. Next visit window Aug 12-17, 2026 Service note Filter bank was cleaned and reinstalled. Rooftop fan hinge is worn and should be reviewed before the next quarterly service. PDF copy The PDF copy is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work. Customer action Review the noted condition and contact the service team if you want a follow-up quote before the next service window. SERVICE LABEL AND RECORD Signoff details stay attached. Service label type Recorded condition notice Label / notice ref COND-0424-RF01 Label posted Yes - next due date shown Prepared by technician Technician / crew Reviewed on site Jordan, shift lead Delivery record PDF copy saved for customer records Record retention Customer copy and service provider archi",
+      "url": "http://127.0.0.1:8096/p/server?reportId=5f04fe0a92274b4d9e&format=pdf"
+    },
+    "logs": []
+  }
+]

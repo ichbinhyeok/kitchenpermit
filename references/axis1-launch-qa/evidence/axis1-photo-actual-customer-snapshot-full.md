@@ -1,0 +1,151 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - paragraph [ref=e10]: Receipt confirmation
+        - paragraph [ref=e11]: Confirm that this service report was received and can be kept with kitchen exhaust service records.
+      - button "Confirm received" [ref=e12]:
+        - img
+        - text: Confirm received
+    - article [ref=e14]:
+      - generic [ref=e17]:
+        - link "Back to report top" [ref=e18] [cursor=pointer]:
+          - /url: "#report-top"
+          - generic [ref=e20]: AQH
+          - generic [ref=e21]:
+            - generic [ref=e22]: Summit Fire Hood Cleaning
+            - generic [ref=e23]: Service report
+        - generic [ref=e24]:
+          - navigation "Service report sections" [ref=e25]:
+            - link "Result" [ref=e26] [cursor=pointer]:
+              - /url: "#summary"
+            - link "Record" [ref=e27] [cursor=pointer]:
+              - /url: "#record"
+          - link "PDF" [ref=e29] [cursor=pointer]:
+            - /url: /p/server?reportId=a0eb3d3820df46b7ba&format=pdf
+            - img [ref=e30]
+            - text: PDF
+          - link "Contact about follow-up quote" [ref=e34] [cursor=pointer]:
+            - /url: tel:5125550148
+            - img [ref=e35]
+            - text: Contact service team
+      - generic [ref=e42]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - generic [ref=e47]: AQH
+            - generic [ref=e48]:
+              - paragraph [ref=e49]: Summit Fire Hood Cleaning
+              - paragraph [ref=e50]: Austin, TX | Restaurant hood cleaning
+          - generic [ref=e51]:
+            - generic [ref=e52]: May 19, 2026
+            - generic [ref=e53]:
+              - img
+              - text: 1 condition recorded
+        - generic [ref=e54]:
+          - paragraph [ref=e55]: Service report
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: "Property:"
+              - text: Photo Proof Bistro
+            - generic [ref=e59]:
+              - generic [ref=e60]: "Location:"
+              - text: Austin, TX
+            - generic [ref=e61]:
+              - generic [ref=e62]: "Reviewed:"
+              - text: Elena Carter, manager
+          - heading "Service completed. 1 condition recorded." [level=1] [ref=e63]:
+            - text: Service completed.
+            - generic [ref=e64]: 1 condition recorded.
+          - paragraph [ref=e65]: "Completed: Reachable plenum, duct path, and access, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. Recorded for follow-up: Hood canopy and filters, Rooftop fan and roof discharge. Condition recorded from service note, no condition photo is attached. This is a written service record, so photos are not implied."
+          - generic [ref=e66]:
+            - generic [ref=e67]:
+              - paragraph [ref=e68]: Result
+              - paragraph [ref=e69]: Review item
+            - generic [ref=e70]:
+              - paragraph [ref=e71]: Documentation
+              - paragraph [ref=e72]: Condition record
+            - generic [ref=e73]:
+              - paragraph [ref=e74]: Customer action
+              - paragraph [ref=e75]: Contact service team
+            - generic [ref=e76]:
+              - paragraph [ref=e77]: PDF copy
+              - paragraph [ref=e78]: Record copy
+          - generic [ref=e79]:
+            - link "Contact about follow-up quote" [ref=e80] [cursor=pointer]:
+              - /url: tel:5125550148
+              - img
+              - text: Contact about follow-up quote
+            - link "Open PDF copy" [ref=e81] [cursor=pointer]:
+              - /url: /p/server?reportId=a0eb3d3820df46b7ba&format=pdf
+              - img
+              - text: Open PDF copy
+          - generic [ref=e82]:
+            - paragraph [ref=e83]: Customer next step
+            - paragraph [ref=e84]: Review the noted condition and contact the service team if you want a follow-up quote before the next service window.
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - paragraph [ref=e87]: May 19 service result
+          - heading "Service result." [level=2] [ref=e88]
+          - paragraph [ref=e89]: Completed work, customer action, and the PDF copy are kept together for restaurant records.
+        - generic [ref=e90]:
+          - article [ref=e91]:
+            - img [ref=e93]
+            - generic [ref=e95]:
+              - paragraph [ref=e96]: Completed this visit
+              - heading "Completed areas are listed by area." [level=3] [ref=e97]
+              - paragraph [ref=e98]: "Completed: Reachable plenum, duct path, and access, Grease path and containment. No blocked, incomplete, or separate area is shown as completed. Recorded for follow-up: Hood canopy and filters, Rooftop fan and roof discharge. Condition recorded from service note, no condition photo is attached. This is a written service record, so photos are not implied."
+          - article [ref=e99]:
+            - img [ref=e101]
+            - generic [ref=e103]:
+              - paragraph [ref=e104]: Condition recorded
+              - heading "Before and after photos show filter bank condition and cleanup. Manager requested normal quarterly follow-up." [level=3] [ref=e105]
+              - paragraph [ref=e106]: Hood and filter condition stay visible in the record without implying missing photo proof. Condition recorded from service note, no condition photo is attached. This is a recorded condition, not completed corrective work.
+          - article [ref=e107]:
+            - img [ref=e109]
+            - generic [ref=e111]:
+              - paragraph [ref=e112]: Customer action
+              - heading "Review condition for quote" [level=3] [ref=e113]
+              - paragraph [ref=e114]: Review the noted condition and contact the service team if you want a follow-up quote before the next service window.
+          - article [ref=e115]:
+            - img [ref=e117]
+            - generic [ref=e120]:
+              - paragraph [ref=e121]: Record note
+              - heading "Keep the PDF copy with kitchen exhaust files." [level=3] [ref=e122]
+              - paragraph [ref=e123]: The PDF copy is for manager, insurance, or documentation requests. It stays separate from corrective or follow-up work.
+      - generic [ref=e124]:
+        - generic [ref=e125]:
+          - generic [ref=e126]:
+            - img [ref=e127]
+            - generic [ref=e130]: Keep this record.
+            - generic [ref=e131]: Keep this record with your kitchen exhaust maintenance files. It includes the service date, completed areas, photo status, blocked or not-completed areas, and recommended next service window.
+          - generic [ref=e132]:
+            - paragraph [ref=e133]: A PDF copy is available for files, manager review, insurance, or documentation requests. It stays separate from corrective or follow-up work.
+            - link "Open PDF copy" [ref=e134] [cursor=pointer]:
+              - /url: /p/server?reportId=a0eb3d3820df46b7ba&format=pdf
+              - img
+              - text: Open PDF copy
+        - generic [ref=e135]:
+          - generic [ref=e136]:
+            - img [ref=e137]
+            - generic [ref=e140]: Next recommended step.
+            - generic [ref=e141]: Review the noted condition and contact the service team if you want a follow-up quote before the next service window. This is a written service record, photo evidence is not attached to this visit. Recorded conditions and follow-up paths are separate from this cleaning record.
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - term [ref=e145]: Recommended window
+                - definition [ref=e146]: Aug 12-17, 2026
+              - generic [ref=e147]:
+                - term [ref=e148]: Reason
+                - definition [ref=e149]: Current grease load and line volume support a 90-day cycle.
+              - generic [ref=e150]:
+                - term [ref=e151]: Customer action
+                - definition [ref=e152]: Review the noted condition and contact the service team if you want a follow-up quote before the next service window.
+            - link "Contact about follow-up quote" [ref=e154] [cursor=pointer]:
+              - /url: tel:5125550148
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - img [ref=e158]
+          - generic [ref=e160]: Summit Fire Hood Cleaning
+        - paragraph [ref=e161]: This link summarizes this service visit from the service provider's records. Use the PDF copy as the retained copy for files, manager review, insurance, landlord, or documentation requests. A manager, landlord, insurer, or reviewer may still apply their own requirements, and separate corrective or follow-up work needs a separate go-ahead.
+  - region "Notifications alt+T"
+  - alert [ref=e6]

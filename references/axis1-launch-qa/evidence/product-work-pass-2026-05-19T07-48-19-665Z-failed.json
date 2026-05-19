@@ -1,0 +1,65 @@
+{
+  "consoleErrors": [],
+  "failedRequests": [],
+  "checks": [
+    {
+      "name": "builder heading is declare-first",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "declare step visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "normal no-photo path visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "copy link action enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "copy text action enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "copy email action enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "save pdf action enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "saved customer report uses public report route",
+      "ok": true,
+      "detail": "http://127.0.0.1:8097/p/server?reportId=0f703dd8494c4736b1"
+    },
+    {
+      "name": "react pdf route renders service record",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "urls": {
+    "customerReport": "http://127.0.0.1:8097/p/server?reportId=0f703dd8494c4736b1",
+    "reactPdf": "http://127.0.0.1:8097/p/server?reportId=0f703dd8494c4736b1&format=pdf"
+  },
+  "screenshots": {
+    "tool-declare-desktop": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-48-19-665Z\\tool-declare-desktop.png",
+    "tool-send-actions-desktop": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-48-19-665Z\\tool-send-actions-desktop.png",
+    "tool-copy-text-boundary-modal": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-48-19-665Z\\tool-copy-text-boundary-modal.png",
+    "tool-generated-link": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-48-19-665Z\\tool-generated-link.png",
+    "react-pdf-service-record": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-48-19-665Z\\react-pdf-service-record.png"
+  },
+  "shotDir": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\product-work-pass-2026-05-19T07-48-19-665Z",
+  "generatedAt": "2026-05-19T07:48:26.001Z",
+  "error": "locator.waitFor: Error: strict mode violation: getByText('First report setup') resolved to 2 elements:\n    1) <p class=\"font-mono text-xs uppercase tracking-[0.24em] text-accent\">First report setup</p> aka getByText('First report setup', { exact: true })\n    2) <a href=\"/start\" class=\"inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#111315] px-5 text-sm font-black text-white transition hover:bg-[#20262d]\">…</a> aka getByRole('link', { name: 'Request first report setup' })\n\nCall log:\n\u001b[2m  - waiting for getByText('First report setup') to be visible\u001b[22m\n\n    at [stdin]:75:46"
+}

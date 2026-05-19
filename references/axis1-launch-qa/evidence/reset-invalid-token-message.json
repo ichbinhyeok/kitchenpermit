@@ -1,0 +1,4 @@
+{
+  "shot": "C:\\Development\\Owner\\hood\\references\\axis1-launch-qa\\screenshots\\reset-invalid-token-message.png",
+  "text": "KITCHENPERMIT BACK TO LOGIN ONE-TIME LINK Set a new account password. This link does not reveal the old password. It only lets the account owner choose a new one. After the password is updated, return to login and use the new password for the dashboard. PASSWORD RESET New password Choose a password with at least 8 characters. Check the reset link That reset link is no longer valid. Request a new password reset email. NEW PASSWORD CONFIRM NEW PASSWORD Update password"
+}
