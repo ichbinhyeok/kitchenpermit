@@ -94,6 +94,7 @@ jobs:
             mkdir -p ~/deploy/hood/storage
             cd ~/deploy/hood
             test -s app.jar
+            test -f .env || touch .env
 
             cat <<'EOF' > docker-compose.yml
             services:
@@ -101,6 +102,8 @@ jobs:
                 image: ${{ secrets.DOCKERHUB_USERNAME }}/kitchenpermit:latest
                 ports:
                   - "8810:8080"
+                env_file:
+                  - .env
                 environment:
                   - APP_DATASOURCE_URL=${{ secrets.APP_DATASOURCE_URL }}
                   - APP_DATASOURCE_DRIVER=org.postgresql.Driver
@@ -124,15 +127,15 @@ jobs:
                   - GG_JTE_USE_PRECOMPILED_TEMPLATES=true
                   - HOOD_SITE_BASE_URL=https://kitchenpermit.com
                   - HOOD_SITE_NAME=KitchenPermit
-                  - HOOD_SITE_SUPPORT_EMAIL=support@kitchenpermit.com
-                  - HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED=${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED || 'false' }}
-                  - HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM=${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM || 'support@kitchenpermit.com' }}
-                  - SPRING_MAIL_HOST=${{ secrets.SPRING_MAIL_HOST }}
-                  - SPRING_MAIL_PORT=${{ secrets.SPRING_MAIL_PORT || '587' }}
-                  - SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}
-                  - SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}
-                  - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=${{ secrets.SPRING_MAIL_SMTP_AUTH || 'true' }}
-                  - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=${{ secrets.SPRING_MAIL_SMTP_STARTTLS_ENABLE || 'true' }}
+                  - HOOD_SITE_SUPPORT_EMAIL=${HOOD_SITE_SUPPORT_EMAIL:-support@kitchenpermit.com}
+                  - HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED=${HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED:-${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED || 'false' }}}
+                  - HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM=${HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM:-${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM || 'support@kitchenpermit.com' }}}
+                  - SPRING_MAIL_HOST=${SPRING_MAIL_HOST:-${{ secrets.SPRING_MAIL_HOST }}}
+                  - SPRING_MAIL_PORT=${SPRING_MAIL_PORT:-${{ secrets.SPRING_MAIL_PORT || '587' }}}
+                  - SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME:-${{ secrets.SPRING_MAIL_USERNAME }}}
+                  - SPRING_MAIL_PASSWORD=${SPRING_MAIL_PASSWORD:-${{ secrets.SPRING_MAIL_PASSWORD }}}
+                  - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:-${{ secrets.SPRING_MAIL_SMTP_AUTH || 'true' }}}
+                  - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:-${{ secrets.SPRING_MAIL_SMTP_STARTTLS_ENABLE || 'true' }}}
                   - HOOD_STORAGE_ROOT=/app/storage
                   - HOOD_AXIS1_ASSET_STORAGE_DRIVER=${{ secrets.HOOD_AXIS1_ASSET_STORAGE_DRIVER || 'filesystem' }}
                   - HOOD_AXIS1_R2_BUCKET=${{ secrets.CLOUDFLARE_R2_BUCKET }}
