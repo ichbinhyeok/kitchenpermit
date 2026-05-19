@@ -129,6 +129,7 @@ jobs:
                   - HOOD_SITE_NAME=KitchenPermit
                   - HOOD_SITE_SUPPORT_EMAIL=${HOOD_SITE_SUPPORT_EMAIL:-support@kitchenpermit.com}
                   - HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED=${HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED:-${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED || 'false' }}}
+                  - HOOD_AUTH_PASSWORD_RESET_MAIL_FROM=${HOOD_AUTH_PASSWORD_RESET_MAIL_FROM:-${{ secrets.HOOD_AUTH_PASSWORD_RESET_MAIL_FROM || 'compliance@kitchenpermit.com' }}}
                   - HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM=${HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM:-${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM || 'support@kitchenpermit.com' }}}
                   - SPRING_MAIL_HOST=${SPRING_MAIL_HOST:-${{ secrets.SPRING_MAIL_HOST }}}
                   - SPRING_MAIL_PORT=${SPRING_MAIL_PORT:-${{ secrets.SPRING_MAIL_PORT || '587' }}}
