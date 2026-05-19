@@ -152,6 +152,7 @@ jobs:
                   - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET }}
                   - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE=openid,email,profile
                   - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75.0
+                  - AXIS1_PHOTO_ASSIST_MODE=${{ secrets.AXIS1_PHOTO_ASSIST_MODE || 'live' }}
                   - GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
                 volumes:
                   - ./app.jar:/app/app.jar:ro
