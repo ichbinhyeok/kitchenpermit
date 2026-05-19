@@ -2254,13 +2254,17 @@ function localInputDate(date = new Date()) {
   return new Date(localTime).toISOString().slice(0, 10);
 }
 
-function createAxis1BuilderStartValues(): Axis1BuilderFormValues {
+const staticInitialServiceDate = axis1BuilderDefaults.serviceDate;
+
+function createAxis1BuilderStartValues(
+  serviceDate = staticInitialServiceDate,
+): Axis1BuilderFormValues {
   return {
     ...axis1BuilderDefaults,
     scenario: "clean",
     propertyName: "",
     siteCity: "",
-    serviceDate: localInputDate(),
+    serviceDate,
     authorizedBy: "",
     serviceWindow: "Service visit",
     systemName: "Kitchen exhaust system",
@@ -2897,6 +2901,18 @@ export function PacketBuilder({
   const uploadedFieldPhotosRef = useRef(uploadedFieldPhotos);
   const unplacedFieldPhotosRef = useRef(unplacedFieldPhotos);
   const loadedReportIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (form.getValues("serviceDate") !== staticInitialServiceDate) {
+      return;
+    }
+
+    form.setValue("serviceDate", localInputDate(), {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: true,
+    });
+  }, [form]);
 
   useEffect(() => {
     let cancelled = false;
@@ -4334,7 +4350,7 @@ export function PacketBuilder({
       : "You changed the suggested answer. The report now follows your selected result.";
 
   function resetBuilder() {
-    form.reset(createAxis1BuilderStartValues());
+    form.reset(createAxis1BuilderStartValues(localInputDate()));
     setHasJobOutcomeSelected(false);
     setAutoDraftedJobPatternId(null);
     setUploadedFieldPhotos(emptyFieldPhotoState());

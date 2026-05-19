@@ -9,7 +9,7 @@ export const siteConfig = {
     "Branded service report links and PDFs for kitchen exhaust vendors after every cleaning job.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenpermit.com",
   supportEmail:
-    process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@kitchenpermit.com",
+    process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "compliance@kitchenpermit.com",
   navigation: [
     { href: "/", label: "Home" },
     { href: "/axis-1", label: "Service Report" },

@@ -7,7 +7,7 @@ public class HoodSiteProperties {
 
     private String baseUrl = "http://localhost:8080";
     private String name = "KitchenPermit";
-    private String supportEmail = "support@kitchenpermit.com";
+    private String supportEmail = "compliance@kitchenpermit.com";
 
     public String getBaseUrl() {
         return baseUrl;
