@@ -157,6 +157,19 @@ function isDefaultProfile(profile: Axis1CompanyProfile) {
   );
 }
 
+function needsProfileReview(profile: Axis1CompanyProfile) {
+  const directLineDigits = profile.directLine.replace(/\D/g, "");
+  const afterHoursDigits = profile.afterHoursPhone.replace(/\D/g, "");
+
+  return (
+    isDefaultProfile(profile) ||
+    profile.directLine === "Customer phone" ||
+    directLineDigits.length !== 10 ||
+    (afterHoursDigits.length > 0 && afterHoursDigits.length !== 10) ||
+    profile.serviceArea.toLowerCase().startsWith("service area /")
+  );
+}
+
 function formatUsPhoneInput(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
 
@@ -206,7 +219,7 @@ export function CompanyProfilePanel() {
 
       setDraft(localProfile);
       setSaved(localProfile);
-      setShowProfileEditor(false);
+      setShowProfileEditor(needsProfileReview(localProfile));
 
       try {
         const entitlements = await loadAxis1AccountEntitlements();
@@ -229,7 +242,7 @@ export function CompanyProfilePanel() {
         const nextProfile = saveAxis1CompanyProfile(profile);
         setDraft(nextProfile);
         setSaved(nextProfile);
-        setShowProfileEditor(false);
+        setShowProfileEditor(needsProfileReview(nextProfile));
         setStorageState("server");
       } catch {
         if (!cancelled) {
@@ -374,7 +387,7 @@ export function CompanyProfilePanel() {
   const previewBrandColor = /^#[0-9A-Fa-f]{6}$/.test(draftBrandColor)
     ? draftBrandColor
     : defaultAxis1CompanyProfile.brandColor || "#f26a21";
-  const profileNeedsReview = isDefaultProfile(saved);
+  const profileNeedsReview = needsProfileReview(saved);
 
   return (
     <div

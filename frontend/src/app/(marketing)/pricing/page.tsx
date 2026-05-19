@@ -49,7 +49,7 @@ const offerTracks = [
       "Save company logo, report color, and contact details",
       "Customer-friendly send message for each saved report",
       "No PDF watermark",
-      "Hosted links stay live while subscribed",
+      "Paid links and PDFs stay available after creation",
       "Customer/site history and next-service follow-up view",
     ],
     featured: true,
@@ -75,7 +75,7 @@ const offerTracks = [
 
 const freeVsPaid = [
   ["Company details", "Free output has no company logo/contact line. Paid output carries the vendor name, logo, report color, phone, and reply path."],
-  ["Link life", "Free report links are limited to 7 days. Paid links stay live while the subscription is active."],
+  ["Link life", "Free report links are limited to 7 days. Paid links and PDFs stay available after creation."],
   ["PDF", "Free PDFs carry a watermark. Paid PDFs are clean customer/inspection copies."],
   ["History", "Free reports do not create an account history. Paid reports are grouped by customer/site in Account."],
   ["Follow-up", "Free output ends after the test link. Paid history shows next service timing and gives staff a customer-ready message to send."],
@@ -87,7 +87,7 @@ export default function PricingPage() {
       <PageHeader
         label="Pricing"
         title={`Free builder. ${AXIS1_COMPANY_MONTHLY_PRICE} company version.`}
-        description="The free builder proves the output. The company version is the paid product: company logo/contact, clean PDF, live restaurant report links, customer history, and follow-up workflow."
+        description="The free builder proves the output. The company version is the paid product: company logo/contact, clean PDF, retained restaurant report links, customer history, and follow-up workflow."
       />
 
       <section className="container-shell pb-6">
@@ -129,7 +129,7 @@ export default function PricingPage() {
           <div className="grid content-end gap-3">
             {[
               "Free builder: no login, no company logo/contact, 7-day link, watermarked PDF.",
-              `Company version: ${AXIS1_COMPANY_MONTHLY_PRICE} for saved company details, live service report links, clean PDFs, customer history, and follow-up reminders.`,
+              `Company version: ${AXIS1_COMPANY_MONTHLY_PRICE} for saved company details, retained service report links, clean PDFs, customer history, and follow-up reminders.`,
               `Design help: optional from ${AXIS1_DESIGN_HELP_STARTING_PRICE}, only when a vendor wants brand/report polish.`,
             ].map((item) => (
               <div

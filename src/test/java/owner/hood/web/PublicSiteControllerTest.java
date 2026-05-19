@@ -85,7 +85,7 @@ class PublicSiteControllerTest {
         assertStaticResourceContains(
                 "static/axis-1/tool.html",
                 "Add photos and notes",
-                "Free builder: no login, no company logo/contact, 7-day test link"
+                "Free builder: no login, neutral test link, no company logo/contact"
         );
     }
 
@@ -172,7 +172,7 @@ class PublicSiteControllerTest {
                 "static/samples/axis-2.html",
                 "3 masked rows from a 10-opportunity batch",
                 "Protected fields in the paid version include direct contact paths",
-                "The list is the hook. The packet sharpens the motion.",
+                "The list is the hook. The outreach brief sharpens the motion.",
                 "noindex, nofollow"
         );
     }

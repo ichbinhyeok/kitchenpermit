@@ -32,6 +32,6 @@ class BillingApiControllerTest {
     void paddleCheckoutRequiresLoginBeforePayment() throws Exception {
         mockMvc.perform(post("/api/billing/paddle/checkout"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.loginHref").value("/login?next=/company-version"));
+                .andExpect(jsonPath("$.loginHref").value("/login?mode=signup&next=/company-version"));
     }
 }

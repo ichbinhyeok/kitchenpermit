@@ -2,7 +2,7 @@
 
 import { AlertCircle, ArrowRight, KeyRound } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 function resetMessage(value: string | null) {
@@ -29,11 +29,61 @@ export function PasswordResetConfirmForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
   const serverMessage = resetMessage(searchParams.get("auth"));
+  const [tokenStatus, setTokenStatus] = useState<
+    "checking" | "valid" | "invalid-token" | "expired-token"
+  >(token ? "checking" : "invalid-token");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [clientMessage, setClientMessage] = useState<string | null>(null);
-  const message = clientMessage || serverMessage;
-  const canSubmit = token.length > 0;
+  const tokenMessage =
+    tokenStatus === "checking"
+      ? "Checking this reset link before accepting a new password."
+      : tokenStatus === "valid"
+        ? null
+        : resetMessage(tokenStatus);
+  const message = clientMessage || serverMessage || tokenMessage;
+  const canSubmit = token.length > 0 && tokenStatus === "valid";
+
+  useEffect(() => {
+    if (!token) {
+      setTokenStatus("invalid-token");
+      return;
+    }
+
+    let cancelled = false;
+    setTokenStatus("checking");
+
+    fetch(`/auth/password-reset/validate?token=${encodeURIComponent(token)}`, {
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { valid?: boolean; status?: string } | null) => {
+        if (cancelled) {
+          return;
+        }
+
+        if (data?.valid) {
+          setTokenStatus("valid");
+          return;
+        }
+
+        setTokenStatus(
+          data?.status === "expired-token" ? "expired-token" : "invalid-token",
+        );
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setTokenStatus("valid");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     if (password.length < 8) {

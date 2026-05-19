@@ -372,15 +372,15 @@ const vendorScenarios = [
     run: async ({ page }) => {
       await pickCompleted(page);
       const rows = await goToOutputs(page);
-      assert(outputRow(rows, "Customer handoff link").readiness === "ready", "Customer link not ready.");
-      assert(outputRow(rows, "Evidence PDF").readiness === "ready", "Evidence PDF not ready.");
+      assert(outputRow(rows, "Service report link").readiness === "ready", "Customer link not ready.");
+      assert(outputRow(rows, "PDF copy").readiness === "ready", "PDF copy not ready.");
       assert(
-        outputRow(rows, "Invoice proof summary").readiness === "needs_review",
-        "Invoice proof should need review for written record.",
+        outputRow(rows, "Vendor send check").readiness === "needs_review",
+        "Vendor send check should need review for written record.",
       );
       assert(
-        outputRow(rows, "Payment-support copy").readiness === "needs_review",
-        "Payment support should need review for written record.",
+        !rows.some((row) => /invoice proof|payment-support/i.test(row.text)),
+        "Legacy invoice/payment-support output language should not return.",
       );
       assert(/written service record|WRITTEN RECORD/i.test(await bodyText(page)), "Written record basis missing.");
       await assertCustomerCopySafe(page);
@@ -471,7 +471,7 @@ const vendorScenarios = [
         "Fan was not represented as notes-only completed.",
       );
       const rows = await goToOutputs(page);
-      assert(outputRow(rows, "Payment-support copy").readiness === "needs_review", "Payment support should need review.");
+      assert(outputRow(rows, "Vendor send check").readiness === "needs_review", "Vendor send check should need review.");
       assert(/fan/i.test(await bodyText(page)), "Fan status not visible in closeout.");
     },
   },
@@ -486,7 +486,7 @@ const vendorScenarios = [
         "Duct/access was not represented as notes-only completed.",
       );
       const rows = await goToOutputs(page);
-      assert(outputRow(rows, "Invoice proof summary").readiness === "needs_review", "Invoice proof should need review.");
+      assert(outputRow(rows, "Vendor send check").readiness === "needs_review", "Vendor send check should need review.");
     },
   },
   {
@@ -685,7 +685,7 @@ const vendorScenarios = [
       await clickVisibleButton(page, /REVIEW|PACKAGE/i);
       await pickCompleted(page);
       assert((await page.locator("#quickCloseoutNote").inputValue()) === note, "Mobile quick note was lost.");
-      assert((await bodyText(page)).includes("CUSTOMER-SAFE DRAFT"), "Mobile closeout preview missing.");
+      assert(/CUSTOMER-(SAFE|READY) (COPY|DRAFT)/i.test(await bodyText(page)), "Mobile closeout preview missing.");
     },
   },
   {

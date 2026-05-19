@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FileDown, Printer, TriangleAlert } from "lucide-react";
+import { CheckCircle2, Printer, TriangleAlert } from "lucide-react";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
@@ -10,7 +10,12 @@ import {
   axis1DefaultReportSections,
   buildAxis1PacketDataFromRecord,
 } from "@/lib/axis1-report-record";
-import { loadAxis1ServerReport } from "@/lib/axis1-server-storage";
+import {
+  confirmAxis1ServerReportReceived,
+  loadAxis1ServerReport,
+  recordAxis1ServerReportPdfSave,
+  type Axis1ServerReportRecord,
+} from "@/lib/axis1-server-storage";
 import { axis1BuilderDefaults } from "@/lib/axis1-packet-builder";
 import {
   getAxis1ProductPlanPolicy,
@@ -20,17 +25,38 @@ import {
 type ServerAxis1ReportClientProps = {
   publicId: string;
   outputIntent?: "customer-link" | "service-record";
+  previewMode?: boolean;
+};
+
+type HostedAxis1ReportRecord = Axis1LocalPacketRecord & {
+  engagement?: Axis1ServerReportRecord["engagement"];
+  viewer?: Axis1ServerReportRecord["viewer"];
 };
 
 type ReportLoadState =
   | { status: "loading" }
-  | { status: "ready"; record: Axis1LocalPacketRecord }
+  | { status: "ready"; record: HostedAxis1ReportRecord }
   | { status: "expired" }
   | { status: "missing" }
   | { status: "error" };
 
 function serviceRecordPdfViewHref(publicId: string) {
   return `/p/server?reportId=${encodeURIComponent(publicId)}&format=pdf`;
+}
+
+function withPreviewHref(href: string, previewMode?: boolean) {
+  if (!previewMode) {
+    return href;
+  }
+
+  try {
+    const url = new URL(href, "http://axis1.local");
+    url.searchParams.set("preview", "1");
+
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return `${href}${href.includes("?") ? "&" : "?"}preview=1`;
+  }
 }
 
 function withServerPdfHref(
@@ -152,7 +178,8 @@ function normalizeHostedValues(
 
 function toHostedRecord(
   response: Awaited<ReturnType<typeof loadAxis1ServerReport>>,
-): Axis1LocalPacketRecord | null {
+  previewMode: boolean,
+): HostedAxis1ReportRecord | null {
   const payload = response.payload;
 
   if (
@@ -165,7 +192,10 @@ function toHostedRecord(
     return null;
   }
 
-  const pdfHref = serviceRecordPdfViewHref(response.publicId);
+  const pdfHref = withPreviewHref(
+    serviceRecordPdfViewHref(response.publicId),
+    previewMode || Boolean(response.viewer?.ownerPreview),
+  );
   const hostedPacketData = isUsableHostedPacketData(payload.packetData)
     ? withServerPdfHref(payload.packetData, pdfHref)
     : undefined;
@@ -188,25 +218,29 @@ function toHostedRecord(
     presentationMode: payload.presentationMode,
     visibleSections: payload.visibleSections,
     packetData,
+    engagement: response.engagement,
+    viewer: response.viewer,
   };
 }
 
 export function ServerAxis1ReportClient({
   publicId,
   outputIntent = "customer-link",
+  previewMode = false,
 }: ServerAxis1ReportClientProps) {
   const [state, setState] = useState<ReportLoadState>({ status: "loading" });
+  const [isConfirmingReceipt, setIsConfirmingReceipt] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    loadAxis1ServerReport(publicId)
+    loadAxis1ServerReport(publicId, { preview: previewMode })
       .then((response) => {
         if (cancelled) {
           return;
         }
 
-        const record = toHostedRecord(response);
+        const record = toHostedRecord(response, previewMode);
         setState(record ? { status: "ready", record } : { status: "missing" });
       })
       .catch((error: unknown) => {
@@ -221,15 +255,40 @@ export function ServerAxis1ReportClient({
     return () => {
       cancelled = true;
     };
-  }, [publicId]);
+  }, [previewMode, publicId]);
 
   const record = state.status === "ready" ? state.record : null;
+  const ownerPreview = Boolean(record?.viewer?.ownerPreview);
   const packetData = useMemo(
     () => (record ? buildAxis1PacketDataFromRecord(record) : null),
     [record],
   );
 
+  function updateEngagement(
+    engagement: NonNullable<Axis1ServerReportRecord["engagement"]>,
+  ) {
+    setState((current) =>
+      current.status === "ready"
+        ? {
+            ...current,
+            record: {
+              ...current.record,
+              engagement,
+            },
+          }
+        : current,
+    );
+  }
+
   function printReport() {
+    if (!ownerPreview) {
+      void recordAxis1ServerReportPdfSave(publicId, { preview: previewMode })
+        .then(updateEngagement)
+        .catch(() => {
+          // Printing should still work if engagement tracking is temporarily unavailable.
+        });
+    }
+
     document.documentElement.classList.add("app-printing");
 
     const clearPrintUiLock = () => {
@@ -241,6 +300,19 @@ export function ServerAxis1ReportClient({
       window.print();
       window.setTimeout(clearPrintUiLock, 900);
     }, 120);
+  }
+
+  async function confirmReceived() {
+    setIsConfirmingReceipt(true);
+
+    try {
+      const engagement = await confirmAxis1ServerReportReceived(publicId, {
+        preview: previewMode,
+      });
+      updateEngagement(engagement);
+    } finally {
+      setIsConfirmingReceipt(false);
+    }
   }
 
   if (state.status === "loading") {
@@ -273,7 +345,7 @@ export function ServerAxis1ReportClient({
           </h1>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
             Create a fresh free test report, or use the company version for
-            service report links that stay live while subscribed.
+            retained service report links and clean PDF copies.
           </p>
         </Panel>
       </main>
@@ -307,7 +379,8 @@ export function ServerAxis1ReportClient({
   const isServiceRecord = outputIntent === "service-record";
   const productPlan = record.productPlan ?? "free";
   const productPolicy = getAxis1ProductPlanPolicy(productPlan);
-  const generatedPdfDownloadHref = `/api/axis1/assets/${encodeURIComponent(publicId)}/service-report.pdf`;
+  const confirmedAt = record.engagement?.customerConfirmedAt;
+  const receiptConfirmed = Boolean(record.engagement?.customerConfirmed);
   const reportVisibleSections = isServiceRecord
     ? visibleSections
     : {
@@ -338,27 +411,54 @@ export function ServerAxis1ReportClient({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <a
-              href={generatedPdfDownloadHref}
-              download="service-report.pdf"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-[6px] border border-[#b8b0a7] bg-white px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-[#423c36] transition hover:bg-[#f5efe8]"
-            >
-              <FileDown className="h-3.5 w-3.5" />
-              Download file
-            </a>
             <Button
               type="button"
               onClick={printReport}
               className="rounded-[6px] bg-[#111315] px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-white hover:bg-[#111315]/90"
             >
               <Printer className="h-3.5 w-3.5" />
-              Save PDF
+              Save as PDF
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {!isServiceRecord && productPlan === "company" ? (
+        <div className="mx-auto w-full max-w-6xl px-3 pt-3 sm:px-5 lg:px-6">
+          <div className="flex flex-col gap-3 border border-[#ded7cf] bg-white/90 px-4 py-3 text-[#151515] shadow-[0_10px_32px_rgba(24,20,17,0.08)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b6f65]">
+                {ownerPreview ? "Preview mode" : "Receipt confirmation"}
+              </p>
+              <p className="mt-1 text-sm font-semibold leading-6 text-[#4d453e]">
+                {ownerPreview
+                  ? "This review-only link is not counted as customer link activity or receipt confirmation."
+                  : receiptConfirmed
+                  ? "This report has been marked received for the service provider's records."
+                  : "Confirm that this service report was received and can be kept with kitchen exhaust service records."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={() => void confirmReceived()}
+              disabled={ownerPreview || receiptConfirmed || isConfirmingReceipt}
+              className="rounded-[6px] bg-[#111315] px-4 text-[11px] font-bold uppercase tracking-[0.1em] text-white hover:bg-[#111315]/90 disabled:cursor-default disabled:bg-[#1f7a4d] disabled:opacity-100"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {ownerPreview
+                ? "Not counted"
+                : receiptConfirmed
+                ? confirmedAt
+                  ? "Received confirmed"
+                  : "Confirmed"
+                : isConfirmingReceipt
+                  ? "Confirming..."
+                  : "Confirm received"}
             </Button>
           </div>
         </div>
       ) : null}
       <div className={isServiceRecord ? "mx-auto w-[min(816px,100%)]" : "w-full"}>
-        <Axis1PacketDocument
+          <Axis1PacketDocument
           data={packetData}
           variant="customer-report"
           outputIntent={outputIntent}

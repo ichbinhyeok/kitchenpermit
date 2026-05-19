@@ -1760,7 +1760,7 @@ describe("evaluateAxis1Closeout", () => {
 
     expect(packet.proofPolicyRows[0]).toEqual([
       "What you are seeing",
-      expect.stringContaining("record basis"),
+      expect.stringContaining("photo coverage"),
     ]);
     expect(packet.proofPolicyRows[1]).toEqual([
       "What stays in service records",

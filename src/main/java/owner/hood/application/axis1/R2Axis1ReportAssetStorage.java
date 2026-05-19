@@ -62,7 +62,8 @@ public class R2Axis1ReportAssetStorage implements Axis1ReportAssetStorage {
     @Override
     public Axis1ReportAssetStorageResult preparePayload(String publicId, Map<String, Object> payload) {
         StoredAssetCounter counter = new StoredAssetCounter();
-        Map<String, Object> preparedPayload = rewriteMap(publicId, payload, counter);
+        Map<String, String> storedDataUrls = new LinkedHashMap<>();
+        Map<String, Object> preparedPayload = rewriteMap(publicId, payload, counter, storedDataUrls);
         preparedPayload.put("_assetStorage", Map.of(
                 "driver", "r2",
                 "mode", "s3_compatible_object_storage",
@@ -149,7 +150,8 @@ public class R2Axis1ReportAssetStorage implements Axis1ReportAssetStorage {
     private Map<String, Object> rewriteMap(
             String publicId,
             Map<?, ?> source,
-            StoredAssetCounter counter
+            StoredAssetCounter counter,
+            Map<String, String> storedDataUrls
     ) {
         Map<String, Object> rewritten = new LinkedHashMap<>();
 
@@ -158,17 +160,22 @@ public class R2Axis1ReportAssetStorage implements Axis1ReportAssetStorage {
                 continue;
             }
 
-            rewritten.put(key, rewriteValue(publicId, key, entry.getValue(), counter));
+            rewritten.put(key, rewriteValue(publicId, key, entry.getValue(), counter, storedDataUrls));
         }
 
         return rewritten;
     }
 
-    private List<Object> rewriteList(String publicId, List<?> source, StoredAssetCounter counter) {
+    private List<Object> rewriteList(
+            String publicId,
+            List<?> source,
+            StoredAssetCounter counter,
+            Map<String, String> storedDataUrls
+    ) {
         List<Object> rewritten = new ArrayList<>();
 
         for (Object item : source) {
-            rewritten.add(rewriteValue(publicId, "", item, counter));
+            rewritten.add(rewriteValue(publicId, "", item, counter, storedDataUrls));
         }
 
         return rewritten;
@@ -178,24 +185,35 @@ public class R2Axis1ReportAssetStorage implements Axis1ReportAssetStorage {
             String publicId,
             String key,
             Object value,
-            StoredAssetCounter counter
+            StoredAssetCounter counter,
+            Map<String, String> storedDataUrls
     ) {
         if ("src".equals(key) && value instanceof String source && source.startsWith("data:")) {
-            return storeDataUrl(publicId, source, counter);
+            return storeDataUrl(publicId, source, counter, storedDataUrls);
         }
 
         if (value instanceof Map<?, ?> map) {
-            return rewriteMap(publicId, map, counter);
+            return rewriteMap(publicId, map, counter, storedDataUrls);
         }
 
         if (value instanceof List<?> list) {
-            return rewriteList(publicId, list, counter);
+            return rewriteList(publicId, list, counter, storedDataUrls);
         }
 
         return value;
     }
 
-    private String storeDataUrl(String publicId, String dataUrl, StoredAssetCounter counter) {
+    private String storeDataUrl(
+            String publicId,
+            String dataUrl,
+            StoredAssetCounter counter,
+            Map<String, String> storedDataUrls
+    ) {
+        String existingHref = storedDataUrls.get(dataUrl);
+        if (existingHref != null) {
+            return existingHref;
+        }
+
         int commaIndex = dataUrl.indexOf(',');
 
         if (commaIndex < 0 || !dataUrl.startsWith("data:")) {
@@ -219,7 +237,9 @@ public class R2Axis1ReportAssetStorage implements Axis1ReportAssetStorage {
 
         String fileName = "photo-" + counter.increment() + extensionForMimeType(mimeType);
 
-        return storeAsset(publicId, fileName, bytes, mimeType);
+        String href = storeAsset(publicId, fileName, bytes, mimeType);
+        storedDataUrls.put(dataUrl, href);
+        return href;
     }
 
     private String assetKey(String publicId, String fileName) {

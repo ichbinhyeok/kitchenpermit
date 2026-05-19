@@ -487,7 +487,7 @@ export function getAxis1PacketPreviewData(options: {
         component: "Baffle filters / tracks",
         status: "Removed + reset",
         proof: "P-03",
-        note: "Filters removed, cleaned, checked, and reinstalled; tracks and nearby grease collection points documented where accessible.",
+        note: "Filters removed, cleaned, checked, and reinstalled. Tracks and nearby grease collection points documented where accessible.",
       },
       {
         component: "Plenum / reachable duct path",
@@ -731,7 +731,7 @@ export function getAxis1PacketPreviewData(options: {
       ["Site contact", "Store manager / masked"],
       ["On-site status", "Service result reviewed at close-out"],
       ["Customer action", exceptionOpen ? "Clear rear access and reply" : "Confirm next service window"],
-      ["Vendor action", "Await reply or schedule follow-up"],
+      ["Service team follow-up", "Await customer response or schedule follow-up"],
       ["Record location", "Keep with kitchen exhaust service records"],
       ["Generated for", "Customer-facing service report link"],
     ],

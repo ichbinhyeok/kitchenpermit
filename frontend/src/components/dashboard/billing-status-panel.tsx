@@ -17,6 +17,14 @@ type EntitlementState =
   | { status: "ready"; entitlements: Axis1AccountEntitlements }
   | { status: "error" };
 
+type BillingNoticeContent = {
+  title: string;
+  copy: string;
+  tone: "good" | "warn";
+  actionLabel?: string;
+  actionHref?: string;
+};
+
 function StatusPill({ children, tone = "muted" }: { children: string; tone?: "good" | "warn" | "muted" }) {
   const toneClass =
     tone === "good"
@@ -32,13 +40,15 @@ function StatusPill({ children, tone = "muted" }: { children: string; tone?: "go
   );
 }
 
-function billingNoticeCopy(value: string | null) {
+function billingNoticeCopy(value: string | null): BillingNoticeContent | null {
   if (value === "checkout-complete") {
     return {
       title: "Checkout received.",
       copy:
-        "Company access may take a moment to turn on. If it still looks locked after a refresh, email support with the account email.",
+        "Next step: confirm your company name, logo, report color, phone, and reply email before sending the first paid report. Access may take a moment to turn on while checkout confirms.",
       tone: "good" as const,
+      actionLabel: "Set up company branding",
+      actionHref: "#company-profile",
     };
   }
 
@@ -46,7 +56,7 @@ function billingNoticeCopy(value: string | null) {
     return {
       title: "Subscription needs attention.",
       copy:
-        "Clean PDFs, saved reports, and live customer links depend on active company access. Contact support if the card or subscription needs to be fixed.",
+        "New clean PDFs, saved reports, company history, and builder reload depend on active company access. Contact support if the card or subscription needs to be fixed.",
       tone: "warn" as const,
     };
   }
@@ -140,6 +150,14 @@ function BillingNotice({ compact = false }: { compact?: boolean }) {
       <p className={`${compact ? "mt-1 text-xs leading-5" : "mt-2 text-sm leading-6"} font-semibold opacity-80`}>
         {notice.copy}
       </p>
+      {notice.actionLabel && notice.actionHref ? (
+        <Link
+          href={notice.actionHref}
+          className="mt-3 inline-flex min-h-9 items-center justify-center rounded-full bg-[#111315] px-3 text-[10px] font-black uppercase text-white transition hover:bg-[#27221e]"
+        >
+          {notice.actionLabel}
+        </Link>
+      ) : null}
     </div>
   );
 }
@@ -234,25 +252,43 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
             </div>
             <p className="mt-1 max-w-3xl text-sm font-semibold leading-6 text-[#5f574f]">
               {billingStatusCopy} Saved company info, clean PDFs, live report
-              links, and history stay available while access is active.
+              links, and history unlock while access is active. Already-created
+              paid links and PDFs stay available.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/axis-1/tool?step=outputs&account=company"
-              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-3 text-[10px] font-black uppercase text-white"
-            >
-              <FileText className="h-3.5 w-3.5" />
-              Build report
-            </Link>
-            <Link
-              href="/pricing"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-[10px] font-black uppercase text-[#111315]"
-            >
-              Plan
-            </Link>
-          </div>
+          {companyAccess ? (
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/axis-1/tool?step=outputs&account=company"
+                className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-3 text-[10px] font-black uppercase text-white"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Build report
+              </Link>
+              <Link
+                href="/pricing"
+                className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-[10px] font-black uppercase text-[#111315]"
+              >
+                Plan
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/company-version"
+                className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-3 text-[10px] font-black uppercase text-white"
+              >
+                Start company version
+              </Link>
+              <Link
+                href="/axis-1/tool?account=free"
+                className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-[10px] font-black uppercase text-[#111315]"
+              >
+                Try free builder
+              </Link>
+            </div>
+          )}
         </div>
       </section>
     </div>

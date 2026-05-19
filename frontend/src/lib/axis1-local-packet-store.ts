@@ -28,6 +28,13 @@ export type Axis1LocalPacketRecord = {
   expiresAt?: string;
   productPlan?: Axis1ProductPlan;
   companyProfile?: Axis1CompanyProfile;
+  builderState?: {
+    visitTypeId?: string;
+    riskFlagIds?: string[];
+    scopeOverrides?: Record<string, string>;
+    scopeAssumptionsAccepted?: boolean;
+    hasJobOutcomeSelected?: boolean;
+  };
   values: Axis1BuilderFormValues;
   uploadedFieldPhotos: Axis1UploadedFieldPhotoState;
   photoSlotResolutions: Axis1PhotoSlotResolutionState;

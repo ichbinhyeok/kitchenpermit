@@ -146,7 +146,7 @@ export function Axis1BuilderHeader<TStep extends string>({
                 ["/samples/axis-1", "Sample"],
                 ["/axis-1", "Product"],
                 ["/pricing", "Pricing"],
-                ["/dashboard", "Account"],
+                ["/dashboard", "Dashboard"],
                 ["/company-version", "Company Version"],
               ].map(([href, label]) => (
                 <a

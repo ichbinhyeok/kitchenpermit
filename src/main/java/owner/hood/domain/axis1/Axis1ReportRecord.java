@@ -41,6 +41,27 @@ public class Axis1ReportRecord extends AbstractAuditedEntity {
     @Column(name = "expires_at")
     private Instant expiresAt;
 
+    @Column(name = "public_view_count", nullable = false)
+    private int publicViewCount;
+
+    @Column(name = "first_viewed_at")
+    private Instant firstViewedAt;
+
+    @Column(name = "last_viewed_at")
+    private Instant lastViewedAt;
+
+    @Column(name = "pdf_save_click_count", nullable = false)
+    private int pdfSaveClickCount;
+
+    @Column(name = "last_pdf_save_clicked_at")
+    private Instant lastPdfSaveClickedAt;
+
+    @Column(name = "customer_confirmed_at")
+    private Instant customerConfirmedAt;
+
+    @Column(name = "customer_confirmed_by")
+    private String customerConfirmedBy;
+
     public String getPublicId() {
         return publicId;
     }
@@ -119,5 +140,61 @@ public class Axis1ReportRecord extends AbstractAuditedEntity {
 
     public void setExpiresAt(Instant expiresAt) {
         this.expiresAt = expiresAt;
+    }
+
+    public int getPublicViewCount() {
+        return publicViewCount;
+    }
+
+    public void setPublicViewCount(int publicViewCount) {
+        this.publicViewCount = publicViewCount;
+    }
+
+    public Instant getFirstViewedAt() {
+        return firstViewedAt;
+    }
+
+    public void setFirstViewedAt(Instant firstViewedAt) {
+        this.firstViewedAt = firstViewedAt;
+    }
+
+    public Instant getLastViewedAt() {
+        return lastViewedAt;
+    }
+
+    public void setLastViewedAt(Instant lastViewedAt) {
+        this.lastViewedAt = lastViewedAt;
+    }
+
+    public int getPdfSaveClickCount() {
+        return pdfSaveClickCount;
+    }
+
+    public void setPdfSaveClickCount(int pdfSaveClickCount) {
+        this.pdfSaveClickCount = pdfSaveClickCount;
+    }
+
+    public Instant getLastPdfSaveClickedAt() {
+        return lastPdfSaveClickedAt;
+    }
+
+    public void setLastPdfSaveClickedAt(Instant lastPdfSaveClickedAt) {
+        this.lastPdfSaveClickedAt = lastPdfSaveClickedAt;
+    }
+
+    public Instant getCustomerConfirmedAt() {
+        return customerConfirmedAt;
+    }
+
+    public void setCustomerConfirmedAt(Instant customerConfirmedAt) {
+        this.customerConfirmedAt = customerConfirmedAt;
+    }
+
+    public String getCustomerConfirmedBy() {
+        return customerConfirmedBy;
+    }
+
+    public void setCustomerConfirmedBy(String customerConfirmedBy) {
+        this.customerConfirmedBy = customerConfirmedBy;
     }
 }

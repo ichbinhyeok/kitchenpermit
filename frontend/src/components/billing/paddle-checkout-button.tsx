@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { fetchApi } from "@/lib/api";
+import { loadAxis1AccountEntitlements } from "@/lib/axis1-server-storage";
 
 type PaddleEnvironment = "sandbox" | "production";
 
@@ -59,17 +60,72 @@ declare global {
 type PaddleCheckoutButtonProps = {
   children: string;
   className?: string;
+  activeChildren?: string;
+};
+
+type AccountAccessState = {
+  checking: boolean;
+  authenticated: boolean | null;
+  companyAccess: boolean;
 };
 
 export function PaddleCheckoutButton({
   children,
   className = "",
+  activeChildren = "Set up company branding",
 }: PaddleCheckoutButtonProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [accountAccess, setAccountAccess] = useState<AccountAccessState>({
+    checking: true,
+    authenticated: null,
+    companyAccess: false,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadAxis1AccountEntitlements()
+      .then((entitlements) => {
+        if (!cancelled) {
+          setAccountAccess({
+            checking: false,
+            authenticated: entitlements.authenticated,
+            companyAccess: entitlements.companyAccess,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAccountAccess({
+            checking: false,
+            authenticated: null,
+            companyAccess: false,
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function startCheckout() {
+    if (accountAccess.checking) {
+      return;
+    }
+
+    if (accountAccess.companyAccess) {
+      router.push("/dashboard#company-profile");
+      return;
+    }
+
+    if (accountAccess.authenticated === false) {
+      router.push("/login?mode=signup&next=/company-version");
+      return;
+    }
+
     setError("");
     setBusy(true);
 
@@ -82,7 +138,7 @@ export function PaddleCheckoutButton({
       });
 
       if (response.status === 401) {
-        router.push("/login?next=/company-version");
+        router.push("/login?mode=signup&next=/company-version");
         return;
       }
 
@@ -164,19 +220,27 @@ export function PaddleCheckoutButton({
     window.__hoodPaddleInitializedFor = key;
   }
 
+  const buttonLabel = accountAccess.companyAccess
+      ? activeChildren
+      : busy
+        ? "Opening checkout..."
+        : children;
+
   return (
     <div className="grid gap-2">
-      <Script
-        src="https://cdn.paddle.com/paddle/v2/paddle.js"
-        strategy="afterInteractive"
-      />
+      {!accountAccess.checking && accountAccess.authenticated && !accountAccess.companyAccess ? (
+        <Script
+          src="https://cdn.paddle.com/paddle/v2/paddle.js"
+          strategy="afterInteractive"
+        />
+      ) : null}
       <button
         type="button"
         onClick={startCheckout}
-        disabled={busy}
+        disabled={busy || accountAccess.checking}
         className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-black transition disabled:cursor-wait disabled:opacity-70 ${className}`}
       >
-        <span>{busy ? "Opening checkout..." : children}</span>
+        <span>{buttonLabel}</span>
         <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
       </button>
       {error ? <p className="max-w-sm text-xs font-semibold leading-5 text-[#ffb27c]">{error}</p> : null}

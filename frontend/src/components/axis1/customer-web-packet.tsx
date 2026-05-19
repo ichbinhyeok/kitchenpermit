@@ -182,8 +182,16 @@ function isRenderableLogoSrc(src: string) {
   }
 }
 
-function customerCopy(value: string) {
+function customerReferenceCopy(value: string) {
   return value
+    .replace(/\bP-0*(\d+)\b/gi, (_, index: string) => `Photo ${Number(index)}`)
+    .replace(/\bLBL-\d+-SYS\d+\b/gi, "system label photo")
+    .replace(/\bEXC-\d+-[A-Z]{2}\d+\b/gi, "open item photo")
+    .replace(/\b(?:HD|FL|DK|RF|GC)-\d+\b/gi, "service area");
+}
+
+function customerCopy(value: string) {
+  const copy = value
     .replace(/\bservice handoff and office archive retained\b/gi, "Customer copy and service provider archive retained")
     .replace(/\bService service record\b/g, "Customer copy")
     .replace(/\bservice service record\b/g, "customer copy")
@@ -213,6 +221,10 @@ function customerCopy(value: string) {
     .replace(/\bservice close-out\b/gi, "service record")
     .replace(/\bcustomer handoff\b/gi, "customer service record")
     .replace(/\bhandoff\b/gi, "service record")
+    .replace(/\bRecord type\b/gi, "Report type")
+    .replace(/\bRecord support\b/gi, "Documentation support")
+    .replace(/\bRecord basis\b/gi, "Documentation")
+    .replace(/\bVendor action\b/gi, "Service team follow-up")
     .replace(/\bThis closeout\b/g, "This service record")
     .replace(/\bthis closeout\b/g, "this service record")
     .replaceAll("Open access item", "Blocked access area")
@@ -232,8 +244,10 @@ function customerCopy(value: string) {
     .replace(/no field-photo proof is attached/gi, "photo evidence is not attached to this visit")
     .replace(/without attached field photos/gi, "based on service notes instead of attached photos")
     .replace(/\bproof\s+P-\d+(?:\s*(?:and|\/)\s*P-\d+)*\b/gi, "service photos")
-    .replace(/\bP-\d+(?:\s*(?:and|\/)\s*P-\d+)*\b/g, "service photos")
-    .replace(/\b[A-Z]{2}-\d+\b/g, "the service record");
+    .replace(/\b[A-Z]{2}-\d+\b/g, "service area")
+    .replaceAll("; ", ", ");
+
+  return customerReferenceCopy(copy);
 }
 
 function compactCtaLabel(value: string) {
@@ -507,7 +521,15 @@ function isCompletedStatus(status: string) {
 }
 
 function proofLabel(value: string) {
-  return value.replace(/\s*\/\s*/g, " + ");
+  return customerReferenceCopy(value).replace(/\s*\/\s*/g, " + ");
+}
+
+function photoRefLabel(value: string) {
+  return customerReferenceCopy(value);
+}
+
+function photoServiceAreaLabel(photo: ProofPhoto) {
+  return customerPhotoLabel(photo);
 }
 
 function componentProofLabel(row: ComponentRow) {
@@ -775,13 +797,13 @@ function ProofMetaStrip({ photo, light = true }: { photo: ProofPhoto; light?: bo
         <dt className={cx("font-semibold uppercase tracking-[0.11em]", light ? "text-white/42" : "text-[#8d8379]")}>
           Photo ref
         </dt>
-        <dd className="mt-1 font-semibold">{photo.proofId}</dd>
+        <dd className="mt-1 font-semibold">{photoRefLabel(photo.proofId)}</dd>
       </div>
       <div>
         <dt className={cx("font-semibold uppercase tracking-[0.11em]", light ? "text-white/42" : "text-[#8d8379]")}>
-          Area ref
+          Service area
         </dt>
-        <dd className="mt-1 font-semibold">{photo.systemRef}</dd>
+        <dd className="mt-1 font-semibold">{photoServiceAreaLabel(photo)}</dd>
       </div>
     </dl>
   );
@@ -814,10 +836,10 @@ function ProofImage({
       <ProofBadge photo={photo} />
       <div className="absolute right-3 top-3 flex flex-col items-end gap-1.5">
         <span className="rounded-full border border-white/20 bg-[#111315]/72 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/82 backdrop-blur">
-          {photo.proofId}
+          {photoRefLabel(photo.proofId)}
         </span>
         <span className="rounded-full border border-white/16 bg-[#111315]/58 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/62 backdrop-blur">
-          {photo.systemRef}
+          {photoServiceAreaLabel(photo)}
         </span>
       </div>
     </div>
@@ -1344,7 +1366,7 @@ function ExhaustProofSpine({
               ? "This service path follows the exhaust line from hood canopy to grease containment, keeping completed work, blocked access, and retained records in one customer-readable page."
               : hasAttachedPhotos
                 ? "This service path follows the exhaust line from hood canopy to grease containment, keeping completed work, attached photos, and retained records in one customer-readable page."
-                : "This service path follows the exhaust line from hood canopy to grease containment, keeping completed work, written-record basis, and retained records in one customer-readable page."}
+                : "This service path follows the exhaust line from hood canopy to grease containment, keeping completed work, written service documentation, and retained records in one customer-readable page."}
           </p>
           <p className="mt-6 max-w-xl border-l border-[#d7c8b8] pl-5 text-sm leading-7 text-[#7a6f65]">
             {customerCopy(scopeNote)}
@@ -1646,7 +1668,7 @@ function CoverageEducationSection({
           <div className="grid gap-4 py-5 lg:grid-cols-[minmax(210px,0.38fr)_minmax(0,0.62fr)] lg:items-start">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8d8379]">
-                Record basis
+                Documentation
               </p>
               <h3 className="mt-2 text-xl font-semibold leading-tight tracking-[-0.04em]">
                 {customerCopy(proofCoverageLabel)}
@@ -2308,7 +2330,7 @@ export function CustomerWebPacket({
             fill
             loading="eager"
             sizes="1080px"
-            className="object-cover opacity-50"
+            className="hidden scale-105 object-cover opacity-[0.18] blur-[2px] lg:block"
             style={{ objectPosition: afterPhoto.position }}
           />
         ) : null}
@@ -2462,7 +2484,7 @@ export function CustomerWebPacket({
             <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-[22px] border border-white/13 bg-white/[0.075] backdrop-blur-xl sm:grid-cols-4">
               {[
                 ["Result", resultMetricValue],
-                ["Record basis", proofCoverageMetricValue],
+                ["Documentation", proofCoverageMetricValue],
                 ["Customer action", compactPrimaryCtaLabel],
                 ["PDF copy", "Record copy"],
               ].map(([label, value]) => (
@@ -2555,7 +2577,7 @@ export function CustomerWebPacket({
                   className="text-[11px] font-semibold uppercase tracking-[0.13em]"
                   style={{ color: vendorAccentSoft }}
                 >
-                  Record basis
+                  Documentation
                 </p>
                 <p className="mt-2 text-sm font-semibold leading-6 text-white">
                   {proofCoverageLabel}
@@ -2690,6 +2712,31 @@ export function CustomerWebPacket({
                   </div>
                 </div>
               </div>
+            ) : afterPhoto ? (
+              <figure className="packet-glass-card overflow-hidden rounded-[30px] border border-white/13 bg-white/10 p-3 shadow-[0_28px_90px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-[22px] bg-[#0b0d10]">
+                  <Image
+                    src={afterPhoto.src}
+                    alt={afterPhoto.title}
+                    fill
+                    loading="eager"
+                    sizes="420px"
+                    quality={92}
+                    className="object-contain"
+                  />
+                </div>
+                <figcaption className="px-1 pb-1 pt-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#ffb489]">
+                    Attached service photo
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-sm font-semibold leading-5 text-white">
+                    {customerCopy(afterPhoto.title)}
+                  </p>
+                  <p className="mt-1 text-xs font-medium leading-5 text-white/54">
+                    Full photo set appears below with captions and PDF copy.
+                  </p>
+                </figcaption>
+              </figure>
             ) : null}
           </div>
 
@@ -2697,7 +2744,7 @@ export function CustomerWebPacket({
           <div className="lg:col-span-2">
             <div className="packet-metric-strip grid grid-cols-2 border-y border-white/14 bg-white/[0.025] py-1 backdrop-blur-xl sm:grid-cols-4">
               <Metric label="Result" value={resultMetricValue} />
-              <Metric label="Record basis" value={proofCoverageMetricValue} />
+              <Metric label="Documentation" value={proofCoverageMetricValue} />
               <Metric label="Customer action" value={compactPrimaryCtaLabel} />
               <Metric label="PDF copy" value="Record copy" />
             </div>
@@ -2732,7 +2779,7 @@ export function CustomerWebPacket({
                 ? "This page separates completed work from blocked access so the customer can understand the visit without another explanation call."
                 : hasAttachedPhotos
                   ? "This page keeps completed work, attached photos, and the next step easy to understand without another explanation call."
-                  : "This page keeps completed work, written-record basis, and the next step easy to understand without another explanation call."}
+                  : "This page keeps completed work, written service documentation, and the next step easy to understand without another explanation call."}
           </p>
         </div>
 

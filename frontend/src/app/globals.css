@@ -1943,22 +1943,24 @@ html.app-printing [data-vaul-overlay] {
 
 .pdf-document-watermark {
   align-items: center;
-  color: rgba(188, 61, 31, 0.30);
-  display: flex;
-  font-family: var(--font-display), sans-serif;
-  font-size: clamp(3.5rem, 9vw, 7rem);
-  font-weight: 800;
-  height: 180px;
+  background: rgba(255, 247, 239, 0.92);
+  border: 1px solid rgba(188, 61, 31, 0.22);
+  border-radius: 999px;
+  color: rgba(160, 72, 35, 0.86);
+  display: inline-flex;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  height: auto;
   justify-content: center;
-  left: 0;
-  letter-spacing: -0.07em;
+  letter-spacing: 0.14em;
   line-height: 1;
   pointer-events: none;
   position: absolute;
-  right: 0;
+  right: 18px;
   text-transform: uppercase;
-  top: 240px;
-  transform: rotate(-18deg);
+  top: 18px;
+  padding: 7px 10px;
   z-index: 80;
 }
 
@@ -2112,6 +2114,10 @@ html.app-printing [data-vaul-overlay] {
   border-color: #d4ccc3 !important;
 }
 
+.service-record-doc .packet-contact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
 .service-record-doc dt {
   color: #746b62 !important;
 }
@@ -2190,7 +2196,7 @@ html.app-printing [data-vaul-overlay] {
 @media print {
   @page {
     size: Letter;
-    margin: 8mm;
+    margin: 8mm 8mm 12mm;
   }
 
   html,
@@ -2212,14 +2218,41 @@ html.app-printing [data-vaul-overlay] {
   }
 
   .pdf-document-watermark {
-    color: rgba(188, 61, 31, 0.24);
-    font-size: 78px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    border-top: 1px solid rgba(188, 61, 31, 0.28);
+    color: rgba(154, 91, 62, 0.78);
+    font-family: var(--font-mono), monospace;
+    font-size: 8px;
     height: auto;
-    inset: 0;
+    inset: auto 8mm 4mm;
+    justify-content: center;
+    letter-spacing: 0.16em;
+    padding: 3px 0 0;
     position: fixed;
     print-color-adjust: exact;
+    text-align: center;
+    transform: none;
     -webkit-print-color-adjust: exact;
     z-index: 999;
+  }
+
+  .pdf-document-watermark::before {
+    content: attr(data-watermark-label);
+    color: rgba(154, 91, 62, 0.1);
+    font-family: var(--font-mono), monospace;
+    font-size: 44px;
+    font-weight: 800;
+    left: 50%;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    position: fixed;
+    text-transform: uppercase;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(-18deg);
+    white-space: nowrap;
+    z-index: 998;
   }
 
   .pdf-document {
@@ -2294,6 +2327,10 @@ html.app-printing [data-vaul-overlay] {
   .service-record-doc dl,
   .service-record-doc .divide-y {
     border-color: #b8b8b8 !important;
+  }
+
+  .service-record-doc .packet-contact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .service-record-doc dl > div {
@@ -2406,7 +2443,7 @@ html.app-printing [data-vaul-overlay] {
     gap: 18px !important;
   }
 
-  .packet-doc-root .packet-contact-grid {
+  .packet-doc-root:not(.service-record-doc) .packet-contact-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 

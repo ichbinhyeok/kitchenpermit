@@ -77,6 +77,21 @@ function formatFullDate(value?: string | null) {
   }).format(date);
 }
 
+function formatShortDateTime(value?: string | null) {
+  const date = parseDateValue(value);
+
+  if (!date) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
 function getDateOnly(value?: string | null) {
   return parseDateValue(value);
 }
@@ -190,23 +205,48 @@ function getReportActionText(report: Axis1ServerReportRecord) {
   return "";
 }
 
-function getCustomerReportPdfHref(report: Axis1ServerReportRecord) {
+function getOwnerPreviewReportHref(report: Axis1ServerReportRecord) {
+  return buildReportHref(report.href, { preview: true });
+}
+
+function getOwnerPreviewReportPdfHref(report: Axis1ServerReportRecord) {
+  return buildReportHref(report.href, { format: "pdf", preview: true });
+}
+
+function buildReportHref(
+  href: string,
+  options: { format?: "pdf"; preview?: boolean },
+) {
   try {
     const base =
       typeof window === "undefined" ? "http://localhost" : window.location.origin;
-    const url = new URL(report.href, base);
-    url.searchParams.set("format", "pdf");
+    const url = new URL(href, base);
+
+    if (options.format) {
+      url.searchParams.set("format", options.format);
+    }
+
+    if (options.preview) {
+      url.searchParams.set("preview", "1");
+    }
 
     return `${url.pathname}${url.search}`;
   } catch {
-    const separator = report.href.includes("?") ? "&" : "?";
+    const params = [
+      options.format ? `format=${encodeURIComponent(options.format)}` : null,
+      options.preview ? "preview=1" : null,
+    ].filter(Boolean);
 
-    return `${report.href}${separator}format=pdf`;
+    if (params.length === 0) {
+      return href;
+    }
+
+    return `${href}${href.includes("?") ? "&" : "?"}${params.join("&")}`;
   }
 }
 
-function compactActionText(value: string) {
-  const trimmed = value
+function normalizeActionText(value: string) {
+  return value
     .replace(/\s+/g, " ")
     .replace(/\breply so\b/gi, "contact the service team so")
     .replace(/\breply when\b/gi, "contact the service team when")
@@ -222,6 +262,10 @@ function compactActionText(value: string) {
     .replace(/\bcall service team\b/gi, "contact service team")
     .replace(/\bcall service provider\b/gi, "contact service provider")
     .trim();
+}
+
+function compactActionText(value: string) {
+  const trimmed = normalizeActionText(value);
 
   if (trimmed.length <= 150) {
     return trimmed;
@@ -328,10 +372,16 @@ function getOperationalPriority(report: Axis1ServerReportRecord) {
   return 7;
 }
 
-function getRecommendedContactAction(report: Axis1ServerReportRecord) {
+function getRecommendedContactAction(
+  report: Axis1ServerReportRecord,
+  options: { compact?: boolean } = {},
+) {
   const historyStatus = getHistoryStatus(report);
   const days = daysUntil(report.nextServiceDate);
-  const actionText = compactActionText(getReportActionText(report));
+  const actionText =
+    options.compact === false
+      ? normalizeActionText(getReportActionText(report))
+      : compactActionText(getReportActionText(report));
 
   if (historyStatus.code === "open_access") {
     return {
@@ -523,6 +573,36 @@ function followUpClassName(tone: ReturnType<typeof getFollowUpStatus>["tone"]) {
   return "border-black/10 bg-white text-[#75695f]";
 }
 
+function EngagementSummary({ report }: { report: Axis1ServerReportRecord }) {
+  const engagement = report.engagement;
+  const viewedAt = formatShortDateTime(engagement?.lastViewedAt);
+  const pdfSavedAt = formatShortDateTime(engagement?.lastPdfSaveClickedAt);
+  const confirmedAt = formatShortDateTime(engagement?.customerConfirmedAt);
+  const viewCount = engagement?.publicViewCount ?? 0;
+  const pdfSaveCount = engagement?.pdfSaveClickCount ?? 0;
+  const parts = [
+    viewCount > 0
+      ? `Tracked link opened ${viewCount}x${viewedAt ? ` / ${viewedAt}` : ""}`
+      : "No tracked link activity",
+    pdfSaveCount > 0
+      ? `PDF save clicked ${pdfSaveCount}x${pdfSavedAt ? ` / ${pdfSavedAt}` : ""}`
+      : null,
+    engagement?.customerConfirmed
+      ? `Receipt confirmed${confirmedAt ? ` / ${confirmedAt}` : ""}`
+      : null,
+  ].filter(Boolean);
+
+  return (
+    <p
+      className="mt-1 text-[11px] font-semibold leading-5 text-[#8a7d72]"
+      title="Tracked link activity shows when the customer link was opened. It is not proof of the recipient's identity. Vendor Preview links are not counted."
+      aria-label={`Tracked link activity. ${parts.join(". ")}`}
+    >
+      {parts.join(" | ")}
+    </p>
+  );
+}
+
 function reportAccentClassName(
   followUpTone: ReturnType<typeof getFollowUpStatus>["tone"],
   historyTone?: NonNullable<Axis1ServerReportRecord["historyStatus"]>["tone"],
@@ -555,7 +635,7 @@ function buildDeliveryEmailMessage(report: Axis1ServerReportRecord) {
   const site = getMessageSiteName(report);
   const reportUrl = getCustomerReportUrl(report);
   const photoCount = report.assetStorage?.inlinePhotoCount ?? 0;
-  const contactAction = getRecommendedContactAction(report);
+  const contactAction = getRecommendedContactAction(report, { compact: false });
   const siteCopy = site ? ` for ${site}` : "";
   const photoCopy =
     photoCount > 0
@@ -582,7 +662,7 @@ function buildDeliverySmsMessage(report: Axis1ServerReportRecord) {
   const customer = getMessageCustomerName(report);
   const site = getMessageSiteName(report);
   const siteCopy = site ? ` for ${site}` : "";
-  const contactAction = getRecommendedContactAction(report);
+  const contactAction = getRecommendedContactAction(report, { compact: false });
   const nextCopy = contactAction.copy ? ` Next step: ${contactAction.copy}` : "";
 
   return `Hi ${customer}, following up on the hood cleaning visit${siteCopy}. Report/PDF for your records: ${getCustomerReportUrl(report)}${nextCopy}`;
@@ -736,19 +816,19 @@ function ReportActions({
         Email
       </button>
       <Link
-        href={report.href}
+        href={getOwnerPreviewReportHref(report)}
         className={`${secondaryActionClassName} border-[#111315] bg-[#111315] text-white hover:bg-[#2b241f]`}
-        title="Open customer report"
-        aria-label={`Open customer report for ${report.title}`}
+        title="Preview customer report without counting link activity"
+        aria-label={`Preview customer report for ${report.title}`}
       >
         <ExternalLink className="h-3.5 w-3.5" />
-        Link
+        Preview
       </Link>
       <Link
-        href={getCustomerReportPdfHref(report)}
+        href={getOwnerPreviewReportPdfHref(report)}
         className={`${secondaryActionClassName} border-black/10 bg-white text-[#111315] hover:bg-[#fbf7ef]`}
-        title="Open PDF copy"
-        aria-label={`Open PDF copy for ${report.title}`}
+        title="Preview PDF copy without counting save activity"
+        aria-label={`Preview PDF copy for ${report.title}`}
       >
         <FileDown className="h-3.5 w-3.5" />
         PDF
@@ -843,6 +923,7 @@ function ReportRow({
           >
             {historyStatus.label}
           </span>
+          <EngagementSummary report={report} />
         </div>
 
         <div className="text-xs font-semibold leading-5 text-[#5f574f]">
@@ -1216,6 +1297,9 @@ export function ReportHistoryPanel() {
             <p className="mt-1 max-w-2xl text-sm font-semibold leading-6 text-[#6f665e]">
               See what needs attention, resend customer records, open PDF copies,
               or edit a previous report.
+            </p>
+            <p className="mt-1 max-w-2xl text-[11px] font-semibold leading-5 text-[#8a7d72]">
+              Tracked link activity shows when the customer link was opened. It is not proof of the recipient&apos;s identity; vendor Preview links are not counted.
             </p>
           </div>
           <Link

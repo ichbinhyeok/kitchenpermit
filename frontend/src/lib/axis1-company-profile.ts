@@ -20,9 +20,9 @@ export type Axis1CompanyProfile = {
 export const defaultAxis1CompanyProfile: Axis1CompanyProfile = {
   companyName: "Acme Hood Cleaning",
   serviceArea: "Austin, TX | kitchen exhaust service",
-  directLine: "(555) 014-2201",
+  directLine: "",
   dispatchEmail: "dispatch@acmehood.example",
-  afterHoursPhone: "(555) 014-2209",
+  afterHoursPhone: "",
   certification: "Service license / certification",
   technicianLabel: "Technician / crew",
   brandInitials: "AC",
@@ -44,6 +44,14 @@ function clean(value: unknown, fallback: string, maxLength = 80) {
 
   const trimmed = value.trim().replace(/\s+/g, " ");
   return trimmed ? trimmed.slice(0, maxLength) : fallback;
+}
+
+function cleanOptional(value: unknown, maxLength = 80) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value.trim().replace(/\s+/g, " ").slice(0, maxLength);
 }
 
 function initialsFromName(name: string) {
@@ -119,21 +127,13 @@ export function normalizeAxis1CompanyProfile(
       defaultAxis1CompanyProfile.serviceArea,
       90,
     ),
-    directLine: clean(
-      value.directLine,
-      defaultAxis1CompanyProfile.directLine,
-      32,
-    ),
+    directLine: cleanOptional(value.directLine, 32),
     dispatchEmail: clean(
       value.dispatchEmail,
       defaultAxis1CompanyProfile.dispatchEmail,
       80,
     ),
-    afterHoursPhone: clean(
-      value.afterHoursPhone,
-      defaultAxis1CompanyProfile.afterHoursPhone,
-      32,
-    ),
+    afterHoursPhone: cleanOptional(value.afterHoursPhone, 32),
     certification: clean(
       value.certification,
       defaultAxis1CompanyProfile.certification,

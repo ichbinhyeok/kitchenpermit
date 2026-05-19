@@ -148,8 +148,16 @@ function accentVariables(hex: string) {
   } as CSSProperties;
 }
 
-function serviceRecordCopy(value: string) {
+function customerReferenceCopy(value: string) {
   return value
+    .replace(/\bP-0*(\d+)\b/gi, (_, index: string) => `Photo ${Number(index)}`)
+    .replace(/\bLBL-\d+-SYS\d+\b/gi, "system label photo")
+    .replace(/\bEXC-\d+-[A-Z]{2}\d+\b/gi, "open item photo")
+    .replace(/\b(?:HD|FL|DK|RF|GC)-\d+\b/gi, "service area");
+}
+
+function serviceRecordCopy(value: string) {
+  const copy = value
     .replace(/\bservice handoff and office archive retained\b/gi, "Customer copy and service provider archive retained")
     .replace(/\bService service record\b/g, "Customer copy")
     .replace(/\bservice service record\b/g, "customer copy")
@@ -177,6 +185,10 @@ function serviceRecordCopy(value: string) {
     .replace(/\bEngine next action\b/gi, "Next action")
     .replace(/\bPrimary customer CTA\b/gi, "Customer next step")
     .replace(/\bClaim level\b/gi, "Record support")
+    .replace(/\bRecord type\b/gi, "Report type")
+    .replace(/\bRecord support\b/gi, "Documentation support")
+    .replace(/\bRecord basis\b/gi, "Documentation")
+    .replace(/\bVendor action\b/gi, "Service team follow-up")
     .replace(/\bOutcome classification\b/gi, "Service outcome")
     .replace(/\bResponsibility boundary\b/gi, "Action boundary")
     .replace(/\bPhoto support\b/gi, "Photo coverage")
@@ -196,7 +208,10 @@ function serviceRecordCopy(value: string) {
     .replaceAll("Customer service link", "Service report link")
     .replaceAll("packet", "service record")
     .replaceAll("Packet", "Service record")
-    .replaceAll("Office note", "Record note");
+    .replaceAll("Office note", "Record note")
+    .replaceAll("; ", ", ");
+
+  return customerReferenceCopy(copy);
 }
 
 function mapRows(rows: readonly Row[], transform: (value: string) => string) {
@@ -348,7 +363,7 @@ function StatusMark({ status }: { status: string }) {
 }
 
 function proofRefLabel(value: string) {
-  return value.replace(/\s*\/\s*/g, " + ");
+  return customerReferenceCopy(value).replace(/\s*\/\s*/g, " + ");
 }
 
 function ProofRef({ value }: { value: string }) {
@@ -454,14 +469,15 @@ function ContactStrip({ data }: { data: Axis1PacketPreviewData }) {
   }
 
   return (
-    <div className="packet-contact-grid grid border-y border-[#ded7cf] sm:grid-cols-2 xl:grid-cols-4">
+    <div className="packet-contact-grid grid border-y border-[#ded7cf] sm:grid-cols-2">
       {rows.map(([label, value], index) => (
         <div
           key={label}
           className={cx(
             "min-w-0 px-0 py-4 sm:px-5",
-            index > 0 && "border-t border-[#e7e0d8] sm:border-l sm:border-t-0",
-            index === 2 && "sm:border-t xl:border-t-0",
+            index > 0 && "border-t border-[#e7e0d8]",
+            index % 2 === 1 && "sm:border-l",
+            index < 2 && "sm:border-t-0",
           )}
         >
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#8b8178]">
@@ -647,9 +663,10 @@ function ServiceEvidenceRecord({
     : primaryOpenItem
       ? "Completed with documented exception"
       : "Completed";
-  const serviceNotice =
+  const serviceNotice = transform(
     getRecordValue(data.closeoutRows, ["Label / notice ref"], "") ||
-    getRecordValue(data.closeoutRows, ["Service label"], "Service label recorded");
+    getRecordValue(data.closeoutRows, ["Service label"], "Service label recorded"),
+  );
   const hasEvidencePhotos = data.proofPhotos.length > 0;
   const completedAreas = componentList(data.componentStatusRows, isCompletedComponentStatus);
   const excludedAreas = componentList(data.componentStatusRows, isExcludedComponentStatus);
@@ -738,7 +755,7 @@ function ServiceEvidenceRecord({
             Completed areas, exclusions, and evidence stay separated.
           </h3>
           <div className="mt-5">
-            <DenseLedger rows={serviceBoundaryRows} />
+            <DenseLedger rows={serviceBoundaryRows.map(([label, value]) => [transform(label), transform(value)] as const)} />
           </div>
           <div
             className={cx(
@@ -797,9 +814,10 @@ function ServiceEvidenceControls({
   const systemRef =
     getRecordValue(data.systemIdentityRows, ["System"], "") ||
     getRecordValue(data.packetHeader.quickFacts, ["System"], "Kitchen exhaust system");
-  const serviceNotice =
+  const serviceNotice = transform(
     getRecordValue(data.closeoutRows, ["Label / notice ref"], "") ||
-    getRecordValue(data.closeoutRows, ["Service label"], "Service label recorded");
+    getRecordValue(data.closeoutRows, ["Service label"], "Service label recorded"),
+  );
   const labelPosted =
     getRecordValue(data.closeoutRows, ["Label posted"], "") ||
     getRecordValue(data.operationalChecks, ["Service label / notice status"], "Recorded");
@@ -830,7 +848,7 @@ function ServiceEvidenceControls({
   ] as Row[]).filter(([, value]) => value.trim().length > 0);
 
   const submissionUseRows = [
-    ["Use for", "Customer records; manager review; landlord, insurance, or documentation requests"],
+    ["Use for", "Customer records, manager review, landlord, insurance, or documentation requests"],
     ["Does not authorize", "Separate corrective or follow-up work"],
     ["Reviewer boundary", "Manager, landlord, insurer, or AHJ may apply separate requirements"],
     [
@@ -896,7 +914,7 @@ function ServiceEvidenceControls({
             Identifiers and retained copies.
           </h3>
           <div className="mt-4">
-            <DenseLedger rows={documentControlRows} />
+            <DenseLedger rows={documentControlRows.map(([label, value]) => [transform(label), transform(value)] as const)} />
           </div>
         </div>
 
@@ -916,7 +934,7 @@ function ServiceEvidenceControls({
             What this record can and cannot support.
           </h3>
           <div className="mt-4">
-            <DenseLedger rows={submissionUseRows} />
+            <DenseLedger rows={submissionUseRows.map(([label, value]) => [transform(label), transform(value)] as const)} />
           </div>
         </div>
 
@@ -1372,7 +1390,7 @@ function CustomerKeyProofPhotos({
                     {customerPhotoLabel(photo)}
                   </span>
                   <span className="rounded-full border border-white/16 bg-[#111315]/65 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/72 backdrop-blur">
-                    {photo.proofId}
+                    {proofRefLabel(photo.proofId)}
                   </span>
                 </div>
               </div>
@@ -1542,7 +1560,7 @@ function PhotoEvidence({
                   {label}
                 </span>
                 <span className="rounded-full border border-white/16 bg-[#111315]/65 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-white/72 backdrop-blur">
-                  {photo.proofId}
+                  {proofRefLabel(photo.proofId)}
                 </span>
               </div>
               {!customerFacing ? (
@@ -2325,7 +2343,11 @@ export function Axis1PacketDocument({
         </footer>
       ) : null}
       {watermarkLabel ? (
-        <div className="pdf-document-watermark" aria-hidden="true">
+        <div
+          className="pdf-document-watermark"
+          data-watermark-label={watermarkLabel}
+          aria-hidden="true"
+        >
           {watermarkLabel}
         </div>
       ) : null}

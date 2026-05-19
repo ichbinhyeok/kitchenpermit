@@ -28,6 +28,8 @@ export function ServerAxis1ProofPageContent() {
   );
   const searchParams = new URLSearchParams(queryString);
   const reportId = searchParams.get("reportId")?.trim() ?? "";
+  const previewMode =
+    searchParams.get("preview") === "1" || searchParams.get("preview") === "true";
   const outputIntent =
     searchParams.get("format") === "pdf" ? "service-record" : "customer-link";
 
@@ -60,6 +62,7 @@ export function ServerAxis1ProofPageContent() {
     <ServerAxis1ReportClient
       publicId={reportId}
       outputIntent={outputIntent}
+      previewMode={previewMode}
     />
   );
 }

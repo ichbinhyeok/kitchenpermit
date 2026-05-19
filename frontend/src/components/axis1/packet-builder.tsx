@@ -36,7 +36,6 @@ import {
   GripVertical,
   Link2,
   PencilLine,
-  Plus,
   RotateCcw,
   Settings2,
   ShieldCheck,
@@ -186,6 +185,7 @@ type AuthSessionStatus = "checking" | "authenticated" | "anonymous";
 type PaidFeatureNotice = "company-plan" | "branding" | "history";
 type SavedReportLink = {
   url: string;
+  previewUrl?: string;
   storage: "server" | "local";
   productPlan: Axis1ProductPlan;
 };
@@ -445,6 +445,51 @@ function getVisitTypePreset(id: VisitTypeId) {
   );
 }
 
+function isVisitTypeId(value: unknown): value is VisitTypeId {
+  return (
+    typeof value === "string" &&
+    visitTypePresets.some((preset) => preset.id === value)
+  );
+}
+
+function isRiskFlagId(value: unknown): value is RiskFlagId {
+  return (
+    typeof value === "string" &&
+    riskFlagCatalog.some((flag) => flag.id === value)
+  );
+}
+
+function isScopeAreaId(value: unknown): value is ScopeAreaId {
+  return (
+    typeof value === "string" &&
+    scopeAreaCatalog.some((area) => area.id === value)
+  );
+}
+
+function isScopeStatus(value: unknown): value is ScopeStatus {
+  return (
+    value === "done-photo" ||
+    value === "done-no-photo" ||
+    value === "could-not-access" ||
+    value === "condition-note" ||
+    value === "not-done" ||
+    value === "not-in-scope" ||
+    value === "needs-review"
+  );
+}
+
+function sanitizeScopeOverrides(value: unknown): ScopeOverrideState {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(
+      ([areaId, status]) => isScopeAreaId(areaId) && isScopeStatus(status),
+    ),
+  ) as ScopeOverrideState;
+}
+
 function toDisplaySentence(value: string) {
   const trimmed = value.trim();
 
@@ -506,6 +551,53 @@ function createLocalPhotoId() {
   }
 
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function copyTextWithTextarea(text: string) {
+  if (typeof document === "undefined") {
+    return false;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.top = "0";
+  textarea.style.left = "0";
+  textarea.style.width = "1px";
+  textarea.style.height = "1px";
+  textarea.style.opacity = "0";
+  textarea.style.pointerEvents = "none";
+
+  const activeElement = document.activeElement;
+  document.body.appendChild(textarea);
+  textarea.focus({ preventScroll: true });
+  textarea.select();
+  textarea.setSelectionRange(0, text.length);
+
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    document.body.removeChild(textarea);
+    if (activeElement instanceof HTMLElement) {
+      activeElement.focus({ preventScroll: true });
+    }
+  }
+}
+
+async function copyTextToClipboard(text: string) {
+  if (copyTextWithTextarea(text)) {
+    return;
+  }
+
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  throw new Error("Clipboard unavailable");
 }
 
 function isVendorConfirmedPhoto(photo: UploadedFieldPhoto | null | undefined) {
@@ -2049,6 +2141,107 @@ const builderSteps = [
   copy: string;
 }>;
 
+const builderQuickStartSteps = [
+  {
+    title: "Add photos or notes",
+    copy: "Drop the phone batch if you have it. One written note is enough to start.",
+    icon: IconPhotoScan,
+  },
+  {
+    title: "Confirm what happened",
+    copy: "Pick the result and correct only the uncertain parts before sending.",
+    icon: ClipboardCheck,
+  },
+  {
+    title: "Share link or save PDF",
+    copy: "Use the customer link for delivery and the PDF copy for records.",
+    icon: Link2,
+  },
+] as const;
+
+const companyUpgradeHighlights = [
+  {
+    title: "Brand this report",
+    copy: "Logo, phone, and reply email on the customer link.",
+    Icon: ShieldCheck,
+  },
+  {
+    title: "Clean PDF",
+    copy: "No FREE TEST COPY watermark on the retained PDF.",
+    Icon: FileDown,
+  },
+  {
+    title: "Retained customer links",
+    copy: "Paid report links and PDFs stay available after creation.",
+    Icon: Link2,
+  },
+  {
+    title: "Report history",
+    copy: "Saved customers, reports, and follow-up.",
+    Icon: CalendarClock,
+  },
+] as const;
+
+function CompanyUpgradeCallout({
+  className = "",
+  onUpgrade,
+}: {
+  className?: string;
+  onUpgrade: () => void;
+}) {
+  return (
+    <div
+      className={`max-w-2xl rounded-[18px] border border-[#f26a21]/18 bg-[#fff8f1] p-3 shadow-[0_10px_26px_rgba(242,106,33,0.08)] ${className}`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f26a21] text-white">
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.13em] text-[#b94d11]">
+              Company version unlocks
+            </p>
+            <p className="text-xs font-semibold leading-5 text-muted-foreground">
+              Same report, but client-ready and saved to your account.
+            </p>
+          </div>
+        </div>
+        <span className="rounded-full border border-[#f26a21]/20 bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.13em] text-[#b94d11]">
+          Locked in free
+        </span>
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {companyUpgradeHighlights.map(({ title, copy, Icon }) => (
+          <div
+            key={title}
+            className="flex min-w-0 gap-2 rounded-[14px] bg-white/78 px-2.5 py-2 ring-1 ring-[#f26a21]/10"
+          >
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#fff0e4] text-[#b94d11]">
+              <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-black uppercase tracking-[0.08em] text-foreground">
+                {title}
+              </p>
+              <p className="mt-0.5 text-[11px] font-semibold leading-4 text-muted-foreground">
+                {copy}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={onUpgrade}
+        className="mt-3 inline-flex min-h-9 w-full items-center justify-center rounded-full bg-[#f26a21] px-3 text-[10px] font-black uppercase tracking-[0.13em] text-white shadow-[0_10px_24px_rgba(242,106,33,0.2)] transition hover:bg-[#d95f1c] sm:w-auto"
+      >
+        Remove watermark & brand this report
+      </button>
+    </div>
+  );
+}
+
 function localInputDate(date = new Date()) {
   const localTime = date.getTime() - date.getTimezoneOffset() * 60_000;
   return new Date(localTime).toISOString().slice(0, 10);
@@ -2156,6 +2349,17 @@ function normalizeCloseoutLinks(links: Axis1CloseoutLinks): Axis1CloseoutLinks {
   const pdfHref = links.pdfHref?.trim();
 
   return pdfHref ? { pdfHref } : {};
+}
+
+function createOwnerPreviewUrl(url: string) {
+  try {
+    const previewUrl = new URL(url);
+    previewUrl.searchParams.set("preview", "1");
+
+    return previewUrl.toString();
+  } catch {
+    return `${url}${url.includes("?") ? "&" : "?"}preview=1`;
+  }
 }
 
 function generatedOutputReadinessMeta(readiness: string) {
@@ -2707,6 +2911,17 @@ export function PacketBuilder({
             .then((entitlements) => {
               if (!cancelled) {
                 setAccountEntitlements(entitlements);
+                const searchParams = new URLSearchParams(window.location.search);
+                if (
+                  entitlements.companyAccess &&
+                  !searchParams.has("account") &&
+                  !searchParams.has("loadReport")
+                ) {
+                  setSelectedProductPlan("company");
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("account", "company");
+                  window.history.replaceState({}, "", url);
+                }
               }
 
               if (!entitlements.companyAccess) {
@@ -2771,13 +2986,22 @@ export function PacketBuilder({
           payload.photoSlotResolutions ?? emptyPhotoSlotResolutions(),
         );
         setCloseoutLinks(payload.links ?? {});
+        const builderState = payload.builderState;
+        if (isVisitTypeId(builderState?.visitTypeId)) {
+          setVisitTypeId(builderState.visitTypeId);
+        }
+        const savedRiskFlagIds = Array.isArray(builderState?.riskFlagIds)
+          ? builderState.riskFlagIds.filter(isRiskFlagId)
+          : [];
+        setRiskFlagIds(savedRiskFlagIds.length > 0 ? savedRiskFlagIds : ["no-risk"]);
+        setScopeOverrides(sanitizeScopeOverrides(builderState?.scopeOverrides));
         setPacketPresentationMode(
           payload.presentationMode === "standard" ? "standard" : "short",
         );
         setPacketSections(payload.visibleSections ?? shortPacketSections);
-        setHasJobOutcomeSelected(true);
+        setHasJobOutcomeSelected(builderState?.hasJobOutcomeSelected ?? true);
         setAutoDraftedJobPatternId(null);
-        setScopeAssumptionsAccepted(true);
+        setScopeAssumptionsAccepted(builderState?.scopeAssumptionsAccepted ?? true);
         setShowScopeDetails(false);
         setSelectedProductPlan(report.productPlan);
 
@@ -2815,6 +3039,7 @@ export function PacketBuilder({
   useEffect(() => {
     const initialSearchParams = new URLSearchParams(window.location.search);
     const requestedStep = initialSearchParams.get("step");
+    const isLoadingSavedReport = Boolean(initialSearchParams.get("loadReport")?.trim());
     const normalizedStep =
       requestedStep === "job" || requestedStep === "scope"
         ? "review"
@@ -2832,7 +3057,10 @@ export function PacketBuilder({
       normalizedStep === "outputs"
     ) {
       const frame = window.requestAnimationFrame(() => {
-        const resolvedStep = normalizedStep;
+        const resolvedStep =
+          normalizedStep === "outputs" && !isLoadingSavedReport
+            ? "photos"
+            : normalizedStep;
         setBuilderStep(resolvedStep);
         if (resolvedStep !== requestedStep) {
           const url = new URL(window.location.href);
@@ -3271,20 +3499,20 @@ export function PacketBuilder({
         ? "bg-[#111315] text-white"
         : "bg-[#f26a21] text-white";
   const mobileReportInlineActionLabel = reportNeedsPhotoReview
-    ? "Photo tray"
+    ? "Review photos"
     : reportOutputMode === "link"
-    ? "Copy report link"
+      ? "Copy customer link"
       : "Save PDF";
   const photoStepPrimaryLabel =
-    hasJobOutcomeSelected
-      ? "Review report"
-      : hasBeforeOnly || hasAfterOnly
-      ? shouldShowProofDetails
+    totalFieldPhotoCount === 0
+      ? "Review record"
+      : hasJobOutcomeSelected
         ? "Review report"
-        : "Review photos"
-    : totalFieldPhotoCount === 0
-      ? "Review report"
-      : "Review report";
+        : hasBeforeOnly || hasAfterOnly
+          ? shouldShowProofDetails
+            ? "Review report"
+            : "Review photos"
+          : "Review report";
   const getBuilderStepMetric = (stepValue: BuilderStep) => {
     if (stepValue === "photos") {
       return totalFieldPhotoCount > 0
@@ -3320,29 +3548,29 @@ export function PacketBuilder({
             ? "Next step"
             : previewProofLinkLabel
         : reportOutputMode === "link"
-        ? "Copy report link"
+        ? "Copy customer link"
           : "Save PDF";
   const mobileSecondaryActionLabel =
     builderStep === "photos"
         ? hasProofWorkStarted
-          ? "Photo tray"
-          : "Review"
+          ? "Review photos"
+          : "Skip photos"
       : builderStep === "review"
         ? "Add photos"
         : reportNeedsPhotoReview
-          ? "Photo tray"
+          ? "Review photos"
           : "Options";
   const mobilePrimaryIsPrint = isOutputStep && reportOutputMode === "pdf";
   const reportOutputMeta =
     reportOutputMode === "link"
       ? {
-          label: "Service report link preview",
+          label: "Customer link preview",
           title: isCompanyPlan
-            ? "Branded service report link from this job"
-            : "Unbranded test report link from this job",
+            ? "Branded customer link from this job"
+            : "Unbranded customer test link from this job",
           copy: isCompanyPlan
-            ? "Company mode uses your saved company logo/contact and keeps hosted service report links live while subscribed."
-            : "Free mode creates an unbranded 7-day test link with no company logo/contact.",
+            ? "Company mode uses your saved company logo/contact and keeps paid service report links available after creation."
+            : "Free mode creates a neutral 7-day test link. The customer sees a test report without your company logo, contact line, or saved history.",
           badge: productPolicy.outputLabel,
         }
       : {
@@ -3362,8 +3590,8 @@ export function PacketBuilder({
   const lastSavedReportLinkCopy =
     lastSavedReportLink?.storage === "server"
       ? lastSavedReportLink.productPlan === "company"
-        ? "Saved to account history under the company version."
-        : "Saved as a free 7-day test link."
+        ? "Saved to account history. Preview opens are not counted; copied customer links are."
+        : "Saved as a free 7-day test link. Preview opens are not counted."
       : "Saved in this browser only because hosted storage was not reachable.";
   const activePreviewPresentationMode =
     reportOutputMode === "pdf" ? packetPresentationMode : "standard";
@@ -3393,8 +3621,8 @@ export function PacketBuilder({
             copy: isCompanyPlan
               ? "Company mode creates a hosted service report link under your company name and saves the record to account history."
               : isAuthenticated
-                ? "Free output creates a 7-day test link with no company logo/contact. The company version unlocks live service report links under your company name."
-                : "Free output is allowed without login: it creates a 7-day test link with no company logo/contact. The company version unlocks live service report links under your company name.",
+                ? "Free output creates a 7-day test link with no company logo/contact. The company version unlocks retained service report links under your company name."
+                : "Free output is allowed without login: it creates a 7-day test link with no company logo/contact. The company version unlocks retained service report links under your company name.",
           }
         : {
             eyebrow: "Before copying link",
@@ -3405,8 +3633,8 @@ export function PacketBuilder({
             copy: isCompanyPlan
               ? "Company mode copies the service report link under your company name and keeps the report in account history."
               : isAuthenticated
-                ? "Free output copies a 7-day test link with no company logo/contact. The company version unlocks live service report links and history."
-                : "Free output is allowed without login: it copies a 7-day test link with no company logo/contact. The company version unlocks live service report links and history.",
+                ? "Free output copies a 7-day test link with no company logo/contact. The company version unlocks retained service report links and history."
+                : "Free output is allowed without login: it copies a 7-day test link with no company logo/contact. The company version unlocks retained service report links and history.",
           };
   const paidFeatureMeta =
     paidFeatureNotice === "branding"
@@ -3435,8 +3663,8 @@ export function PacketBuilder({
               ? "Keep using the free builder, or start the company version."
               : "Keep using the free builder, or login to unlock company output.",
             copy: isAuthenticated
-              ? "You are logged in. Free mode still creates a neutral 7-day test link and watermarked PDF. Company mode adds your logo/contact, clean PDFs, live service report links while subscribed, saved defaults, and report history."
-              : "Free mode creates a neutral 7-day test link and watermarked PDF. Company mode adds your logo/contact, clean PDFs, live service report links while subscribed, saved defaults, and report history.",
+              ? "You are logged in. Free mode still creates a neutral 7-day test link and watermarked PDF. Company mode adds your logo/contact, clean retained PDFs, retained service report links, saved defaults, and report history."
+              : "Free mode creates a neutral 7-day test link and watermarked PDF. Company mode adds your logo/contact, clean retained PDFs, retained service report links, saved defaults, and report history.",
           };
   const previewPacketWithPhotos = applyScopeLedgerToPacket(
     buildAxis1PacketDataWithFieldPhotos(
@@ -3561,7 +3789,7 @@ export function PacketBuilder({
       value: closeoutEngine.recordFormat.label,
     },
     {
-      label: "Claim basis",
+      label: "Documentation",
       value: claimLevelLabel,
     },
     {
@@ -3895,7 +4123,7 @@ export function PacketBuilder({
       editor: "action" as const,
     },
     {
-      label: "Photo / record basis",
+      label: "Photo / documentation",
       value: closeoutEngine.proofCoverage.label,
       source:
         vendorConfirmedPhotoCount > 0
@@ -4114,6 +4342,22 @@ export function PacketBuilder({
     }, 120);
   }
 
+  function focusJobOutcomePanel() {
+    window.setTimeout(() => {
+      const panel = document.querySelector("[data-axis-job-outcome-panel]");
+
+      panel?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      if (panel instanceof HTMLElement) {
+        window.setTimeout(() => {
+          panel.querySelector<HTMLButtonElement>("button")?.focus({
+            preventScroll: true,
+          });
+        }, 260);
+      }
+    }, 120);
+  }
+
   function focusJobBasicsPanel() {
     window.setTimeout(() => {
       document
@@ -4132,12 +4376,10 @@ export function PacketBuilder({
 
   function handleJobPrimaryAction() {
     if (!hasJobOutcomeSelected) {
-      toast.error("Pick today's result first.");
-      return;
-    }
-
-    if (previewBlockedBy === "basics") {
-      showJobBasicsBlocker();
+      toast.error("Pick today's result first.", {
+        description: "Choose Completed, Blocked / no access, or Condition found.",
+      });
+      focusJobOutcomePanel();
       return;
     }
 
@@ -4160,38 +4402,14 @@ export function PacketBuilder({
 
   function selectBuilderStep(step: BuilderStep) {
     toast.dismiss();
-    let shouldFocusScopePanel = false;
+    let shouldFocusJobOutcomePanel = false;
 
     if ((step === "outputs") && !hasJobOutcomeSelected) {
       toast.error("Pick today's result first.", {
         description: "The tool will not create customer-facing outputs from untouched defaults.",
       });
       step = "review";
-    }
-
-    if ((step === "outputs") && hasJobOutcomeSelected && !jobBasicsReady) {
-      setShowJobBasics(true);
-      shouldFocusScopePanel = false;
-      toast.error("Add customer and service details first.", {
-        description: `Needed before output: ${jobBasicsMissingLabel}.`,
-      });
-      step = "review";
-    }
-
-    if (
-      (step === "outputs") &&
-      hasJobOutcomeSelected &&
-      jobBasicsReady &&
-      sendReadinessBlockers.length > 0
-    ) {
-      setShowScopeDetails(true);
-      shouldFocusScopePanel = true;
-      toast.error("Confirm the area status before sending.", {
-          description:
-            sendReadinessBlockers[0] ??
-            "The report needs one area status confirmation before outputs are ready.",
-      });
-      step = "review";
+      shouldFocusJobOutcomePanel = true;
     }
 
     setBuilderStep(step);
@@ -4204,8 +4422,8 @@ export function PacketBuilder({
     window.requestAnimationFrame(() => {
       scrollPacketWorkspaceBelowHeader();
       window.setTimeout(() => scrollPacketWorkspaceBelowHeader("auto"), 90);
-      if (shouldFocusScopePanel) {
-        focusScopeReviewPanel();
+      if (shouldFocusJobOutcomePanel) {
+        focusJobOutcomePanel();
       } else if (step === "review" && hasJobOutcomeSelected && !jobBasicsReady) {
         focusJobBasicsPanel();
       }
@@ -4229,7 +4447,7 @@ export function PacketBuilder({
     const nextPolicy = getAxis1ProductPlanPolicy(nextPlan);
     toast.success(`${nextPolicy.label} preview selected`, {
       description: nextPolicy.isPaid
-        ? "Company logo/contact, clean PDF, live service report links, and history are available in the company version."
+        ? "Company logo/contact, clean PDF, retained service report links, and history are available in the company version."
         : "This shows the public no-login builder limits.",
     });
   }
@@ -4237,6 +4455,15 @@ export function PacketBuilder({
   function requestPaidFeature(feature: PaidFeatureNotice) {
     setPaidFeatureNotice(feature);
     setSetupNoticeAction(null);
+  }
+
+  function handleBrandingUpgradeIntent() {
+    if (isAuthenticated) {
+      selectProductPlan("company");
+      return;
+    }
+
+    requestPaidFeature("branding");
   }
 
   function handleMobilePrimaryAction() {
@@ -4331,8 +4558,15 @@ export function PacketBuilder({
     return {
       productPlan,
       companyProfile: isCompanyPlan ? companyProfile : undefined,
+      builderState: {
+        visitTypeId,
+        riskFlagIds,
+        scopeOverrides: inferredScopeOverrides,
+        scopeAssumptionsAccepted,
+        hasJobOutcomeSelected,
+      },
       values,
-      uploadedFieldPhotos,
+      uploadedFieldPhotos: confirmedUploadedFieldPhotos,
       photoSlotResolutions,
       links: engineCloseoutLinks,
       presentationMode: packetPresentationMode,
@@ -4346,8 +4580,11 @@ export function PacketBuilder({
 
     try {
       const hostedResult = await saveAxis1ServerReport(input);
+      const url = new URL(hostedResult.href, window.location.origin).toString();
+
       return {
-        url: new URL(hostedResult.href, window.location.origin).toString(),
+        url,
+        previewUrl: createOwnerPreviewUrl(url),
         storage: "server",
         productPlan: hostedResult.productPlan,
       } satisfies SavedReportLink;
@@ -4383,7 +4620,7 @@ export function PacketBuilder({
     setLastSavedReportLink(savedReport);
 
     try {
-      await navigator.clipboard.writeText(savedReport.url);
+      await copyTextToClipboard(savedReport.url);
       const isHosted = savedReport.storage === "server";
       toast.success(
         isHosted ? "Hosted service report link copied" : "Browser fallback link copied",
@@ -4408,11 +4645,11 @@ export function PacketBuilder({
     }
 
     try {
-      await navigator.clipboard.writeText(savedReport.url);
-      toast.success("Report link copied", {
+      await copyTextToClipboard(savedReport.url);
+      toast.success("Customer link copied", {
         description:
           savedReport.storage === "server"
-            ? "The hosted service report URL is ready to send."
+            ? "The hosted customer report URL is ready to send."
             : "The browser fallback URL is ready to test in this browser.",
       });
     } catch {
@@ -4423,10 +4660,14 @@ export function PacketBuilder({
   }
 
   function openSavedReportLink(savedReport: SavedReportLink) {
-    const opened = window.open(savedReport.url, "_blank", "noopener,noreferrer");
+    const opened = window.open(
+      savedReport.previewUrl ?? savedReport.url,
+      "_blank",
+      "noopener,noreferrer",
+    );
 
     if (!opened) {
-      window.location.assign(savedReport.url);
+      window.location.assign(savedReport.previewUrl ?? savedReport.url);
     }
   }
 
@@ -5851,11 +6092,11 @@ export function PacketBuilder({
           <p className="mt-2 text-sm font-semibold leading-6 text-white/78">
             {isCompanyFeatureRequested
               ? isAuthenticated
-                ? "You are logged in. Company output unlocks after an active subscription: saved logo/contact, clean PDF, live service report links, and history. You can still use the free builder now."
-                : "Company output needs login and an active subscription. Use the free builder now, or start the company version to unlock logo/contact, clean PDF, live service report links, and history."
-              : isCompanyPlan
-              ? `Company mode: ${companyProfile.companyName} details are applied. Reports save to history and stay live while subscribed.`
-              : "Free builder: no login, no company logo/contact, 7-day test link, watermarked PDF, and no report history."}
+                ? "You are logged in. Company output unlocks after an active subscription: saved logo/contact, clean PDF, retained service report links, and history. You can still use the free builder now."
+                : "Company output needs login and an active subscription. Use the free builder now, or start the company version to unlock logo/contact, clean PDF, retained service report links, and history."
+            : isCompanyPlan
+              ? `Company mode: ${companyProfile.companyName} details are applied. Reports save to history and customer links/PDFs stay available after creation.`
+              : "Free builder: no login, neutral test link, no company logo/contact, watermarked PDF, and no report history."}
           </p>
           {isCompanyPlan ? (
             <p className="mt-1 text-xs font-semibold leading-5 text-white/42">
@@ -6071,17 +6312,15 @@ export function PacketBuilder({
                       <Sparkles className="hidden h-4 w-4 text-accent sm:block" />
                       <button
                         type="button"
-                        disabled={!hasJobOutcomeSelected}
                         onClick={handleJobPrimaryAction}
                         className={`tool-action-btn tool-action-mini inline-flex w-full justify-center md:w-auto ${
                           canPreviewProofLink
                             ? "tool-action-dark"
                             : "bg-[#f26a21] text-white hover:bg-[#dc5f1d]"
-                        } ${!hasJobOutcomeSelected ? "cursor-not-allowed opacity-55" : ""
                         }`}
                       >
                         <Eye className="h-3.5 w-3.5" />
-                      {hasJobOutcomeSelected ? "Open Outputs" : "Confirm result first"}
+                      {hasJobOutcomeSelected ? "Open Outputs" : "Choose result"}
                       </button>
                     </div>
                   ) : null}
@@ -6135,9 +6374,12 @@ export function PacketBuilder({
                   </div>
                 </div>
 
-                <div className={`mt-4 rounded-[20px] border border-black/8 bg-[#111315] text-white ${
+                <div
+                  data-axis-job-outcome-panel
+                  className={`mt-4 rounded-[20px] border border-black/8 bg-[#111315] text-white ${
                   hasJobOutcomeSelected ? "px-3 py-3" : "px-4 py-4"
-                }`}>
+                }`}
+                >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ffb489]">
@@ -6146,7 +6388,7 @@ export function PacketBuilder({
                     <p className="mt-2 text-sm leading-6 text-white/62">
                         {hasJobOutcomeSelected
                           ? "Result is set. Change only if the visit outcome is wrong."
-                          : "One tap sets the record basis. The report preview below is what the vendor should actually review."}
+                          : "One tap confirms what happened. The report preview below is what the vendor should actually review."}
                       </p>
                     </div>
                     <span className="rounded-full border border-white/14 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
@@ -6564,14 +6806,13 @@ export function PacketBuilder({
                       <button
                         type="button"
                         onClick={handleJobPrimaryAction}
-                        disabled={!hasJobOutcomeSelected}
-                        className={`max-md:!hidden rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white disabled:cursor-not-allowed disabled:opacity-50 ${
+                        className={`max-md:!hidden rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white ${
                           canPreviewProofLink
                             ? "bg-[#111315]"
                             : "bg-[#f26a21]"
                         }`}
                       >
-                        {hasJobOutcomeSelected ? previewProofLinkLabel : "Confirm result first"}
+                        {hasJobOutcomeSelected ? previewProofLinkLabel : "Choose result"}
                       </button>
                     ) : null}
                   </div>
@@ -7257,6 +7498,46 @@ export function PacketBuilder({
                   </div>
                 </div>
 
+                {!hasProofWorkStarted ? (
+                  <div className="mt-4 rounded-[24px] border border-white/10 bg-black/14 p-3 sm:mt-5 sm:p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#ffb489]">
+                        Quick start
+                      </p>
+                      <span className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">
+                        Photos optional
+                      </span>
+                    </div>
+                    <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden">
+                      {builderQuickStartSteps.map((step, index) => {
+                        const StepIcon = step.icon;
+
+                        return (
+                          <div
+                            key={step.title}
+                            className="flex min-w-[220px] gap-3 rounded-[18px] border border-white/10 bg-white/[0.045] px-3 py-3 sm:min-w-0"
+                          >
+                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[13px] bg-white text-[#111315]">
+                              <StepIcon className="h-4 w-4" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block text-[10px] font-black uppercase tracking-[0.14em] text-white/36">
+                                Step {index + 1}
+                              </span>
+                              <span className="mt-1 block text-sm font-black leading-5 text-white">
+                                {step.title}
+                              </span>
+                              <span className="mt-1 block text-xs font-semibold leading-5 text-white/52">
+                                {step.copy}
+                              </span>
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
                 <motion.label
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.99 }}
@@ -7407,13 +7688,13 @@ export function PacketBuilder({
                     >
                       <span className="min-w-0">
                         <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-[#bc3d1f]">
-                          Ready to review?
+                          No photos?
                         </span>
                         <span className="mt-1 block text-xl font-black tracking-[-0.045em]">
-                          Review report
+                          Review written record
                         </span>
                         <span className="mt-1 block text-xs font-semibold leading-5 text-[#111315]/58">
-                          Review the service summary, then fix only wrong or uncertain parts.
+                          Create the written service record first, then fix only wrong or uncertain parts.
                         </span>
                       </span>
                       <IconArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5" />
@@ -8537,7 +8818,7 @@ export function PacketBuilder({
                   className="rounded-full bg-[#f26a21] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white hover:bg-[#d95d1d]"
                 >
                   <Copy className="h-4 w-4" />
-                  Copy report link
+                  Copy customer link
                 </Button>
               </div>
             </form>
@@ -8583,9 +8864,15 @@ export function PacketBuilder({
                     : values.scenario === "clean"
                       ? "completed result, customer note, and next visit window."
                       : `${activeJobPattern.label.toLowerCase()} with follow-up action visible.`}
-                </p>
+                  </p>
+                </div>
               </div>
-            </div>
+              {!isCompanyPlan ? (
+                <CompanyUpgradeCallout
+                  className="pdf-print-hide mt-4"
+                  onUpgrade={handleBrandingUpgradeIntent}
+                />
+              ) : null}
             <div className="pdf-print-hide mt-4 hidden md:block">
               <motion.section
                 layout
@@ -8656,11 +8943,11 @@ export function PacketBuilder({
                     </span>
                     <span className="min-w-0">
                       <span className="axis-proof-action-label">
-                          Copy report link
+                          Copy customer link
                       </span>
                       <span className="axis-proof-action-copy">
                         {canPreviewProofLink
-                          ? "Service report link copy from this service record."
+                          ? "Customer link from this service record."
                           : previewProofLinkLabel}
                       </span>
                     </span>
@@ -8697,7 +8984,7 @@ export function PacketBuilder({
                     style={{ display: "none" }}
                   >
                     <div className="axis-proof-panel-head">
-                      <p className="axis-proof-panel-label">Record basis</p>
+                      <p className="axis-proof-panel-label">Documentation</p>
                       <p>{closeoutFormatLabel}</p>
                     </div>
                     <div className="axis-proof-basis-list">
@@ -9156,7 +9443,7 @@ export function PacketBuilder({
                 className="tool-segmented-control order-6 mt-3 rounded-full bg-white/72"
               >
                 <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-[11px]">
-                  Report link
+                  Customer link
                 </SegmentedControlItem>
                 <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-[11px]">
                   Service report PDF
@@ -9166,8 +9453,8 @@ export function PacketBuilder({
                 <p className="min-w-0 text-[11px] leading-4 opacity-70">
                   {reportOutputMode === "link"
                     ? isCompanyPlan
-                      ? "Copy creates a branded service report link from this service record."
-                      : "Copy creates an unbranded 7-day test report link from this service record."
+                      ? "Copy creates a branded customer link from this service record."
+                      : "Copy creates an unbranded 7-day customer test link from this service record."
                     : isCompanyPlan
                       ? "Company PDFs are clean copies without the free watermark."
                       : "Free builder PDFs are watermarked test copies."}
@@ -9216,7 +9503,7 @@ export function PacketBuilder({
                       <div>
                         <p className={labelClassName()}>{reportStatusLabel}</p>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          Review the service report link, then copy it or save the PDF.
+                          Review the customer link, then copy it or save the PDF.
                           The same customer-line edits update both link and PDF previews.
                         </p>
                       </div>
@@ -9237,7 +9524,7 @@ export function PacketBuilder({
                     {!showWordingEditor ? (
                       <div className="mt-4 overflow-hidden rounded-[20px] border border-[#f26a21]/18 bg-[#fff7ef]">
                         <div className="border-b border-[#f0dfd1] bg-white/55 px-4 py-3">
-                          <p className={labelClassName()}>Service report link</p>
+                          <p className={labelClassName()}>Customer link</p>
                           <p className="mt-1 text-xs leading-5 text-muted-foreground">
                             Built from your selected result. Send as-is, or edit one line.
                           </p>
@@ -9295,7 +9582,7 @@ export function PacketBuilder({
                             className="tool-action-btn tool-action-primary tool-action-mini"
                           >
                             <Copy className="h-3.5 w-3.5" />
-                      Copy report link
+                      Copy customer link
                           </Button>
                           <Button
                             type="button"
@@ -9476,11 +9763,11 @@ export function PacketBuilder({
               <div className="hidden rounded-[22px] border border-black/8 bg-[rgba(17,17,17,0.02)] px-4 py-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className={labelClassName()}>Service report link vs PDF</p>
+                    <p className={labelClassName()}>Customer link vs PDF</p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       Switch between the two outputs vendors need: a customer
-                      service report link for the next action and a PDF copy for
-                      archive, submission, or later requests.
+                      link for delivery and a PDF copy for archive, submission,
+                      or later requests.
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-wrap justify-end gap-2">
@@ -9491,7 +9778,7 @@ export function PacketBuilder({
                       className="tool-action-btn tool-action-primary tool-action-mini"
                     >
                       <Copy className="h-3.5 w-3.5" />
-                      Copy report link
+                      Copy customer link
                     </Button>
                     <Button
                       type="button"
@@ -9530,7 +9817,7 @@ export function PacketBuilder({
                       className="tool-segmented-control rounded-full"
                     >
                       <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-xs">
-                        Service report link
+                        Customer link
                       </SegmentedControlItem>
                       <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-xs">
                         Service report PDF
@@ -9539,7 +9826,7 @@ export function PacketBuilder({
                     <div className="grid gap-2 md:grid-cols-2">
                       {[
                         [
-                          "Service report link",
+                          "Customer link",
                           "Primary output",
                           "Web report - best for customer clarity, follow-up items, and reply.",
                         ],
@@ -9550,7 +9837,7 @@ export function PacketBuilder({
                         ],
                       ].map(([label, value, copy]) => {
                         const isActive =
-                          (label === "Service report link" && reportOutputMode === "link") ||
+                          (label === "Customer link" && reportOutputMode === "link") ||
                           (label === "PDF / print" && reportOutputMode === "pdf");
 
                         return (
@@ -9559,7 +9846,7 @@ export function PacketBuilder({
                           key={label}
                           onClick={() =>
                             setReportOutputMode(
-                              label === "Service report link" ? "link" : "pdf",
+                              label === "Customer link" ? "link" : "pdf",
                             )
                           }
                           className={`rounded-[18px] border px-3 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(17,19,21,0.08)] ${
@@ -9707,7 +9994,7 @@ export function PacketBuilder({
                       closeoutEngine.recordFormat.label,
                     ],
                     [
-                      "Record basis",
+                      "Documentation",
                       claimLevelLabel,
                     ],
                     [
@@ -9772,7 +10059,7 @@ export function PacketBuilder({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className={labelClassName()}>
-                      {reportOutputMode === "link" ? "Service report link preview" : "Service report PDF preview"}
+                      {reportOutputMode === "link" ? "Customer link preview" : "Service report PDF preview"}
                     </p>
                     <span className="rounded-full border border-[#f26a21]/20 bg-[#fff7ef] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#b94d11]">
                       {reportOutputMeta.badge}
@@ -9787,33 +10074,34 @@ export function PacketBuilder({
                   <div className="mt-2 grid gap-1 text-[11px] font-semibold leading-4 text-muted-foreground">
                     <p>
                       <span className="text-foreground">Current mode:</span>{" "}
-                      {productPolicy.brandingPolicy}; {productPolicy.linkPolicy};{" "}
-                      {productPolicy.pdfPolicy}; {productPolicy.historyPolicy}.
+                      {productPolicy.brandingPolicy}, {productPolicy.linkPolicy},{" "}
+                      {productPolicy.pdfPolicy}, {productPolicy.historyPolicy}.
                     </p>
                     <p>
                       <span className="text-foreground">
-                        {isCompanyPlan ? "Company version:" : "Upgrade unlocks:"}
+                        {isCompanyPlan ? "Company version:" : "Free limit:"}
                       </span>{" "}
                       {isCompanyPlan
-                        ? "saved branding, clean PDF, live report links while subscribed, and account history."
-                        : "saved company details, clean PDF, live service report links while subscribed, and report history."}
+                        ? "saved branding, clean retained PDF, retained report links, and account history."
+                        : "neutral customer link, visible test watermark, and no saved report history."}
                     </p>
                   </div>
+                  {!isCompanyPlan ? (
+                    <CompanyUpgradeCallout
+                      className="mt-3 md:max-w-xl"
+                      onUpgrade={handleBrandingUpgradeIntent}
+                    />
+                  ) : null}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (isAuthenticated) {
-                          selectProductPlan("company");
-                          return;
-                        }
-
-                        requestPaidFeature("branding");
-                      }}
-                      className="inline-flex min-h-9 items-center justify-center rounded-full border border-[#f26a21]/24 bg-[#fff7ef] px-3 text-[10px] font-black uppercase tracking-[0.13em] text-[#b94d11] transition hover:bg-[#ffe9d8]"
-                    >
-                      {isAuthenticated ? "Use saved company info" : "Add company info"}
-                    </button>
+                    {isCompanyPlan ? (
+                      <button
+                        type="button"
+                        onClick={handleBrandingUpgradeIntent}
+                        className="inline-flex min-h-9 items-center justify-center rounded-full border border-[#f26a21]/24 bg-[#fff7ef] px-3 text-[10px] font-black uppercase tracking-[0.13em] text-[#b94d11] transition hover:bg-[#ffe9d8]"
+                      >
+                        Use saved company info
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => {
@@ -9841,7 +10129,7 @@ export function PacketBuilder({
                   className="tool-segmented-control shrink-0 rounded-full md:w-[280px]"
                 >
                   <SegmentedControlItem value="link" className="tool-segmented-item rounded-full text-xs">
-                    Report link
+                    Customer link
                   </SegmentedControlItem>
                   <SegmentedControlItem value="pdf" className="tool-segmented-item rounded-full text-xs">
                     Service report PDF
@@ -9864,13 +10152,13 @@ export function PacketBuilder({
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
                       <a
-                        href={lastSavedReportLink.url}
+                        href={lastSavedReportLink.previewUrl ?? lastSavedReportLink.url}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111315] px-3 text-[10px] font-black uppercase tracking-[0.13em] text-white"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
-                        Open report
+                        Preview
                       </a>
                       <button
                         type="button"
@@ -10037,7 +10325,7 @@ export function PacketBuilder({
                     className="tool-action-btn tool-action-primary h-11 px-3"
                   >
                     <Copy className="h-3.5 w-3.5" />
-                    Copy report link
+                    Copy customer link
                   </button>
                   <button
                     type="button"
@@ -10162,7 +10450,7 @@ export function PacketBuilder({
                   ],
                   [
                     "Company version",
-                    "Saved company info, clean PDF, branded live service report links, and history.",
+                    "Saved company info, clean PDF, branded retained service report links, and history.",
                   ],
                 ].map(([label, copy]) => (
                   <div
@@ -10249,8 +10537,8 @@ export function PacketBuilder({
                   </p>
                   <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
                     {isCompanyPlan
-                      ? "Saved company info, live report links, clean PDFs, customer history, and next-service follow-up."
-                      : "Logo, phone, clean PDF, live service report links while subscribed, saved photos, and customer history."}
+                      ? "Saved company info, retained report links, clean PDFs, customer history, and next-service follow-up."
+                      : "Logo, phone, clean PDF, retained service report links, saved photos, and customer history."}
                   </p>
                 </div>
               </div>
@@ -10283,53 +10571,47 @@ export function PacketBuilder({
           </motion.div>
         ) : null}
       </AnimatePresence>
-      <motion.div
-        layout
-        initial={{ y: 18, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="pdf-print-hide fixed inset-x-3 bottom-3 z-40 rounded-[24px] border border-black/10 bg-white/94 p-2 shadow-[0_20px_70px_rgba(17,17,17,0.22)] backdrop-blur md:hidden"
-        style={{
-          paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))",
-        }}
-      >
-        <div className="grid grid-cols-[0.82fr_1.18fr] gap-2">
-          <button
-            type="button"
-            onClick={handleMobileSecondaryAction}
-            className="tool-action-btn tool-action-secondary h-12 px-3 active:scale-[0.99]"
-          >
-            {isOutputStep ? (
-              <Settings2 className="h-4 w-4" />
-            ) : totalFieldPhotoCount === 0 ? (
-              <Eye className="h-4 w-4" />
-            ) : (
-              <Settings2 className="h-4 w-4" />
-            )}
-            {mobileSecondaryActionLabel}
-          </button>
-          <motion.button
-            layout
-            type="button"
-            onClick={handleMobilePrimaryAction}
-            whileTap={{ scale: 0.985 }}
-            className={`tool-action-btn h-12 px-3 ${
-              mobilePrimaryIsPrint ? "tool-action-primary" : "tool-action-dark"
-            }`}
-          >
-            {mobilePrimaryIsPrint ? (
-              <FileDown className="h-4 w-4" />
-            ) : builderStep === "photos" ? (
-              <Plus className="h-4 w-4" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-            <span className="block text-center text-white">
-              {mobilePrimaryActionLabel}
-            </span>
-          </motion.button>
-        </div>
-      </motion.div>
+      {builderStep === "review" ? (
+        <motion.div
+          layout
+          initial={{ y: 18, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className="pdf-print-hide fixed inset-x-3 bottom-3 z-40 rounded-[24px] border border-black/10 bg-white/94 p-2 shadow-[0_20px_70px_rgba(17,17,17,0.22)] backdrop-blur md:hidden"
+          style={{
+            paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))",
+          }}
+        >
+          <div className="grid grid-cols-[0.82fr_1.18fr] gap-2">
+            <button
+              type="button"
+              onClick={handleMobileSecondaryAction}
+              className="tool-action-btn tool-action-secondary h-12 px-3 active:scale-[0.99]"
+            >
+              {totalFieldPhotoCount === 0 ? (
+                <IconArrowRight className="h-4 w-4" />
+              ) : (
+                <Settings2 className="h-4 w-4" />
+              )}
+              {mobileSecondaryActionLabel}
+            </button>
+            <motion.button
+              layout
+              type="button"
+              onClick={handleMobilePrimaryAction}
+              whileTap={{ scale: 0.985 }}
+              className={`tool-action-btn h-12 px-3 ${
+                mobilePrimaryIsPrint ? "tool-action-primary" : "tool-action-dark"
+              }`}
+            >
+              <IconArrowRight className="h-4 w-4" />
+              <span className="block text-center text-white">
+                {mobilePrimaryActionLabel}
+              </span>
+            </motion.button>
+          </div>
+        </motion.div>
+      ) : null}
     </section>
   );
 }

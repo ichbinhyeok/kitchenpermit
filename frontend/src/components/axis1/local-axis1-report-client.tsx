@@ -146,7 +146,7 @@ export function LocalAxis1ReportClient({
           </h1>
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
             Create a fresh free test report, or use the company version for
-            service report links that stay live while subscribed.
+            retained service report links and clean PDF copies.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <a
@@ -225,7 +225,7 @@ export function LocalAxis1ReportClient({
             }`}
           >
             <Printer className="h-3.5 w-3.5" />
-            Save PDF
+            Save as PDF
           </Button>
         </div>
       </div>

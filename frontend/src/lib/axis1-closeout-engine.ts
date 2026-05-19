@@ -1161,7 +1161,7 @@ function buildGeneratedOutputs(options: {
     .join(" ");
   const customerOutputCopy =
     areaEvidenceSummary ||
-      "Service report link is generated from the selected result, record basis, and next action.";
+      "Service report link is generated from the selected result, notes/photo coverage, and next action.";
   const quoteCopy = hasConditionAreas
     ? `${conditionAreaList} was recorded as a condition area, separate from the completed cleaning closeout. Use this note for quote follow-up before adding separate corrective work.`
     : undefined;
@@ -1239,7 +1239,7 @@ function buildGeneratedOutputs(options: {
     label: "Service report link",
       readiness: "ready",
       reason:
-        "Generated from the vendor-confirmed result, record basis, proof coverage, and next action.",
+        "Generated from the vendor-confirmed result, photo coverage, and next action.",
       copy: customerOutputCopy,
     }),
     buildGeneratedOutput({
@@ -1299,7 +1299,7 @@ function buildGeneratedOutputs(options: {
       readiness: hasReviewWarnings || hasUnclearAreas ? "needs_review" : "ready",
       reason: hasReviewWarnings || hasUnclearAreas
         ? `${options.vendorWarnings.length} send check(s) remain before using this as a completed record.`
-        : "No private send check for the current result and proof basis.",
+        : "No private send check for the current result and photo/note support.",
       copy:
         options.vendorWarnings[0]?.copy ??
         "Result, proof coverage, and customer action are aligned.",
@@ -1844,7 +1844,7 @@ export function evaluateAxis1Closeout(
       responsibilityCopy:
         "No responsibility boundary can be shown until the visit outcome is selected.",
       evidenceCopy:
-        "The tool is waiting for a selected service outcome before it can describe the record basis.",
+        "The tool is waiting for a selected service outcome before it can describe the documentation.",
       claimLimitCopy:
         "Do not show completed, blocked, or evidence language until a result is selected.",
       blockingReason: "Select today's service result before generating a link or PDF.",
@@ -2086,7 +2086,7 @@ function buildClaimLimitCopy(
     evidenceBasis === "photo_record"
       ? "Photo coverage is limited to the attached field photos and service areas shown."
       : evidenceBasis === "partial_photos"
-        ? "Attached photos support part of the record; areas not photographed stay listed by record basis."
+        ? "Attached photos support part of the record; areas not photographed stay listed by service notes."
         : "This is a written service record; photo evidence is not attached to this visit.";
 
   if (caseType === "access_exception") {
@@ -2158,7 +2158,7 @@ function buildProofPolicyRows(
       : result.proofCoverage.label;
   const seeingCopy =
     result.evidenceBasis === "no_photos"
-      ? "This record summarizes the selected service result, written notes, record basis, and next action."
+      ? "This record summarizes the selected service result, written notes, photo coverage, and next action."
       : result.evidenceBasis === "partial_photos"
         ? "This record shows the selected service result and only the attached field photos. Uncaptured areas stay listed as not captured or record-only."
         : "This record shows the selected service result with attached before/after and supporting field photos.";
@@ -2239,7 +2239,7 @@ export function applyAxis1CloseoutEngineToPacket(
       ...data.packetHeader,
       copy: buildPacketHeaderCopy(result),
       quickFacts: upsertRows(data.packetHeader.quickFacts, [
-        ["Record basis", result.basisLabel],
+        ["Documentation", result.basisLabel],
         ["Record type", result.recordFormat.label],
         ["Record support", proofLabel],
         [photoCoverageLabel, photoCoverageValue],

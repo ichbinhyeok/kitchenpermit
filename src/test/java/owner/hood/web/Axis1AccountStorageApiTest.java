@@ -2,6 +2,9 @@ package owner.hood.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +18,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -118,7 +122,7 @@ class Axis1AccountStorageApiTest {
                         .content(profileJson))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/axis1/reports")
+        MvcResult savedResult = mockMvc.perform(post("/api/axis1/reports")
                         .session(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(reportPayloadWithGenericPacketData("company")))
@@ -136,7 +140,16 @@ class Axis1AccountStorageApiTest {
                 .andExpect(jsonPath("$.payload.packetData.vendor.directLine").value("(512) 555-0199"))
                 .andExpect(jsonPath("$.payload.packetData.serviceRecordRows[0][1]").value("Metro Hood Pros"))
                 .andExpect(jsonPath("$.payload.packetData.closeoutRows[0][1]").value("dispatch@metrohood.example"))
-                .andExpect(jsonPath("$.pdfExport.serverDownloadReady").value(true));
+                .andExpect(jsonPath("$.pdfExport.serverDownloadReady").value(true))
+                .andReturn();
+
+        JsonNode saved = objectMapper.readTree(savedResult.getResponse().getContentAsString());
+        String pdfText = pdfText(saved.at("/pdfExport/downloadHref").asText());
+        assertThat(pdfText)
+                .contains("Metro Hood Pros")
+                .contains("Kitchen exhaust service report PDF")
+                .contains("dispatch@metrohood.example")
+                .doesNotContain("FREE TEST COPY");
     }
 
     @Test
@@ -187,13 +200,15 @@ class Axis1AccountStorageApiTest {
                         .content(reportPayloadWithPhoto("free")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.assetStorage.driver").value("filesystem"))
-                .andExpect(jsonPath("$.assetStorage.inlinePhotoCount").value(2))
+                .andExpect(jsonPath("$.assetStorage.inlinePhotoCount").value(1))
                 .andExpect(jsonPath("$.payload.uploadedFieldPhotos['hood-before'].src", startsWith("/api/axis1/assets/")))
                 .andExpect(jsonPath("$.payload.packetData.proofPhotos[0].src", startsWith("/api/axis1/assets/")))
                 .andReturn();
 
         JsonNode saved = objectMapper.readTree(result.getResponse().getContentAsString());
         String assetHref = saved.at("/payload/uploadedFieldPhotos/hood-before/src").asText();
+        String packetPhotoHref = saved.at("/payload/packetData/proofPhotos/0/src").asText();
+        assertThat(packetPhotoHref).isEqualTo(assetHref);
 
         mockMvc.perform(get(assetHref))
                 .andExpect(status().isOk())
@@ -204,6 +219,13 @@ class Axis1AccountStorageApiTest {
                         throw new AssertionError("Expected image/png asset response, got " + contentType);
                     }
                 });
+
+        String pdfText = pdfText(saved.at("/pdfExport/downloadHref").asText());
+        assertThat(pdfText)
+                .contains("FREE TEST COPY")
+                .contains("PHOTO RECORD")
+                .contains("Provider branding and contact are hidden")
+                .contains("Company version includes");
     }
 
     @Test
@@ -287,7 +309,7 @@ class Axis1AccountStorageApiTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.productPlan").value("company"))
                 .andExpect(jsonPath("$.toolHref", startsWith("/axis-1/tool?step=outputs&account=company")))
-                .andExpect(jsonPath("$.retention.policy").value("live_while_subscribed"))
+                .andExpect(jsonPath("$.retention.policy").value("company_retained_link"))
                 .andExpect(jsonPath("$.expiresAt").isEmpty())
                 .andReturn();
 
@@ -300,10 +322,81 @@ class Axis1AccountStorageApiTest {
                 .andExpect(jsonPath("$[0].pdfExport.serverDownloadReady").value(true))
                 .andExpect(jsonPath("$[0].title").value("Metro Diner / Main cookline hood"));
 
+        mockMvc.perform(get("/api/axis1/reports/public/{publicId}", publicId).param("preview", "1"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
+                .andExpect(jsonPath("$.viewer.ownerPreview").value(true))
+                .andExpect(jsonPath("$.engagement.publicViewCount").value(0));
+
+        mockMvc.perform(post("/api/axis1/reports/public/{publicId}/events/pdf-save", publicId).param("preview", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pdfSaveClickCount").value(0));
+
+        mockMvc.perform(post("/api/axis1/reports/public/{publicId}/confirm", publicId)
+                        .param("preview", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("confirmedBy", "Owner"))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.ownerPreview").value(true))
+                .andExpect(jsonPath("$.engagement.customerConfirmed").value(false));
+
+        mockMvc.perform(get("/api/axis1/reports/public/{publicId}", publicId).session(session))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
+                .andExpect(jsonPath("$.viewer.ownerPreview").value(true))
+                .andExpect(jsonPath("$.engagement.publicViewCount").value(0))
+                .andExpect(jsonPath("$.engagement.lastViewedAt").value(""));
+
+        mockMvc.perform(post("/api/axis1/reports/public/{publicId}/events/pdf-save", publicId).session(session))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
+                .andExpect(jsonPath("$.pdfSaveClickCount").value(0))
+                .andExpect(jsonPath("$.lastPdfSaveClickedAt").value(""));
+
+        mockMvc.perform(post("/api/axis1/reports/public/{publicId}/confirm", publicId)
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("confirmedBy", "Owner"))))
+                .andExpect(status().isConflict())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
+                .andExpect(jsonPath("$.ownerPreview").value(true))
+                .andExpect(jsonPath("$.engagement.customerConfirmed").value(false));
+
         mockMvc.perform(get("/api/axis1/reports/public/{publicId}", publicId))
                 .andExpect(status().isOk())
                 .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
-                .andExpect(jsonPath("$.payload.values.propertyName").value("Metro Diner"));
+                .andExpect(jsonPath("$.viewer.ownerPreview").value(false))
+                .andExpect(jsonPath("$.payload.values.propertyName").value("Metro Diner"))
+                .andExpect(jsonPath("$.engagement.publicViewCount").value(1))
+                .andExpect(jsonPath("$.engagement.lastViewedAt", notNullValue()));
+
+        mockMvc.perform(post("/api/axis1/reports/public/{publicId}/events/pdf-save", publicId))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
+                .andExpect(jsonPath("$.pdfSaveClickCount").value(1))
+                .andExpect(jsonPath("$.lastPdfSaveClickedAt", notNullValue()));
+
+        mockMvc.perform(post("/api/axis1/reports/public/{publicId}/confirm", publicId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("confirmedBy", "Store manager"))))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow, noarchive"))
+                .andExpect(jsonPath("$.customerConfirmed").value(true))
+                .andExpect(jsonPath("$.customerConfirmedBy").value("Store manager"))
+                .andExpect(jsonPath("$.customerConfirmedAt", notNullValue()));
+
+        mockMvc.perform(get("/api/axis1/reports/public/{publicId}", publicId).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.viewer.ownerPreview").value(true))
+                .andExpect(jsonPath("$.engagement.publicViewCount").value(1))
+                .andExpect(jsonPath("$.engagement.pdfSaveClickCount").value(1))
+                .andExpect(jsonPath("$.engagement.customerConfirmed").value(true));
+
+        mockMvc.perform(get("/api/axis1/reports/history").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].engagement.publicViewCount").value(1))
+                .andExpect(jsonPath("$[0].engagement.pdfSaveClickCount").value(1))
+                .andExpect(jsonPath("$[0].engagement.customerConfirmed").value(true));
 
         mockMvc.perform(get("/api/axis1/reports/{publicId}/builder", publicId))
                 .andExpect(status().isUnauthorized());
@@ -397,6 +490,16 @@ class Axis1AccountStorageApiTest {
                 .andReturn();
 
         return (MockHttpSession) signup.getRequest().getSession(false);
+    }
+
+    private String pdfText(String href) throws Exception {
+        MvcResult result = mockMvc.perform(get(href))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        try (PDDocument document = Loader.loadPDF(result.getResponse().getContentAsByteArray())) {
+            return new PDFTextStripper().getText(document);
+        }
     }
 
     private String reportPayload(String productPlan) throws Exception {

@@ -1019,7 +1019,7 @@ export function buildAxis1NeutralPacketData(
         status: "Removed + reset",
         proof: "P-03",
         note:
-          "Filters removed, cleaned, checked, and reinstalled; tracks and nearby grease collection points documented where accessible.",
+          "Filters removed, cleaned, checked, and reinstalled. Tracks and nearby grease collection points documented where accessible.",
       },
       {
         component: "Plenum / reachable duct path",

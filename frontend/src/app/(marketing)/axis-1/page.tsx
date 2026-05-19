@@ -499,7 +499,7 @@ export default function Axis1Page() {
             <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base md:leading-7">
               The free builder creates an unbranded 7-day test link and a
               watermarked PDF. The $79/month company version adds your company logo/contact,
-              clean PDFs, live service report links, customer history, and
+              clean PDFs, retained service report links, customer history, and
               next-service follow-up.
             </p>
           </div>

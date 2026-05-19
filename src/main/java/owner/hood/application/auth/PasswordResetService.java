@@ -124,6 +124,32 @@ public class PasswordResetService {
         return ResetPasswordResult.SUCCESS;
     }
 
+    @Transactional(readOnly = true)
+    public ResetTokenStatus validateResetToken(String token) {
+        if (token == null || token.isBlank()) {
+            return ResetTokenStatus.INVALID_TOKEN;
+        }
+
+        Optional<PasswordResetToken> resetToken =
+                resetTokens.findByTokenHashAndUsedAtIsNull(hashToken(token));
+
+        if (resetToken.isEmpty()) {
+            return ResetTokenStatus.INVALID_TOKEN;
+        }
+
+        PasswordResetToken tokenRecord = resetToken.get();
+
+        if (tokenRecord.getExpiresAt().isBefore(Instant.now())) {
+            return ResetTokenStatus.EXPIRED_TOKEN;
+        }
+
+        if (!tokenRecord.getAccountUser().isEnabled()) {
+            return ResetTokenStatus.INVALID_TOKEN;
+        }
+
+        return ResetTokenStatus.VALID;
+    }
+
     private void markOpenTokensUsed(AccountUser account, Instant usedAt) {
         resetTokens.findByAccountUserAndUsedAtIsNull(account).forEach(token -> {
             token.setUsedAt(usedAt);
@@ -151,5 +177,11 @@ public class PasswordResetService {
         INVALID_TOKEN,
         EXPIRED_TOKEN,
         WEAK_PASSWORD
+    }
+
+    public enum ResetTokenStatus {
+        VALID,
+        INVALID_TOKEN,
+        EXPIRED_TOKEN
     }
 }

@@ -127,7 +127,7 @@ public class PaddleBillingService {
                 "transaction",
                 transactionId,
                 accountEmail,
-                siteBaseUrl + "/dashboard?billing=checkout-complete",
+                checkoutSuccessUrl(),
                 ""
         );
     }
@@ -141,9 +141,13 @@ public class PaddleBillingService {
                 "items",
                 null,
                 accountEmail,
-                siteBaseUrl + "/dashboard?billing=checkout-complete",
+                checkoutSuccessUrl(),
                 fallbackReason
         );
+    }
+
+    private String checkoutSuccessUrl() {
+        return siteBaseUrl + "/dashboard?billing=checkout-complete#company-profile";
     }
 
     private String transactionId(String responseBody) {

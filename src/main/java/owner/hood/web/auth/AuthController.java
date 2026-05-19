@@ -27,6 +27,7 @@ import owner.hood.application.auth.AccountUserDetailsService;
 import owner.hood.application.auth.PasswordResetRateLimiter;
 import owner.hood.application.auth.PasswordResetService;
 import owner.hood.application.auth.PasswordResetService.ResetPasswordResult;
+import owner.hood.application.auth.PasswordResetService.ResetTokenStatus;
 import owner.hood.config.SecurityConfig;
 import owner.hood.domain.auth.AccountUser;
 import owner.hood.infrastructure.persistence.AccountUserRepository;
@@ -160,6 +161,24 @@ public class AuthController {
         }
 
         return new RedirectView("/reset-password?auth=invalid-token", true);
+    }
+
+    @GetMapping("/auth/password-reset/validate")
+    @ResponseBody
+    public Map<String, Object> validatePasswordResetToken(
+            @RequestParam(name = "token", required = false) String token
+    ) {
+        ResetTokenStatus status = passwordResetService.validateResetToken(token);
+        String code = switch (status) {
+            case VALID -> "valid";
+            case EXPIRED_TOKEN -> "expired-token";
+            case INVALID_TOKEN -> "invalid-token";
+        };
+
+        return Map.of(
+                "valid", status == ResetTokenStatus.VALID,
+                "status", code
+        );
     }
 
     @GetMapping("/auth/session")

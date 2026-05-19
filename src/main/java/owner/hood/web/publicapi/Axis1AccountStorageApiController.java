@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import owner.hood.application.auth.AccountUserDetailsService;
 import owner.hood.application.axis1.Axis1AccountEntitlement;
@@ -265,7 +266,12 @@ public class Axis1AccountStorageApiController {
     }
 
     @GetMapping("/api/axis1/reports/public/{publicId}")
-    public ResponseEntity<Map<String, Object>> publicReport(@PathVariable String publicId) {
+    @Transactional
+    public ResponseEntity<Map<String, Object>> publicReport(
+            @PathVariable String publicId,
+            @RequestParam(name = "preview", defaultValue = "false") boolean preview,
+            Authentication authentication
+    ) {
         return reportRecords.findByPublicId(publicId)
                 .map(record -> {
                     if (isExpired(record)) {
@@ -273,12 +279,74 @@ public class Axis1AccountStorageApiController {
                                 .body(expiredReportResponse(record));
                     }
 
-                    if (isCompanySubscriptionInactive(record)) {
+                    boolean ownerPreview = preview || isOwnerRequest(record, authentication);
+                    if (!ownerPreview) {
+                        recordPublicView(record);
+                    }
+                    return publicNoIndex(HttpStatus.OK).body(reportResponse(record, true, ownerPreview));
+                })
+                .orElseGet(() -> publicNoIndex(HttpStatus.NOT_FOUND).build());
+    }
+
+    @PostMapping("/api/axis1/reports/public/{publicId}/events/pdf-save")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> recordPublicReportPdfSave(
+            @PathVariable String publicId,
+            @RequestParam(name = "preview", defaultValue = "false") boolean preview,
+            Authentication authentication
+    ) {
+        return reportRecords.findByPublicId(publicId)
+                .map(record -> {
+                    if (isExpired(record)) {
                         return publicNoIndex(HttpStatus.GONE)
-                                .body(inactiveCompanyReportResponse(record));
+                                .body(expiredReportResponse(record));
                     }
 
-                    return publicNoIndex(HttpStatus.OK).body(reportResponse(record, true));
+                    if (!preview && !isOwnerRequest(record, authentication)) {
+                        Instant now = Instant.now();
+                        record.setPdfSaveClickCount(record.getPdfSaveClickCount() + 1);
+                        record.setLastPdfSaveClickedAt(now);
+                    }
+                    return publicNoIndex(HttpStatus.OK).body(engagementResponse(record));
+                })
+                .orElseGet(() -> publicNoIndex(HttpStatus.NOT_FOUND).build());
+    }
+
+    @PostMapping("/api/axis1/reports/public/{publicId}/confirm")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> confirmPublicReportReceived(
+            @PathVariable String publicId,
+            Authentication authentication,
+            @RequestParam(name = "preview", defaultValue = "false") boolean preview,
+            @RequestBody(required = false) Map<String, Object> body
+    ) {
+        return reportRecords.findByPublicId(publicId)
+                .map(record -> {
+                    if (isExpired(record)) {
+                        return publicNoIndex(HttpStatus.GONE)
+                                .body(expiredReportResponse(record));
+                    }
+
+                    if (preview || isOwnerRequest(record, authentication)) {
+                        return publicNoIndex(HttpStatus.CONFLICT)
+                                .body(Map.of(
+                                        "ownerPreview", true,
+                                        "message", "Preview mode cannot confirm customer receipt.",
+                                        "engagement", engagementResponse(record)
+                                ));
+                    }
+
+                    if (record.getCustomerConfirmedAt() == null) {
+                        record.setCustomerConfirmedAt(Instant.now());
+                    }
+
+                    String confirmedBy = clean(
+                            body == null ? null : body.get("confirmedBy"),
+                            "Customer",
+                            120
+                    );
+                    record.setCustomerConfirmedBy(confirmedBy);
+                    return publicNoIndex(HttpStatus.OK).body(engagementResponse(record));
                 })
                 .orElseGet(() -> publicNoIndex(HttpStatus.NOT_FOUND).build());
     }
@@ -290,11 +358,6 @@ public class Axis1AccountStorageApiController {
                     if (isExpired(record)) {
                         return publicNoIndex(HttpStatus.GONE)
                                 .body(expiredReportResponse(record));
-                    }
-
-                    if (isCompanySubscriptionInactive(record)) {
-                        return publicNoIndex(HttpStatus.GONE)
-                                .body(inactiveCompanyReportResponse(record));
                     }
 
                     return publicNoIndex(HttpStatus.OK).body(Map.of(
@@ -355,9 +418,9 @@ public class Axis1AccountStorageApiController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("companyName", companyName);
         response.put("serviceArea", "Service area / kitchen exhaust service");
-        response.put("directLine", "Customer phone");
+        response.put("directLine", "");
         response.put("dispatchEmail", accountEmail);
-        response.put("afterHoursPhone", "After-hours phone");
+        response.put("afterHoursPhone", "");
         response.put("certification", "Service license / certification");
         response.put("technicianLabel", "Technician / crew");
         response.put("brandInitials", cleanBrandInitials("", companyName));
@@ -480,6 +543,14 @@ public class Axis1AccountStorageApiController {
     }
 
     private Map<String, Object> reportResponse(Axis1ReportRecord record, boolean includePayload) {
+        return reportResponse(record, includePayload, false);
+    }
+
+    private Map<String, Object> reportResponse(
+            Axis1ReportRecord record,
+            boolean includePayload,
+            boolean ownerPreview
+    ) {
         Map<String, Object> response = new LinkedHashMap<>();
         Map<String, Object> payload = fromJson(record.getPayloadJson());
         response.put("id", record.getId().toString());
@@ -501,12 +572,54 @@ public class Axis1AccountStorageApiController {
         response.put("hasOpenItems", hasOpenItems(payload));
         response.put("historyStatus", historyStatusResponse(record, payload));
         response.put("customerAction", customerActionSummary(payload));
+        response.put("engagement", engagementResponse(record));
+        response.put("viewer", Map.of("ownerPreview", ownerPreview));
 
         if (includePayload) {
             response.put("payload", payload);
         }
 
         return response;
+    }
+
+    private static void recordPublicView(Axis1ReportRecord record) {
+        Instant now = Instant.now();
+
+        if (record.getFirstViewedAt() == null) {
+            record.setFirstViewedAt(now);
+        }
+
+        record.setLastViewedAt(now);
+        record.setPublicViewCount(record.getPublicViewCount() + 1);
+    }
+
+    private static Map<String, Object> engagementResponse(Axis1ReportRecord record) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("publicViewCount", record.getPublicViewCount());
+        response.put("firstViewedAt", instantString(record.getFirstViewedAt()));
+        response.put("lastViewedAt", instantString(record.getLastViewedAt()));
+        response.put("pdfSaveClickCount", record.getPdfSaveClickCount());
+        response.put("lastPdfSaveClickedAt", instantString(record.getLastPdfSaveClickedAt()));
+        response.put("customerConfirmedAt", instantString(record.getCustomerConfirmedAt()));
+        response.put("customerConfirmedBy", record.getCustomerConfirmedBy() == null ? "" : record.getCustomerConfirmedBy());
+        response.put("customerConfirmed", record.getCustomerConfirmedAt() != null);
+        return response;
+    }
+
+    private static String instantString(Instant value) {
+        return value == null ? "" : value.toString();
+    }
+
+    private boolean isOwnerRequest(Axis1ReportRecord record, Authentication authentication) {
+        String ownerEmail = record.getAccountEmail();
+
+        if (ownerEmail == null || ownerEmail.isBlank()) {
+            return false;
+        }
+
+        return authenticatedEmail(authentication)
+                .map(email -> ownerEmail.equalsIgnoreCase(email))
+                .orElse(false);
     }
 
     private Map<String, Object> entitlementResponse(Axis1AccountEntitlement entitlement) {
@@ -539,22 +652,11 @@ public class Axis1AccountStorageApiController {
         );
     }
 
-    private Map<String, Object> inactiveCompanyReportResponse(Axis1ReportRecord record) {
-        return Map.of(
-                "publicId", record.getPublicId(),
-                "inactive", true,
-                "productPlan", record.getProductPlan(),
-                "message", "This company report link is available while the account has an active company subscription."
-        );
-    }
-
     private Map<String, Object> retentionResponse(Axis1ReportRecord record) {
         return Map.of(
                 "expiresAt", record.getExpiresAt() == null ? "" : record.getExpiresAt().toString(),
-                "status", isExpired(record)
-                        ? "expired"
-                        : isCompanySubscriptionInactive(record) ? "inactive_subscription" : "active",
-                "policy", "free".equals(record.getProductPlan()) ? "free_7_day_link" : "live_while_subscribed"
+                "status", isExpired(record) ? "expired" : "active",
+                "policy", "free".equals(record.getProductPlan()) ? "free_7_day_link" : "company_retained_link"
         );
     }
 
@@ -824,19 +926,6 @@ public class Axis1AccountStorageApiController {
 
     private static boolean isExpired(Axis1ReportRecord record) {
         return record.getExpiresAt() != null && record.getExpiresAt().isBefore(Instant.now());
-    }
-
-    private boolean isCompanySubscriptionInactive(Axis1ReportRecord record) {
-        if (!"company".equals(record.getProductPlan())) {
-            return false;
-        }
-
-        String accountEmail = record.getAccountEmail();
-        if (accountEmail == null || accountEmail.isBlank()) {
-            return true;
-        }
-
-        return !entitlementService.resolve(Optional.of(accountEmail)).companyAccess();
     }
 
     private static LocalDate historySortDate(Axis1ReportRecord record) {

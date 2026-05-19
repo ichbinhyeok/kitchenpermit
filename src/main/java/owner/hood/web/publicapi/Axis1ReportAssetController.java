@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import owner.hood.application.axis1.Axis1EntitlementService;
 import owner.hood.application.axis1.Axis1ReportAssetStorage;
 import owner.hood.application.axis1.Axis1StoredAsset;
 import owner.hood.domain.axis1.Axis1ReportRecord;
@@ -15,23 +14,19 @@ import owner.hood.infrastructure.persistence.Axis1ReportRecordRepository;
 import owner.hood.web.common.RobotsHeaders;
 
 import java.time.Instant;
-import java.util.Optional;
 
 @RestController
 public class Axis1ReportAssetController {
 
     private final Axis1ReportRecordRepository reportRecords;
     private final Axis1ReportAssetStorage assetStorage;
-    private final Axis1EntitlementService entitlementService;
 
     public Axis1ReportAssetController(
             Axis1ReportRecordRepository reportRecords,
-            Axis1ReportAssetStorage assetStorage,
-            Axis1EntitlementService entitlementService
+            Axis1ReportAssetStorage assetStorage
     ) {
         this.reportRecords = reportRecords;
         this.assetStorage = assetStorage;
-        this.entitlementService = entitlementService;
     }
 
     @GetMapping("/api/axis1/assets/{publicId}/{fileName}")
@@ -50,10 +45,6 @@ public class Axis1ReportAssetController {
 
     private ResponseEntity<byte[]> serveAsset(Axis1ReportRecord record, String fileName) {
         if (record.getExpiresAt() != null && record.getExpiresAt().isBefore(Instant.now())) {
-            return noIndex(HttpStatus.GONE).build();
-        }
-
-        if (isCompanySubscriptionInactive(record)) {
             return noIndex(HttpStatus.GONE).build();
         }
 
@@ -105,16 +96,4 @@ public class Axis1ReportAssetController {
         return MediaType.APPLICATION_OCTET_STREAM;
     }
 
-    private boolean isCompanySubscriptionInactive(Axis1ReportRecord record) {
-        if (!"company".equals(record.getProductPlan())) {
-            return false;
-        }
-
-        String accountEmail = record.getAccountEmail();
-        if (accountEmail == null || accountEmail.isBlank()) {
-            return true;
-        }
-
-        return !entitlementService.resolve(Optional.of(accountEmail)).companyAccess();
-    }
 }

@@ -91,10 +91,20 @@ function clientStatusMessage(copy: string): AuthStatusMessage {
 
 export function LoginForm() {
   const searchParams = useSearchParams();
-  const nextPath = useMemo(
+  const nextBasePath = useMemo(
     () => getSafeNextPath(searchParams.get("next")),
     [searchParams],
   );
+  const [initialHash] = useState(() =>
+    typeof window === "undefined" ? "" : window.location.hash || "",
+  );
+  const nextPath = useMemo(() => {
+    if (!initialHash || nextBasePath.includes("#")) {
+      return nextBasePath;
+    }
+
+    return `${nextBasePath}${initialHash}`;
+  }, [initialHash, nextBasePath]);
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "login";
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [password, setPassword] = useState("");

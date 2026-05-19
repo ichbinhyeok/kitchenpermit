@@ -269,7 +269,7 @@ export default function HomePage() {
               <p className="mt-5 max-w-2xl text-base leading-8 text-white/64">
                 Start with the public sample or create a free unbranded test
                 report without login. Move to the $79/month company version when
-                you want your logo/contact, clean PDFs, live service report
+                you want your logo/contact, clean PDFs, retained service report
                 links, and report history.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -291,7 +291,7 @@ export default function HomePage() {
               <div className="mt-5 divide-y divide-black/10 border-y border-black/10">
                 {[
                   ["Free builder", "No login, no company logo/contact, 7-day link, watermarked PDF"],
-                  ["Company version", "$79/month for company logo/contact, live service report links, clean PDFs, and history"],
+                  ["Company version", "$79/month for company logo/contact, retained service report links, clean PDFs, and history"],
                   ["Design help", "Optional brand/report polish from $249"],
                 ].map(([label, copy]) => (
                   <div key={label} className="grid gap-3 py-5 sm:grid-cols-[0.32fr_0.68fr]">

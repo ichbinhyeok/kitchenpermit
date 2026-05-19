@@ -51,7 +51,7 @@ public class BillingApiController {
         if (accountEmail.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                     "message", "Login is required before starting the company version checkout.",
-                    "loginHref", "/login?next=/company-version"
+                    "loginHref", "/login?mode=signup&next=/company-version"
             ));
         }
 

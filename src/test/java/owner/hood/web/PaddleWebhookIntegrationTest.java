@@ -80,7 +80,7 @@ class PaddleWebhookIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.productPlan").value("company"))
                 .andExpect(jsonPath("$.payload.productPlan").value("company"))
-                .andExpect(jsonPath("$.retention.policy").value("live_while_subscribed"));
+                .andExpect(jsonPath("$.retention.policy").value("company_retained_link"));
 
         mockMvc.perform(get("/api/axis1/reports/history").session(session))
                 .andExpect(status().isOk())
@@ -89,7 +89,7 @@ class PaddleWebhookIntegrationTest {
     }
 
     @Test
-    void canceledPaddleSubscriptionDisablesExistingCompanyReportLinksAndAssets() throws Exception {
+    void canceledPaddleSubscriptionKeepsExistingCompanyReportLinksAndAssets() throws Exception {
         String email = "cancel-" + UUID.randomUUID() + "@example.com";
         String subscriptionId = "sub_" + UUID.randomUUID().toString().replace("-", "");
         MockHttpSession session = signupSession(email);
@@ -130,15 +130,20 @@ class PaddleWebhookIntegrationTest {
                 .andExpect(jsonPath("$.companyAccess").value(false));
 
         mockMvc.perform(get("/api/axis1/reports/public/{publicId}", publicId))
-                .andExpect(status().isGone())
-                .andExpect(jsonPath("$.inactive").value(true));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.productPlan").value("company"))
+                .andExpect(jsonPath("$.retention.policy").value("company_retained_link"));
 
         mockMvc.perform(get("/api/axis1/reports/public/{publicId}/pdf-manifest", publicId))
-                .andExpect(status().isGone())
-                .andExpect(jsonPath("$.inactive").value(true));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pdfExport.serverDownloadReady").value(true));
 
         mockMvc.perform(get(pdfHref))
-                .andExpect(status().isGone());
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/axis1/reports/history").session(session))
+                .andExpect(status().is(402))
+                .andExpect(jsonPath("$[0].companyAccessRequired").value(true));
     }
 
     @Test

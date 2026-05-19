@@ -13,14 +13,14 @@ import { publicPageMetadata } from "@/lib/seo";
 export const metadata: Metadata = publicPageMetadata({
   title: "Company Version",
   description:
-    "The paid KitchenPermit company version for saved company details, live service report links, clean PDFs, and report history.",
+    "The paid KitchenPermit company version for saved company details, retained service report links, clean PDFs, and report history.",
   path: "/company-version",
 });
 
 const storedItems = [
   ["Company identity", "Company name, logo, report color, service area, and customer-facing contact."],
   ["Reply path", "Phone, dispatch email, and the action buttons customers use after service."],
-  ["Live delivery", "Service report links and PDF copies stay live while the subscription is active."],
+  ["Retained delivery", "Paid service report links and PDF copies stay available after creation."],
   ["Customer history", "Saved restaurant/site records, next-service timing, and resend-ready customer messages."],
 ] as const;
 
@@ -75,12 +75,15 @@ export default function CompanyVersionPage() {
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/68 md:text-xl md:leading-9">
               The paid path for saved company details, clean inspection PDFs,
-              live service report links, customer history, and next-service
+              retained service report links, customer history, and next-service
               follow-up for hood cleaning companies that want the report to
               carry their name.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <PaddleCheckoutButton className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.26)] hover:bg-[#dd5b17]">
+              <PaddleCheckoutButton
+                activeChildren="Set up company branding"
+                className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.26)] hover:bg-[#dd5b17]"
+              >
                 Start $79 checkout
               </PaddleCheckoutButton>
               <CtaLink href="/dashboard" tone="light">
@@ -155,7 +158,10 @@ export default function CompanyVersionPage() {
                 simple follow-up workspace.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <PaddleCheckoutButton className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.26)] hover:bg-[#dd5b17]">
+                <PaddleCheckoutButton
+                  activeChildren="Set up company branding"
+                  className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.26)] hover:bg-[#dd5b17]"
+                >
                   Start company version
                 </PaddleCheckoutButton>
                 <CtaLink href="/axis-1/tool?step=outputs&account=company" tone="light">
@@ -172,7 +178,7 @@ export default function CompanyVersionPage() {
                   "Saved company profile",
                   "Logo upload and report color",
                   "No PDF watermark",
-                  "Live service report links while subscribed",
+                  "Retained service report links and PDF copies",
                   "Customer/site history",
                   "Next-service follow-up view",
                   "Customer-ready send message",

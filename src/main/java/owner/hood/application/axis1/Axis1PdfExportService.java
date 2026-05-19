@@ -16,9 +16,11 @@ import java.io.IOException;
 import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -197,6 +199,9 @@ public class Axis1PdfExportService {
                 optionalString(vendor.get("name")),
                 "Hood Cleaning Service"
         );
+        boolean freePlan = "free".equals(productPlan);
+        String coverTitle = freePlan ? "Kitchen Exhaust Service Report" : companyName;
+        String reportLabel = freePlan ? "Free test service report PDF" : "Kitchen exhaust service report PDF";
         String customerName = firstNonBlank(
                 optionalString(values.get("propertyName")),
                 optionalString(packetHeader.get("title")),
@@ -243,17 +248,22 @@ public class Axis1PdfExportService {
                         optionalString(vendor.get("brandColor"))
                 )
         );
+        Optional<ImageData> brandLogo = decodeInlineImage(firstNonBlank(
+                optionalString(companyProfile.get("logoUrl")),
+                optionalString(vendor.get("logoUrl"))
+        ));
 
         try (PDDocument document = new PDDocument();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             PdfWriter writer = new PdfWriter(
                     document,
-                    "free".equals(productPlan) ? "FREE TEST COPY" : "",
+                    freePlan ? "FREE TEST COPY" : "",
                     brandColor
             );
 
             writer.cover(
-                    companyName,
+                    coverTitle,
+                    reportLabel,
                     customerName,
                     siteName,
                     location,
@@ -262,14 +272,15 @@ public class Axis1PdfExportService {
                     nextAction,
                     nextService,
                     publicId,
-                    generatedAt
+                    displayGeneratedAt(generatedAt),
+                    brandLogo.orElse(null)
             );
 
-            if ("free".equals(productPlan)) {
-                writer.note("Free builder copy: branding and history are limited, and the hosted link expires after 7 days.");
+            if (freePlan) {
+                writer.note("Free builder copy: company branding and contact are hidden, the PDF is watermarked, and the hosted link expires after 7 days. Company reports remove the watermark, keep links live, and save to account history.");
             }
 
-            writer.section("Service Details");
+            writer.section("Service Summary");
             writer.keyValue("Service date", serviceDate);
             writer.keyValue("Service window", firstNonBlank(optionalString(values.get("serviceWindow")), rowValue(packetData.get("serviceRecordRows"), "Service window"), serviceDate));
             writer.keyValue("Visit type", firstNonBlank(rowValue(packetData.get("serviceRecordRows"), "Today's visit"), "Kitchen exhaust cleaning service"));
@@ -279,7 +290,7 @@ public class Axis1PdfExportService {
             writer.keyValue("Why this timing", firstNonBlank(rowValue(packetData.get("serviceRecordRows"), "Why this timing"), "Current grease load and service cadence were used for the next service window."));
             writer.keyValue("Separate scope note", firstNonBlank(rowValue(packetData.get("serviceRecordRows"), "Separate scope note"), "Separate corrective or follow-up work needs a separate go-ahead."));
 
-            writer.section("Location And System");
+            writer.section("Site And System");
             writer.keyValue("Property", customerName);
             writer.keyValue("Site", location);
             writer.keyValue("System", siteName);
@@ -287,7 +298,7 @@ public class Axis1PdfExportService {
             writer.keyValue("Record coverage", firstNonBlank(rowValue(packetData.get("systemIdentityRows"), "Service record coverage"), "One service report for one kitchen exhaust system"));
             writer.keyValue("Reviewed on site", firstNonBlank(rowValue(packetData.get("systemIdentityRows"), "Reviewed on site"), rowValue(packetHeader.get("quickFacts"), "Reviewed"), "Site contact"));
 
-            writer.section("Completed Areas And Open Items");
+            writer.section("Work Completed / Open Items");
             if (packetMismatch) {
                 writeCanonicalCompletedAreas(writer);
             } else {
@@ -305,7 +316,7 @@ public class Axis1PdfExportService {
                     "Keep this PDF with kitchen exhaust service files."
             ));
 
-            writer.section("Attached Photos");
+            writer.section("Photo Record");
             List<PhotoItem> photos = extractPhotoItems(publicId, payload);
 
             if (photos.isEmpty()) {
@@ -314,7 +325,7 @@ public class Axis1PdfExportService {
                 int count = 0;
 
                 for (PhotoItem photo : photos) {
-                    if (count >= 4) {
+                    if (count >= 6) {
                         break;
                     }
 
@@ -335,11 +346,16 @@ public class Axis1PdfExportService {
             }
 
             writer.section("Provider Contact");
-            writer.keyValue("Company", companyName);
-            writer.keyValue("Direct line", firstNonBlank(optionalString(companyProfile.get("directLine")), optionalString(vendor.get("directLine")), "Not recorded"));
-            writer.keyValue("Dispatch", firstNonBlank(optionalString(companyProfile.get("dispatchEmail")), optionalString(vendor.get("dispatch")), "Not recorded"));
-            writer.keyValue("After-hours", firstNonBlank(optionalString(companyProfile.get("afterHoursPhone")), optionalString(vendor.get("afterHours")), "Not recorded"));
-            writer.keyValue("Credential", firstNonBlank(optionalString(companyProfile.get("certification")), optionalString(vendor.get("certification")), "Not recorded"));
+            if (freePlan) {
+                writer.paragraph("Provider branding and contact are hidden in this free test copy. Company reports show the vendor logo, company name, direct line, dispatch email, after-hours phone, and credential on the retained PDF.");
+                writer.keyValue("Company version includes", "Clean PDF without the free watermark, saved branding, live customer links, account history, and load-back into the builder.");
+            } else {
+                writer.keyValue("Company", companyName);
+                writer.keyValue("Direct line", firstNonBlank(optionalString(companyProfile.get("directLine")), optionalString(vendor.get("directLine")), "Not recorded"));
+                writer.keyValue("Dispatch", firstNonBlank(optionalString(companyProfile.get("dispatchEmail")), optionalString(vendor.get("dispatch")), "Not recorded"));
+                writer.keyValue("After-hours", firstNonBlank(optionalString(companyProfile.get("afterHoursPhone")), optionalString(vendor.get("afterHours")), "Not recorded"));
+                writer.keyValue("Credential", firstNonBlank(optionalString(companyProfile.get("certification")), optionalString(vendor.get("certification")), "Not recorded"));
+            }
             writer.note("This PDF is the retained service report copy for this kitchen exhaust visit. Separate corrective or follow-up work needs a separate go-ahead.");
             writer.close();
 
@@ -381,6 +397,10 @@ public class Axis1PdfExportService {
             writer.keyValue(component + " - " + status, note);
             count += 1;
         }
+
+        if (count == 0) {
+            writer.paragraph("Completed areas were not listed separately in this saved report.");
+        }
     }
 
     private void writeDeficiencyRows(PdfWriter writer, Object rowsValue, int limit) throws IOException {
@@ -396,6 +416,10 @@ public class Axis1PdfExportService {
             String ownerAction = firstNonBlank(optionalString(row.get("ownerAction")), optionalString(row.get("notice")), "Next action recorded");
             writer.keyValue(location + " - " + issue, ownerAction);
             count += 1;
+        }
+
+        if (count == 0) {
+            writer.keyValue("Open items", "No open items were listed in this saved report.");
         }
     }
 
@@ -413,7 +437,7 @@ public class Axis1PdfExportService {
                 "Visible fan, roof-discharge, and grease-containment conditions stay in the record for service history and follow-up conversation."
         );
         writer.keyValue(
-                "Record basis - Written service record",
+                "Documentation - Written service record",
                 "This visit is documented from written service notes. Attached field photos appear in the photo section when present."
         );
     }
@@ -429,6 +453,10 @@ public class Axis1PdfExportService {
                     optionalString(proofPhoto.get("label")),
                     "Attached service photo"
             ));
+        }
+
+        if (!photos.isEmpty()) {
+            return new ArrayList<>(photos.values());
         }
 
         Map<String, Object> uploadedFieldPhotos = objectMap(payload.get("uploadedFieldPhotos"));
@@ -569,6 +597,20 @@ public class Axis1PdfExportService {
         return DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US).format(date);
     }
 
+    private static String displayGeneratedAt(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+
+        try {
+            return DateTimeFormatter.ofPattern("MMM d, yyyy 'at' HH:mm 'UTC'", Locale.US)
+                    .withZone(ZoneOffset.UTC)
+                    .format(Instant.parse(value));
+        } catch (DateTimeParseException ignored) {
+            return value;
+        }
+    }
+
     private static String nextServiceWindow(String serviceDate, String cadence) {
         LocalDate date = parseDate(serviceDate);
 
@@ -654,7 +696,40 @@ public class Axis1PdfExportService {
         );
     }
 
+    private static Optional<ImageData> decodeInlineImage(String dataUrl) {
+        if (dataUrl == null || dataUrl.isBlank() || !dataUrl.startsWith("data:")) {
+            return Optional.empty();
+        }
+
+        int commaIndex = dataUrl.indexOf(',');
+
+        if (commaIndex < 0) {
+            return Optional.empty();
+        }
+
+        String metadata = dataUrl.substring(5, commaIndex).toLowerCase(Locale.ROOT);
+
+        if (!metadata.contains(";base64")) {
+            return Optional.empty();
+        }
+
+        String contentType = metadata.split(";")[0];
+
+        if (!(contentType.equals("image/png") || contentType.equals("image/jpeg") || contentType.equals("image/jpg"))) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(new ImageData(Base64.getDecoder().decode(dataUrl.substring(commaIndex + 1)), contentType));
+        } catch (IllegalArgumentException ignored) {
+            return Optional.empty();
+        }
+    }
+
     private record PhotoItem(String fileName, String caption) {
+    }
+
+    private record ImageData(byte[] bytes, String contentType) {
     }
 
     private static class PdfWriter implements AutoCloseable {
@@ -691,6 +766,7 @@ public class Axis1PdfExportService {
 
         void cover(
                 String companyName,
+                String reportLabel,
                 String customerName,
                 String siteName,
                 String location,
@@ -699,25 +775,31 @@ public class Axis1PdfExportService {
                 String nextAction,
                 String nextService,
                 String publicId,
-                String generatedAt
+                String generatedAt,
+                ImageData brandLogo
         ) throws IOException {
-            ensureSpace(238);
-            lines(companyName, bold, 19, TEXT, 24);
-            line("Hood Cleaning Service Report", bold, 11, accent, 15);
+            ensureSpace(294);
+            float headerTop = y;
+            float titleWidth = brandLogo == null ? MAX_WIDTH : MAX_WIDTH - 88;
+            drawCoverLogo(brandLogo, headerTop);
+            lines(companyName, bold, 20, TEXT, 25, titleWidth);
+            line(reportLabel, bold, 11, accent, 15);
             lines("Retained customer copy for restaurant files, manager review, insurance, landlord, or inspection documentation requests.", regular, 9, MUTED, 13);
             spacer(7);
 
             float tileGap = 8;
             float tileHeight = 54;
-            float tileWidth = (MAX_WIDTH - (tileGap * 3)) / 4;
+            float tileWidth = (MAX_WIDTH - tileGap) / 2;
             float tileTop = y;
             summaryTile(MARGIN, tileTop, tileWidth, tileHeight, "Restaurant", customerName);
             summaryTile(MARGIN + tileWidth + tileGap, tileTop, tileWidth, tileHeight, "Service date", serviceDate);
-            summaryTile(MARGIN + ((tileWidth + tileGap) * 2), tileTop, tileWidth, tileHeight, "Result", serviceResult);
-            summaryTile(MARGIN + ((tileWidth + tileGap) * 3), tileTop, tileWidth, tileHeight, "Next service", nextService);
-            y = tileTop - tileHeight - 14;
+            float secondTileTop = tileTop - tileHeight - tileGap;
+            summaryTile(MARGIN, secondTileTop, tileWidth, tileHeight, "Result", serviceResult);
+            summaryTile(MARGIN + tileWidth + tileGap, secondTileTop, tileWidth, tileHeight, "Next service", nextService);
+            y = secondTileTop - tileHeight - 14;
 
-            float actionHeight = 58;
+            List<String> actionLines = wrap(nextAction, bold, 9.3f, MAX_WIDTH - 24);
+            float actionHeight = Math.max(58, 30 + (actionLines.size() * 12));
             drawBox(MARGIN, y, MAX_WIDTH, actionHeight, CALLOUT, new Color(181, 216, 198));
             textBlock("Next action", bold, 7.2f, accent, 10, MARGIN + 12, y - 15, MAX_WIDTH - 24);
             textBlock(nextAction, bold, 9.3f, TEXT, 12, MARGIN + 12, y - 29, MAX_WIDTH - 24);
@@ -726,7 +808,7 @@ public class Axis1PdfExportService {
             keyValue("System", siteName);
             keyValue("Location", location);
             keyValue("Report link ID", publicId);
-            keyValue("Generated", generatedAt);
+            keyValue("PDF generated", generatedAt);
             rule();
         }
 
@@ -785,19 +867,33 @@ public class Axis1PdfExportService {
                 return false;
             }
 
-            float maxImageWidth = 270;
-            float maxImageHeight = 170;
+            float maxImageWidth = MAX_WIDTH - 24;
+            float maxImageHeight = 245;
             float imageWidth = image.getWidth();
             float imageHeight = image.getHeight();
             float scale = Math.min(maxImageWidth / imageWidth, maxImageHeight / imageHeight);
+            scale = Math.min(scale, 1.0f);
             float drawWidth = imageWidth * scale;
             float drawHeight = imageHeight * scale;
+            String photoCaption = firstNonBlank(caption, "Attached service photo");
+            List<String> captionLines = wrap(photoCaption, regular, 8.5f, MAX_WIDTH - 24);
+            float captionHeight = Math.max(14, captionLines.size() * 11);
+            float cardHeight = drawHeight + captionHeight + 34;
 
-            ensureSpace(drawHeight + 38);
-            content.drawImage(image, MARGIN, y - drawHeight, drawWidth, drawHeight);
-            y -= drawHeight + 8;
-            lines(caption, regular, 8.5f, MUTED, 12);
-            spacer(8);
+            ensureSpace(cardHeight + 10);
+            drawBox(MARGIN, y, MAX_WIDTH, cardHeight, Color.WHITE, RULE);
+
+            float imageX = MARGIN + 12 + ((MAX_WIDTH - 24 - drawWidth) / 2);
+            float imageY = y - 12 - drawHeight;
+            content.drawImage(image, imageX, imageY, drawWidth, drawHeight);
+
+            float captionY = imageY - 14;
+            for (String line : captionLines) {
+                drawText(line, regular, 8.5f, MUTED, MARGIN + 12, captionY);
+                captionY -= 11;
+            }
+
+            y -= cardHeight + 10;
             return true;
         }
 
@@ -807,7 +903,11 @@ public class Axis1PdfExportService {
         }
 
         private void lines(String text, PDFont font, float size, Color color, float leading) throws IOException {
-            for (String line : wrap(text, font, size, MAX_WIDTH)) {
+            lines(text, font, size, color, leading, MAX_WIDTH);
+        }
+
+        private void lines(String text, PDFont font, float size, Color color, float leading, float maxWidth) throws IOException {
+            for (String line : wrap(text, font, size, maxWidth)) {
                 line(line, font, size, color, leading);
             }
         }
@@ -821,6 +921,29 @@ public class Axis1PdfExportService {
             content.showText(pdfText(text));
             content.endText();
             y -= leading;
+        }
+
+        private void drawCoverLogo(ImageData logo, float top) throws IOException {
+            if (logo == null || logo.contentType() == null || !(logo.contentType().equals("image/png") || logo.contentType().equals("image/jpeg") || logo.contentType().equals("image/jpg"))) {
+                return;
+            }
+
+            PDImageXObject image;
+
+            try {
+                image = PDImageXObject.createFromByteArray(document, logo.bytes(), "axis1-report-logo");
+            } catch (IOException exception) {
+                return;
+            }
+
+            float maxWidth = 64;
+            float maxHeight = 44;
+            float scale = Math.min(maxWidth / image.getWidth(), maxHeight / image.getHeight());
+            float drawWidth = image.getWidth() * scale;
+            float drawHeight = image.getHeight() * scale;
+            float x = PDRectangle.LETTER.getWidth() - MARGIN - drawWidth;
+            float yPosition = top - 8 - drawHeight;
+            content.drawImage(image, x, yPosition, drawWidth, drawHeight);
         }
 
         private void summaryTile(
@@ -902,6 +1025,7 @@ public class Axis1PdfExportService {
             y = PDRectangle.LETTER.getHeight() - MARGIN;
             drawAccentRule();
             drawWatermark();
+            drawFooter(document.getNumberOfPages());
         }
 
         private void drawAccentRule() throws IOException {
@@ -925,6 +1049,31 @@ public class Axis1PdfExportService {
             content.setNonStrokingColor(new Color(238, 119, 64));
             content.setFont(bold, size);
             content.newLineAtOffset(PDRectangle.LETTER.getWidth() - MARGIN - textWidth, PDRectangle.LETTER.getHeight() - 36);
+            content.showText(text);
+            content.endText();
+        }
+
+        private void drawFooter(int pageNumber) throws IOException {
+            if (watermarkLabel.isBlank()) {
+                return;
+            }
+
+            String text = pdfText(watermarkLabel + " - Free builder output - Page " + pageNumber);
+            float size = 7.4f;
+            float textWidth = regular.getStringWidth(text) / 1000 * size;
+            float pageWidth = PDRectangle.LETTER.getWidth();
+            float x = Math.max(MARGIN, (pageWidth - textWidth) / 2);
+
+            content.setStrokingColor(new Color(229, 214, 202));
+            content.setLineWidth(0.45f);
+            content.moveTo(MARGIN, 42);
+            content.lineTo(pageWidth - MARGIN, 42);
+            content.stroke();
+
+            content.beginText();
+            content.setNonStrokingColor(new Color(154, 91, 62));
+            content.setFont(regular, size);
+            content.newLineAtOffset(x, 28);
             content.showText(text);
             content.endText();
         }
@@ -975,6 +1124,17 @@ public class Axis1PdfExportService {
                     .replace('\u2013', '-')
                     .replace('\u2014', '-')
                     .replace('\u2022', '-');
+            normalized = normalized
+                    .replaceAll("(?i)\\bClaim level\\b", "Documentation support")
+                    .replaceAll("(?i)\\bRecord type\\b", "Report type")
+                    .replaceAll("(?i)\\bRecord support\\b", "Documentation support")
+                    .replaceAll("(?i)\\bRecord basis\\b", "Documentation")
+                    .replaceAll("(?i)\\bVendor action\\b", "Service team follow-up")
+                    .replaceAll("(?i)\\bP-0*(\\d+)\\b", "Photo $1")
+                    .replaceAll("(?i)\\bLBL-\\d+-SYS\\d+\\b", "system label photo")
+                    .replaceAll("(?i)\\bEXC-\\d+-[A-Z]{2}\\d+\\b", "open item photo")
+                    .replaceAll("(?i)\\b(?:HD|FL|DK|RF|GC)-\\d+\\b", "service area")
+                    .replace("; ", ", ");
             StringBuilder builder = new StringBuilder();
 
             for (int index = 0; index < normalized.length(); index += 1) {

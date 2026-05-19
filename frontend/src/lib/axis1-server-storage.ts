@@ -30,6 +30,19 @@ export type Axis1ServerReportRecord = {
     tone: "action" | "review" | "scheduled" | "record" | "neutral";
   };
   customerAction?: string;
+  engagement?: {
+    publicViewCount: number;
+    firstViewedAt?: string | null;
+    lastViewedAt?: string | null;
+    pdfSaveClickCount: number;
+    lastPdfSaveClickedAt?: string | null;
+    customerConfirmed: boolean;
+    customerConfirmedAt?: string | null;
+    customerConfirmedBy?: string | null;
+  };
+  viewer?: {
+    ownerPreview: boolean;
+  };
   expiresAt?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -54,7 +67,7 @@ export type Axis1ServerReportRecord = {
   };
   retention?: {
     expiresAt?: string | null;
-    status: "active" | "expired" | "inactive_subscription";
+    status: "active" | "expired";
     policy: string;
   };
 };
@@ -132,9 +145,13 @@ export async function saveAxis1ServerReport(input: Axis1LocalPacketSaveInput) {
   return readJsonResponse<Axis1ServerReportRecord>(response);
 }
 
-export async function loadAxis1ServerReport(publicId: string) {
+export async function loadAxis1ServerReport(
+  publicId: string,
+  options?: { preview?: boolean },
+) {
+  const suffix = options?.preview ? "?preview=1" : "";
   const response = await fetchApi(
-    `/api/axis1/reports/public/${encodeURIComponent(publicId)}`,
+    `/api/axis1/reports/public/${encodeURIComponent(publicId)}${suffix}`,
     {
       credentials: "include",
       headers: {
@@ -144,6 +161,50 @@ export async function loadAxis1ServerReport(publicId: string) {
   );
 
   return readJsonResponse<Axis1ServerReportRecord>(response);
+}
+
+export async function recordAxis1ServerReportPdfSave(
+  publicId: string,
+  options?: { preview?: boolean },
+) {
+  const suffix = options?.preview ? "?preview=1" : "";
+  const response = await fetchApi(
+    `/api/axis1/reports/public/${encodeURIComponent(publicId)}/events/pdf-save${suffix}`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    },
+  );
+
+  return readJsonResponse<NonNullable<Axis1ServerReportRecord["engagement"]>>(
+    response,
+  );
+}
+
+export async function confirmAxis1ServerReportReceived(
+  publicId: string,
+  options?: { preview?: boolean },
+) {
+  const suffix = options?.preview ? "?preview=1" : "";
+  const response = await fetchApi(
+    `/api/axis1/reports/public/${encodeURIComponent(publicId)}/confirm${suffix}`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ confirmedBy: "Customer" }),
+    },
+  );
+
+  return readJsonResponse<NonNullable<Axis1ServerReportRecord["engagement"]>>(
+    response,
+  );
 }
 
 export async function loadAxis1ServerReportForBuilder(publicId: string) {
