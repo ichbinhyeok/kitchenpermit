@@ -172,7 +172,7 @@ class PublicSiteControllerTest {
                 "static/samples/axis-2.html",
                 "3 masked rows from a 10-opportunity batch",
                 "Protected fields in the paid version include direct contact paths",
-                "The list is the hook. The outreach brief sharpens the motion.",
+                "The list is the hook. The packet sharpens the motion.",
                 "noindex, nofollow"
         );
     }
