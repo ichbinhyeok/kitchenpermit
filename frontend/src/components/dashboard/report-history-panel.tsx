@@ -6,6 +6,7 @@ import {
   AlertCircle,
   CalendarClock,
   CheckCircle2,
+  Copy,
   ExternalLink,
   FileDown,
   History,
@@ -730,6 +731,24 @@ function getReportSummary(report: Axis1ServerReportRecord) {
   return `${plan} / ${photoCopy} / saved ${formatDate(report.createdAt)}`;
 }
 
+function getFreeTestExpirationLabel(report: Axis1ServerReportRecord) {
+  const days = daysUntil(report.expiresAt);
+
+  if (days === null) {
+    return "7-day test";
+  }
+
+  if (days < 0) {
+    return "Expired";
+  }
+
+  if (days === 0) {
+    return "Expires today";
+  }
+
+  return `Expires in ${days}d`;
+}
+
 function getExceptionLabels(report: Axis1ServerReportRecord) {
   const kinds = report.payload?.values?.exceptionKinds ?? [];
   const labels: string[] = [];
@@ -783,17 +802,77 @@ function getWorkMemory(report: Axis1ServerReportRecord) {
 
 function ReportActions({
   report,
+  companyAccess,
   onCopy,
+  onCopyLink,
   onDelete,
 }: {
   report: Axis1ServerReportRecord;
+  companyAccess: boolean;
   onCopy: (report: Axis1ServerReportRecord, format: "email" | "sms") => void;
+  onCopyLink: (report: Axis1ServerReportRecord) => void;
   onDelete: (report: Axis1ServerReportRecord) => void;
 }) {
   const primaryActionClassName =
     "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border px-3 text-[10px] font-black uppercase transition";
   const secondaryActionClassName =
     "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border px-2.5 text-[10px] font-black uppercase transition";
+  const isFreeTestReport = report.productPlan === "free";
+
+  if (isFreeTestReport) {
+    return (
+      <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
+        <button
+          type="button"
+          onClick={() => onCopyLink(report)}
+          className={`${primaryActionClassName} border-[#111315] bg-[#111315] text-white hover:bg-[#2b241f]`}
+        >
+          <Copy className="h-3.5 w-3.5" />
+          Copy test link
+        </button>
+        <Link
+          href={getOwnerPreviewReportHref(report)}
+          className={`${secondaryActionClassName} border-black/10 bg-white text-[#111315] hover:bg-[#fbf7ef]`}
+          title="Open the temporary free test report"
+          aria-label={`Open free test report for ${report.title}`}
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Open
+        </Link>
+        <Link
+          href={report.toolHref}
+          className={`${secondaryActionClassName} border-[#f26a21]/25 bg-[#fff7ef] text-[#b94d11] hover:bg-white`}
+          title="Use this free test as a starting point"
+          aria-label={`Edit free test report for ${report.title}`}
+        >
+          <PencilLine className="h-3.5 w-3.5" />
+          Edit test
+        </Link>
+        <Link
+          href={companyAccess ? report.toolHref : "/company-version"}
+          className={`${secondaryActionClassName} border-[#1f7a4d]/24 bg-[#eff8f1] text-[#1f7a4d] hover:bg-white`}
+          title={
+            companyAccess
+              ? "Open the test, then save a company version"
+              : "Upgrade to create a branded company copy"
+          }
+          aria-label={`Create company copy for ${report.title}`}
+        >
+          <FileDown className="h-3.5 w-3.5" />
+          Company copy
+        </Link>
+        <button
+          type="button"
+          onClick={() => onDelete(report)}
+          className="inline-flex min-h-9 w-9 items-center justify-center rounded-full border border-transparent text-[#9a4b35]/72 transition hover:border-[#9a4b35]/22 hover:bg-[#fff3ee] hover:text-[#9a4b35]"
+          title="Remove free test report"
+          aria-label={`Remove ${report.title}`}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
@@ -867,15 +946,31 @@ function ReportListHeader() {
   );
 }
 
+function FreeTestReportListHeader() {
+  return (
+    <div className="hidden border-b border-black/10 bg-[#eee6db] px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-[#7b6f65] lg:grid lg:grid-cols-[minmax(260px,1.18fr)_minmax(150px,0.62fr)_minmax(160px,0.72fr)_minmax(230px,0.95fr)_auto] lg:items-center">
+      <span>Test report</span>
+      <span>Status</span>
+      <span>Expires</span>
+      <span>Next step</span>
+      <span className="text-right">Test actions</span>
+    </div>
+  );
+}
+
 function ReportRow({
   report,
   compact = false,
+  companyAccess,
   onCopy,
+  onCopyLink,
   onDelete,
 }: {
   report: Axis1ServerReportRecord;
   compact?: boolean;
+  companyAccess: boolean;
   onCopy: (report: Axis1ServerReportRecord, format: "email" | "sms") => void;
+  onCopyLink: (report: Axis1ServerReportRecord) => void;
   onDelete: (report: Axis1ServerReportRecord) => void;
 }) {
   const followUp = getFollowUpStatus(report);
@@ -883,6 +978,7 @@ function ReportRow({
   const accentClassName = reportAccentClassName(followUp.tone, historyStatus.tone);
   const contactAction = getRecommendedContactAction(report);
   const workMemory = getWorkMemory(report);
+  const isFreeTestReport = report.productPlan === "free";
 
   return (
     <article className="group relative border-b border-black/10 bg-[#fffdf9]/90 px-3 py-3 transition hover:bg-white sm:px-4">
@@ -909,13 +1005,19 @@ function ReportRow({
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5 lg:grid lg:gap-1">
-          <span
-            className={`inline-flex min-h-7 items-center justify-center rounded-full border px-2.5 text-[10px] font-black uppercase ${followUpClassName(
-              followUp.tone,
-            )}`}
-          >
-            {followUp.label}
-          </span>
+          {isFreeTestReport ? (
+            <span className="inline-flex min-h-7 items-center justify-center rounded-full border border-[#f26a21]/24 bg-[#fff7ef] px-2.5 text-[10px] font-black uppercase text-[#b94d11]">
+              Temporary test
+            </span>
+          ) : (
+            <span
+              className={`inline-flex min-h-7 items-center justify-center rounded-full border px-2.5 text-[10px] font-black uppercase ${followUpClassName(
+                followUp.tone,
+              )}`}
+            >
+              {followUp.label}
+            </span>
+          )}
           <span
             className={`inline-flex min-h-7 items-center justify-center rounded-full border px-2.5 text-[10px] font-black uppercase ${historyStatusClassName(
               historyStatus.tone,
@@ -923,11 +1025,21 @@ function ReportRow({
           >
             {historyStatus.label}
           </span>
-          <EngagementSummary report={report} />
+          {isFreeTestReport ? (
+            <p className="mt-1 text-[11px] font-semibold leading-5 text-[#8a7d72]">
+              Not a retained company record.
+            </p>
+          ) : (
+            <EngagementSummary report={report} />
+          )}
         </div>
 
         <div className="text-xs font-semibold leading-5 text-[#5f574f]">
-          {report.nextServiceDate ? (
+          {isFreeTestReport ? (
+            <span className="font-black text-[#111315]">
+              {getFreeTestExpirationLabel(report)}
+            </span>
+          ) : report.nextServiceDate ? (
             <>
               <span className="font-black text-[#111315]">
                 {formatFullDate(report.nextServiceDate)}
@@ -939,11 +1051,26 @@ function ReportRow({
         </div>
 
         <p className="text-xs font-semibold leading-5 text-[#5f574f]">
-          <span className="font-black text-[#111315]">Next step:</span>{" "}
-          {contactAction.label}
+          {isFreeTestReport ? (
+            <>
+              <span className="font-black text-[#111315]">Upgrade path:</span>{" "}
+              Create a clean company copy when this should go to a customer.
+            </>
+          ) : (
+            <>
+              <span className="font-black text-[#111315]">Next step:</span>{" "}
+              {contactAction.label}
+            </>
+          )}
         </p>
 
-        <ReportActions report={report} onCopy={onCopy} onDelete={onDelete} />
+        <ReportActions
+          report={report}
+          companyAccess={companyAccess}
+          onCopy={onCopy}
+          onCopyLink={onCopyLink}
+          onDelete={onDelete}
+        />
       </div>
     </article>
   );
@@ -959,6 +1086,7 @@ export function ReportHistoryPanel() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [activePreset, setActivePreset] =
     useState<ReportViewPreset>("attention");
+  const [companyAccess, setCompanyAccess] = useState(false);
 
   const reportGroups = useMemo(() => {
     const groups = new Map<
@@ -1131,7 +1259,9 @@ export function ReportHistoryPanel() {
 
     loadAxis1AccountEntitlements()
       .then((entitlements) => {
-        if (!entitlements.companyAccess) {
+        setCompanyAccess(entitlements.companyAccess);
+
+        if (!entitlements.authenticated) {
           return null;
         }
 
@@ -1164,7 +1294,9 @@ export function ReportHistoryPanel() {
 
   async function deleteReport(report: Axis1ServerReportRecord) {
     const confirmed = window.confirm(
-      `Remove "${report.title}" from history and turn off its hosted customer link?`,
+      report.productPlan === "free"
+        ? `Remove "${report.title}" from free test reports and turn off its 7-day link?`
+        : `Remove "${report.title}" from history and turn off its hosted customer link?`,
     );
 
     if (!confirmed) {
@@ -1184,6 +1316,27 @@ export function ReportHistoryPanel() {
     } catch {
       toast.error("Could not remove report", {
         description: "Check your login session and try again.",
+      });
+    }
+  }
+
+  async function copyReportLink(report: Axis1ServerReportRecord) {
+    try {
+      await copyTextToClipboard(getCustomerReportUrl(report));
+      toast.success(
+        report.productPlan === "free"
+          ? "Free test link copied"
+          : "Customer link copied",
+        {
+          description:
+            report.productPlan === "free"
+              ? "This is a temporary 7-day test link, not a retained company report."
+              : "Paste it into the message you send to the customer.",
+        },
+      );
+    } catch {
+      toast.error("Could not copy link", {
+        description: "Open the report and copy the URL manually.",
       });
     }
   }
@@ -1289,17 +1442,22 @@ export function ReportHistoryPanel() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#7b6f65]">
-              Service records
+              {companyAccess ? "Service records" : "Free test reports"}
             </p>
             <h2 className="mt-1 text-xl font-black tracking-[-0.04em]">
-              Follow-ups, links, and saved reports
+              {companyAccess
+                ? "Follow-ups, links, and saved reports"
+                : "Temporary reports saved for 7 days"}
             </h2>
             <p className="mt-1 max-w-2xl text-sm font-semibold leading-6 text-[#6f665e]">
-              See what needs attention, resend customer records, open PDF copies,
-              or edit a previous report.
+              {companyAccess
+                ? "See what needs attention, resend customer records, open PDF copies, or edit a previous report."
+                : "Logged-in free reports stay here as test copies so the first report is not lost before upgrading."}
             </p>
             <p className="mt-1 max-w-2xl text-[11px] font-semibold leading-5 text-[#8a7d72]">
-              Tracked link activity shows when the customer link was opened. It is not proof of the recipient&apos;s identity; vendor Preview links are not counted.
+              {companyAccess
+                ? "Tracked link activity shows when the customer link was opened. It is not proof of the recipient's identity; vendor Preview links are not counted."
+                : "Free test reports are unbranded, watermarked, and temporary. Company reports are branded, retained, and saved to customer history."}
             </p>
           </div>
           <Link
@@ -1311,7 +1469,7 @@ export function ReportHistoryPanel() {
           </Link>
         </div>
 
-        {status === "ready" ? (
+        {status === "ready" && companyAccess ? (
           <div className="mt-3 grid gap-2 border-y border-black/10 py-2 sm:grid-cols-4">
             {stats.map((item) => {
               const Icon = item.icon;
@@ -1334,7 +1492,7 @@ export function ReportHistoryPanel() {
           </div>
         ) : null}
 
-        {status === "ready" ? (
+        {status === "ready" && companyAccess ? (
           <div className="mt-3 border-t border-black/10 pt-3">
             <div
               className="flex flex-wrap gap-2"
@@ -1378,15 +1536,16 @@ export function ReportHistoryPanel() {
 
       {status === "empty" ? (
         <div className="p-5 text-sm font-semibold leading-6 text-[#75695f]">
-          No saved company reports yet. Build a company report and it will appear here
-          with the customer link, PDF copy, next service date, and resend text.
+          {companyAccess
+            ? "No saved company reports yet. Build a company report and it will appear here with the customer link, PDF copy, next service date, and resend text."
+            : "No free test reports saved yet. Build a free report while logged in and the temporary 7-day test copy will appear here."}
         </div>
       ) : null}
 
       {status === "locked" ? (
         <div className="p-5 text-sm font-semibold leading-6 text-[#75695f]">
-          Report history unlocks with the company version. Free test links are not
-          saved to account history.
+          Sign in to keep free test reports for 7 days. Company history, retained
+          links, clean PDFs, and next-service queues unlock with the company version.
         </div>
       ) : null}
 
@@ -1397,7 +1556,23 @@ export function ReportHistoryPanel() {
         </div>
       ) : null}
 
-      {status === "ready" && viewMode === "queue" ? (
+      {status === "ready" && !companyAccess ? (
+        <div>
+          <FreeTestReportListHeader />
+          {dateSortedReports.map((report) => (
+            <ReportRow
+              key={`free-test-${report.publicId}`}
+              report={report}
+              companyAccess={companyAccess}
+              onCopy={(item, format) => void copyDeliveryMessage(item, format)}
+              onCopyLink={(item) => void copyReportLink(item)}
+              onDelete={(item) => void deleteReport(item)}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {status === "ready" && companyAccess && viewMode === "queue" ? (
         <div>
           {followUpQueue.length > 0 ? (
             <>
@@ -1406,7 +1581,9 @@ export function ReportHistoryPanel() {
                 <ReportRow
                   key={`queue-${report.publicId}`}
                   report={report}
+                  companyAccess={companyAccess}
                   onCopy={(item, format) => void copyDeliveryMessage(item, format)}
+                  onCopyLink={(item) => void copyReportLink(item)}
                   onDelete={(item) => void deleteReport(item)}
                 />
               ))}
@@ -1420,7 +1597,7 @@ export function ReportHistoryPanel() {
         </div>
       ) : null}
 
-      {status === "ready" && viewMode === "customers" ? (
+      {status === "ready" && companyAccess && viewMode === "customers" ? (
         <div className="divide-y divide-black/10">
           {sortedReportGroups.map((group) => (
             <section key={group.key} className="bg-[#fffdf9]">
@@ -1443,7 +1620,9 @@ export function ReportHistoryPanel() {
                   key={report.publicId}
                   report={report}
                   compact
+                  companyAccess={companyAccess}
                   onCopy={(item, format) => void copyDeliveryMessage(item, format)}
+                  onCopyLink={(item) => void copyReportLink(item)}
                   onDelete={(item) => void deleteReport(item)}
                 />
               ))}
@@ -1452,14 +1631,16 @@ export function ReportHistoryPanel() {
         </div>
       ) : null}
 
-      {status === "ready" && viewMode === "dates" ? (
+      {status === "ready" && companyAccess && viewMode === "dates" ? (
         <div>
           <ReportListHeader />
           {dateSortedReports.map((report) => (
             <ReportRow
               key={`date-${report.publicId}`}
               report={report}
+              companyAccess={companyAccess}
               onCopy={(item, format) => void copyDeliveryMessage(item, format)}
+              onCopyLink={(item) => void copyReportLink(item)}
               onDelete={(item) => void deleteReport(item)}
             />
           ))}

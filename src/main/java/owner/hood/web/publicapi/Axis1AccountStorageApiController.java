@@ -171,7 +171,7 @@ public class Axis1AccountStorageApiController {
 
         Axis1ReportRecord record = new Axis1ReportRecord();
         record.setPublicId(publicId);
-        record.setAccountEmail("company".equals(productPlan) ? accountEmail.orElse(null) : null);
+        record.setAccountEmail(accountEmail.orElse(null));
         record.setProductPlan(productPlan);
         record.setCustomerName(customerName);
         record.setSiteName(siteName);
@@ -193,15 +193,19 @@ public class Axis1AccountStorageApiController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        Axis1AccountEntitlement entitlement = entitlementService.resolve(accountEmail);
-        if (!entitlement.companyAccess()) {
-            return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
-                    .body(List.of(companyAccessRequiredResponse(entitlement)));
-        }
-
         List<Axis1ReportRecord> records = new ArrayList<>(
                 reportRecords.findTop50ByAccountEmailOrderByCreatedAtDesc(accountEmail.get())
         );
+
+        Axis1AccountEntitlement entitlement = entitlementService.resolve(accountEmail);
+        if (!entitlement.companyAccess()) {
+            records = records.stream()
+                    .filter(record -> "free".equals(record.getProductPlan()))
+                    .filter(record -> !isExpired(record))
+                    .limit(5)
+                    .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+        }
+
         records.sort(Comparator
                 .comparing(Axis1AccountStorageApiController::historySortDate)
                 .thenComparing(Axis1ReportRecord::getCreatedAt, Comparator.reverseOrder()));
@@ -223,12 +227,28 @@ public class Axis1AccountStorageApiController {
         }
 
         Axis1AccountEntitlement entitlement = entitlementService.resolve(accountEmail);
+        Optional<Axis1ReportRecord> ownerRecord =
+                reportRecords.findByPublicIdAndAccountEmail(publicId, accountEmail.get());
+
         if (!entitlement.companyAccess()) {
+            if (ownerRecord.isPresent() && "free".equals(ownerRecord.get().getProductPlan())) {
+                Axis1ReportRecord record = ownerRecord.get();
+
+                if (isExpired(record)) {
+                    return ResponseEntity.status(HttpStatus.GONE)
+                            .body(expiredReportResponse(record));
+                }
+
+                Map<String, Object> response = reportResponse(record, true);
+                response.put("access", "owner_free_test_builder");
+                return ResponseEntity.ok(response);
+            }
+
             return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
                     .body(companyAccessRequiredResponse(entitlement));
         }
 
-        return reportRecords.findByPublicIdAndAccountEmail(publicId, accountEmail.get())
+        return ownerRecord
                 .map(record -> {
                     if (isExpired(record)) {
                         return ResponseEntity.status(HttpStatus.GONE)

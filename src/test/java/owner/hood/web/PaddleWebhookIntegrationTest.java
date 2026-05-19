@@ -21,6 +21,7 @@ import java.util.UUID;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -146,8 +147,8 @@ class PaddleWebhookIntegrationTest {
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/axis1/reports/history").session(session))
-                .andExpect(status().is(402))
-                .andExpect(jsonPath("$[0].companyAccessRequired").value(true));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test
@@ -162,18 +163,31 @@ class PaddleWebhookIntegrationTest {
                 .andExpect(status().is(402))
                 .andExpect(jsonPath("$.companyAccessRequired").value(true));
 
-        mockMvc.perform(post("/api/axis1/reports")
+        MvcResult freeReportResult = mockMvc.perform(post("/api/axis1/reports")
                         .session(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(reportPayload("company")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.productPlan").value("free"))
                 .andExpect(jsonPath("$.payload.productPlan").value("free"))
-                .andExpect(jsonPath("$.retention.policy").value("free_7_day_link"));
+                .andExpect(jsonPath("$.retention.policy").value("free_7_day_link"))
+                .andReturn();
+
+        String freePublicId = com.jayway.jsonpath.JsonPath.read(
+                freeReportResult.getResponse().getContentAsString(),
+                "$.publicId"
+        );
 
         mockMvc.perform(get("/api/axis1/reports/history").session(session))
-                .andExpect(status().is(402))
-                .andExpect(jsonPath("$[0].companyAccessRequired").value(true));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].productPlan").value("free"))
+                .andExpect(jsonPath("$[0].retention.policy").value("free_7_day_link"))
+                .andExpect(jsonPath("$[0].expiresAt").exists());
+
+        mockMvc.perform(get("/api/axis1/reports/{publicId}/builder", freePublicId).session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.access").value("owner_free_test_builder"))
+                .andExpect(jsonPath("$.productPlan").value("free"));
     }
 
     @Test
