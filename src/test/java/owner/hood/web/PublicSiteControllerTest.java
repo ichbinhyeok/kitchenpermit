@@ -57,7 +57,7 @@ class PublicSiteControllerTest {
         assertStaticResourceContains(
                 "static/company-version.html",
                 "Save your company info once. Send every report under your name.",
-                "Start $79 checkout"
+                "Request 30-day pilot access"
         );
     }
 
