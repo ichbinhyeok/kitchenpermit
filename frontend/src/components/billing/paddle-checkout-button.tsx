@@ -1,61 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Script from "next/script";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { fetchApi } from "@/lib/api";
 import { loadAxis1AccountEntitlements } from "@/lib/axis1-server-storage";
 
-type PaddleEnvironment = "sandbox" | "production";
-
-type PaddleCheckoutResponse = {
-  provider: "paddle";
-  environment: PaddleEnvironment;
-  clientToken: string;
-  companyPriceId: string;
-  checkoutMode: "transaction" | "items";
-  transactionId: string | null;
+type PilotAccessResponse = {
+  ok: boolean;
   accountEmail: string;
-  successUrl: string;
-  fallbackReason?: string;
+  message: string;
 };
-
-type PaddleCheckoutOptions = {
-  transactionId?: string;
-  items?: Array<{
-    priceId: string;
-    quantity: number;
-  }>;
-  customer?: {
-    email: string;
-  };
-  customData?: Record<string, string>;
-  settings?: {
-    displayMode: "overlay";
-    variant?: "one-page" | "multi-page";
-    theme?: "light" | "dark";
-    locale?: string;
-    successUrl?: string;
-  };
-};
-
-type PaddleGlobal = {
-  Environment: {
-    set: (environment: PaddleEnvironment) => void;
-  };
-  Initialize: (config: { token: string; pwCustomer?: Record<string, never> }) => void;
-  Checkout: {
-    open: (options: PaddleCheckoutOptions) => void;
-  };
-};
-
-declare global {
-  interface Window {
-    Paddle?: PaddleGlobal;
-    __hoodPaddleInitializedFor?: string;
-  }
-}
 
 type PaddleCheckoutButtonProps = {
   children: string;
@@ -71,6 +26,8 @@ type AccountAccessState = {
   companyAccess: boolean;
 };
 
+const pilotLoginHref = "/login?mode=signup&next=%2Fcompany-version%3Fpilot%3D1";
+
 export function PaddleCheckoutButton({
   children,
   className = "",
@@ -79,6 +36,8 @@ export function PaddleCheckoutButton({
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
+  const [requestedEmail, setRequestedEmail] = useState("");
   const [accountAccess, setAccountAccess] = useState<AccountAccessState>({
     checking: true,
     authenticated: null,
@@ -119,7 +78,7 @@ export function PaddleCheckoutButton({
     };
   }, []);
 
-  async function startCheckout() {
+  async function requestPilotAccess() {
     if (accountAccess.checking) {
       return;
     }
@@ -130,7 +89,7 @@ export function PaddleCheckoutButton({
     }
 
     if (accountAccess.authenticated === false) {
-      router.push("/login?mode=signup&next=/company-version");
+      router.push(pilotLoginHref);
       return;
     }
 
@@ -143,125 +102,80 @@ export function PaddleCheckoutButton({
     setBusy(true);
 
     try {
-      const response = await fetchApi("/api/billing/paddle/checkout", {
+      const response = await fetchApi("/api/billing/pilot/request", {
         method: "POST",
+        credentials: "include",
         headers: {
           Accept: "application/json",
         },
       });
 
       if (response.status === 401) {
-        router.push("/login?mode=signup&next=/company-version");
+        router.push(pilotLoginHref);
         return;
       }
 
+      const body = (await response.json().catch(() => ({}))) as Partial<PilotAccessResponse> & {
+        code?: string;
+        message?: string;
+      };
+
       if (!response.ok) {
-        const body = (await response.json().catch(() => ({}))) as { message?: string; code?: string };
         if (response.status === 403 && body.code === "email_unverified") {
           router.push("/dashboard?verify=needed");
           return;
         }
-        throw new Error(body.message ?? `Checkout failed with status ${response.status}`);
+
+        throw new Error(body.message ?? `Pilot request failed with status ${response.status}`);
       }
 
-      const checkout = (await response.json()) as PaddleCheckoutResponse;
-
-      if (!window.Paddle) {
-        setError("Checkout is still loading. Try again in a moment.");
-        return;
-      }
-
-      initializePaddle(checkout);
-
-      const commonOptions = {
-        customer: {
-          email: checkout.accountEmail,
-        },
-        settings: {
-          displayMode: "overlay" as const,
-          variant: "one-page" as const,
-          theme: "light" as const,
-          locale: "en",
-          successUrl: checkout.successUrl,
-        },
-      };
-
-      if (checkout.transactionId) {
-        window.Paddle.Checkout.open({
-          transactionId: checkout.transactionId,
-          ...commonOptions,
-        });
-        return;
-      }
-
-      window.Paddle.Checkout.open({
-        items: [
-          {
-            priceId: checkout.companyPriceId,
-            quantity: 1,
-          },
-        ],
-        customData: {
-          hood_product: "axis1_company_version",
-          hood_account_email: checkout.accountEmail,
-          hood_source: "company_version_checkout",
-        },
-        ...commonOptions,
-      });
+      setRequestedEmail(body.accountEmail ?? "");
+      setSent(true);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Checkout could not start.");
+      setError(caught instanceof Error ? caught.message : "Pilot request could not be sent.");
     } finally {
       setBusy(false);
     }
   }
 
-  function initializePaddle(checkout: PaddleCheckoutResponse) {
-    if (!window.Paddle) {
-      throw new Error("Paddle checkout library is not available.");
-    }
-
-    const key = `${checkout.environment}:${checkout.clientToken}`;
-
-    if (window.__hoodPaddleInitializedFor === key) {
-      return;
-    }
-
-    if (checkout.environment === "sandbox") {
-      window.Paddle.Environment.set("sandbox");
-    }
-
-    window.Paddle.Initialize({
-      token: checkout.clientToken,
-      pwCustomer: {},
-    });
-    window.__hoodPaddleInitializedFor = key;
-  }
-
   const buttonLabel = accountAccess.companyAccess
-      ? activeChildren
-      : accountAccess.authenticated && accountAccess.emailVerificationRequired && !accountAccess.emailVerified
-        ? "Verify email first"
-      : busy
-        ? "Opening checkout..."
-        : children;
+    ? activeChildren
+    : accountAccess.authenticated && accountAccess.emailVerificationRequired && !accountAccess.emailVerified
+      ? "Verify email first"
+      : sent
+        ? "Pilot request sent"
+        : busy
+          ? "Sending request..."
+          : children;
+
+  const helperCopy = sent
+    ? requestedEmail
+      ? `Request sent for ${requestedEmail}. We will review it and email you when 30-day company access is enabled.`
+      : "Request sent. We will review the account and email when 30-day company access is enabled."
+    : "No card is charged. We review the logged-in account email, open 30 days of company access, and email when it is ready.";
 
   return (
     <div className="grid gap-2">
-      {!accountAccess.checking && accountAccess.authenticated && !accountAccess.companyAccess ? (
-        <Script
-          src="https://cdn.paddle.com/paddle/v2/paddle.js"
-          strategy="afterInteractive"
-        />
-      ) : null}
       <button
         type="button"
-        onClick={startCheckout}
-        disabled={busy || accountAccess.checking}
-        className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-black transition disabled:cursor-wait disabled:opacity-70 ${className}`}
+        onClick={requestPilotAccess}
+        disabled={busy || accountAccess.checking || sent}
+        className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-black transition disabled:cursor-default disabled:opacity-75 ${className}`}
       >
         <span>{buttonLabel}</span>
-        <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
+        {sent ? (
+          <CheckCircle2 className="h-4 w-4" strokeWidth={2.2} />
+        ) : (
+          <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
+        )}
       </button>
+      <p
+        className={`max-w-md text-xs font-semibold leading-5 ${
+          sent ? "text-[#9ee6b4]" : "text-white/58"
+        }`}
+      >
+        {helperCopy}
+      </p>
       {error ? <p className="max-w-sm text-xs font-semibold leading-5 text-[#ffb27c]">{error}</p> : null}
     </div>
   );

@@ -80,15 +80,15 @@ export default function CompanyVersionPage() {
               carry their name.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <CtaLink href="/start" tone="accent">
-                Set up my first report
-              </CtaLink>
               <PaddleCheckoutButton
                 activeChildren="Set up company branding"
-                className="border border-white/16 bg-white/8 text-white hover:bg-white/14"
+                className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.26)] hover:bg-[#dd5b17]"
               >
-                Start $79 checkout
+                Request 30-day pilot access
               </PaddleCheckoutButton>
+              <CtaLink href="/axis-1/tool?account=free" tone="light">
+                Try free builder
+              </CtaLink>
               <CtaLink href="/dashboard" tone="light">
                 View account
               </CtaLink>
@@ -100,9 +100,9 @@ export default function CompanyVersionPage() {
               </CtaLink>
             </div>
             <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-white/54">
-              Have one recent job? Send the company name, logo if you have it,
-              and the job details. We can shape the first branded report before
-              you commit to a self-serve workflow.
+              During launch, verified account emails can request 30 days of
+              company access with no card. We review the account and email when
+              the company version is enabled.
             </p>
           </div>
 
@@ -163,17 +163,15 @@ export default function CompanyVersionPage() {
                 Free output is intentionally limited: no company logo/contact,
                 7-day links, watermarked PDFs, and no history. The company
                 version removes those limits and turns saved reports into a
-                simple follow-up workspace.
+                simple follow-up workspace. During launch, pilot access starts
+                with a verified account email instead of a card charge.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <CtaLink href="/start" tone="accent">
-                  Request first report setup
-                </CtaLink>
                 <PaddleCheckoutButton
                   activeChildren="Set up company branding"
-                  className="border border-white/16 bg-white/8 text-white hover:bg-white/14"
+                  className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.22)] hover:bg-[#dd5b17]"
                 >
-                  Start checkout
+                  Request 30-day pilot access
                 </PaddleCheckoutButton>
                 <CtaLink href="/axis-1/tool?step=outputs&account=company" tone="light">
                   Preview company mode

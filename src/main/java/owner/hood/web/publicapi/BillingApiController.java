@@ -18,6 +18,7 @@ import owner.hood.application.billing.PaddleCheckoutSession;
 import owner.hood.application.billing.PaddleWebhookResult;
 import owner.hood.application.billing.PaddleWebhookService;
 import owner.hood.application.billing.PaddleWebhookVerifier;
+import owner.hood.application.billing.PilotAccessRequestMailer;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -30,22 +31,53 @@ public class BillingApiController {
     private final PaddleWebhookVerifier paddleWebhookVerifier;
     private final PaddleWebhookService paddleWebhookService;
     private final EmailVerificationService emailVerificationService;
+    private final PilotAccessRequestMailer pilotAccessRequestMailer;
 
     public BillingApiController(
             PaddleBillingService paddleBillingService,
             PaddleWebhookVerifier paddleWebhookVerifier,
             PaddleWebhookService paddleWebhookService,
-            EmailVerificationService emailVerificationService
+            EmailVerificationService emailVerificationService,
+            PilotAccessRequestMailer pilotAccessRequestMailer
     ) {
         this.paddleBillingService = paddleBillingService;
         this.paddleWebhookVerifier = paddleWebhookVerifier;
         this.paddleWebhookService = paddleWebhookService;
         this.emailVerificationService = emailVerificationService;
+        this.pilotAccessRequestMailer = pilotAccessRequestMailer;
     }
 
     @GetMapping("/api/billing/paddle/config")
     public ResponseEntity<Map<String, Object>> paddleConfig() {
         return ResponseEntity.ok(paddleBillingService.publicConfig());
+    }
+
+    @PostMapping("/api/billing/pilot/request")
+    public ResponseEntity<Map<String, Object>> requestPilotAccess(Authentication authentication) {
+        Optional<String> accountEmail = authenticatedEmail(authentication);
+
+        if (accountEmail.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "message", "Log in or create an account before requesting 30-day pilot access.",
+                    "loginHref", "/login?mode=signup&next=/company-version"
+            ));
+        }
+
+        if (emailVerificationService.isRequired() && !emailVerificationService.isVerified(accountEmail.get())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "message", "Verify your email before requesting 30-day pilot access.",
+                    "code", "email_unverified",
+                    "resendHref", "/auth/email-verification/request"
+            ));
+        }
+
+        pilotAccessRequestMailer.sendPilotAccessRequest(accountEmail.get());
+
+        return ResponseEntity.ok(Map.of(
+                "ok", true,
+                "accountEmail", accountEmail.get(),
+                "message", "Pilot request sent. We will review the account and email you when 30-day company access is enabled."
+        ));
     }
 
     @PostMapping("/api/billing/paddle/checkout")

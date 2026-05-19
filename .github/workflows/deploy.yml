@@ -127,10 +127,12 @@ jobs:
                   - GG_JTE_USE_PRECOMPILED_TEMPLATES=true
                   - HOOD_SITE_BASE_URL=https://kitchenpermit.com
                   - HOOD_SITE_NAME=KitchenPermit
-                  - HOOD_SITE_SUPPORT_EMAIL=${HOOD_SITE_SUPPORT_EMAIL:-support@kitchenpermit.com}
+                  - HOOD_SITE_SUPPORT_EMAIL=${HOOD_SITE_SUPPORT_EMAIL:-compliance@kitchenpermit.com}
                   - HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED=${HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED:-${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_REQUIRED || 'false' }}}
                   - HOOD_AUTH_PASSWORD_RESET_MAIL_FROM=${HOOD_AUTH_PASSWORD_RESET_MAIL_FROM:-${{ secrets.HOOD_AUTH_PASSWORD_RESET_MAIL_FROM || 'compliance@kitchenpermit.com' }}}
-                  - HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM=${HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM:-${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM || 'support@kitchenpermit.com' }}}
+                  - HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM=${HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM:-${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM || 'compliance@kitchenpermit.com' }}}
+                  - HOOD_AXIS1_PILOT_MAIL_FROM=${HOOD_AXIS1_PILOT_MAIL_FROM:-${{ secrets.HOOD_AXIS1_PILOT_MAIL_FROM || 'compliance@kitchenpermit.com' }}}
+                  - HOOD_AXIS1_PILOT_NOTIFY_TO=${HOOD_AXIS1_PILOT_NOTIFY_TO:-${{ secrets.HOOD_AXIS1_PILOT_NOTIFY_TO || 'compliance@kitchenpermit.com' }}}
                   - SPRING_MAIL_HOST=${SPRING_MAIL_HOST:-${{ secrets.SPRING_MAIL_HOST }}}
                   - SPRING_MAIL_PORT=${SPRING_MAIL_PORT:-${{ secrets.SPRING_MAIL_PORT || '587' }}}
                   - SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME:-${{ secrets.SPRING_MAIL_USERNAME }}}

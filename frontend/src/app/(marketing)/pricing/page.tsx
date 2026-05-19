@@ -41,9 +41,9 @@ const offerTracks = [
     title: "Use the report under your company name.",
     price: AXIS1_COMPANY_MONTHLY_PRICE,
     copy:
-      "For vendors who want reports under their company name, clean PDFs, saved company details, customer history, and follow-up reminders after each service.",
-    href: "/company-version",
-    cta: "Set up company reports",
+      "For vendors who want reports under their company name, clean PDFs, saved company details, customer history, and follow-up reminders after each service. Launch pilot access starts with a verified account email and no card charge.",
+    href: "/company-version?pilot=1",
+    cta: "Request pilot access",
     icon: Repeat2,
     points: [
       "Save company logo, report color, and contact details",
@@ -93,10 +93,10 @@ export default function PricingPage() {
       <section className="container-shell pb-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Link
-            href="/company-version"
+            href="/company-version?pilot=1"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-5 text-sm font-black text-white transition hover:bg-[#dd5b17]"
           >
-            Set up company reports
+            Request pilot access
             <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
           </Link>
           <Link
@@ -129,7 +129,7 @@ export default function PricingPage() {
           <div className="grid content-end gap-3">
             {[
               "Free builder: no login, no company logo/contact, 7-day link, watermarked PDF.",
-              `Company version: ${AXIS1_COMPANY_MONTHLY_PRICE} for saved company details, retained service report links, clean PDFs, customer history, and follow-up reminders.`,
+              `Company version: ${AXIS1_COMPANY_MONTHLY_PRICE} for saved company details, retained service report links, clean PDFs, customer history, and follow-up reminders. During launch, request 30 days of access with no card.`,
               `Design help: optional from ${AXIS1_DESIGN_HELP_STARTING_PRICE}, only when a vendor wants brand/report polish.`,
             ].map((item) => (
               <div
@@ -147,25 +147,25 @@ export default function PricingPage() {
         <Panel className="grid gap-5 border-[#f26a21]/24 bg-[#fff7ef] px-5 py-5 md:grid-cols-[0.86fr_1.14fr] md:px-8 md:py-7">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-accent">
-              First report setup
+              Launch pilot access
             </p>
             <h2 className="mt-3 max-w-2xl font-display text-[2.1rem] font-bold leading-[0.94] tracking-[-0.06em] text-foreground md:text-4xl">
-              Not ready to learn a tool? Start with one real job.
+              Request company access during the launch pilot.
             </h2>
           </div>
           <div className="grid content-center gap-4">
             <p className="text-sm font-semibold leading-6 text-muted-foreground md:text-base md:leading-7">
-              Send your company name, logo if you have it, and one recent hood
-              cleaning job. We can help shape the first branded service report,
-              then you can decide whether the {AXIS1_COMPANY_MONTHLY_PRICE}
-              company version is worth keeping.
+              Create or sign into an account, verify the email, then request 30
+              days of company access with no card. We review the account email,
+              enable the company version, and ask for product feedback after
+              you use it.
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Link
-                href="/start"
+                href="/company-version?pilot=1"
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#111315] px-5 text-sm font-black text-white transition hover:bg-[#20262d]"
               >
-                Request first report setup
+                Request 30-day pilot access
                 <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
               </Link>
               <Link
