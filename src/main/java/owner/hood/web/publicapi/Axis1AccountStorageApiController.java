@@ -196,12 +196,12 @@ public class Axis1AccountStorageApiController {
         List<Axis1ReportRecord> records = new ArrayList<>(
                 reportRecords.findTop50ByAccountEmailOrderByCreatedAtDesc(accountEmail.get())
         );
+        records.removeIf(record -> "free".equals(record.getProductPlan()) && isExpired(record));
 
         Axis1AccountEntitlement entitlement = entitlementService.resolve(accountEmail);
         if (!entitlement.companyAccess()) {
             records = records.stream()
                     .filter(record -> "free".equals(record.getProductPlan()))
-                    .filter(record -> !isExpired(record))
                     .limit(5)
                     .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
         }

@@ -2980,9 +2980,17 @@ export function PacketBuilder({
   }, []);
 
   useEffect(() => {
-    const reportId = new URLSearchParams(window.location.search)
-      .get("loadReport")
-      ?.trim();
+    const searchParams = new URLSearchParams(window.location.search);
+    const reportId = searchParams.get("loadReport")?.trim();
+    const isCompanyCopyRequest = searchParams.get("copy") === "company";
+
+    if (isCompanyCopyRequest && authSessionStatus === "checking") {
+      return;
+    }
+
+    if (isCompanyCopyRequest && isAuthenticated && !accountEntitlements) {
+      return;
+    }
 
     if (!reportId || loadedReportIdRef.current === reportId) {
       return;
@@ -3026,7 +3034,9 @@ export function PacketBuilder({
         setAutoDraftedJobPatternId(null);
         setScopeAssumptionsAccepted(builderState?.scopeAssumptionsAccepted ?? true);
         setShowScopeDetails(false);
-        setSelectedProductPlan(report.productPlan);
+        const loadedProductPlan =
+          isCompanyCopyRequest && hasCompanyAccess ? "company" : report.productPlan;
+        setSelectedProductPlan(loadedProductPlan);
 
         if (payload.companyProfile) {
           saveAxis1CompanyProfile(payload.companyProfile);
@@ -3035,12 +3045,16 @@ export function PacketBuilder({
         setBuilderStep("outputs");
         const url = new URL(window.location.href);
         url.searchParams.set("step", "outputs");
-        url.searchParams.set("account", report.productPlan);
+        url.searchParams.set("account", loadedProductPlan);
         url.searchParams.delete("loadReport");
+        url.searchParams.delete("copy");
         window.history.replaceState({}, "", url);
 
         toast.success("Report loaded into builder", {
-          description: "You can review, copy a fresh link, or save the PDF again.",
+          description:
+            loadedProductPlan === "company" && report.productPlan === "free"
+              ? "Review it, then save a fresh branded company report."
+              : "You can review, copy a fresh link, or save the PDF again.",
         });
       })
       .catch(() => {
@@ -3049,7 +3063,7 @@ export function PacketBuilder({
           description: "Open the hosted report link, or create a fresh report from the builder.",
         });
       });
-  }, [form]);
+  }, [accountEntitlements, authSessionStatus, form, hasCompanyAccess, isAuthenticated]);
 
   useEffect(() => {
     uploadedFieldPhotosRef.current = uploadedFieldPhotos;

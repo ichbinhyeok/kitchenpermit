@@ -749,6 +749,15 @@ function getFreeTestExpirationLabel(report: Axis1ServerReportRecord) {
   return `Expires in ${days}d`;
 }
 
+function getCompanyCopyToolHref(report: Axis1ServerReportRecord) {
+  const url = new URL("/axis-1/tool", "https://kitchenpermit.local");
+  url.searchParams.set("step", "outputs");
+  url.searchParams.set("account", "company");
+  url.searchParams.set("loadReport", report.publicId);
+  url.searchParams.set("copy", "company");
+  return `${url.pathname}?${url.searchParams.toString()}`;
+}
+
 function getExceptionLabels(report: Axis1ServerReportRecord) {
   const kinds = report.payload?.values?.exceptionKinds ?? [];
   const labels: string[] = [];
@@ -849,7 +858,7 @@ function ReportActions({
           Edit test
         </Link>
         <Link
-          href={companyAccess ? report.toolHref : "/company-version"}
+          href={companyAccess ? getCompanyCopyToolHref(report) : "/company-version"}
           className={`${secondaryActionClassName} border-[#1f7a4d]/24 bg-[#eff8f1] text-[#1f7a4d] hover:bg-white`}
           title={
             companyAccess
