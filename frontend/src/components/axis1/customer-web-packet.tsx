@@ -438,7 +438,7 @@ function CustomerReportHeader({
               className={headerSecondaryActionClass("dark")}
             >
               <IconFileText className="h-4 w-4" />
-              PDF
+              PDF copy
             </a>
           ) : (
             <button
@@ -447,7 +447,7 @@ function CustomerReportHeader({
               className={headerSecondaryActionClass("dark")}
             >
               <IconFileText className="h-4 w-4" />
-              PDF
+              PDF copy
             </button>
           )}
           {showPhoneShortcut ? (
@@ -492,8 +492,12 @@ function getLocalEvidencePdfHref() {
   }
 
   const currentUrl = new URL(window.location.href);
+  const supportsPdfView =
+    currentUrl.pathname.startsWith("/p/sample-") ||
+    (currentUrl.pathname === "/p/local" && Boolean(currentUrl.searchParams.get("packetId"))) ||
+    (currentUrl.pathname === "/p/server" && Boolean(currentUrl.searchParams.get("reportId")));
 
-  if (currentUrl.pathname !== "/p/local" || !currentUrl.searchParams.get("packetId")) {
+  if (!supportsPdfView) {
     return null;
   }
 
@@ -513,13 +517,18 @@ function PublicSampleBanner() {
         </p>
         <p className="min-w-0 max-w-3xl break-words text-sm font-semibold leading-6">
           <span className="sm:hidden">
-            Sample details. Actions do not contact a real vendor.
+            Sample details. PDF copy is the file version.
           </span>
           <span className="hidden sm:inline">
-            Example company details. Real records use the vendor&apos;s reply,
-            call, and PDF flows.
+            Example company details. Open the PDF copy to see the restaurant file version.
           </span>
         </p>
+        <a
+          href="?format=pdf"
+          className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-[#e5a075] bg-white px-3 text-xs font-black uppercase tracking-[0.12em] text-[#9b3f13] transition hover:bg-[#fffaf5]"
+        >
+          Open PDF copy
+        </a>
       </div>
     </div>
   );

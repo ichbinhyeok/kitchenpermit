@@ -1,7 +1,7 @@
 "use client";
 
 import { Printer } from "lucide-react";
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,19 +13,11 @@ type SampleAxis1ProofPageContentProps = {
   scenario: Axis1SampleProofVariant;
 };
 
-function subscribeToLocationChanges(onStoreChange: () => void) {
-  window.addEventListener("popstate", onStoreChange);
+function subscribeToLocationChanges(onLocationChange: () => void) {
+  window.addEventListener("popstate", onLocationChange);
   return () => {
-    window.removeEventListener("popstate", onStoreChange);
+    window.removeEventListener("popstate", onLocationChange);
   };
-}
-
-function getLocationSearch() {
-  return window.location.search;
-}
-
-function getServerLocationSearch() {
-  return "";
 }
 
 function printReport() {
@@ -45,11 +37,17 @@ function printReport() {
 export function SampleAxis1ProofPageContent({
   scenario,
 }: SampleAxis1ProofPageContentProps) {
-  const queryString = useSyncExternalStore(
-    subscribeToLocationChanges,
-    getLocationSearch,
-    getServerLocationSearch,
-  );
+  const [queryString, setQueryString] = useState("");
+
+  useEffect(() => {
+    const syncLocation = () => {
+      setQueryString(window.location.search);
+    };
+
+    syncLocation();
+    return subscribeToLocationChanges(syncLocation);
+  }, []);
+
   const searchParams = new URLSearchParams(queryString);
   const isServiceRecord = searchParams.get("format") === "pdf";
   const reportData = buildAxis1SampleProofData(scenario);
@@ -93,6 +91,8 @@ export function SampleAxis1ProofPageContent({
           data={reportData}
           variant="customer-report"
           outputIntent={isServiceRecord ? "service-record" : "customer-link"}
+          presentationMode={isServiceRecord ? "standard" : "short"}
+          visibleSections={isServiceRecord ? undefined : { routeDetail: false }}
         />
       </div>
     </main>

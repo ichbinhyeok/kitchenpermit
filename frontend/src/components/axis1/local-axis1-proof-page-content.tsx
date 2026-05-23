@@ -1,31 +1,29 @@
 ﻿"use client";
 
 import Link from "@/components/navigation/static-link";
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { LocalAxis1ReportClient } from "@/components/axis1/local-axis1-report-client";
 import { Panel } from "@/components/ui/panel";
 
-function subscribeToLocationChanges(onStoreChange: () => void) {
-  window.addEventListener("popstate", onStoreChange);
+function subscribeToLocationChanges(onLocationChange: () => void) {
+  window.addEventListener("popstate", onLocationChange);
   return () => {
-    window.removeEventListener("popstate", onStoreChange);
+    window.removeEventListener("popstate", onLocationChange);
   };
 }
 
-function getLocationSearch() {
-  return window.location.search;
-}
-
-function getServerLocationSearch() {
-  return "";
-}
-
 export function LocalAxis1ProofPageContent() {
-  const queryString = useSyncExternalStore(
-    subscribeToLocationChanges,
-    getLocationSearch,
-    getServerLocationSearch,
-  );
+  const [queryString, setQueryString] = useState("");
+
+  useEffect(() => {
+    const syncLocation = () => {
+      setQueryString(window.location.search);
+    };
+
+    syncLocation();
+    return subscribeToLocationChanges(syncLocation);
+  }, []);
+
   const searchParams = new URLSearchParams(queryString);
   const packetId = searchParams.get("packetId")?.trim() ?? "";
   const outputIntent =
