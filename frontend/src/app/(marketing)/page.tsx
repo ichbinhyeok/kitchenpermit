@@ -9,9 +9,9 @@ import { AXIS1_COMPANY_MONTHLY_PRICE } from "@/lib/axis1-product-policy";
 import { publicPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = publicPageMetadata({
-  title: "Service reports for hood cleaning jobs",
+  title: "KitchenPermit | Hood Cleaning Service Report Software",
   description:
-    "Turn hood cleaning photos, blocked access notes, and next actions into one customer-ready service report link and PDF.",
+    "KitchenPermit helps hood cleaning companies send restaurant-ready service reports with photos, open items, next actions, and a PDF copy.",
   path: "/",
 });
 
@@ -23,23 +23,24 @@ const inputRows = [
 
 const reportRows = [
   ["Work result", "Reachable hood, filters, and duct path cleaned"],
-  ["Photo evidence", "Before/after photos grouped by hood area"],
+  ["Photos", "Before/after photos grouped by hood area"],
   ["Open item", "Blocked access kept separate from completed work"],
   ["Saved copy", "Link/PDF for inspection records"],
 ] as const;
 
 const valueRows = [
-  ["Restaurant", "Sees what was done, what is still open, and what to save."],
-  ["Hood company", "Looks organized without rewriting photo texts after the crew leaves."],
-  ["Office", "Gets a cleaner service report for revisit, records, or follow-up."],
+  ["Step 1", "Choose whether the job was completed, completed where reachable, blocked by access, or needs customer action."],
+  ["Step 2", "Add before/after photos, blocked access photos, and condition notes only where they help the customer understand the record."],
+  ["Step 3", "Send a clean report link and PDF the restaurant can save, forward, or keep with service records."],
 ] as const;
 
 const reportContents = [
-  ["Job details", "Service date, location, company contact, and job reference"],
-  ["Completed work", "Cleaned areas written in plain English"],
-  ["Photo evidence", "Before/after images tied to the right hood areas"],
-  ["Open items", "Blocked access or exceptions separated from completed work"],
-  ["Record copy", "Link/PDF the manager can save in the inspection folder"],
+  ["Completed work", "Reachable work written in plain English"],
+  ["Blocked access", "Areas needing access kept separate from completed work"],
+  ["Condition found", "Recorded conditions shown without implying repair or correction"],
+  ["Next routine service", "Recommended window stays visible for follow-up"],
+  ["Customer-facing contact", "Phone or reply path appears on the company version"],
+  ["PDF copy", "A report the restaurant can save with service records"],
 ] as const;
 
 const planCues = [
@@ -161,21 +162,22 @@ export default function HomePage() {
               For hood cleaning companies
             </p>
             <h1 className="mt-5 max-w-[15ch] font-display text-[clamp(2.95rem,8.7vw,6.35rem)] font-bold leading-[0.88] tracking-[-0.075em] text-white">
-              Send a restaurant-ready service report after every hood cleaning job.
+              Send hood cleaning reports your customers can actually save.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/72 md:text-xl md:leading-9">
-              Turn job photos, blocked access notes, and next actions into one
-              branded link/PDF the restaurant can save for inspection records.
+              KitchenPermit helps hood cleaning companies turn service notes,
+              photos, blocked access, and next actions into a restaurant-ready
+              report link and PDF.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <ActionLink href="/axis-1/tool?account=free" tone="accent">
-                Try free builder
+                Build a free test report
               </ActionLink>
               <ActionLink href="/samples/axis-1" tone="light">
                 View sample report
               </ActionLink>
               <ActionLink href="/company-version" tone="light">
-                Set up company reports
+                See company version
               </ActionLink>
             </div>
             <div className="mt-4 grid max-w-2xl gap-2 text-sm leading-6 text-white/64 sm:grid-cols-2">
@@ -197,10 +199,10 @@ export default function HomePage() {
         <Reveal className="mx-auto grid w-[min(1180px,100%)] gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[#ffb27c]">
-              After service
+              How it works
             </p>
             <h2 className="mt-4 max-w-4xl font-display text-[clamp(2.8rem,8vw,6rem)] font-bold leading-[0.88] tracking-[-0.078em]">
-              The cleaning is done. The customer still needs the record.
+              Pick the result first. Add the record after.
             </h2>
           </div>
           <div className="grid gap-0 overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
@@ -222,13 +224,13 @@ export default function HomePage() {
         <Reveal className="mx-auto grid w-[min(1180px,100%)] gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[#75695f]">
-              What the restaurant gets
+              Built for real hood cleaning workflows
             </p>
             <h2 className="mt-4 max-w-4xl font-display text-[clamp(2.8rem,8vw,6rem)] font-bold leading-[0.88] tracking-[-0.078em]">
-              A report they can save, not another login.
+              The report answers the questions after service.
             </h2>
             <p className="mt-6 max-w-lg text-base leading-8 text-[#665c53]">
-              Each report separates completed work, photo evidence, open items,
+              Each report separates completed work, photos, open items,
               and the next action so the restaurant does not have to decode a
               camera roll.
             </p>
@@ -250,9 +252,9 @@ export default function HomePage() {
 
       <div className="bg-[#f6efe6] text-[#111315]">
         <ResourceLinkStrip
-          label="Search + cold email pages"
-          title="Send a useful resource before asking a vendor to try the product."
-          description="The same pages that can rank for report-related searches also work as neutral links in cold email follow-up."
+          label="Free hood cleaning report resources"
+          title="Templates and examples for clearer customer reports."
+          description="Use these templates and examples to improve how your company explains completed work, blocked access, photos, and next actions after service."
         />
       </div>
 
@@ -274,13 +276,13 @@ export default function HomePage() {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <ActionLink href="/axis-1/tool?account=free" tone="accent">
-                  Try free builder
+                  Build a free test report
                 </ActionLink>
                 <ActionLink href="/samples/axis-1" tone="light">
                   View sample report
                 </ActionLink>
                 <ActionLink href="/company-version" tone="light">
-                  Set up company reports
+                  See company version
                 </ActionLink>
               </div>
             </div>

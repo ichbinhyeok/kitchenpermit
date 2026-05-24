@@ -85,7 +85,7 @@ export type Axis1AccountEntitlements = {
 
 async function readJsonResponse<T>(response: Response) {
   if (!response.ok) {
-    throw new Error(`Axis 1 storage request failed with ${response.status}`);
+    throw new Error(`Service report storage request failed with ${response.status}`);
   }
 
   return (await response.json()) as T;
@@ -244,6 +244,6 @@ export async function deleteAxis1ServerReport(publicId: string) {
   );
 
   if (!response.ok) {
-    throw new Error(`Axis 1 report delete failed with ${response.status}`);
+    throw new Error(`Service report delete failed with ${response.status}`);
   }
 }

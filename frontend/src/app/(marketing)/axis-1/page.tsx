@@ -15,9 +15,9 @@ import { SectionLabel } from "@/components/ui/section-label";
 import { publicPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = publicPageMetadata({
-  title: "Branded Service Reports for Hood Cleaning Jobs",
+  title: "Hood Cleaning Service Report Builder",
   description:
-    "Branded service report links and inspection-ready PDFs for hood vendors after every cleaning job.",
+    "Turn job results, photos, blocked access, and next actions into a customer-ready report link and PDF.",
   path: "/axis-1",
 });
 
@@ -28,7 +28,7 @@ const roleFrames = [
       "One branded service report link/PDF they can save with restaurant files.",
   },
   {
-    label: "Vendor gets",
+    label: "Office gets",
     copy:
       "A same-day service report that makes the job easier to trust, file, and defend.",
   },
@@ -37,7 +37,7 @@ const roleFrames = [
 const whyItPays = [
   {
     label: "Right after service",
-    title: "Most vendors still make the customer guess what actually happened.",
+    title: "Most companies still make the customer guess what actually happened.",
     copy:
       "Loose photos and note fragments force the customer to decode the job or call back for clarification.",
   },
@@ -65,9 +65,9 @@ const packetSections = [
       "Before-and-after photos support the link without turning into a giant image dump.",
   },
   {
-    title: "Inspection-ready PDF",
+    title: "Customer-ready PDF",
     copy:
-      "The same record can be saved as a PDF for manager files, inspection folders, or documentation requests.",
+      "The same record can be saved as a PDF for manager files, service records, or customer requests.",
   },
   {
     title: "What you need to do next",
@@ -124,7 +124,7 @@ const outcomes = [
   {
     title: "Trust",
     copy:
-      "A serious vendor should look more disciplined within minutes of the visit, not more improvised.",
+      "A serious service company should look more disciplined within minutes of the visit, not more improvised.",
     icon: ShieldCheck,
   },
   {
@@ -142,14 +142,14 @@ const outcomes = [
 ] as const;
 
 const lockedRules = [
-  "The service report is the product surface. Raw technician notes can exist internally, but they are not the customer deliverable.",
-  "Blocked or unworked items stay visible when they matter. Hiding them makes the page cleaner and the vendor less trustworthy.",
-  "The public sample proves that the report is readable. The company version is the repeatable delivery system.",
+  "Does not issue a certificate, permit, inspection, or compliance approval.",
+  "Does not verify cleaning quality or replace professional judgment.",
+  "Does not make an unreachable area look completed; blocked access stays separate.",
 ] as const;
 
 const heroProofRows = [
-  ["Branded record", "Vendor logo, contact, job result, and PDF copy in one report."],
-  ["Inspection file", "Restaurant client can save the link/PDF with service reports."],
+  ["Branded record", "Company logo, contact, job result, and PDF copy in one report."],
+  ["Service file", "Restaurant client can save the link/PDF with service reports."],
   ["Next action", "Photos, open items, and the next service step stay clear."],
 ] as const;
 
@@ -161,31 +161,31 @@ export default function Axis1Page() {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_12%,rgba(242,106,33,0.14),transparent_26%),radial-gradient(circle_at_86%_18%,rgba(17,17,17,0.06),transparent_24%),linear-gradient(180deg,transparent,rgba(255,255,255,0.2))]" />
           <div className="relative grid gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-center md:gap-8">
             <div className="space-y-5">
-              <SectionLabel>FOR HOOD SERVICE VENDORS</SectionLabel>
+              <SectionLabel>Service Report Builder</SectionLabel>
               <div className="space-y-4">
                 <h1 className="font-display text-[clamp(2.65rem,12vw,5.1rem)] font-bold leading-[0.9] tracking-[-0.09em] text-foreground md:max-w-[11.4ch] md:text-[clamp(4.6rem,6.9vw,6.6rem)]">
-                  Send a branded service report after every hood cleaning job.
+                  Hood cleaning service reports without photo dumps.
                 </h1>
                 <p className="max-w-2xl border-l border-border-strong pl-4 text-[15px] leading-[1.62] text-muted-foreground md:pl-5 md:text-lg md:leading-8">
-                  Restaurant clients get one clean link/PDF they can save for
-                  inspections, with photos, open items, and the next action.
+                  Turn job results, photos, blocked access, and next actions
+                  into a customer-ready report link and PDF.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <ButtonLink
-                  href="/samples/axis-1"
+                  href="/axis-1/tool?account=free"
                   withIcon
                   className="w-full justify-between sm:w-auto sm:justify-center"
                 >
-                  View sample report
+                  Build a free test report
                 </ButtonLink>
                 <ButtonLink
-                  href="/company-version"
+                  href="/p/sample-blocked-access"
                   variant="outline"
                   withIcon
                   className="w-full justify-between sm:w-auto sm:justify-center"
                 >
-                  Set up company reports
+                  View sample customer report
                 </ButtonLink>
               </div>
               <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
@@ -193,19 +193,19 @@ export default function Axis1Page() {
                   href="/company-version"
                   className="inline-flex min-h-10 items-center text-accent underline-offset-4 transition hover:text-accent-strong hover:underline"
                 >
-                  See how this would look for my company
+                  See company version
                 </a>
                 <a
                   href="/axis-1/tool?account=free"
                   className="inline-flex min-h-10 items-center text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline"
                 >
-                  Try free builder
+                  Build a free test report
                 </a>
               </div>
               <div className="hidden gap-2 sm:grid-cols-3 md:grid">
                 {[
                   "Branded service report",
-                  "Inspection-ready PDF",
+                  "Customer-ready PDF",
                   "Clear open-item record",
                 ].map((item) => (
                   <div
@@ -258,7 +258,7 @@ export default function Axis1Page() {
                     </div>
                     <div className="rounded-[20px] border border-border bg-dark-surface px-4 py-4 text-white">
                       <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45">
-                        Why vendors pay
+                        Why companies use it
                       </p>
                       <p className="mt-2 text-sm leading-6 text-white/72">
                         The customer can understand the job and save the record for files.
@@ -301,10 +301,10 @@ export default function Axis1Page() {
 
         <Panel className="bg-white/78 px-5 py-5 md:px-6 md:py-6">
           <p className="font-mono text-xs uppercase tracking-[0.24em] text-accent">
-            Why vendors buy it
+            What your office gets
           </p>
           <h2 className="mt-4 font-display text-[2.15rem] font-bold leading-[0.92] tracking-[-0.06em] text-foreground md:text-4xl">
-            The first value is fewer callbacks and a stronger premium report.
+            Fewer clarification calls, cleaner service records, and report history on the company version.
           </h2>
           <div className="mt-5 grid gap-3">
             {[
@@ -312,7 +312,7 @@ export default function Axis1Page() {
               "Less office time rewriting crew photos into customer explanations",
               "Blocked access and open items made visible without a follow-up explanation call",
               "Premium service looks premium the moment the service report lands",
-              "A public sample link that lets vendors show quality before account creation",
+              "A public sample link that shows the customer-facing report before account creation",
             ].map((item) => (
               <div
                 key={item}
@@ -383,7 +383,7 @@ export default function Axis1Page() {
 
         <Panel className="border-white/10 bg-dark-surface px-5 py-5 text-white md:px-6 md:py-6">
           <p className="font-mono text-xs uppercase tracking-[0.24em] text-[#ffb489]">
-            How vendors use it
+            How teams use it
           </p>
           <h2 className="mt-4 font-display text-[2.15rem] font-bold leading-[0.92] tracking-[-0.06em] md:text-4xl">
             Finish the visit. Send the service report. Let it carry the explanation.
@@ -412,8 +412,8 @@ export default function Axis1Page() {
               Service report rule
             </p>
             <p className="mt-3 text-sm leading-6 text-white">
-              Keep internal notes behind the scenes. The restaurant should receive a
-              readable service report, not a raw back-office dump.
+              Keep technician shorthand in the service file. The restaurant should
+              receive a readable service report, not a raw back-office dump.
             </p>
           </div>
         </Panel>
@@ -423,11 +423,11 @@ export default function Axis1Page() {
         <div className="mb-5 flex items-end justify-between gap-6 border-b border-border-strong pb-4 md:mb-6">
           <div>
             <h2 className="font-display text-[2.25rem] font-bold leading-[0.92] tracking-[-0.07em] text-foreground md:text-5xl">
-              Public sample excerpt
+              What it does not do
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base md:leading-7">
-              The sample page should prove that the customer can understand the job in
-              one pass, without replacing the company-version delivery workflow.
+              KitchenPermit is service report software. It does not perform field work,
+              inspect the system, issue permits or certificates, or approve compliance.
             </p>
           </div>
           <span className="hidden font-mono text-xs uppercase tracking-[0.28em] text-muted-foreground md:block">
@@ -483,8 +483,8 @@ export default function Axis1Page() {
 
       <ResourceLinkStrip
         label="Report resources"
-        title="Answer the report questions before the customer sees the quote."
-        description="Templates, photo-report guidance, and after-service handoff pages give cold-email recipients a useful next click before the builder."
+        title="Free hood cleaning report resources."
+        description="Templates, photo-report guidance, and after-service handoff pages help explain completed work, blocked access, photos, and next actions."
       />
 
       <section className="container-shell pb-20 pt-8">
@@ -518,7 +518,7 @@ export default function Axis1Page() {
             <div className="rounded-[24px] border border-border bg-white px-5 py-5">
               <p className="text-sm leading-6 text-muted-foreground">
                 Company version is $79/month. Optional brand/report design help
-                starts at $249 when a vendor wants extra polish. Paid workflow
+                starts at $249 when a company wants extra polish. Paid workflow
                 also saves customer/site history and a resend-ready message for
                 each report.
               </p>
@@ -527,14 +527,14 @@ export default function Axis1Page() {
                   View sample report
                 </ButtonLink>
                 <ButtonLink href="/company-version" withIcon>
-                  Set up company reports
+                  See company version
                 </ButtonLink>
               </div>
               <a
                 href="/axis-1/tool?account=free"
                 className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-accent"
               >
-                Try free builder
+                Build a free test report
                 <ArrowRight className="h-4 w-4" />
               </a>
             </div>

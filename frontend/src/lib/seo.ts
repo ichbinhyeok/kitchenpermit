@@ -11,15 +11,6 @@ export type SeoWorkflowStep = {
   text: string;
 };
 
-export type SeoColdEmailUse = {
-  title: string;
-  copy: string;
-  subject: string;
-  preview: string;
-  ctaHref: string;
-  ctaLabel: string;
-};
-
 export type SeoResourcePageData = {
   slug: string;
   path: string;
@@ -43,11 +34,9 @@ export type SeoResourcePageData = {
     href: string;
     label: string;
   }[];
-  searchIntents?: readonly string[];
   faqs?: readonly SeoQuestion[];
   workflowTitle?: string;
   workflowSteps?: readonly SeoWorkflowStep[];
-  coldEmail?: SeoColdEmailUse;
 };
 
 const lastModified = "2026-05-16";
@@ -140,12 +129,12 @@ export const seoResourcePages = [
     metaTitle: "Hood Cleaning Service Report Template",
     title: "Hood cleaning service report template",
     description:
-      "A field-ready service report structure for hood cleaning vendors: work result, photos, open items, next action, and PDF record.",
+      "A field-ready service report structure for hood cleaning companies: work result, photos, open items, next action, and PDF record.",
     label: "Template",
     summary:
       "Use this structure when a restaurant needs one plain-English record after a hood cleaning visit, instead of loose photos, technician shorthand, and a separate follow-up email.",
-    primaryAction: "Build a free report",
-    primaryHref: "/axis-1/tool",
+    primaryAction: "Build a free test report",
+    primaryHref: "/axis-1/tool?account=free",
     sections: [
       {
         title: "Start with the service result",
@@ -153,9 +142,9 @@ export const seoResourcePages = [
           "Lead with what was completed today, then separate any blocked access, condition notes, or follow-up work so the customer does not have to decode the visit.",
       },
       {
-        title: "Attach proof to the right area",
+        title: "Attach photos to the right area",
         copy:
-          "Group photos by hood canopy, filters, duct or access point, fan area, grease path, and service label so the record reads like an inspection file.",
+          "Group photos by hood canopy, filters, duct or access point, fan area, grease path, and service label so the customer understands the record.",
       },
       {
         title: "End with the next action",
@@ -177,7 +166,7 @@ export const seoResourcePages = [
     templateRows: [
       ["Job details", "Location, date, crew, service type, and reference number."],
       ["Today's result", "What was cleaned and what the customer can consider complete."],
-      ["Photo evidence", "Before and after photos grouped by system area."],
+      ["Photos", "Before and after photos grouped by system area."],
       ["Open items", "Blocked access, unreachable areas, or condition records."],
       ["Next step", "Recommended service window or customer action."],
       ["Saved record", "Customer link and PDF copy for restaurant files."],
@@ -196,27 +185,27 @@ export const seoResourcePages = [
     metaTitle: "Kitchen Exhaust Cleaning Report Sample",
     title: "Kitchen exhaust cleaning report sample",
     description:
-      "A customer-facing sample report for kitchen exhaust cleaning work, with result summary, photo evidence, open items, and PDF record posture.",
+      "A customer-facing sample report for kitchen exhaust cleaning work, with result summary, grouped photos, open items, and PDF copy.",
     label: "Sample",
     summary:
-      "A useful sample should show exactly what the restaurant receives after service: a clean result, visible proof, open exceptions, and a saved copy.",
+      "A useful sample should show exactly what the restaurant receives after service: a clean result, grouped photos, open exceptions, and a saved copy.",
     primaryAction: "View the sample report",
-    primaryHref: "/samples/axis-1",
+    primaryHref: "/p/sample-blocked-access",
     sections: [
       {
         title: "The sample should be customer-readable",
         copy:
-          "Avoid internal abbreviations and crew-only language. The restaurant manager should understand the status without calling the office.",
+          "Avoid crew-only abbreviations. The restaurant manager should understand the status without calling the office.",
       },
       {
         title: "The sample should separate complete from open",
         copy:
-          "Completed work and blocked access should not sit in the same note. That separation protects the vendor and helps the customer act.",
+          "Completed work and blocked access should not sit in the same note. That separation protects the service company and helps the customer act.",
       },
       {
         title: "The sample should prove the PDF path",
         copy:
-          "If the customer keeps inspection records, the report should clearly support a saved PDF copy and a shareable link.",
+          "If the customer keeps service records, the report should clearly support a saved PDF copy and a shareable link.",
       },
     ],
     checklistTitle: "What a strong sample proves",
@@ -229,14 +218,14 @@ export const seoResourcePages = [
     ],
     templateTitle: "Sample sections",
     templateRows: [
-      ["Header", "Restaurant name, service date, vendor contact, and report status."],
+      ["Header", "Restaurant name, service date, company contact, and report status."],
       ["Result", "Plain-English completion summary."],
-      ["Proof", "Photos and captions tied to the cleaned areas."],
+      ["Photos", "Photos and captions tied to the cleaned areas."],
       ["Exceptions", "Blocked access or condition records kept separate."],
       ["Closeout", "Next action and saved-record instructions."],
     ],
     copyBlock:
-      "Reachable hood, filter, and duct-path areas were serviced during this visit. The report below shows the completed work, the photo evidence, and the one access issue that should be corrected before the next standard cycle.",
+      "Reachable hood, filter, and duct-path areas were serviced during this visit. The report below shows the completed work, grouped photos, and the one access issue that should be corrected before the next standard cycle.",
     related: [
       { href: "/samples/axis-1", label: "Live sample" },
       { href: "/hood-cleaning-service-report-template", label: "Template" },
@@ -246,25 +235,25 @@ export const seoResourcePages = [
   {
     slug: "nfpa-96-hood-cleaning-photo-checklist",
     path: "/nfpa-96-hood-cleaning-photo-checklist",
-    metaTitle: "NFPA 96 Hood Cleaning Photo Checklist",
+    metaTitle: "NFPA 96 Hood Cleaning Photo Checklist | Documentation Guide",
     title: "NFPA 96 hood cleaning photo checklist",
     description:
-      "A practical photo checklist for hood cleaning vendors who need clearer service documentation around canopy, filters, duct access, fan area, and service labels.",
+      "A practical photo checklist for hood cleaning companies that need clearer service documentation around canopy, filters, duct access, fan area, and service labels.",
     label: "Checklist",
     summary:
-      "This is a documentation checklist, not legal advice or a substitute for the standard. It helps a crew capture the proof a customer expects to save with kitchen exhaust records.",
-    primaryAction: "Open the builder",
-    primaryHref: "/axis-1/tool",
+      "This checklist is for service photo documentation only. It is not legal advice, not a substitute for NFPA 96, and not a code compliance determination.",
+    primaryAction: "Create a report with grouped photos",
+    primaryHref: "/axis-1/tool?account=free",
     sections: [
       {
         title: "Capture before and after where it matters",
         copy:
-          "A single after photo is usually too thin. Pair before and after photos around the visible system areas that explain the work.",
+          "A single after photo is usually too thin. Pair before and after photos around accessible system areas when the crew captured them.",
       },
       {
         title: "Do not hide unreachable areas",
         copy:
-          "If an access panel, duct path, or fan area could not be reached, record it as an open item with the customer action needed.",
+          "If an access panel, duct path, or fan area could not be reached, label it as blocked or unreachable and keep it separate from completed work.",
       },
       {
         title: "Keep the service label visible",
@@ -281,7 +270,8 @@ export const seoResourcePages = [
       "Rooftop fan or discharge area",
       "Grease path or containment area",
       "Service label or posted notice",
-      "Blocked access or condition issue, if present",
+      "Blocked or unreachable area, if present",
+      "Do not present unverified or unreachable areas as cleaned",
     ],
     templateTitle: "Photo captions",
     templateRows: [
@@ -292,7 +282,7 @@ export const seoResourcePages = [
       ["Label", "Posted service notice, next date, or report reference."],
     ],
     copyBlock:
-      "Photo evidence is grouped by system area so the customer can see what was completed and what still needs access or follow-up. Keep this report with the restaurant's kitchen exhaust service records.",
+      "This checklist is for service photo documentation only. It is not legal advice, not a substitute for NFPA 96, and not a code compliance determination. Group photos by system area and label blocked or unreachable areas honestly.",
     related: [
       { href: "/axis-1/tool", label: "Free builder" },
       { href: "/kitchen-exhaust-cleaning-report-sample", label: "Report sample" },
@@ -305,12 +295,12 @@ export const seoResourcePages = [
     metaTitle: "Blocked Access Service Report Template",
     title: "Blocked access service report template",
     description:
-      "A customer-ready blocked access report format for hood cleaning vendors who need to show completed work and unresolved access issues clearly.",
+      "A customer-ready blocked access report format for hood cleaning companies that need to show completed work and unresolved access issues clearly.",
     label: "Exception report",
     summary:
-      "Blocked access should not disappear inside a general note. The customer needs to see what was completed, what could not be reached, and what must change before the next visit.",
-    primaryAction: "Build a blocked-access report",
-    primaryHref: "/axis-1/tool",
+      "Do not let blocked access look like unfinished or completed work. Separate completed work from customer action.",
+    primaryAction: "Build a blocked-access test report",
+    primaryHref: "/axis-1/tool?account=free",
     sections: [
       {
         title: "Separate completed work from blocked work",
@@ -323,9 +313,9 @@ export const seoResourcePages = [
           "The report should say what needs to be moved, opened, cleared, unlocked, or scheduled before the next visit.",
       },
       {
-        title: "Keep proof with the report",
+        title: "Keep photos with the report",
         copy:
-          "A blocked access photo and a short caption make the issue easier to defend than a line buried in an invoice note.",
+          "A blocked access photo and a short caption make the issue easier to understand than a line buried in an invoice note.",
       },
     ],
     checklistTitle: "Blocked access fields",
@@ -336,6 +326,9 @@ export const seoResourcePages = [
       "Customer action required",
       "Photo or condition record",
       "Recommended revisit or next-cycle note",
+      "Locked roof access",
+      "Equipment or storage blocking access",
+      "Unsafe or inaccessible fan panel",
     ],
     templateTitle: "Exception wording",
     templateRows: [
@@ -345,7 +338,7 @@ export const seoResourcePages = [
       ["Follow-up", "Reply to confirm when access is corrected or keep the item open for the next visit."],
     ],
     copyBlock:
-      "Reachable areas were completed during this visit. Rear duct access remained blocked, so that area is recorded separately as an open item. Please clear the access path before the next service window so the crew can complete the remaining check.",
+      "Work was completed where reachable. The area listed below was not accessible and needs customer action before follow-up. The blocked area is not presented as cleaned.",
     related: [
       { href: "/p/sample-blocked-access", label: "Blocked access sample" },
       { href: "/hood-cleaning-service-report-template", label: "Service report template" },
@@ -358,12 +351,12 @@ export const seoResourcePages = [
     metaTitle: "Hood Cleaning Customer Closeout Email Template",
     title: "Hood cleaning customer closeout email template",
     description:
-      "A simple customer closeout email structure for hood cleaning vendors sending a service report link, PDF copy, open items, and next action.",
+      "A simple customer closeout email structure for hood cleaning companies sending a service report link, PDF copy, open items, and next action.",
     label: "Email template",
     summary:
       "The closeout email should not re-explain the whole job. It should point to the report, name the result, call out any open item, and make the next action easy.",
     primaryAction: "Create a report link",
-    primaryHref: "/axis-1/tool",
+    primaryHref: "/axis-1/tool?account=free",
     sections: [
       {
         title: "Use the email as the handoff",
@@ -388,18 +381,17 @@ export const seoResourcePages = [
       "Service report link",
       "Open item mention, if any",
       "Next service window or customer action",
-      "Vendor contact route",
+      "Company contact route",
     ],
-    templateTitle: "Email outline",
+    templateTitle: "Email variants",
     templateRows: [
       ["Subject", "Service report for [Restaurant] - [Service date]"],
-      ["Opening", "Today's hood cleaning service report is ready."],
-      ["Link", "View the report and PDF copy here: [report link]"],
-      ["Open item", "One access item remains open: [short note]."],
-      ["Action", "Please reply to confirm [next step]."],
+      ["Completed service", "Today's hood cleaning service report is ready: [report link]. Please save the PDF copy for your records."],
+      ["Blocked access", "Work was completed where reachable. One access item remains open in the report: [short note]."],
+      ["Condition found", "The report includes a recorded condition for review: [short note]. Please reply if you want a follow-up quote or review."],
     ],
     copyBlock:
-      "Today's hood cleaning service report is ready: [report link]\n\nThe report shows the completed work, photo evidence, and PDF copy for your records. One item remains open: [blocked access or condition note]. Please reply to confirm the next service window or the access correction plan.",
+      "Today's hood cleaning service report is ready: [report link]\n\nThe report shows the completed work, grouped photos, and PDF copy for your records. One item remains open: [blocked access or condition note]. Please reply to confirm the next service window or the access correction plan.",
     related: [
       { href: "/axis-1/tool", label: "Free builder" },
       { href: "/samples/axis-1", label: "Sample report" },
@@ -412,12 +404,12 @@ export const seoResourcePages = [
     metaTitle: "Restaurant Hood Cleaning Report",
     title: "Restaurant hood cleaning report",
     description:
-      "What a restaurant manager should receive after hood cleaning: completed work, photo evidence, open items, next action, and PDF record.",
+      "What a restaurant manager should receive after hood cleaning: completed work, grouped photos, open items, next action, and PDF record.",
     label: "Restaurant record",
     summary:
       "A restaurant hood cleaning report should let the manager understand the visit without reading technician shorthand or chasing a separate photo thread.",
-    primaryAction: "Build a restaurant report",
-    primaryHref: "/axis-1/tool",
+    primaryAction: "View restaurant-facing sample report",
+    primaryHref: "/p/sample-blocked-access",
     sections: [
       {
         title: "Make the result visible first",
@@ -425,7 +417,7 @@ export const seoResourcePages = [
           "The manager should see whether the service was completed, partially completed, or blocked before reading photo details.",
       },
       {
-        title: "Keep inspection records easy to save",
+        title: "Keep service records easy to save",
         copy:
           "A customer link and PDF copy give the restaurant a clean record to keep with kitchen exhaust service files.",
       },
@@ -440,7 +432,7 @@ export const seoResourcePages = [
       "Restaurant or site name",
       "Service date",
       "Completed work summary",
-      "Photo evidence grouped by area",
+      "Photos grouped by area",
       "Blocked access or open items",
       "Next service window",
       "Saved PDF or shareable report link",
@@ -449,21 +441,16 @@ export const seoResourcePages = [
     templateRows: [
       ["Status", "Completed, partial, or blocked-access result."],
       ["Scope", "Hood, filters, duct access, fan, or other reachable areas."],
-      ["Proof", "Photos with short captions tied to the work area."],
+      ["Photos", "Photos with short captions tied to the work area."],
       ["Open item", "What still needs access, correction, or follow-up."],
       ["Record", "Link and PDF the restaurant can save."],
     ],
     copyBlock:
-      "Your hood cleaning service report is ready. It shows the completed work, grouped photo evidence, any open access item, and the next service window so your team can save one clear record.",
+      "Your hood cleaning service report is ready. It shows the completed work, grouped photos, any open access item, and the next service window so your team can save one clear record.",
     related: [
       { href: "/kitchen-exhaust-cleaning-report-sample", label: "Report sample" },
       { href: "/hood-cleaning-service-report-template", label: "Service report template" },
       { href: "/send-hood-cleaning-report-after-service", label: "After-service handoff" },
-    ],
-    searchIntents: [
-      "restaurant hood cleaning report",
-      "restaurant hood cleaning documentation",
-      "hood cleaning report for restaurant records",
     ],
   },
   {
@@ -472,12 +459,12 @@ export const seoResourcePages = [
     metaTitle: "Commercial Kitchen Exhaust Cleaning Report",
     title: "Commercial kitchen exhaust cleaning report",
     description:
-      "A practical report format for commercial kitchen exhaust cleaning work, with service result, photo evidence, exceptions, and PDF copy.",
+      "A practical report format for commercial kitchen exhaust cleaning work, with service result, grouped photos, exceptions, and PDF copy.",
     label: "Kitchen exhaust",
     summary:
       "Commercial kitchen exhaust cleaning documentation works best when it separates the service result from photos, exceptions, and the next customer action.",
-    primaryAction: "Create an exhaust report",
-    primaryHref: "/axis-1/tool",
+    primaryAction: "Build a commercial kitchen exhaust report",
+    primaryHref: "/axis-1/tool?account=free",
     sections: [
       {
         title: "Document the system area",
@@ -485,7 +472,7 @@ export const seoResourcePages = [
           "Name the hood, filters, duct access, fan, grease path, and any service label so the report maps to the actual kitchen exhaust system.",
       },
       {
-        title: "Separate proof from explanation",
+        title: "Separate photos from explanation",
         copy:
           "Photos should support the written result. They should not force the customer to infer what was completed.",
       },
@@ -509,21 +496,16 @@ export const seoResourcePages = [
     templateRows: [
       ["System", "Hood canopy, filter bank, duct path, fan area, and service label."],
       ["Result", "Reachable areas completed and any area left open."],
-      ["Evidence", "Photos grouped by area and captioned in customer language."],
+      ["Photos", "Photos grouped by area and captioned in customer language."],
       ["Exception", "Blocked access, condition issue, or revisit need."],
       ["Closeout", "Next action and saved report copy."],
     ],
     copyBlock:
-      "This commercial kitchen exhaust cleaning report records the service result by system area, includes photo evidence, and separates any blocked access or condition item so the customer has one saved closeout record.",
+      "This commercial kitchen exhaust cleaning report records the service result by system area, includes grouped photos, and separates any blocked access or condition item so the customer has one saved closeout record.",
     related: [
       { href: "/nfpa-96-hood-cleaning-photo-checklist", label: "Photo checklist" },
       { href: "/restaurant-hood-cleaning-report", label: "Restaurant report" },
       { href: "/hood-cleaning-before-after-photo-report", label: "Before and after photos" },
-    ],
-    searchIntents: [
-      "commercial kitchen exhaust cleaning report",
-      "kitchen exhaust cleaning documentation",
-      "commercial hood cleaning service report",
     ],
   },
   {
@@ -532,22 +514,22 @@ export const seoResourcePages = [
     metaTitle: "Hood Cleaning Certificate vs Service Report",
     title: "Hood cleaning certificate vs service report",
     description:
-      "A plain-English comparison of hood cleaning certificates and service reports for vendors who need clearer customer records.",
+      "A plain-English comparison of hood cleaning certificates and service reports for companies who need clearer customer records.",
     label: "Comparison",
     summary:
-      "A certificate can confirm service posture, but a service report explains the work, photo evidence, open items, and next action in a form the customer can actually use.",
-    primaryAction: "Build a service report",
-    primaryHref: "/axis-1/tool",
+      "A certificate and a service report are not the same thing. A service report explains the work, photos, open items, and next action in a form the customer can actually use.",
+    primaryAction: "Create a service report",
+    primaryHref: "/axis-1/tool?account=free",
     sections: [
       {
         title: "Certificate confirms",
         copy:
-          "A certificate usually signals that service occurred or that a system was serviced for a stated period or cycle.",
+          "A certificate may show service status, company/date, or a basic completion marker.",
       },
       {
         title: "Report explains",
         copy:
-          "A service report explains what was completed, what was blocked, which photos support the visit, and what should happen next.",
+          "A service report may show what was done, where it was done, photos, blocked access, and what should happen next.",
       },
       {
         title: "Customers often need both",
@@ -557,7 +539,7 @@ export const seoResourcePages = [
     ],
     checklistTitle: "Use the report when you need",
     checklist: [
-      "Photo evidence",
+      "Photos",
       "Blocked access documentation",
       "Plain-English service summary",
       "Next service window",
@@ -572,16 +554,11 @@ export const seoResourcePages = [
       ["Customer value", "Less guessing and fewer follow-up clarification calls."],
     ],
     copyBlock:
-      "A certificate can confirm service status, but the service report should explain the actual visit: completed work, photo evidence, blocked access, and the next customer action.",
+      "KitchenPermit does not replace your certificate process. It helps the service record explain the job: completed work, photos, blocked access, and the next customer action.",
     related: [
       { href: "/hood-cleaning-service-report-template", label: "Service report template" },
       { href: "/kitchen-exhaust-cleaning-report-sample", label: "Report sample" },
       { href: "/blocked-access-service-report-template", label: "Blocked access template" },
-    ],
-    searchIntents: [
-      "hood cleaning certificate vs service report",
-      "hood cleaning certificate documentation",
-      "hood cleaning service report example",
     ],
   },
   {
@@ -594,8 +571,8 @@ export const seoResourcePages = [
     label: "Photo report",
     summary:
       "Before and after photos are strongest when they are grouped by area, captioned in plain language, and tied to the service result.",
-    primaryAction: "Create a photo report",
-    primaryHref: "/axis-1/tool",
+    primaryAction: "Build a photo-based test report",
+    primaryHref: "/axis-1/tool?account=free",
     sections: [
       {
         title: "Pair the photos",
@@ -608,7 +585,7 @@ export const seoResourcePages = [
           "Name the hood, filter bank, duct access, fan base, or grease path so the customer knows what they are seeing.",
       },
       {
-        title: "Explain missing proof",
+        title: "Explain missing photos",
         copy:
           "If before photos, after photos, or access photos are missing, the report should say why rather than implying everything was captured.",
       },
@@ -620,6 +597,7 @@ export const seoResourcePages = [
       "Short customer-facing caption",
       "Service result tied to the photos",
       "Blocked access photo if relevant",
+      "Missing or blocked photos labeled honestly",
       "Saved link and PDF copy",
     ],
     templateTitle: "Photo grouping",
@@ -637,11 +615,6 @@ export const seoResourcePages = [
       { href: "/kitchen-exhaust-cleaning-report-sample", label: "Report sample" },
       { href: "/commercial-kitchen-exhaust-cleaning-report", label: "Kitchen exhaust report" },
     ],
-    searchIntents: [
-      "hood cleaning before and after photos",
-      "hood cleaning photo report",
-      "kitchen exhaust cleaning before after report",
-    ],
   },
   {
     slug: "send-hood-cleaning-report-after-service",
@@ -649,45 +622,45 @@ export const seoResourcePages = [
     metaTitle: "Send a Hood Cleaning Report After Service",
     title: "Send a hood cleaning report after service",
     description:
-      "A vendor-facing landing page for sending a customer-ready hood cleaning report link after the crew finishes the job.",
+      "A company-facing guide for sending a customer-ready hood cleaning report link after the crew finishes the job.",
     label: "After service",
     summary:
-      "This page connects cold email, follow-up, and SEO traffic to the same practical promise: finish the job with a report the restaurant can save.",
-    primaryAction: "Try the free builder",
+      "After the job, send one report the restaurant can save instead of a long text thread or photo dump.",
+    primaryAction: "Build a free after-service report",
     primaryHref: "/axis-1/tool?account=free",
     sections: [
       {
-        title: "Use the report as the handoff",
+        title: "Send it while the visit is fresh",
         copy:
-          "The customer receives one service link instead of a scattered thread of photos, notes, and follow-up explanations.",
+          "Send the report after the crew confirms the result, photos, blocked access, and any next action.",
       },
       {
-        title: "Send the sample before the ask",
+        title: "Keep the email short",
         copy:
-          "In cold email, a sample or resource page can explain the artifact before the vendor is asked to try the builder.",
+          "The closeout email should point to the report link and mention only the main result or open item.",
       },
       {
-        title: "Move from sample to company version",
+        title: "Keep blocked access separate",
         copy:
-          "The free builder proves the output. The company version carries the vendor logo, contact, clean PDF, and history.",
+          "If access was blocked, say what was completed where reachable and what the customer needs to clear.",
       },
     ],
     checklistTitle: "After-service handoff",
     checklist: [
       "Report link ready to send",
       "Plain service result",
-      "Photo evidence grouped by area",
+      "Photos grouped by area",
       "Open item clearly named",
       "Customer action or next window",
       "PDF copy available",
       "Company version path when branding matters",
     ],
-    templateTitle: "Cold email bridge",
+    templateTitle: "Short email example",
     templateRows: [
-      ["Email hook", "Show the sample service report before asking for a product trial."],
-      ["Resource page", "Send a neutral template or checklist when the vendor wants context."],
-      ["Builder", "Let the vendor create a free test report without account setup."],
-      ["Company version", "Move paid when the report should carry the vendor brand and history."],
+      ["Subject", "Hood cleaning service report for [Restaurant]"],
+      ["Opening", "Today's service report is ready: [report link]."],
+      ["Blocked access", "If applicable: work was completed where reachable; one access item needs customer action."],
+      ["Save copy", "The PDF copy is available from the report link for your records."],
     ],
     copyBlock:
       "After the crew finishes, send one customer-ready service report link. It should summarize the job, group the photos, call out any blocked access, and give the restaurant a PDF copy to save.",
@@ -696,21 +669,6 @@ export const seoResourcePages = [
       { href: "/hood-cleaning-service-report-template", label: "Template" },
       { href: "/company-version", label: "Company version" },
     ],
-    searchIntents: [
-      "send hood cleaning report after service",
-      "hood cleaning follow up report",
-      "hood cleaning customer report link",
-    ],
-    coldEmail: {
-      title: "Use this page in cold email",
-      copy:
-        "Send this page when the recipient needs to understand the artifact before they try the builder. It points to the sample, free builder, and paid company version without exposing any Axis 2 material.",
-      subject: "A cleaner hood cleaning report after each job",
-      preview:
-        "Here is the kind of service report a restaurant can receive after the crew finishes: result, photos, open items, next action, and PDF copy.",
-      ctaHref: "/axis-1/tool?account=free&utm_source=cold_email&utm_medium=outreach&utm_campaign=service_report",
-      ctaLabel: "Open cold-email builder path",
-    },
   },
 ] as const satisfies readonly SeoResourcePageData[];
 

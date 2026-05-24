@@ -25,9 +25,14 @@ const sections = [
       "The free builder is available for evaluation without payment and does not create a paid billing relationship.",
   },
   {
-    title: "Design Help",
+    title: "Launch Pilot",
     copy:
-      "Optional design help or custom setup work may have separate terms based on the scope confirmed before work begins.",
+      "No card is required for the launch pilot. A pilot request does not start paid billing unless a paid subscription is separately activated.",
+  },
+  {
+    title: "Optional Setup Help",
+    copy:
+      "Optional setup help or custom report work may have separate cancellation or refund terms based on the scope confirmed before work begins.",
   },
   {
     title: "How to Request Help",

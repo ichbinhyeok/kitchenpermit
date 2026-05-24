@@ -20,65 +20,87 @@ export const metadata: Metadata = publicPageMetadata({
 const offerTracks = [
   {
     label: "Free builder",
-    title: "Try the report flow without an account.",
-    price: "Free",
+    title: "Free builder",
+    price: "$0",
     copy:
-      "Create an unbranded test report from a job result, optional photos, and notes. This is for evaluating the output before using it under your company name.",
+      "Create a short-lived test service report before using KitchenPermit under your company name.",
     href: "/axis-1/tool?account=free",
-    cta: "Try free builder",
+    cta: "Build a free test report",
     icon: FileText,
     points: [
       "No login required",
-      "No company logo or contact line",
-      "7-day report link lifespan",
+      "Create a test service report",
+      "7-day test report link",
       "Watermarked PDF",
-      "No report history",
+      "No company logo or contact line",
+      "No saved report history",
     ],
     featured: false,
   },
   {
     label: "Company version",
-    title: "Use the report under your company name.",
+    title: "Company version",
     price: AXIS1_COMPANY_MONTHLY_PRICE,
     copy:
-      "For vendors who want reports under their company name, clean PDFs, saved company details, customer history, and follow-up reminders after each service. Launch pilot access starts with a verified account email and no card charge.",
+      "For repeated customer reports under your company name, with saved records and retained report links.",
     href: "/company-version?pilot=1",
-    cta: "Request pilot access",
+    cta: "Request 30-day pilot",
     icon: Repeat2,
     points: [
-      "Save company logo, report color, and contact details",
-      "Customer-friendly send message for each saved report",
-      "No PDF watermark",
-      "Paid links and PDFs stay available after creation",
-      "Customer/site history and next-service follow-up view",
+      "Company logo and customer-facing contact",
+      "Clean branded PDFs",
+      "Retained report links",
+      "Saved service records",
+      "Customer history",
+      "Next-service follow-up reminders",
+      "Built for repeated customer reports",
     ],
     featured: true,
   },
   {
-    label: "Design help",
-    title: "Optional brand/report design help.",
+    label: "Optional setup help",
+    title: "Optional setup help",
     price: `From ${AXIS1_DESIGN_HELP_STARTING_PRICE}`,
     copy:
-      "The product should be self-serve by default. If a vendor wants help polishing the branded version, design support is a separate request.",
+      "KitchenPermit remains self-serve. Setup help is only for companies that want report wording or layout polish.",
     href: "/start",
-    cta: "Request design help",
+    cta: "Request setup help",
     icon: Paintbrush,
     points: [
-      "Optional, not required",
-      "Brand/report polish",
-      "Company defaults review",
-      "Quoted after request",
+      "Report wording polish",
+      "Logo/contact layout",
+      "Sample branded report review",
+      "Optional - the product remains self-serve",
     ],
     featured: false,
   },
 ] as const;
 
 const freeVsPaid = [
-  ["Company details", "Free output has no company logo/contact line. Paid output carries the vendor name, logo, report color, phone, and reply path."],
-  ["Link life", "Free report links are limited to 7 days. Paid links and PDFs stay available after creation."],
-  ["PDF", "Free PDFs carry a watermark. Paid PDFs are clean customer/inspection copies."],
-  ["History", "Free reports do not create an account history. Paid reports are grouped by customer/site in Account."],
-  ["Follow-up", "Free output ends after the test link. Paid history shows next service timing and gives staff a customer-ready message to send."],
+  ["Company details", "Free output has no company logo/contact line. Company output carries your company name, logo, report color, phone, and reply path."],
+  ["Link life", "Free report links are limited to 7 days. Company links and PDFs stay available after creation."],
+  ["PDF", "Free PDFs carry a watermark. Company PDFs are clean branded copies."],
+  ["History", "Free reports do not create account history. Company reports are grouped by customer/site in Account."],
+  ["Follow-up", "Free output ends after the test link. Company history shows next service timing and gives staff a customer-ready message to send."],
+] as const;
+
+const pricingFaq = [
+  [
+    "Does KitchenPermit replace a hood cleaning certificate?",
+    "No. KitchenPermit helps create service reports. It does not issue permits, certificates, inspections, or compliance approvals.",
+  ],
+  [
+    "What happens after the free builder?",
+    "The free builder creates a short-lived test report link and watermarked PDF. Company version is for saved branded reports.",
+  ],
+  [
+    "Is a card required for the launch pilot?",
+    "No card is required for the launch pilot.",
+  ],
+  [
+    "Can I cancel?",
+    "Subscriptions can be canceled to stop future renewals. See the refund policy for billing details.",
+  ],
 ] as const;
 
 export default function PricingPage() {
@@ -96,14 +118,14 @@ export default function PricingPage() {
             href="/company-version?pilot=1"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-5 text-sm font-black text-white transition hover:bg-[#dd5b17]"
           >
-            Request pilot access
+            Request 30-day pilot
             <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
           </Link>
           <Link
             href="/axis-1/tool?account=free"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border-strong bg-white/80 px-5 text-sm font-black text-foreground transition hover:bg-white"
           >
-            Try free builder
+            Build a free test report
             <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
           </Link>
           <Link
@@ -129,8 +151,8 @@ export default function PricingPage() {
           <div className="grid content-end gap-3">
             {[
               "Free builder: no login, no company logo/contact, 7-day link, watermarked PDF.",
-              `Company version: ${AXIS1_COMPANY_MONTHLY_PRICE} for saved company details, retained service report links, clean PDFs, customer history, and follow-up reminders. During launch, request 30 days of access with no card.`,
-              `Design help: optional from ${AXIS1_DESIGN_HELP_STARTING_PRICE}, only when a vendor wants brand/report polish.`,
+              `Company version: ${AXIS1_COMPANY_MONTHLY_PRICE} for saved company details, retained service report links, clean PDFs, customer history, and follow-up reminders. During launch, request 30 days of company access with no card required.`,
+              `Setup help: optional from ${AXIS1_DESIGN_HELP_STARTING_PRICE}, only when a company wants report wording or layout polish.`,
             ].map((item) => (
               <div
                 key={item}
@@ -165,7 +187,7 @@ export default function PricingPage() {
                 href="/company-version?pilot=1"
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#111315] px-5 text-sm font-black text-white transition hover:bg-[#20262d]"
               >
-                Request 30-day pilot access
+                Request 30-day pilot
                 <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
               </Link>
               <Link
@@ -235,12 +257,12 @@ export default function PricingPage() {
       </section>
 
       <ResourceLinkStrip
-        label="Before pricing"
-        title="Use resource pages when a vendor is not ready for pricing yet."
-        description="Cold-email traffic can land on a useful report page first, then move to the free builder or company version when the value is clear."
+        label="Pricing resources"
+        title="Free hood cleaning report resources."
+        description="Use these templates and examples to compare the free builder, sample report, and company version before requesting access."
       />
 
-      <section className="container-shell pb-20">
+      <section className="container-shell pb-8">
         <Panel className="grid gap-6 px-5 py-5 md:grid-cols-[0.72fr_1.28fr] md:px-8 md:py-8">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.26em] text-accent">
@@ -261,6 +283,29 @@ export default function PricingPage() {
             ))}
           </div>
         </Panel>
+      </section>
+
+      <section className="container-shell pb-20">
+        <div className="mb-5 border-b border-border-strong pb-4">
+          <p className="font-mono text-xs uppercase tracking-[0.24em] text-accent">
+            FAQ
+          </p>
+          <h2 className="mt-3 font-display text-[2.1rem] font-bold leading-[0.94] tracking-[-0.06em] text-foreground md:text-4xl">
+            Pricing questions
+          </h2>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {pricingFaq.map(([question, answer]) => (
+            <Panel key={question} className="px-5 py-5">
+              <h3 className="text-lg font-black tracking-[-0.035em] text-foreground">
+                {question}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                {answer}
+              </p>
+            </Panel>
+          ))}
+        </div>
       </section>
     </>
   );

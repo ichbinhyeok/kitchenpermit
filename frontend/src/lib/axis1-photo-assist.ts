@@ -7,7 +7,7 @@ import {
   type Axis1UploadedFieldPhotoState,
 } from "@/lib/axis1-field-photos";
 
-// Axis 1 AI Photo Assist is a vendor-side organizer only. Suggestions stay
+// Service Report Builder Photo Assist is a company-side organizer only. Suggestions stay
 // separate from confirmed photo state until the vendor confirms, edits, or
 // rejects them; the closeout engine must continue to read confirmed inputs.
 export type Axis1PhotoAssistSuggestedTone =

@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "KitchenPermit service report builder",
     short_name: "KitchenPermit",
     description:
-      "Mobile-first service report builder for kitchen exhaust vendors.",
+      "Mobile-first service report builder for hood cleaning companies.",
     start_url: "/axis-1/tool",
     scope: "/",
     display: "standalone",

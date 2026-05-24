@@ -8,6 +8,8 @@ src/main/resources/static/app.css
 
 # Local browser/test artifacts
 .playwright-mcp/
+.gstack/
+.tmp/
 artifacts/
 output/
 tmp/
@@ -16,3 +18,4 @@ references/axis1-validation-artifacts/
 
 # Local scratch lists
 tmp*.txt
+tmp_*.html

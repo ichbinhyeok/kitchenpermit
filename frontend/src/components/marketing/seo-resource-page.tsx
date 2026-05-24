@@ -2,7 +2,6 @@ import Link from "@/components/navigation/static-link";
 import {
   canonicalUrl,
   defaultOpenGraphImagePath,
-  type SeoColdEmailUse,
   type SeoQuestion,
   type SeoResourcePageData,
   type SeoWorkflowStep,
@@ -28,9 +27,9 @@ function defaultFaqs(page: SeoResourcePageData): readonly SeoQuestion[] {
         "Yes. Photos, completed work, blocked access, and next actions should stay in one customer-readable report so the restaurant does not have to piece together separate messages.",
     },
     {
-      question: "Can this page be used before a vendor tries the builder?",
+      question: "How does the builder help with this?",
       answer:
-        "Yes. Send the resource or sample first, then point the vendor to the free builder when they want to see their own report output.",
+        "The builder turns the same structure into a customer-ready report link and PDF copy after the service result is selected.",
     },
   ];
 }
@@ -40,26 +39,6 @@ function defaultWorkflowSteps(page: SeoResourcePageData): readonly SeoWorkflowSt
     title: section.title,
     text: section.copy,
   }));
-}
-
-function defaultSearchIntents(page: SeoResourcePageData): readonly string[] {
-  return [
-    page.title,
-    `${page.title} example`,
-    `${page.title} template`,
-  ];
-}
-
-function defaultColdEmailUse(page: SeoResourcePageData): SeoColdEmailUse {
-  return {
-    title: "Use this page before the product ask",
-    copy:
-      "Send the resource link when a vendor needs context before trying the free builder. It works as a neutral SEO page and as a cold-email follow-up asset.",
-    subject: `Service report resource: ${page.title}`,
-    preview: page.summary,
-    ctaHref: `${page.primaryHref}${page.primaryHref.includes("?") ? "&" : "?"}utm_source=cold_email&utm_medium=outreach&utm_campaign=service_report_resources`,
-    ctaLabel: page.primaryAction,
-  };
 }
 
 function structuredDataForPage({
@@ -147,8 +126,6 @@ function structuredDataForPage({
 export function SeoResourcePage({ page }: SeoResourcePageProps) {
   const faqs = page.faqs ?? defaultFaqs(page);
   const workflowSteps = page.workflowSteps ?? defaultWorkflowSteps(page);
-  const searchIntents = page.searchIntents ?? defaultSearchIntents(page);
-  const coldEmail = page.coldEmail ?? defaultColdEmailUse(page);
 
   return (
     <>
@@ -200,7 +177,7 @@ export function SeoResourcePage({ page }: SeoResourcePageProps) {
         ))}
       </section>
 
-      <section className="container-shell grid gap-6 pb-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+      <section className="container-shell pb-12">
         <Panel className="px-6 py-6 md:px-7 md:py-7">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-accent">
             Workflow
@@ -226,25 +203,6 @@ export function SeoResourcePage({ page }: SeoResourcePageProps) {
                     {step.text}
                   </p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
-
-        <Panel className="px-6 py-6 md:px-7 md:py-7">
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
-            Search intent
-          </p>
-          <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-foreground">
-            Queries this page should answer
-          </h2>
-          <div className="mt-6 grid gap-3">
-            {searchIntents.map((intent) => (
-              <div
-                key={intent}
-                className="border border-border bg-white px-4 py-4 text-sm font-bold leading-6 text-foreground"
-              >
-                {intent}
               </div>
             ))}
           </div>
@@ -313,7 +271,7 @@ export function SeoResourcePage({ page }: SeoResourcePageProps) {
               Common questions
             </p>
             <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-foreground">
-              Questions this page should answer before the vendor clicks.
+              Practical questions
             </h2>
           </div>
           <div className="divide-y divide-border border-y border-border">
@@ -337,7 +295,7 @@ export function SeoResourcePage({ page }: SeoResourcePageProps) {
             <div className="flex items-center gap-3">
               <CopyCheck className="h-5 w-5 text-[#ffb27d]" />
               <p className="font-mono text-xs uppercase tracking-[0.22em] text-white/52">
-                Copy block
+                Example wording
               </p>
             </div>
             <pre className="mt-5 whitespace-pre-wrap font-sans text-sm leading-7 text-white/76">
@@ -347,27 +305,19 @@ export function SeoResourcePage({ page }: SeoResourcePageProps) {
 
           <Panel className="px-6 py-6 md:px-7 md:py-7">
             <p className="font-mono text-xs uppercase tracking-[0.22em] text-accent">
-              Cold-email bridge
+              Build a test report
             </p>
             <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-foreground">
-              {coldEmail.title}
+              Turn this guidance into a report link.
             </h2>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              {coldEmail.copy}
+              Use the free builder to choose a service result, add optional photos and notes, then preview the customer report and PDF copy.
             </p>
-            <div className="mt-5 grid gap-3 border-y border-border py-4">
-              <p className="text-sm leading-6 text-foreground">
-                <span className="font-bold">Subject:</span> {coldEmail.subject}
-              </p>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {coldEmail.preview}
-              </p>
-            </div>
             <Link
-              href={coldEmail.ctaHref}
+              href={page.primaryHref}
               className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#111315] px-5 text-sm font-bold text-white transition hover:bg-[#20262d]"
             >
-              {coldEmail.ctaLabel}
+              {page.primaryAction}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Panel>

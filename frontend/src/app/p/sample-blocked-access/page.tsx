@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { SampleAxis1ProofPageContent } from "@/components/axis1/sample-axis1-proof-page-content";
-import { noIndexMetadata } from "@/lib/seo";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = noIndexMetadata({
+export const metadata: Metadata = publicPageMetadata({
   title: "Sample Blocked Access Service Report",
   description:
     "A customer-facing hood service report sample with blocked access separated from completed work.",

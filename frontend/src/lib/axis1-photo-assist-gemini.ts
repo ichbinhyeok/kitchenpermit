@@ -101,7 +101,7 @@ export async function requestGeminiAxis1PhotoAssist(
   }
 
   const prompt = [
-    "You are Axis 1 AI Photo Assist for a hood cleaning closeout builder.",
+    "You are Service Report Builder Photo Assist for a hood cleaning closeout builder.",
     "You only organize photos for a vendor. You do not judge completion, quality, compliance, or the service result.",
     "Return JSON only with a top-level suggestions array.",
     "For each photoId, return: photoId, suggestedSlotId, suggestedTone, confidence, needsVendorReview, reason.",

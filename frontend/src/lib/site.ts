@@ -6,7 +6,7 @@ import {
 export const siteConfig = {
   name: "KitchenPermit",
   description:
-    "Branded service report links and PDFs for kitchen exhaust vendors after every cleaning job.",
+    "Branded service report links and PDFs for hood cleaning companies after every cleaning job.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://kitchenpermit.com",
   supportEmail:
     process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "compliance@kitchenpermit.com",

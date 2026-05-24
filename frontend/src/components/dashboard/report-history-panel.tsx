@@ -596,7 +596,7 @@ function EngagementSummary({ report }: { report: Axis1ServerReportRecord }) {
   return (
     <p
       className="mt-1 text-[11px] font-semibold leading-5 text-[#8a7d72]"
-      title="Tracked link activity shows when the customer link was opened. It is not proof of the recipient's identity. Vendor Preview links are not counted."
+      title="Tracked link activity shows when the customer link was opened. It does not identify the recipient. Company preview links are not counted."
       aria-label={`Tracked link activity. ${parts.join(". ")}`}
     >
       {parts.join(" | ")}

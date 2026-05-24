@@ -5,7 +5,7 @@ import { publicPageMetadata } from "@/lib/seo";
 export const metadata: Metadata = publicPageMetadata({
   title: "Service Report Builder",
   description:
-    "A builder for kitchen exhaust vendors to turn job photos and notes into a restaurant-ready service report link and PDF.",
+    "A builder for hood cleaning companies to turn job photos and notes into a restaurant-ready service report link and PDF.",
   path: "/axis-1/tool",
 });
 

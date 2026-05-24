@@ -263,11 +263,13 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
     ? "Company active"
     : entitlements?.authenticated
       ? !emailVerificationRequired || emailVerified
-        ? "Logged in, subscription required"
+        ? "Company access not enabled yet"
         : "Email verification required"
       : state.status === "error"
         ? "Account API unavailable"
-        : "Checking account";
+        : state.status === "ready"
+          ? "Sign in required"
+          : "Loading account access";
   const billingStatus = entitlements?.billingStatus || (companyAccess ? "active" : "not active");
   const provider = entitlements?.billingProvider || "paddle";
   const billingStatusCopy = describeBillingStatus({
@@ -277,6 +279,40 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
     emailVerified,
     emailVerificationRequired,
   });
+
+  if (state.status === "ready" && !entitlements?.authenticated) {
+    return (
+      <div className="grid gap-3">
+        {showNotice ? <BillingNotice /> : null}
+        <section className="border-b border-black/10 bg-[#fffaf2] px-4 py-4 text-[#111315]">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#7b6f65]">
+            Sign in required
+          </p>
+          <h2 className="mt-2 text-xl font-black tracking-[-0.04em]">
+            Sign in to manage service reports.
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-[#5f574f]">
+            Use your account to request company access, save service records,
+            manage company details, and send branded reports.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/login?next=%2Fdashboard"
+              className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#111315] px-4 text-[11px] font-black uppercase text-white transition hover:bg-[#27221e]"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/axis-1/tool?account=free"
+              className="inline-flex min-h-10 items-center justify-center rounded-full border border-black/10 bg-white px-4 text-[11px] font-black uppercase text-[#111315]"
+            >
+              Build a free test report
+            </Link>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-3">
@@ -302,9 +338,9 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
               </span>
             </div>
             <p className="mt-1 max-w-3xl text-sm font-semibold leading-6 text-[#5f574f]">
-              {billingStatusCopy} Saved company info, clean PDFs, live report
-              links, and history unlock while access is active. Already-created
-              paid links and PDFs stay available.
+              {companyAccess
+                ? `${billingStatusCopy} Saved company info, clean PDFs, retained report links, and history unlock while access is active.`
+                : "Company access not enabled yet. During launch, you can request a 30-day company pilot with no card required."}
             </p>
           </div>
 
@@ -336,16 +372,16 @@ export function BillingStatusPanel({ showNotice = true }: { showNotice?: boolean
           ) : (
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/company-version"
+                href="/company-version?pilot=1"
                 className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-3 text-[10px] font-black uppercase text-white"
               >
-                Start company version
+                Request company pilot
               </Link>
               <Link
                 href="/axis-1/tool?account=free"
                 className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-[10px] font-black uppercase text-[#111315]"
               >
-                Try free builder
+                Build a free test report
               </Link>
             </div>
           )}

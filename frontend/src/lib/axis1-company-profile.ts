@@ -23,7 +23,7 @@ export const defaultAxis1CompanyProfile: Axis1CompanyProfile = {
   directLine: "",
   dispatchEmail: "dispatch@acmehood.example",
   afterHoursPhone: "",
-  certification: "Service license / certification",
+  certification: "Service ID / license line",
   technicianLabel: "Technician / crew",
   brandInitials: "AC",
   logoUrl: "",
@@ -238,11 +238,13 @@ export function applyAxis1CompanyProfileToPacketData(
   const rowReplacements = {
     Technician: normalizedProfile.technicianLabel,
     Credential: normalizedProfile.certification,
+    "Service ID": normalizedProfile.certification,
     Dispatch: normalizedProfile.dispatchEmail,
     "After-hours": normalizedProfile.afterHoursPhone,
     "Follow-up contact": normalizedProfile.dispatchEmail,
     "Prepared by technician": preparedBy,
     "Technician credential": normalizedProfile.certification,
+    "Technician/service ID": normalizedProfile.certification,
     "Servicing company": normalizedProfile.companyName,
     "Service provider": normalizedProfile.companyName,
   };
@@ -267,7 +269,7 @@ export function applyAxis1CompanyProfileToPacketData(
       reviewPrompt: normalizedProfile.dispatchEmail,
       preparedBy,
       previewBlurb:
-        "Saved company profile applied: customer sees the vendor name, service area, phone, dispatch email, and credential in the report.",
+        "Saved company profile applied: customer sees the company name, service area, phone, dispatch email, and service ID in the report.",
       brandingApplied: true,
     },
     packetHeader: {

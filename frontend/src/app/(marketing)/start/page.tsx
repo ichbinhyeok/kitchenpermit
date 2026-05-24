@@ -7,8 +7,8 @@ import { siteConfig } from "@/lib/site";
 import { publicPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = publicPageMetadata({
-  title: "Design Help Request",
-  description: "Request optional design help for a company-branded hood service report version.",
+  title: "Optional Setup Help",
+  description: "Request optional setup help for company-branded hood cleaning service reports.",
   path: "/start",
 });
 
@@ -23,25 +23,25 @@ export default function StartPage() {
   return (
     <>
       <PageHeader
-        label="START // DESIGN HELP"
-        title="Request optional design help."
-        description="The company version should be self-serve by default. Use this only if you want help polishing company look, wording, or report defaults."
+        label="Optional setup help"
+        title="Optional setup help."
+        description="KitchenPermit is self-serve. If you want help polishing your report wording, logo/contact layout, or sample branded report, you can request setup help."
       />
       <section className="container-shell grid gap-6 pb-20 md:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
         <Panel className="px-6 py-6">
           <div className="mb-4 border-b border-border pb-4 sm:mb-6 sm:pb-5">
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-              Vendor request
+              Setup request
             </p>
             <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-foreground">
               <span className="sm:hidden">Design help request.</span>
               <span className="hidden sm:inline">
-                Request brand/report design help from $249.
+                Request optional setup help from $249.
               </span>
             </h2>
             <p className="mt-3 hidden max-w-2xl text-sm leading-7 text-muted-foreground sm:block">
               No payment is taken on this request. The form creates an inquiry for
-              optional design support; the core product remains self-serve.
+              optional setup help; the report builder remains self-serve.
             </p>
           </div>
           <StartRequestForm />
@@ -95,7 +95,7 @@ export default function StartPage() {
               href={genericDraftUrl}
               className="mt-5 inline-flex min-h-10 items-center text-base font-semibold text-accent"
             >
-              {siteConfig.supportEmail}
+              Open email request
             </a>
           </Panel>
         </div>

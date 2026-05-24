@@ -51,6 +51,39 @@ export function SampleAxis1ProofPageContent({
   const searchParams = new URLSearchParams(queryString);
   const isServiceRecord = searchParams.get("format") === "pdf";
   const reportData = buildAxis1SampleProofData(scenario);
+  const nextRoutineService =
+    reportData.customerClose.actionItems.find(
+      ([label]) => label === "Next visit window" || label === "Next routine service",
+    )?.[1] ??
+    reportData.serviceRecordRows.find(
+      ([label]) => label === "Next routine service" || label === "Next visit window",
+    )?.[1] ??
+    "See service details below";
+
+  useEffect(() => {
+    const marker = "kitchenpermit-format-robots";
+    let robotsMeta = document.head.querySelector<HTMLMetaElement>(
+      `meta[data-owner="${marker}"]`,
+    );
+
+    if (!isServiceRecord) {
+      robotsMeta?.remove();
+      return;
+    }
+
+    if (!robotsMeta) {
+      robotsMeta = document.createElement("meta");
+      robotsMeta.name = "robots";
+      robotsMeta.dataset.owner = marker;
+      document.head.appendChild(robotsMeta);
+    }
+
+    robotsMeta.content = "noindex, nofollow";
+
+    return () => {
+      robotsMeta?.remove();
+    };
+  }, [isServiceRecord]);
 
   return (
     <main
@@ -87,6 +120,57 @@ export function SampleAxis1ProofPageContent({
             : "relative mx-auto w-[min(1180px,100%)]"
         }
       >
+        <section
+          className={`mb-3 border bg-white px-4 py-4 shadow-[0_10px_28px_rgba(24,20,17,0.10)] print:mb-3 print:shadow-none ${
+            isServiceRecord
+              ? "rounded-[8px] border-[#b8b0a7]"
+              : "rounded-[28px] border-black/10 md:px-6 md:py-5"
+          }`}
+        >
+          <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-start">
+            <div>
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#6f665d]">
+                1-minute summary
+              </p>
+              <h1 className="mt-2 text-2xl font-black leading-[0.95] tracking-[-0.055em] text-[#151515] md:text-4xl">
+                Completed with open access item
+              </h1>
+              <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-[#574f47]">
+                Work was completed where reachable. The blocked area requires
+                customer action before follow-up. The blocked area is not
+                presented as cleaned.
+              </p>
+            </div>
+            {!isServiceRecord ? (
+              <a
+                href="/p/sample-blocked-access?format=pdf"
+                className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#111315] px-4 text-[11px] font-black uppercase tracking-[0.12em] text-white"
+              >
+                PDF copy available
+              </a>
+            ) : null}
+          </div>
+          <div className="mt-4 grid gap-2 md:grid-cols-4">
+            {[
+              ["Status", "Completed with open access item"],
+              ["Action needed", "Clear rear duct access for follow-up service."],
+              ["Photos", "Photos attached"],
+              ["Next routine service", nextRoutineService],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-[14px] border border-black/10 bg-[#f8f4ec] px-3 py-3"
+              >
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.13em] text-[#6f665d]">
+                  {label}
+                </p>
+                <p className="mt-1.5 text-sm font-bold leading-5 text-[#151515]">
+                  {value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
         <Axis1PacketDocument
           data={reportData}
           variant="customer-report"

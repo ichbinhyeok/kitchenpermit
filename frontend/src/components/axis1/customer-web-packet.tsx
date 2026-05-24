@@ -253,7 +253,7 @@ function customerCopy(value: string) {
     .replaceAll("customer packet", "service report link")
     .replaceAll("Customer packet", "Service report link")
     .replaceAll("Office note", "Record note")
-    .replace(/no field-photo proof is attached/gi, "photo evidence is not attached to this visit")
+    .replace(/no field-photo proof is attached/gi, "photos are not attached to this visit")
     .replace(/without attached field photos/gi, "based on service notes instead of attached photos")
     .replace(/\bproof\s+P-\d+(?:\s*(?:and|\/)\s*P-\d+)*\b/gi, "service photos")
     .replace(/\b[A-Z]{2}-\d+\b/g, "service area")
@@ -563,7 +563,7 @@ function PublicSampleActionNotice({
           This sample does not contact the service company.
         </h2>
         <p className="mt-4 text-sm font-semibold leading-7 text-[#665c53]">
-          Live customer records can open the vendor&apos;s reply, call, revisit,
+          Live customer records can open the company reply, call, revisit,
           or PDF flow. This public sample only shows the restaurant-facing
           closeout format.
         </p>
@@ -3281,7 +3281,7 @@ export function CustomerWebPacket({
         <section className="packet-additional-section border-b border-[#ded6cc] bg-[#111315] px-5 py-10 text-white sm:px-8 lg:px-10 lg:py-12">
           <div className="mb-8 grid gap-5 xl:grid-cols-[minmax(300px,0.6fr)_minmax(0,1fr)] xl:items-end">
             <div>
-              <SectionLabel light>Additional photo evidence</SectionLabel>
+              <SectionLabel light>Additional photos</SectionLabel>
               <h2 className="font-display mt-3 text-[2.45rem] font-semibold leading-[0.96] tracking-[-0.07em] sm:text-[3.55rem]">
                 More photos, kept out of the way.
               </h2>

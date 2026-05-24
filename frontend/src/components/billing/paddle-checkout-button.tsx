@@ -143,16 +143,16 @@ export function PaddleCheckoutButton({
     : accountAccess.authenticated && accountAccess.emailVerificationRequired && !accountAccess.emailVerified
       ? "Verify email first"
       : sent
-        ? "Pilot request sent"
+        ? "Pilot request received"
         : busy
           ? "Sending request..."
           : children;
 
   const helperCopy = sent
     ? requestedEmail
-      ? `Request sent for ${requestedEmail}. We will review it and email you when 30-day company access is enabled.`
-      : "Request sent. We will review the account and email when 30-day company access is enabled."
-    : "No card is charged. We review the logged-in account email, open 30 days of company access, and email when it is ready.";
+      ? `Pilot request received for ${requestedEmail}. We will review the account email and enable company access during launch. No card is required for the 30-day pilot.`
+      : "Pilot request received. We will review the account email and enable company access during launch. No card is required for the 30-day pilot."
+    : "No card is required. We review the logged-in account email, open 30 days of company access, and email when it is ready.";
 
   return (
     <div className="grid gap-2">

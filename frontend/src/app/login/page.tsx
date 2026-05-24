@@ -11,14 +11,18 @@ import { noIndexMetadata } from "@/lib/seo";
 export const metadata: Metadata = noIndexMetadata({
   title: "Account Login",
   description:
-    "Log in or create an account to manage the Axis 1 company version. Active subscription unlocks saved branding, clean PDFs, live links, and report history.",
+    "Sign in or create an account to request company access, save service records, manage company details, and send branded reports.",
   path: "/login",
 });
 
 function LoginFallback() {
   return (
-    <div className="min-h-[260px] rounded-2xl border border-black/10 bg-white p-6 text-sm font-semibold text-[#75695f]">
-      Loading account access...
+    <div className="min-h-[260px] rounded-2xl border border-black/10 bg-white p-6 text-sm font-semibold leading-6 text-[#75695f]">
+      <p>Loading account access...</p>
+      <p className="mt-2">
+        You can sign in or create an account to request company access and
+        manage saved service reports.
+      </p>
     </div>
   );
 }
@@ -56,11 +60,11 @@ export default function LoginPage() {
                   Sign in
                 </p>
                 <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">
-                  Account access
+                  Sign in to manage service reports.
                 </h2>
                 <p className="mt-2 max-w-sm text-sm font-semibold leading-6 text-[#6f665e]">
-                  Use the same account that stores company details and service
-                  report history.
+                  Use your account to request company access, save service
+                  records, manage company details, and send branded reports.
                 </p>
               </div>
               <span className="rounded-md border border-[#111315] bg-[#111315] px-3 py-1.5 text-[10px] font-black uppercase text-white">

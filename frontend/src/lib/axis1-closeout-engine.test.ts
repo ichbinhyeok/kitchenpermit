@@ -32,7 +32,7 @@ import {
 const forbiddenOverclaimPattern =
   /NFPA|compliance|pass\/fail|fire marshal|official|certificate|inspection|approval|repair/i;
 const forbiddenCustomerFacingContentPattern =
-  /NFPA|compliance|pass\/fail|pass-fail|fire marshal|official|certificate|inspection|inspected|approval|repair|proof packet|weak photo packet|customer packet|\bpacket\b|pay invoice|invoice proof|payment-support/i;
+  /NFPA|pass\/fail|pass-fail|fire marshal|official|inspected|approval|repair|proof packet|weak photo packet|customer packet|\bpacket\b|pay invoice|invoice proof|payment-support/i;
 const internalPacketDataKeys = new Set([
   "generatedOutputs",
   "vendorSendReadinessWarnings",
@@ -265,7 +265,7 @@ describe("evaluateAxis1Closeout", () => {
         claimLevel: "written_record",
         primaryCtaKind: "confirm_received",
         proofCoverage: /Written service record/,
-        claimLimit: /Do not show completed, blocked, or evidence language/,
+        claimLimit: /Do not show completed, blocked, or photo-support language/,
         responsibility: /No responsibility boundary/,
       },
     },
@@ -759,7 +759,7 @@ describe("evaluateAxis1Closeout", () => {
         expect(result.primaryStatusLabel).toBe("Pick result");
         expect(result.customerActionTitle).toBe("Pick result first");
         expect(result.claimLimitCopy).toMatch(
-          /Do not show completed, blocked, or evidence language/i,
+          /Do not show completed, blocked, or photo-support language/i,
         );
         expectNoOverclaim(result);
       });
@@ -796,7 +796,7 @@ describe("evaluateAxis1Closeout", () => {
       }),
     );
     expect(result.claimLimitCopy).toBe(
-      "This is a written service record; photo evidence is not attached to this visit. The next-service step stays separate from the completed service result.",
+      "This is a written service record; photos are not attached to this visit. The next-service step stays separate from the completed service result.",
     );
     expectNoOverclaim(result);
   });

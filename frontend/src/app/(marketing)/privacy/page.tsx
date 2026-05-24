@@ -17,7 +17,7 @@ const sections = [
   {
     title: "How We Use Information",
     copy:
-      "We use information to provide report builder features, host customer report links, generate PDF-ready records, maintain report history, process support requests, prevent abuse, and manage subscriptions.",
+      "We use information to create reports, provide report links and PDFs, save report history, support subscriptions, process support requests, prevent abuse, and manage company account features.",
   },
   {
     title: "Payment Data",
@@ -27,7 +27,7 @@ const sections = [
   {
     title: "Report Photos and Service Report Links",
     copy:
-      "Uploaded photos and report data are used to create customer-facing report links and records. Users are responsible for ensuring they have the right to upload and share this information.",
+      "Uploaded photos and report data are used to create customer-facing report links and records. Users are responsible for ensuring they have the right to upload and share this information. Report links may be unlisted and passwordless, which means anyone with the link may be able to view the report unless separate access controls are available and enabled.",
   },
   {
     title: "Service Providers",
@@ -38,6 +38,11 @@ const sections = [
     title: "Retention",
     copy:
       "Free report links may expire after a limited period. Paid account records may be retained while the account or subscription is active, unless deletion is requested or required by law.",
+  },
+  {
+    title: "Deletion Requests",
+    copy:
+      `You can request deletion or support with report content by contacting ${siteConfig.supportEmail}. Some records may be retained where required for billing, security, dispute handling, or legal obligations.`,
   },
   {
     title: "Contact",

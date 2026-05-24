@@ -38,7 +38,7 @@ export function SiteFooter() {
               withIcon
               className="justify-self-start md:justify-self-end"
             >
-              Set Up Company Reports
+              See company version
             </ButtonLink>
           </div>
           <div className="grid gap-10 px-6 py-8 md:grid-cols-[1.2fr_0.9fr_0.9fr] md:px-8">
@@ -47,9 +47,13 @@ export function SiteFooter() {
                 {siteConfig.name}
               </p>
               <p className="max-w-xl text-sm leading-7 text-white/62">
-                Branded hood service report links and PDFs for hood cleaning
-                companies. Turn field photos, open items, and next steps into a
-                restaurant-ready report after every visit.
+                KitchenPermit helps hood cleaning companies send
+                restaurant-ready service reports with photos, open items, next
+                actions, and a PDF copy.
+              </p>
+              <p className="max-w-xl text-xs font-semibold leading-6 text-white/44">
+                Service report software only. Does not issue permits,
+                certificates, inspections, or compliance approvals.
               </p>
             </div>
             <div className="space-y-3">
@@ -83,13 +87,13 @@ export function SiteFooter() {
                   href="/start"
                   className="flex min-h-10 items-center transition hover:text-white"
                 >
-                  Design Help
+                  Optional Setup Help
                 </Link>
                 <Link
                   href="/start"
                   className="flex min-h-10 items-center transition hover:text-white"
                 >
-                  Request Support
+                  Request setup help
                 </Link>
               </nav>
             </div>

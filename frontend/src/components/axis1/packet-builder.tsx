@@ -149,7 +149,7 @@ const jobPatternPresets = [
   },
   {
     id: "blocked-access",
-    label: "Blocked / no access",
+    label: "Completed where reachable / blocked access",
     title: "Completed where reachable",
     copy: "Use when the crew completed reachable work but one area stayed blocked or inaccessible.",
     scenario: "exception",
@@ -164,6 +164,15 @@ const jobPatternPresets = [
     scenario: "exception",
     exceptionKinds: ["rooftop-hinge-curb"],
     followUpMode: "quote",
+  },
+  {
+    id: "customer-action",
+    label: "Needs customer action",
+    title: "Needs customer action",
+    copy: "Use when the customer must clear, confirm, or decide before follow-up.",
+    scenario: "exception",
+    exceptionKinds: ["not-cleaned"],
+    followUpMode: "monitor",
   },
 ] as const satisfies ReadonlyArray<{
   id: string;
@@ -812,7 +821,7 @@ function buildScopeLedger(options: {
       status === "needs-review"
         ? hasPartialHoodProof
           ? "Before/after support is incomplete. Confirm what should be shown."
-          : "This area needs a vendor status before the customer sees it."
+          : "This area needs a company status before the customer sees it."
         : status === "done-no-photo"
           ? suggestedCount > 0
             ? "Assumed complete from the standard closeout. AI saved possible photo evidence, but customer copy will not claim it unless attached."
@@ -1574,10 +1583,10 @@ function buildJobOutcomeRecommendation(options: {
 
   return {
     pattern: getJobPatternById("clean-close"),
-    signalLabel: hasSkippedCorePhoto ? "Written record default" : "Vendor default",
+    signalLabel: hasSkippedCorePhoto ? "Written record default" : "Default",
     reason: hasSkippedCorePhoto
       ? "Photos were marked unavailable, so a written closeout is drafted by default."
-      : "No job evidence has been added yet, so the tool drafts the standard completed-service closeout.",
+      : "No service result has been selected yet, so the builder waits before drafting output copy.",
     confidence: "Default",
   };
 }
@@ -1697,10 +1706,10 @@ function PhotoPlacementRow({
           >
             {isVendorConfirmedPhoto(uploaded)
               ? uploaded.vendorDecision === "edited"
-                ? "Vendor edited"
+                ? "Edited"
                 : isFastConfirmableSuggestedPhoto(uploaded)
                   ? "AI attached"
-                  : "Vendor confirmed"
+                  : "Confirmed"
               : "Saved, not claimed"}
           </span>
         </div>
@@ -2122,8 +2131,8 @@ const builderSteps = [
     value: "photos",
     label: "Declare job",
     navLabel: "Declare",
-    title: "Tell Axis 1 what happened.",
-    copy: "Pick the job result first. Add photos only if the crew captured proof.",
+    title: "Pick the result first.",
+    copy: "Select a service result before adding photos and notes.",
   },
   {
     value: "review",
@@ -2150,11 +2159,11 @@ const builderSteps = [
 const builderQuickStartSteps = [
   {
     title: "Declare the result",
-    copy: "Completed, blocked, or condition found. This drives the customer wording.",
+    copy: "Completed, blocked access, condition found, or customer action needed. This drives the customer wording.",
     icon: ClipboardCheck,
   },
   {
-    title: "Add proof if captured",
+    title: "Add photos if captured",
     copy: "Drop a phone batch, or skip photos and keep a written service record.",
     icon: IconPhotoScan,
   },
@@ -2324,7 +2333,7 @@ const packetSectionControls = [
   {
     key: "checklist",
     label: "Report checklist",
-    copy: "What was documented and closed.",
+    copy: "What was documented in the service record.",
   },
   {
     key: "routeDetail",
@@ -3078,7 +3087,6 @@ export function PacketBuilder({
   useEffect(() => {
     const initialSearchParams = new URLSearchParams(window.location.search);
     const requestedStep = initialSearchParams.get("step");
-    const isLoadingSavedReport = Boolean(initialSearchParams.get("loadReport")?.trim());
     const normalizedStep =
       requestedStep === "job" || requestedStep === "scope"
         ? "review"
@@ -3096,10 +3104,7 @@ export function PacketBuilder({
       normalizedStep === "outputs"
     ) {
       const frame = window.requestAnimationFrame(() => {
-        const resolvedStep =
-          normalizedStep === "outputs" && !isLoadingSavedReport
-            ? "photos"
-            : normalizedStep;
+        const resolvedStep = normalizedStep;
         setBuilderStep(resolvedStep);
         if (resolvedStep !== requestedStep) {
           const url = new URL(window.location.href);
@@ -3266,6 +3271,8 @@ export function PacketBuilder({
   const activeJobPatternId =
     values.scenario === "clean"
       ? "clean-close"
+      : values.exceptionKinds.includes("not-cleaned")
+        ? "customer-action"
       : selectedAccessCount > 0
         ? "blocked-access"
         : selectedConditionCount > 0
@@ -3432,6 +3439,7 @@ export function PacketBuilder({
     hasJobOutcomeSelected &&
     jobBasicsReady &&
     sendReadinessBlockers.length === 0;
+  const reportOutputLocked = !hasJobOutcomeSelected;
   const previewBlockedBy =
     !jobBasicsReady
       ? "basics"
@@ -3548,7 +3556,7 @@ export function PacketBuilder({
         ? jobBasicsReady
           ? "Create report"
           : "Add job details"
-        : "Create normal report"
+        : "Select completed result"
       : hasJobOutcomeSelected
         ? "Review report"
         : hasBeforeOnly || hasAfterOnly
@@ -3623,7 +3631,7 @@ export function PacketBuilder({
             : "Watermarked service report PDF from this job",
           copy: isCompanyPlan
             ? "Company mode removes the free watermark for the retained customer and inspection copy."
-            : "Free mode keeps a visible watermark so vendors can evaluate the output before using it under their company name.",
+            : "Free mode keeps a visible watermark so companies can evaluate the output before using it under their company name.",
           badge: productPolicy.outputLabel,
         };
   const lastSavedReportLinkLabel =
@@ -3714,7 +3722,7 @@ export function PacketBuilder({
             : "Login and subscribe to save your company details.",
           copy: isAuthenticated
             ? "You are logged in. An active company subscription unlocks saved logo, report color, contact details, and account defaults."
-            : "The free builder stays neutral so vendors can test the report quickly. Login and an active subscription unlock saved company details from Account.",
+            : "The free builder stays neutral so companies can test the report quickly. Login and an active subscription unlock saved company details from Account.",
         }
       : paidFeatureNotice === "history"
         ? {
@@ -3723,8 +3731,8 @@ export function PacketBuilder({
               ? "Report history unlocks with the company version."
               : "Saved reports belong in the company account workspace.",
             copy: isAuthenticated
-              ? "An active company subscription stores completed service reports, keeps photos and links available, and lets you load past jobs back into the tool."
-              : "After login and an active subscription, completed service reports can be stored, searched, loaded back into the tool, and sorted by next recommended service date for follow-up.",
+              ? "An active company subscription stores service reports, keeps photos and links available, and lets you load past jobs back into the tool."
+              : "After login and an active subscription, service reports can be stored, searched, loaded back into the tool, and sorted by next recommended service date for follow-up.",
           }
         : {
             eyebrow: "Company version",
@@ -4173,7 +4181,7 @@ export function PacketBuilder({
             : "Follow-up note"
           : "Report status",
       value: closeoutEngine.responsibilityCopy,
-      source: values.scenario === "exception" ? "Shown to customer" : "Shown as closed",
+      source: values.scenario === "exception" ? "Shown to customer" : "Report line",
       action: "Edit line",
       editor: "open-item" as const,
     },
@@ -4225,7 +4233,7 @@ export function PacketBuilder({
       helper: "Included work completed; no customer action needed.",
     },
     {
-      label: "Blocked / no access",
+      label: "Completed where reachable / blocked access",
       pattern: getJobPatternById("blocked-access"),
       helper: "One area needs access, revisit, or area clarification.",
     },
@@ -4233,6 +4241,11 @@ export function PacketBuilder({
       label: "Condition found",
       pattern: getJobPatternById("condition-review"),
       helper: "Condition should drive quote, revisit, or next-service follow-up.",
+    },
+    {
+      label: "Needs customer action",
+      pattern: getJobPatternById("customer-action"),
+      helper: "Customer must clear, confirm, or decide before follow-up.",
     },
   ];
   const customerNoteField =
@@ -4471,15 +4484,6 @@ export function PacketBuilder({
 
   function selectBuilderStep(step: BuilderStep) {
     toast.dismiss();
-    let shouldFocusJobOutcomePanel = false;
-
-    if ((step === "outputs") && !hasJobOutcomeSelected) {
-      toast.error("Pick today's result first.", {
-        description: "The tool will not create customer-facing outputs from untouched defaults.",
-      });
-      step = "review";
-      shouldFocusJobOutcomePanel = true;
-    }
 
     setBuilderStep(step);
     setMobileSheet(null);
@@ -4491,9 +4495,7 @@ export function PacketBuilder({
     window.requestAnimationFrame(() => {
       scrollPacketWorkspaceBelowHeader();
       window.setTimeout(() => scrollPacketWorkspaceBelowHeader("auto"), 90);
-      if (shouldFocusJobOutcomePanel) {
-        focusJobOutcomePanel();
-      } else if (step === "review" && hasJobOutcomeSelected && !jobBasicsReady) {
+      if (step === "review" && hasJobOutcomeSelected && !jobBasicsReady) {
         focusJobBasicsPanel();
       }
     });
@@ -5337,8 +5339,8 @@ export function PacketBuilder({
             : "Local photo hints are ready. Unclear photos stay saved as extras."),
         meta:
           data.provider === "gemini"
-            ? `Live Gemini (${data.model}) - vendor must confirm each photo role.`
-            : `Local hints (${data.model}) - vendor must confirm each photo role.`,
+            ? `Live Gemini (${data.model}) - confirm each photo role before sending.`
+            : `Local hints (${data.model}) - confirm each photo role before sending.`,
       });
       setShowProofDetails(true);
       setShowAllPhotoSlots(false);
@@ -5611,7 +5613,7 @@ export function PacketBuilder({
             vendorDecision: "pending",
             needsVendorReview: true,
             assistReason:
-              "Axis saved this as an extra photo. Attach it only if it supports this report.",
+              "Saved as an extra photo. Attach it only if it supports this report.",
           };
         }
       });
@@ -5925,7 +5927,7 @@ export function PacketBuilder({
         [slotId]: {
           ...photo,
           confidence: "manual",
-          matchLabel: "Vendor confirmed",
+          matchLabel: "Confirmed",
           vendorDecision: "confirmed",
           needsVendorReview: false,
         },
@@ -5978,7 +5980,7 @@ export function PacketBuilder({
         reason: "overflow" as const,
         suggestedSlotId: slotId,
         confidence: "manual",
-        matchLabel: "Vendor rejected suggestion",
+        matchLabel: "Suggestion rejected",
         vendorDecision: "rejected",
         needsVendorReview: false,
       },
@@ -6068,7 +6070,7 @@ export function PacketBuilder({
           next[slot.id] = {
             ...photo,
             confidence: "manual",
-            matchLabel: "Vendor confirmed",
+            matchLabel: "Confirmed",
             vendorDecision: "confirmed",
             needsVendorReview: false,
           };
@@ -6082,7 +6084,7 @@ export function PacketBuilder({
           name: photo.name,
           source: photo.source,
           confidence: "manual",
-          matchLabel: "Vendor confirmed",
+          matchLabel: "Confirmed",
           vendorDecision: "confirmed",
           needsVendorReview: false,
           assistSuggestionId: photo.assistSuggestionId,
@@ -6152,14 +6154,14 @@ export function PacketBuilder({
 
   function handlePhotoStepPrimaryAction() {
     if (totalFieldPhotoCount === 0 && !hasJobOutcomeSelected) {
-      useNormalCloseoutPath();
+      selectNormalCloseoutPath();
       return;
     }
 
     proceedFromPhotoStep();
   }
 
-  function useNormalCloseoutPath() {
+  function selectNormalCloseoutPath() {
     applyJobPattern(getJobPatternById("clean-close"));
     setScopeAssumptionsAccepted(true);
     setShowScopeDetails(false);
@@ -6171,7 +6173,7 @@ export function PacketBuilder({
     selectBuilderStep(jobBasicsReady ? "outputs" : "review");
     toast.success("Completed service selected", {
       description: jobBasicsReady
-        ? "Axis 1 packaged this as a written service record. Photos can still be added later."
+        ? "The builder packaged this as a written service record. Photos can still be added later."
         : "Add the customer, site, date, reviewer, and system details next.",
     });
   }
@@ -6295,11 +6297,11 @@ export function PacketBuilder({
           <p className="mt-2 text-sm font-semibold leading-6 text-white/78">
             {isCompanyFeatureRequested
               ? isAuthenticated
-                ? "You are logged in. Company output unlocks after an active subscription: saved logo/contact, clean PDF, retained service report links, and history. You can still use the free builder now."
-                : "Company output needs login and an active subscription. Use the free builder now, or start the company version to unlock logo/contact, clean PDF, retained service report links, and history."
+                ? "Company preview - login required to save. This preview shows what unlocks after company access; your actual logo, contact, and company details appear after setup."
+                : "Company version locked. Create an account or sign in to request company access. Company version adds logo, customer-facing contact, clean PDFs, retained report links, and report history."
             : isCompanyPlan
               ? `Company mode: ${companyProfile.companyName} details are applied. Reports save to history and customer links/PDFs stay available after creation.`
-              : "Free builder: no login, neutral test link, no company logo/contact, watermarked PDF, and no report history."}
+              : "Free builder: no login required, creates a 7-day test link, watermarked PDF, and no saved report history."}
           </p>
           {isCompanyPlan ? (
             <p className="mt-1 text-xs font-semibold leading-5 text-white/42">
@@ -6382,7 +6384,7 @@ export function PacketBuilder({
                     totalFieldPhotoCount > 0 ? `${totalFieldPhotoCount} attached` : "Optional",
                     "Drop the phone batch.",
                   ],
-                  ["Result", activeJobPattern.label, "Vendor confirms outcome."],
+                  ["Result", activeJobPattern.label, "Company confirms outcome."],
                   [
                     "Output",
                     totalFieldPhotoCount > 0 ? `${uploadedProofCount} placed` : "Ready",
@@ -6509,7 +6511,7 @@ export function PacketBuilder({
                       {hasJobOutcomeSelected
                         ? "Read it like the customer will. Change only wrong statuses; every output updates together."
                         : totalFieldPhotoCount === 0
-                          ? "No photos is okay. Confirm the result once so Axis 1 writes a safe service record."
+                          ? "No photos is okay. Confirm the result once so the builder writes a safe service record."
                           : `${jobOutcomeRecommendation.pattern.label} is drafted from ${jobOutcomeRecommendation.signalLabel.toLowerCase()}. Confirm it or change only the wrong part.`}
                     </p>
                   </div>
@@ -6594,7 +6596,7 @@ export function PacketBuilder({
                     <p className="mt-2 text-sm leading-6 text-white/62">
                         {hasJobOutcomeSelected
                           ? "Result is set. Change only if the visit outcome is wrong."
-                          : "One tap confirms what happened. The report preview below is what the vendor should actually review."}
+                          : "One tap confirms what happened. The report preview below is what your office should actually review."}
                       </p>
                     </div>
                     <span className="rounded-full border border-white/14 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
@@ -6797,7 +6799,7 @@ export function PacketBuilder({
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#a94410]">
-                              Vendor note needs placement
+                              Service note needs placement
                             </p>
                             <p className="mt-1 text-sm font-bold leading-5 text-foreground">
                               {quickCloseoutNoteSignal.title}
@@ -7002,10 +7004,10 @@ export function PacketBuilder({
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
                         {!jobBasicsReady && hasJobOutcomeSelected
-                          ? `Add ${jobBasicsMissingLabel} before Axis 1 creates the customer link or PDF.`
+                          ? `Add ${jobBasicsMissingLabel} before the builder creates the customer link or PDF.`
                           : hasJobOutcomeSelected
                           ? "Everything below comes from this service record. Customer-safe wording follows area status."
-                          : "Pick the job result before Axis 1 generates the customer report link, PDF, follow-up, revisit, and next-service copy."}
+                          : "Pick the job result before the builder generates the customer report link, PDF, follow-up, revisit, and next-service copy."}
                       </p>
                     </div>
                     {!scopeNeedsWrittenRecordConfirmation ? (
@@ -7636,7 +7638,7 @@ export function PacketBuilder({
                       </h2>
                     )}
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-white/54 md:text-[14px] md:leading-6">
-                      Pick the job result first. Axis 1 packages the service record, then you can send the customer link, text, email body, or PDF.
+                      Pick the result first. Add photos and notes after. The builder packages the service record once the result is selected.
                     </p>
                   </div>
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] md:h-11 md:w-11">
@@ -7651,14 +7653,14 @@ export function PacketBuilder({
                         Start here
                       </p>
                       <p className="mt-1 text-sm font-bold text-white">
-                        Choose the customer-safe result. Photos are optional proof, not a sorting chore.
+                        Choose the customer-safe result. Photos are optional support, not a sorting chore.
                       </p>
                     </div>
                     <span className="rounded-full border border-white/12 bg-black/14 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/54">
                       {customerChoiceStatus}
                     </span>
                   </div>
-                  <div className="mt-3 grid gap-2 min-[430px]:grid-cols-3">
+                  <div className="mt-3 grid gap-2 min-[430px]:grid-cols-2 md:grid-cols-4">
                     {customerShouldKnowOptions.map((option) => {
                       const pattern = option.pattern;
                       const selected =
@@ -7765,7 +7767,7 @@ export function PacketBuilder({
                 >
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffb489]">
-                      {hasProofWorkStarted ? "Add more proof" : "Optional proof"}
+                      {hasProofWorkStarted ? "Add more photos" : "Optional photos"}
                     </p>
                     <p
                       className={`mt-3 font-bold text-white ${
@@ -8285,7 +8287,7 @@ export function PacketBuilder({
                                     {isVendorConfirmedPhoto(uploaded)
                                       ? isFastConfirmableSuggestedPhoto(uploaded)
                                         ? "AI attached"
-                                        : "Vendor confirmed"
+                                        : "Confirmed"
                                       : "Suggested"}
                                   </p>
                                 </div>
@@ -8328,7 +8330,7 @@ export function PacketBuilder({
                             <p className="mt-1 text-sm font-bold tracking-[-0.02em] text-white">
                               {pendingPhotoAssistCount > 0
                                 ? `${pendingPhotoAssistCount} photo(s) need a role before customer output`
-                                : `${vendorConfirmedPhotoCount} vendor-confirmed photo role(s)`}
+                                : `${vendorConfirmedPhotoCount} confirmed photo role(s)`}
                             </p>
                             <p className="mt-1 text-xs leading-5 text-white/52">
                               Gemini checks uploaded photos when the API is live. Local
@@ -8740,7 +8742,7 @@ export function PacketBuilder({
                                   {isVendorConfirmedPhoto(uploaded)
                                     ? isFastConfirmableSuggestedPhoto(uploaded)
                                       ? "AI attached"
-                                      : "Vendor confirmed"
+                                      : "Confirmed"
                                     : "Saved, not claimed"}
                                 </span>
                               </div>
@@ -8794,7 +8796,7 @@ export function PacketBuilder({
                       ? isVendorConfirmedPhoto(uploaded)
                         ? isFastConfirmableSuggestedPhoto(uploaded)
                           ? "AI attached"
-                          : "Vendor confirmed"
+                          : "Confirmed"
                         : "Saved, not claimed"
                       : resolution === "not-captured"
                         ? "Not captured"
@@ -8993,7 +8995,7 @@ export function PacketBuilder({
                   activeJobPatternId !== "clean-close" ? (
                     <button
                       type="button"
-                      onClick={useNormalCloseoutPath}
+                      onClick={selectNormalCloseoutPath}
                       className="rounded-full border border-white/14 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/62"
                     >
                       Switch to normal completed
@@ -9090,7 +9092,73 @@ export function PacketBuilder({
                   onUpgrade={handleBrandingUpgradeIntent}
                 />
               ) : null}
-            <div className="pdf-print-hide mt-4 hidden md:block">
+              {reportOutputLocked ? (
+                <div className="pdf-print-hide mt-4 rounded-[22px] border border-[#f26a21]/22 bg-[#fff7ef] px-4 py-4">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div className="min-w-0">
+                      <p className={labelClassName()}>Report output locked</p>
+                      <h2 className="mt-2 font-display text-[1.65rem] font-bold leading-[0.96] tracking-[-0.055em] text-foreground md:text-[2rem]">
+                        Choose a service result before creating a link or PDF.
+                      </h2>
+                      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                        This prevents a customer report from describing work that has not been confirmed.
+                      </p>
+                    </div>
+                    <span className="inline-flex w-fit rounded-full border border-[#f26a21]/22 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.13em] text-[#b94d11]">
+                      Required first
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-2 md:grid-cols-3">
+                    {[
+                      "Select a service result to preview the customer report.",
+                      "The report link and PDF stay locked until a result is selected.",
+                      "Photos are optional, but the service result is required.",
+                    ].map((item) => (
+                      <div
+                        key={item}
+                        className="rounded-[16px] border border-[#f26a21]/16 bg-white/82 px-3 py-3 text-xs font-semibold leading-5 text-foreground"
+                      >
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 grid gap-2 md:grid-cols-4">
+                    {customerShouldKnowOptions.map((option) => (
+                      <button
+                        key={`locked-${option.pattern.id}`}
+                        type="button"
+                        onClick={() => applyJobPattern(option.pattern)}
+                        className="rounded-[16px] border border-black/8 bg-white px-3 py-3 text-left transition hover:border-[#f26a21]/30 hover:shadow-[0_12px_28px_rgba(17,19,21,0.08)]"
+                      >
+                        <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-[#b94d11]">
+                          {option.label}
+                        </span>
+                        <span className="mt-1.5 block text-xs font-semibold leading-5 text-muted-foreground">
+                          {option.helper}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-4 rounded-[16px] border border-black/8 bg-white px-3 py-3">
+                    <p className={labelClassName()}>
+                      {isCompanyFeatureRequested ? "Company version locked" : "Free builder"}
+                    </p>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
+                      {isCompanyFeatureRequested
+                        ? isAuthenticated
+                          ? "Company preview - login required to save. Request company access before saving branded reports."
+                          : "Create an account or sign in to request company access."
+                        : "No login required. Creates a 7-day test link, watermarked PDF, and no saved report history."}
+                    </p>
+                    {isCompanyFeatureRequested ? (
+                      <p className="mt-1 text-xs font-semibold leading-5 text-muted-foreground">
+                        Company version adds logo, customer-facing contact, clean PDFs, retained report links, and report history.
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+            <div className={`pdf-print-hide mt-4 ${reportOutputLocked ? "hidden" : "hidden md:block"}`}>
               <motion.section
                 layout
                 initial={{ y: 10, opacity: 0 }}
@@ -9120,10 +9188,10 @@ export function PacketBuilder({
                       </span>
                       <span className="axis-proof-subtitle">
                         {closeoutEngine.canGeneratePacket && jobBasicsReady
-                          ? "Service report link, PDF copy, revisit or quote copy, and next-service text are derived from this same vendor-confirmed service record."
+                          ? "Service report link, PDF copy, revisit or quote copy, and next-service text are derived from this same company-confirmed service record."
                           : !jobBasicsReady
                             ? "Customer, site, date, reviewer, and system details must be real before a link or PDF is generated."
-                          : "Outputs stay locked until the vendor confirms what happened. Photos can organize the record, but they do not decide the final claim."}
+                          : "Outputs stay locked until your company confirms what happened. Photos can organize the record, but they do not decide the final claim."}
                       </span>
                     </span>
                   </div>
@@ -9273,7 +9341,7 @@ export function PacketBuilder({
                         className="mb-3 rounded-[14px] border border-[#f26a21]/18 bg-[#fff7ef] px-3 py-3 text-[#111315]"
                       >
                         <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#a94410]">
-                          Vendor note needs placement
+                          Service note needs placement
                         </p>
                         <p className="mt-1 text-xs font-bold leading-5">
                           {quickCloseoutNoteSignal.title}
@@ -9429,7 +9497,7 @@ export function PacketBuilder({
                   >
                     <div className="axis-proof-panel-head">
                       <p className="axis-proof-panel-label">Private check</p>
-                      <p>Private to the vendor; customer outputs use calm record language.</p>
+                      <p>Private to your office; customer outputs use calm record language.</p>
                     </div>
                     <div className="axis-warning-lead">
                       <TriangleAlert className="h-4 w-4" />
@@ -9474,7 +9542,7 @@ export function PacketBuilder({
               initial={{ y: 12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className={`pdf-print-hide mt-3 flex flex-col overflow-hidden rounded-[22px] border px-3.5 py-3.5 md:hidden ${mobileReportStatusClass}`}
+              className={`pdf-print-hide mt-3 flex flex-col overflow-hidden rounded-[22px] border px-3.5 py-3.5 md:hidden ${mobileReportStatusClass} ${reportOutputLocked ? "hidden" : ""}`}
               data-mobile-report-ready
             >
               <div className="flex items-start gap-2.5">
@@ -9745,7 +9813,11 @@ export function PacketBuilder({
               </div>
             </motion.div>
             <div
-              className={`pdf-print-hide mt-4 hidden min-w-0 items-start gap-4 md:grid ${
+              className={`pdf-print-hide mt-4 hidden min-w-0 items-start gap-4 ${
+                reportOutputLocked
+                  ? ""
+                  : "md:grid"
+              } ${
                 isOutputStep
                   ? ""
                   : "xl:grid-cols-[minmax(0,0.55fr)_minmax(0,1.45fr)]"
@@ -10042,7 +10114,7 @@ export function PacketBuilder({
                   <div>
                     <p className={labelClassName()}>Customer link vs PDF</p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Switch between the two outputs vendors need: a customer
+                      Switch between the two outputs companies need: a customer
                       link for delivery and a PDF copy for archive, submission,
                       or later requests.
                     </p>
@@ -10326,6 +10398,8 @@ export function PacketBuilder({
             </div>
             <div
               className={`mt-4 min-w-0 rounded-[26px] border p-3 print:border-0 print:bg-white print:p-0 ${
+                reportOutputLocked ? "hidden" : ""
+              } ${
                 reportOutputMode === "pdf"
                   ? "border-black/10 bg-[#d8d0c7] md:p-5"
                   : "border-black/8 bg-[rgba(17,17,17,0.02)]"

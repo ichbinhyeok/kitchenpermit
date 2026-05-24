@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
             </h1>
             <p className="mt-5 max-w-lg text-sm font-semibold leading-6 text-white/62">
               The reset link is sent to the account email. It lets you set a new
-              password without exposing the old one.
+              password without showing the old one.
             </p>
           </div>
           <div className="absolute inset-x-6 bottom-6 border-t border-white/10 pt-5 text-xs font-semibold leading-5 text-white/48 sm:inset-x-8">

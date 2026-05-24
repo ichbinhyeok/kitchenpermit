@@ -12,7 +12,7 @@ const terms = [
   {
     title: "1. Service",
     copy:
-      `${siteConfig.name} provides software that helps kitchen exhaust and hood cleaning companies create customer-facing service report links and PDF-ready records. We do not provide hood cleaning, inspection, repair, or field services.`,
+      `${siteConfig.name} provides software that helps kitchen exhaust and hood cleaning companies create customer-facing service report links and PDF-ready records. We do not provide hood cleaning, inspection, repair, field services, permits, certificates, or compliance approvals.`,
   },
   {
     title: "2. Accounts and Access",
@@ -22,30 +22,35 @@ const terms = [
   {
     title: "3. Customer Reports",
     copy:
-      "Reports are generated from information supplied by users. You are responsible for reviewing reports before sending them to customers, inspectors, or other third parties. The product does not replace professional judgment, code compliance review, or legal advice.",
+      "Reports are generated from information supplied by users. You are responsible for reviewing reports before sending them to customers, inspectors, or other third parties. The product does not replace professional judgment, code compliance review, inspection, or legal advice.",
   },
   {
-    title: "4. Subscriptions",
+    title: "4. Report Links and Uploaded Content",
     copy:
-      "Paid subscriptions are billed through our payment provider. Subscription access may continue while payment remains active and may be limited, suspended, or cancelled if payment fails or the subscription is cancelled.",
+      "Report links may be accessible to anyone with the link unless separate access controls are available and enabled. You are responsible for uploaded photos, report content, permissions to share that content, and the accuracy of company and service information.",
   },
   {
-    title: "5. Acceptable Use",
+    title: "5. Subscriptions",
     copy:
-      `You may not use ${siteConfig.name} to upload unlawful content, infringing content, malware, deceptive reports, or content that violates third-party rights. We may remove content or restrict access when necessary to protect the service, customers, or legal compliance.`,
+      "Paid subscriptions are billed through our payment provider. Subscription access may continue while payment remains active and may be limited, suspended, or cancelled if payment fails or the subscription is cancelled. Cancellation stops future renewals according to the billing terms in effect.",
   },
   {
-    title: "6. Availability",
+    title: "6. Acceptable Use",
+    copy:
+      `You may not use ${siteConfig.name} to upload unlawful content, infringing content, malware, deceptive reports, or content that violates third-party rights. Do not use the product to misrepresent incomplete, blocked, or unreachable work as completed. We may remove content or restrict access when necessary to protect the service, customers, or legal compliance.`,
+  },
+  {
+    title: "7. Availability",
     copy:
       "We aim to keep the service reliable, but we do not guarantee uninterrupted access. Features may change as the product evolves.",
   },
   {
-    title: "7. Limitation of Liability",
+    title: "8. Limitation of Liability",
     copy:
       `To the maximum extent permitted by law, ${siteConfig.name} is provided as-is and we are not liable for indirect, incidental, special, consequential, or punitive damages arising from use of the service.`,
   },
   {
-    title: "8. Contact",
+    title: "9. Contact",
     copy: `Questions about these terms can be sent to ${siteConfig.supportEmail}.`,
   },
 ];

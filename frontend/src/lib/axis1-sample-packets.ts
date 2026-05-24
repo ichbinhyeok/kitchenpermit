@@ -38,19 +38,19 @@ type Axis1SampleProofConfig = {
 };
 
 const sampleVendor: Axis1PacketPreviewData["vendor"] = {
-  name: "Summit Hood Service Co.",
+  name: "Sample Hood Cleaning Company",
   initials: "SH",
   logoUrl: "/images/sample-hood-service-logo.svg",
   office: "Austin, TX | 24/7 dispatch",
   directLine: "(512) 555-0148",
-  dispatch: "dispatch@summit.example",
-  certification: "TX Reg #KEX-2087",
-  technician: "Miguel R. / Tech ID SH-114",
+  dispatch: "dispatch@example.com",
+  certification: "Sample service ID SH-2087",
+  technician: "Sample technician / Tech ID SH-114",
   afterHours: "(512) 555-0192",
-  reviewPrompt: "dispatch@summit.example",
-  preparedBy: "Summit Hood Service Co. | SH-114",
+  reviewPrompt: "dispatch@example.com",
+  preparedBy: "Sample Hood Cleaning Company | SH-114",
   previewBlurb:
-    "Customer sees a same-day service report link with the vendor brand, service contact, credential, and record references already in place.",
+    "Customer sees a same-day service report link with the company brand, service contact, service ID, and record references already in place.",
   brandingApplied: true,
 };
 
@@ -234,13 +234,13 @@ function applySampleBranding(
     },
     serviceRecordRows: upsertRows(data.serviceRecordRows, [
       ["Technician", sampleVendor.technician],
-      ["Credential", sampleVendor.certification],
+      ["Service ID", sampleVendor.certification],
       ["Dispatch", sampleVendor.dispatch],
       ["Direct line", sampleVendor.directLine],
     ]),
     closeoutRows: upsertRows(data.closeoutRows, [
       ["Prepared by technician", sampleVendor.preparedBy],
-      ["Technician credential", sampleVendor.certification],
+      ["Technician/service ID", sampleVendor.certification],
       ["Dispatch", sampleVendor.dispatch],
       ["After-hours", sampleVendor.afterHours],
       ["Follow-up contact", sampleVendor.reviewPrompt],
@@ -259,6 +259,10 @@ function applySampleBranding(
       [
         "Actual company version",
         "Hosted report link, saved photos, branded delivery, and customer-specific service history.",
+      ],
+      [
+        "Software boundary",
+        "KitchenPermit is service report software. It does not perform inspections, issue permits or certificates, verify code compliance, or replace professional judgment.",
       ],
     ],
   };

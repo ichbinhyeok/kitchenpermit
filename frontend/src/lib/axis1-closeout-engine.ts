@@ -455,7 +455,7 @@ function proofAreaVendorReviewCopy(
   }
 
   if (state === "not_applicable") {
-    return "Vendor marked this area as not part of this visit.";
+    return "Service company marked this area as not part of this visit.";
   }
 
   switch (slotId) {
@@ -464,15 +464,15 @@ function proofAreaVendorReviewCopy(
     case "hood-after":
       return "After photo missing. Do not present the job as photo-confirmed completion.";
     case "filter-bank":
-      return "Filter bank proof missing. Confirm whether filters/tracks were completed, written only, or not part of this visit.";
+      return "Filter bank photo missing. Confirm whether filters/tracks were completed, written only, or not part of this visit.";
     case "access-condition":
-      return "Duct/access proof missing. Do not imply concealed path photo coverage.";
+      return "Duct/access photo missing. Do not imply concealed path photo coverage.";
     case "rooftop-fan":
-      return "Fan proof missing. Confirm fan work was completed, not part of this visit, or blocked.";
+      return "Fan photo missing. Confirm fan work was completed, not part of this visit, or blocked.";
     case "grease-containment":
-      return "Grease path proof missing. Confirm cleanup/containment status before using price-defense copy.";
+      return "Grease path photo missing. Confirm cleanup/containment status before using customer-facing copy.";
     case "service-label":
-      return "Service label / notice proof missing. Confirm it was posted, not captured, or not part of this visit.";
+      return "Service label / notice photo missing. Confirm it was posted, not captured, or not part of this visit.";
   }
 }
 
@@ -777,7 +777,7 @@ function buildVendorSendReadinessWarnings(options: {
         severity: "blocker",
         title: "Result required",
         copy:
-          "Pick the service result before Axis 1 generates the customer report link, PDF, follow-up, revisit, or next-service output.",
+          "Pick the service result before the builder generates the customer report link, PDF, follow-up, revisit, or next-service output.",
         customerCopy:
           "No customer-facing service result is generated until the service result is selected.",
       }),
@@ -846,10 +846,10 @@ function buildVendorSendReadinessWarnings(options: {
       buildVendorWarning({
         kind: "missing_duct_access_photo",
         severity: "review",
-        title: "Duct/access proof missing",
+        title: "Duct/access photo missing",
         copy:
           access?.vendorReviewCopy ??
-          "Duct/access proof missing. Do not imply concealed path photo coverage.",
+          "Duct/access photo missing. Do not imply concealed path photo coverage.",
         customerCopy:
           access?.customerCopy ??
           "Duct/access coverage is recorded by service note only.",
@@ -867,10 +867,10 @@ function buildVendorSendReadinessWarnings(options: {
       buildVendorWarning({
         kind: "missing_fan_photo",
         severity: "review",
-        title: "Fan proof missing",
+        title: "Fan photo missing",
         copy:
           fan?.vendorReviewCopy ??
-          "Fan proof missing. Confirm fan work was completed, not part of this visit, or blocked.",
+          "Fan photo missing. Confirm fan work was completed, not part of this visit, or blocked.",
         customerCopy:
           fan?.customerCopy ??
           "Rooftop fan photo is not attached to this record.",
@@ -921,7 +921,7 @@ function buildVendorSendReadinessWarnings(options: {
         title: "Service label / notice photo missing",
         copy:
           label?.vendorReviewCopy ??
-          "Service label / notice proof missing. Confirm it was posted, not captured, or not part of this visit.",
+          "Service label / notice photo missing. Confirm it was posted, not captured, or not part of this visit.",
         customerCopy:
           label?.customerCopy ??
           "Service label / notice photo is not attached to this record.",
@@ -1239,7 +1239,7 @@ function buildGeneratedOutputs(options: {
     label: "Service report link",
       readiness: "ready",
       reason:
-        "Generated from the vendor-confirmed result, photo coverage, and next action.",
+        "Generated from the company-confirmed result, photo coverage, and next action.",
       copy: customerOutputCopy,
     }),
     buildGeneratedOutput({
@@ -1552,8 +1552,8 @@ function buildJobTruthPhotoEvidence(options: {
           : "saved_not_claimed",
         customerVisible: attachedToCompletedClaim,
         reason: attachedToCompletedClaim
-          ? "Vendor-confirmed slot photo is attached to this area claim."
-          : "Photo is retained in the packet without strengthening a completion claim.",
+          ? "Company-confirmed slot photo is attached to this area claim."
+          : "Photo is retained in the service record without strengthening a completion claim.",
       } satisfies Axis1JobTruthPhotoEvidence,
     ];
   });
@@ -1563,7 +1563,7 @@ function buildJobTruthPhotoEvidence(options: {
       id: `extra:${index + 1}`,
       status: "saved_not_claimed",
       customerVisible: false,
-      reason: "Extra uploaded photo is saved in the packet without being claimed.",
+      reason: "Extra uploaded photo is saved in the service record without being claimed.",
     }),
   );
 
@@ -1770,7 +1770,7 @@ export function evaluateAxis1Closeout(
       customerActionCopy:
         "Select what happened today before the tool writes a customer next action.",
       claimLimitCopy:
-        "Do not show completed, blocked, or evidence language until a result is selected.",
+        "Do not show completed, blocked, or photo-support language until a result is selected.",
     });
     const generatedOutputs = buildGeneratedOutputs({
       caseType: "needs_outcome",
@@ -1780,7 +1780,7 @@ export function evaluateAxis1Closeout(
       customerActionCopy:
         "Select what happened today before the tool writes a customer next action.",
       claimLimitCopy:
-        "Do not show completed, blocked, or evidence language until a result is selected.",
+        "Do not show completed, blocked, or photo-support language until a result is selected.",
       vendorWarnings: vendorSendReadinessWarnings,
       areaSummary,
       truthOverrides: mapJobTruthOutputReadiness(jobTruthRecord.outputReadiness),
@@ -1812,7 +1812,7 @@ export function evaluateAxis1Closeout(
       customerActionCopy:
         "Select what happened today before the tool writes a customer next action.",
       claimLimitCopy:
-        "Do not show completed, blocked, or evidence language until a result is selected.",
+        "Do not show completed, blocked, or photo-support language until a result is selected.",
       jobTruthRecord,
     });
 
@@ -1846,7 +1846,7 @@ export function evaluateAxis1Closeout(
       evidenceCopy:
         "The tool is waiting for a selected service outcome before it can describe the documentation.",
       claimLimitCopy:
-        "Do not show completed, blocked, or evidence language until a result is selected.",
+        "Do not show completed, blocked, or photo-support language until a result is selected.",
       blockingReason: "Select today's service result before generating a link or PDF.",
       warnings,
       sourceOfTruth,
@@ -2087,7 +2087,7 @@ function buildClaimLimitCopy(
       ? "Photo coverage is limited to the attached field photos and service areas shown."
       : evidenceBasis === "partial_photos"
         ? "Attached photos support part of the record; areas not photographed stay listed by service notes."
-        : "This is a written service record; photo evidence is not attached to this visit.";
+        : "This is a written service record; photos are not attached to this visit.";
 
   if (caseType === "access_exception") {
     return `${proofLimit} Inaccessible areas are listed separately and are not presented as cleaned.`;
@@ -2177,7 +2177,7 @@ function buildProofPolicyRows(
     ["Action items", result.responsibilityCopy],
     ["Record type", result.recordFormat.label],
     ["Record source", `${result.recordFormat.recordBasis}. ${result.recordFormat.reason}`],
-    ["Evidence note", result.evidenceCopy],
+    ["Photo/documentation note", result.evidenceCopy],
     ["Claim limits", result.claimLimitCopy],
     ["Action boundary", result.responsibilityCopy],
     [photoCoverageLabel, photoCoverageValue],
@@ -2265,7 +2265,7 @@ export function applyAxis1CloseoutEngineToPacket(
     serviceRecordRows: upsertRows(data.serviceRecordRows, [
       ["Record type", result.recordFormat.label],
       ["Record source", result.recordFormat.recordBasis],
-      ["Evidence note", result.evidenceCopy],
+      ["Photo/documentation note", result.evidenceCopy],
       ["Claim limits", result.claimLimitCopy],
       [photoCoverageLabel, photoCoverageValue],
       [result.coverageEducation.title, result.coverageEducation.summary],
@@ -2309,7 +2309,7 @@ export function applyAxis1CloseoutEngineToPacket(
     closeoutRows: upsertRows(data.closeoutRows, [
       ["Record type", result.recordFormat.label],
       ["Record source", result.recordFormat.recordBasis],
-      ["Evidence note", result.evidenceCopy],
+      ["Photo/documentation note", result.evidenceCopy],
       ["Claim limits", result.claimLimitCopy],
       ["Customer next action", result.customerActionCopy],
       ["Customer next step", primaryCtaLabel],

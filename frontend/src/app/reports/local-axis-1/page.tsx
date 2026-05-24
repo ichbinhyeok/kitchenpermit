@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { noIndexMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = noIndexMetadata({
-  title: "Local Axis 1 Report",
+  title: "Local Service Report",
   description: "Redirect to the browser-local customer-facing hood service report route.",
   path: "/reports/local-axis-1",
 });

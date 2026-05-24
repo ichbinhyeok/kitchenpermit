@@ -32,7 +32,7 @@ function validateStartRequest(payload: StartRequestPayload) {
   const errors: StartRequestFieldErrors = {};
 
   if (payload.companyName.length < 2) {
-    errors.companyName = "Enter the vendor or company name.";
+    errors.companyName = "Enter the company name.";
   }
 
   if (payload.contactName.length < 2) {
@@ -116,7 +116,7 @@ export function StartRequestForm() {
 
     if (firstInvalidField) {
       setFieldErrors(validationErrors);
-      setErrorMessage("Complete the highlighted fields before sending the design help request.");
+      setErrorMessage("Complete the highlighted fields before sending the setup help request.");
       window.requestAnimationFrame(() => {
         const input = formElement.elements.namedItem(firstInvalidField);
         if (input instanceof HTMLElement) {
@@ -174,7 +174,7 @@ export function StartRequestForm() {
             aria-describedby={fieldErrors.companyName ? "companyName-error" : undefined}
             onChange={() => clearFieldError("companyName")}
             className={fieldClassName("companyName")}
-            placeholder="Masked Vendor Co."
+            placeholder="ABC Hood Service"
           />
           <StartFieldError field="companyName" errors={fieldErrors} />
         </label>
@@ -207,7 +207,7 @@ export function StartRequestForm() {
             aria-describedby={fieldErrors.email ? "email-error" : undefined}
             onChange={() => clearFieldError("email")}
             className={fieldClassName("email")}
-            placeholder="ops@vendor.com"
+            placeholder="ops@example.com"
           />
           <StartFieldError field="email" errors={fieldErrors} />
         </label>
@@ -245,9 +245,9 @@ export function StartRequestForm() {
           <select
             name="productInterest"
             className={fieldClassName("productInterest")}
-            defaultValue="Design help from $249"
+            defaultValue="Setup help from $249"
           >
-            <option>Design help from $249</option>
+            <option>Setup help from $249</option>
             <option>Company version early access</option>
             <option>Pricing question</option>
           </select>
@@ -274,7 +274,7 @@ export function StartRequestForm() {
         disabled={isPending}
         className="mt-3 inline-flex items-center justify-center rounded-full border border-accent bg-accent px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-[0_18px_40px_rgba(242,106,33,0.18)] transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isPending ? "Saving request..." : "Send design help request"}
+        {isPending ? "Saving request..." : "Send setup help request"}
       </button>
     </form>
   );

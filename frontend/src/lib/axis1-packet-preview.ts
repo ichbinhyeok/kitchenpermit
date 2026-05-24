@@ -217,7 +217,7 @@ const baseProofPhotos = [
     label: "Filters",
     title: "Baffle filters reset",
     caption: "Filters, tracks, and nearby grease collection points are documented where accessible.",
-    proofRole: "Filter-line evidence",
+    proofRole: "Filter-line photo",
     tone: "after",
     position: "50% 50%",
   },
@@ -228,7 +228,7 @@ const baseProofPhotos = [
     label: "Access",
     title: "Duct access condition",
     caption: "Reachable plenum and duct access are separated from anything blocked or not serviced.",
-    proofRole: "Access-path evidence",
+    proofRole: "Access-path photo",
     tone: "issue",
     position: "50% 50%",
   },
@@ -250,7 +250,7 @@ const baseProofPhotos = [
     label: "Record",
     title: "Grease path and containment",
     caption: "Removed buildup, drip path, and containment condition are recorded instead of only claimed.",
-    proofRole: "Grease-path evidence",
+    proofRole: "Grease-path photo",
     tone: "record",
     position: "50% 50%",
   },
@@ -286,35 +286,35 @@ export function getAxis1PacketPreviewData(options: {
 
   const vendor = brandingApplied
     ? {
-        name: "Summit Hood Service Co.",
+        name: "Sample Hood Cleaning Company",
         initials: "SH",
         logoUrl: "/images/sample-hood-service-logo.svg",
         office: "Austin, TX | 24/7 dispatch",
         directLine: "(512) 555-0148",
-        dispatch: "dispatch@summit.example",
-        certification: "TX Reg #KEX-2087",
-        technician: "Miguel R. / Tech ID SH-114",
+        dispatch: "dispatch@example.com",
+        certification: "Sample service ID SH-2087",
+        technician: "Sample technician / Tech ID SH-114",
         afterHours: "(512) 555-0192",
-        reviewPrompt: "review@summit.example",
-        preparedBy: "Summit Hood Service Co. | SH-114",
+        reviewPrompt: "dispatch@example.com",
+        preparedBy: "Sample Hood Cleaning Company | SH-114",
         previewBlurb:
-          "Customer sees a same-day service report link with vendor brand, service contact, credential, and record references already in place.",
+          "Customer sees a same-day service report link with company brand, service contact, service ID, and record references already in place.",
         brandingApplied: true,
       }
     : {
-        name: "Sample Hood Service Co.",
+        name: "Sample Hood Service",
         initials: "SH",
         logoUrl: "/images/sample-hood-service-logo.svg",
         office: "Company logo, dispatch, and service contact appear here",
         directLine: "(512) 555-0148",
-        dispatch: "dispatch@samplehood.co",
-        certification: "TX service ref shown here",
+        dispatch: "dispatch@example.com",
+        certification: "Service ID shown here",
         technician: "Technician / crew ID",
         afterHours: "(512) 555-0192",
-        reviewPrompt: "service@samplehood.co",
+        reviewPrompt: "dispatch@example.com",
         preparedBy: "Technician / crew ID",
         previewBlurb:
-          "Public sample uses example company details. The company version replaces this with the vendor logo, direct line, dispatch email, certification, and technician reference.",
+          "Public sample uses example company details. The company version replaces this with the company logo, direct line, dispatch email, service ID, and technician reference.",
         brandingApplied: false,
       };
 
@@ -340,7 +340,7 @@ export function getAxis1PacketPreviewData(options: {
         ["Report ID", "HDS-SAMPLE-0414"],
       ],
       archiveNote:
-        "Customer sees the clear service report link. Full image archive, raw technician notes, and internal QA detail stay retained in the service file.",
+        "Customer sees the clear service report link. Full image archive, raw technician notes, and company QA detail stay retained in the service file.",
     },
     summaryCards: [
       {
@@ -369,7 +369,7 @@ export function getAxis1PacketPreviewData(options: {
           ? "Clear rear duct access, then reply."
           : "Confirm the next service window.",
         copy: exceptionOpen
-          ? "Move stored items away from the access panel and reply when access is clear so the vendor can confirm the revisit."
+          ? "Move stored items away from the access panel and reply when access is clear so the service company can confirm the revisit."
           : "Confirm the next scheduled service window, or ask dispatch to adjust the week while the record is fresh.",
         icon: "next",
       },
@@ -388,7 +388,7 @@ export function getAxis1PacketPreviewData(options: {
       ["Service window", "Apr 14, 2026 | 01:10-03:05"],
       ["Today's visit", "Kitchen exhaust system cleaning"],
       ["Technician", vendor.technician],
-      ["Credential", vendor.certification],
+      ["Service ID", vendor.certification],
       [
         "Today's result",
         exceptionOpen
@@ -616,7 +616,7 @@ export function getAxis1PacketPreviewData(options: {
             whyItMatters:
               "The grease-bearing section cannot be represented as cleaned until the access path is clear.",
             ownerAction:
-              "Move stored equipment away from the access panel and reply when access is clear so the vendor can confirm the revisit.",
+              "Move stored equipment away from the access panel and reply when access is clear so the service company can confirm the revisit.",
             notice:
               "Exception notice posted at close-out. This section is not shown as completed until access is available.",
             status: "Needs reply",
@@ -639,7 +639,7 @@ export function getAxis1PacketPreviewData(options: {
               "Grease escape or staining can create roof complaints even when the hood cleaning itself was completed.",
             ownerAction:
               "Approve containment review if staining grows, or keep the condition on the next-cycle watch list.",
-            notice: "Condition recorded from rooftop and grease-removal photo evidence. Follow-up work is not included in this service record.",
+            notice: "Condition recorded from rooftop and grease-removal photos. Follow-up work is not included in this service record.",
             status: "Review",
           },
         ]
@@ -715,7 +715,7 @@ export function getAxis1PacketPreviewData(options: {
         exceptionOpen ? "Accessible sections only" : "Accessible sections documented",
       ],
       ["Prepared by technician", vendor.preparedBy],
-      ["Technician credential", vendor.certification],
+      ["Technician/service ID", vendor.certification],
       ["Dispatch", vendor.dispatch],
       ["After-hours", vendor.afterHours],
       ["Follow-up contact", vendor.reviewPrompt],
@@ -723,7 +723,7 @@ export function getAxis1PacketPreviewData(options: {
       ["On-site record", "Keep this service report link with kitchen service records"],
       ["Service report link", "https://kitchenpermit.com/p/hds-sample-0414"],
       ["Delivery record", "PDF copy emailed same day"],
-      ["Record retention", "Service report link sent / full vendor archive retained"],
+      ["Record retention", "Service report link sent / full company archive retained"],
       ["Next due", "Jul 13, 2026"],
       ["Reply path", "Rebook confirmation or follow-up quote reply"],
     ],
@@ -747,8 +747,8 @@ export function getAxis1PacketPreviewData(options: {
         "Company logo/contact, full photo handling, customer-specific data, and real delivery workflow.",
       ],
       [
-        "Why vendors care",
-      "The vendor gets a customer service report that reduces explanation work and makes premium service easier to justify.",
+        "Why companies care",
+      "The company gets a customer service report that reduces explanation work and makes premium service easier to justify.",
       ],
     ],
   };

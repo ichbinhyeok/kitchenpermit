@@ -18,8 +18,8 @@ type ResourceLinkStripProps = {
 
 export function ResourceLinkStrip({
   label = "Resources",
-  title = "Useful pages before a vendor tries the builder.",
-  description = "These pages answer the search and cold-email questions around service reports, photos, customer handoffs, and after-service follow-up.",
+  title = "Free hood cleaning report resources.",
+  description = "Use these templates and examples to explain completed work, blocked access, photos, and next actions more clearly after service.",
 }: ResourceLinkStripProps) {
   const resources = featuredResourcePaths
     .map((path) => seoResourcePages.find((page) => page.path === path))

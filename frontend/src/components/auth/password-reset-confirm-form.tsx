@@ -29,12 +29,21 @@ export function PasswordResetConfirmForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
   const serverMessage = resetMessage(searchParams.get("auth"));
-  const [tokenStatus, setTokenStatus] = useState<
-    "checking" | "valid" | "invalid-token" | "expired-token"
-  >(token ? "checking" : "invalid-token");
+  const [tokenValidation, setTokenValidation] = useState<{
+    token: string;
+    status: "checking" | "valid" | "invalid-token" | "expired-token";
+  }>(() => ({
+    token,
+    status: token ? "checking" : "invalid-token",
+  }));
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [clientMessage, setClientMessage] = useState<string | null>(null);
+  const tokenStatus = token
+    ? tokenValidation.token === token
+      ? tokenValidation.status
+      : "checking"
+    : "invalid-token";
   const tokenMessage =
     tokenStatus === "checking"
       ? "Checking this reset link before accepting a new password."
@@ -46,12 +55,10 @@ export function PasswordResetConfirmForm() {
 
   useEffect(() => {
     if (!token) {
-      setTokenStatus("invalid-token");
       return;
     }
 
     let cancelled = false;
-    setTokenStatus("checking");
 
     fetch(`/auth/password-reset/validate?token=${encodeURIComponent(token)}`, {
       credentials: "include",
@@ -66,17 +73,21 @@ export function PasswordResetConfirmForm() {
         }
 
         if (data?.valid) {
-          setTokenStatus("valid");
+          setTokenValidation({ token, status: "valid" });
           return;
         }
 
-        setTokenStatus(
-          data?.status === "expired-token" ? "expired-token" : "invalid-token",
-        );
+        setTokenValidation({
+          token,
+          status:
+            data?.status === "expired-token"
+              ? "expired-token"
+              : "invalid-token",
+        });
       })
       .catch(() => {
         if (!cancelled) {
-          setTokenStatus("valid");
+          setTokenValidation({ token, status: "valid" });
         }
       });
 

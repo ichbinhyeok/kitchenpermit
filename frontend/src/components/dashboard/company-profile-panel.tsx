@@ -378,7 +378,7 @@ export function CompanyProfilePanel() {
     ["Company", saved.companyName],
     ["Contact", `${saved.directLine} / ${saved.dispatchEmail}`],
     ["Report color", saved.brandColor || defaultAxis1CompanyProfile.brandColor],
-    ["Credential", saved.certification],
+    ["Service ID / license line", saved.certification],
   ] as const;
   const profileLocked = storageState === "locked";
   const profileReadOnly = profileLocked || storageState === "loading";
@@ -444,7 +444,7 @@ export function CompanyProfilePanel() {
               {profileLocked
                 ? "Saved logo, report color, phone, and reply email unlock with the company version."
                 : profileNeedsReview
-                  ? "Set the company name, phone, service area, logo or initials, and report color before sending paid records."
+                  ? "Set the company name, phone, service area, logo or initials, and report color before sending branded records."
                   : `${saved.directLine} / ${saved.dispatchEmail} / ${saved.serviceArea}`}
             </p>
             {!profileLocked ? (
@@ -497,13 +497,13 @@ export function CompanyProfilePanel() {
           <p className="mt-1 text-sm font-semibold leading-6 text-[#6f665e]">
             Free and logged-in trial accounts can test the builder, but saved
             logo, report color, phone, and reply email only sync after
-            subscription access is active.
+            company access is active.
           </p>
           <a
-            href="/company-version"
+            href="/company-version?pilot=1"
             className="mt-4 inline-flex min-h-10 items-center justify-center bg-[#111315] px-4 text-[11px] font-black uppercase text-white transition hover:bg-[#26211d]"
           >
-            Start company version
+            Request company pilot
           </a>
         </div>
       ) : null}

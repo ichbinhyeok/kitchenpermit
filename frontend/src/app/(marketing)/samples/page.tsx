@@ -18,15 +18,15 @@ const samples = [
     label: "Customer Service Report Sample",
     title: "Hood closeout service report preview",
     description:
-      "A free public sample vendors can use in cold email, follow-up, and search to show what the restaurant receives after service.",
+      "A public sample that shows what the restaurant receives after service.",
     visible: [
       "Service summary, work scope, and next-step structure",
-      "Photo evidence rhythm and customer-facing language",
+      "Photo organization and customer-facing language",
       "How inaccessible or partial work is surfaced",
     ],
     hidden: [
       "Company-specific logo/contact and clean delivery export",
-      "Raw internal note layer and unfiltered media set",
+      "Technician-only notes and unfiltered media set",
     ],
   },
 ] as const;
@@ -37,7 +37,7 @@ export default function SamplesPage() {
       <PageHeader
         label="SAMPLES // SERVICE REPORT"
         title="Preview the customer service report."
-        description="The public sample should prove the product without asking a vendor to imagine it: service result, blocked access, photo evidence, PDF posture, and next action in one customer-readable record."
+        description="The public sample shows the service result, blocked access, photos, PDF copy, and next action in one customer-readable record."
       />
       <section className="container-shell grid gap-6 pb-10 md:grid-cols-[minmax(0,1fr)_minmax(280px,0.42fr)]">
         {samples.map((sample) => (
@@ -98,14 +98,14 @@ export default function SamplesPage() {
             The first launch is focused on the service report.
           </h2>
           <p className="mt-4 text-sm leading-7 text-muted-foreground">
-            Future samples can cover other vendor workflows. For now, the public sample
+            Future samples can cover other company workflows. For now, the public sample
             path should lead with the finished customer service report restaurants can save.
           </p>
         </Panel>
       </section>
       <ResourceLinkStrip
         label="Sample follow-up links"
-        title="Give vendors a page for the exact question they ask next."
+        title="Give companies a page for the exact question they ask next."
         description="After the sample, link them to the template, restaurant-report, photo-report, or after-service handoff page instead of repeating the whole pitch."
       />
       <section className="container-shell pb-20">
@@ -115,15 +115,15 @@ export default function SamplesPage() {
               Sample rules
             </p>
             <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] text-foreground">
-              The sample should prove product quality, not internal product mechanics.
+              The sample should prove product quality while keeping back-office mechanics out of view.
             </h2>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {[
               "The service report sample proves readability, findings clarity, and rebook posture.",
-              "This sample link is free and public on purpose. It should work in cold email and in SEO.",
+              "This sample link is free and public so prospects can inspect the restaurant-facing report.",
               "HTML and PDF previews are fine, but the public sample should not pretend every company detail is already configured.",
-              "A vendor should leave the page thinking the artifact is credible, not that the data was handed away.",
+              "A company owner or office manager should leave the page understanding the report artifact.",
             ].map((rule) => (
               <div key={rule} className="border border-border bg-white px-4 py-4 text-sm leading-7 text-muted-foreground">
                 {rule}

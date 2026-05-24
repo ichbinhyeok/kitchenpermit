@@ -460,7 +460,7 @@ function ContactStrip({ data }: { data: Axis1PacketPreviewData }) {
   const rows = ([
     ["Direct line", data.vendor.directLine],
     ["Dispatch", data.vendor.dispatch],
-    ["Credential", data.vendor.certification],
+    ["Service ID", data.vendor.certification],
     ["After-hours", data.vendor.afterHours],
   ] as const).filter(([, value]) => value.trim().length > 0);
 
@@ -752,7 +752,7 @@ function ServiceEvidenceRecord({
         >
           <SectionKicker>Service scope and status</SectionKicker>
           <h3 className="mt-3 font-display text-[1.55rem] font-bold leading-[0.96] tracking-[-0.055em] text-[#151515]">
-            Completed areas, exclusions, and evidence stay separated.
+            Completed areas, exclusions, and documentation stay separated.
           </h3>
           <div className="mt-5">
             <DenseLedger rows={serviceBoundaryRows.map(([label, value]) => [transform(label), transform(value)] as const)} />
@@ -774,7 +774,7 @@ function ServiceEvidenceRecord({
             {hasCompanyCredential ? (
               <div>
                 <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8b8178]">
-                  Company credential
+                  Company service ID
                 </p>
                 <p className="mt-2 text-sm font-semibold leading-6 text-[#151515]">
                   {recordedValue(data.vendor.certification)}
@@ -887,7 +887,7 @@ function ServiceEvidenceControls({
   const requiredFormatRows = [
     ["Identity", "Provider, worker, customer, location, system, date, report ID"],
     ["Areas", "Hood, filters, duct/access, fan, grease path, excluded areas"],
-    ["Evidence", "Photo status, component status, label ref, retained archive"],
+    ["Documentation", "Photo status, component status, label ref, retained archive"],
     ["Boundary", "Separate from corrective work and outside reviewer requirements"],
   ] as const;
 
@@ -976,12 +976,12 @@ function OutputRoleBlock({
       ? "Send this link when the customer needs the result and next step."
       : "Send this link when the customer needs to understand the visit.";
   const copy = serviceRecord
-    ? `This ${recordName} summarizes the service date, work areas, photo evidence, inaccessible or not-serviced areas, findings, and next recommended service window for customer files, manager review, insurance, landlord, or documentation requests.`
+    ? `This ${recordName} summarizes the service date, work areas, photos, inaccessible or not-serviced areas, findings, and next recommended service window for customer files, manager review, insurance, landlord, or documentation requests.`
     : customerFacing
       ? "This link shows completed work, action items, attached photos, and next action. Use the PDF copy for retained records or outside documentation requests."
       : `This ${recordName} shows what was cleaned, what stayed open, what the attached photos show, and what the customer should do next without waiting for another explanation call.`;
   const chips = serviceRecord
-    ? ["Service record cover", "Report sheet fields", "Photo evidence appendix"]
+    ? ["Service record cover", "Report sheet fields", "Photo appendix"]
     : customerFacing
       ? ["Completed work", "Action item visible", "PDF copy separate"]
       : ["Readable in one pass", "Action item visible", "Reply path included"];
@@ -1356,7 +1356,7 @@ function CustomerKeyProofPhotos({
           </h3>
         </div>
         <p className="max-w-md text-sm leading-6 text-[#746b62]">
-          Full photo evidence is still listed below. These are the photos a customer
+          The full photo set is still listed below. These are the photos a customer
           should understand first.
         </p>
       </div>
@@ -1723,15 +1723,15 @@ export function Axis1PacketDocument({
     : "The usual service checklist becomes a clean customer record.";
   const componentStatusCopy = isCustomerReport
     ? "Use this list to see which parts of the exhaust system were cleaned, documented, or left for follow-up."
-    : "This is the premium-company layer: component status, evidence reference, and customer-readable notes in one place.";
+    : "This is the premium-company layer: component status, documentation reference, and customer-readable notes in one place.";
   const photoCoverageTitle = isServiceRecord
-    ? "Photo evidence attached."
+    ? "Photos attached."
     : isCustomerReport
       ? "Photos attached."
       : "Photos, label, and archive are accounted for.";
   const photoEvidenceTitle = isCustomerReport
     ? "Attached photos stay tied to the record."
-    : "Photos are evidence, not a dump.";
+    : "Photos are grouped by area, not dumped into the report.";
   const serviceRecordProofPhotos = [
     data.proofPhotos.find((photo) => photo.tone === "before"),
     data.proofPhotos.find((photo) => photo.tone === "after"),
@@ -1796,7 +1796,7 @@ export function Axis1PacketDocument({
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-[#746b62]">
                   {data.vendor.brandingApplied || isCustomerReport
                     ? data.vendor.office
-                    : "Public sample shell. Brand, dispatch, and certification appear in the company version."}
+                    : "Public sample shell. Brand, dispatch, and company contact appear in the company version."}
                 </p>
               </div>
             </div>
@@ -1971,7 +1971,7 @@ export function Axis1PacketDocument({
             <div className="min-w-0">
               {showPhotoCoverage ? (
                 <>
-                  <SectionKicker>{isServiceRecord ? "Photo evidence" : isCustomerReport ? "Photos attached" : "Photo coverage"}</SectionKicker>
+                  <SectionKicker>{isServiceRecord ? "Photos" : isCustomerReport ? "Photos attached" : "Photo coverage"}</SectionKicker>
                   <h3 className="mt-3 font-display text-[1.72rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[2rem]">
                     {photoCoverageTitle}
                   </h3>
@@ -2034,7 +2034,7 @@ export function Axis1PacketDocument({
 
           {showPhotoEvidence ? (
             <div className="min-w-0">
-              <SectionKicker>Photo evidence</SectionKicker>
+              <SectionKicker>Photos</SectionKicker>
               <h3 className="mt-3 font-display text-[1.72rem] font-bold leading-[0.95] tracking-[-0.055em] sm:text-[2rem]">
                 {photoEvidenceTitle}
               </h3>

@@ -18,17 +18,16 @@ export const metadata: Metadata = publicPageMetadata({
 });
 
 const storedItems = [
-  ["Company identity", "Company name, logo, report color, service area, and customer-facing contact."],
-  ["Reply path", "Phone, dispatch email, and the action buttons customers use after service."],
-  ["Retained delivery", "Paid service report links and PDF copies stay available after creation."],
-  ["Customer history", "Saved restaurant/site records, next-service timing, and resend-ready customer messages."],
+  ["Company logo and report color", "Company name, logo, report color, service area, and customer-facing contact."],
+  ["Customer-facing contact info", "Phone, dispatch email, and the action buttons customers use after service."],
+  ["Clean PDF without free watermark", "Branded PDF copies stay available with the service record."],
+  ["Saved service records", "Saved restaurant/site records, next-service timing, customer history, and resend-ready messages."],
 ] as const;
 
 const flowItems = [
-  ["1. Save company profile", "Logo, report color, and contact details become the default."],
-  ["2. Declare each job result", "Tell Axis 1 what happened, add photos only if the crew captured them, and confirm the next action."],
-  ["3. Send branded output", "The restaurant receives a clean link and PDF under the vendor name."],
-  ["4. Work the account history", "Account history shows repeat customers, next service timing, and the message to send."],
+  ["1. Create or sign in to your account", "Use your account to request launch pilot access and manage company details."],
+  ["2. Request 30-day company access", "During launch, eligible company accounts can request company access with no card required."],
+  ["3. Add company details and send branded reports", "The restaurant receives a clean report link and PDF under your company name."],
 ] as const;
 
 function CtaLink({
@@ -71,23 +70,22 @@ export default function CompanyVersionPage() {
               Company version // {AXIS1_COMPANY_MONTHLY_PRICE}
             </p>
             <h1 className="mt-5 max-w-[12ch] font-display text-[clamp(3.2rem,10vw,7.2rem)] font-bold leading-[0.86] tracking-[-0.085em]">
-              Save your company info once. Send every report under your name.
+              Send reports under your company name.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/68 md:text-xl md:leading-9">
-              The paid path for saved company details, clean inspection PDFs,
-              retained service report links, customer history, and next-service
-              follow-up for hood cleaning companies that want the report to
-              carry their name.
+              The free builder is for testing. The company version adds your
+              logo, customer-facing contact, clean PDFs, retained report links,
+              report history, and follow-up reminders.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <PaddleCheckoutButton
                 activeChildren="Set up company branding"
                 className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.26)] hover:bg-[#dd5b17]"
               >
-                Request 30-day pilot access
+                Request 30-day pilot
               </PaddleCheckoutButton>
               <CtaLink href="/axis-1/tool?account=free" tone="light">
-                Try free builder
+                Build a free test report
               </CtaLink>
               <CtaLink href="/dashboard" tone="light">
                 View account
@@ -100,9 +98,9 @@ export default function CompanyVersionPage() {
               </CtaLink>
             </div>
             <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-white/54">
-              During launch, verified account emails can request 30 days of
-              company access with no card. We review the account and email when
-              the company version is enabled.
+              During launch, eligible company accounts can request 30 days of
+              company access with no card required. Paid billing starts only
+              after a paid subscription is activated.
             </p>
           </div>
 
@@ -128,10 +126,10 @@ export default function CompanyVersionPage() {
         <Reveal className="mx-auto grid w-[min(1180px,100%)] gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-[#75695f]">
-              Builder vs company version
+              Launch pilot
             </p>
             <h2 className="mt-4 max-w-3xl font-display text-[clamp(2.8rem,8vw,5.8rem)] font-bold leading-[0.9] tracking-[-0.078em]">
-              The free builder makes one report. The company version makes it usable.
+              Three steps from test report to branded company reports.
             </h2>
           </div>
           <div className="grid gap-0 border-y border-black/12">
@@ -163,18 +161,18 @@ export default function CompanyVersionPage() {
                 Free output is intentionally limited: no company logo/contact,
                 7-day links, watermarked PDFs, and no history. The company
                 version removes those limits and turns saved reports into a
-                simple follow-up workspace. During launch, pilot access starts
-                with a verified account email instead of a card charge.
+                simple follow-up workspace. No card is required for the launch
+                pilot.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <PaddleCheckoutButton
                   activeChildren="Set up company branding"
                   className="bg-[#f26a21] text-white shadow-[0_18px_48px_rgba(242,106,33,0.22)] hover:bg-[#dd5b17]"
                 >
-                  Request 30-day pilot access
+                  Request 30-day pilot
                 </PaddleCheckoutButton>
                 <CtaLink href="/axis-1/tool?step=outputs&account=company" tone="light">
-                  Preview company mode
+                  Preview company version
                 </CtaLink>
               </div>
             </div>
@@ -186,11 +184,12 @@ export default function CompanyVersionPage() {
                 {[
                   "Saved company profile",
                   "Logo upload and report color",
-                  "No PDF watermark",
-                  "Retained service report links and PDF copies",
-                  "Customer/site history",
-                  "Next-service follow-up view",
-                  "Customer-ready send message",
+                  "Customer-facing contact info",
+                  "Clean PDF without free watermark",
+                  "Retained report links",
+                  "Saved service records",
+                  "Customer history",
+                  "Next-service follow-up reminders",
                   `Optional design help from ${AXIS1_DESIGN_HELP_STARTING_PRICE}`,
                 ].map((item) => (
                   <p key={item} className="py-4 text-lg font-black tracking-[-0.045em]">

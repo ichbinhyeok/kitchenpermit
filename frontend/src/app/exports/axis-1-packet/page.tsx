@@ -23,7 +23,7 @@ const brandingOptions: ReadonlyArray<{
   {
     value: "applied",
     label: "Company info shown",
-    description: "Vendor logo, contacts, and technician ref are visible.",
+    description: "Company logo, contacts, and technician ref are visible.",
   },
   {
     value: "neutral",
@@ -107,8 +107,8 @@ function buildPreviewData(options: {
         return [label, "Technician / crew ID"] as [string, string];
       }
 
-      if (label === "Credential" || label === "Technician credential") {
-        return [label, "Credential appears after setup"] as [string, string];
+      if (label === "Credential" || label === "Technician credential" || label === "Service ID") {
+        return [label, "Service ID appears after setup"] as [string, string];
       }
 
       if (
@@ -123,9 +123,9 @@ function buildPreviewData(options: {
       return [
         label,
         value
-          .replaceAll("Summit Hood Service Co. | SH-114", "Technician / crew ID")
-          .replaceAll("Summit Hood Service Co.", "Sample Hood Service Co.")
-          .replaceAll("dispatch@summit.example", "dispatch@samplehood.co")
+          .replaceAll("Sample Hood Cleaning Company | SH-114", "Technician / crew ID")
+          .replaceAll("Sample Hood Cleaning Company", "Sample Hood Service")
+          .replaceAll("dispatch@example.com", "dispatch@example.com")
           .replaceAll("(512) 555-0148", "(512) 555-0148"),
       ] as [string, string];
     });
@@ -139,7 +139,7 @@ function buildPreviewData(options: {
     branding: "neutral" as const,
     vendor: {
       ...data.vendor,
-      name: "Sample Hood Service Co.",
+      name: "Sample Hood Service",
       initials: "SH",
       office: "Company logo, dispatch, and service contact appear here",
       directLine: "",
@@ -150,7 +150,7 @@ function buildPreviewData(options: {
       reviewPrompt: "",
       preparedBy: "Technician / crew ID",
       previewBlurb:
-        "Public sample uses example company details. Company version replaces this with the vendor logo, direct line, dispatch email, credential, and technician reference.",
+        "Public sample uses example company details. Company version replaces this with the company logo, direct line, dispatch email, service ID, and technician reference.",
       brandingApplied: false,
     },
     serviceRecordRows: maskRows(data.serviceRecordRows),
@@ -221,7 +221,7 @@ function Axis1PacketPdfPreviewContent({
                         Document state
                       </p>
                       <h2 className="mt-3 font-display text-[1.26rem] font-bold leading-[0.95] tracking-[-0.05em] text-foreground">
-              Review the service report link and PDF copy vendors care about.
+              Review the service report link and PDF copy companies care about.
                       </h2>
                     </div>
                     <div className="max-w-[260px] rounded-[14px] border border-black/10 bg-[rgba(17,17,17,0.02)] px-3 py-2.5">
@@ -301,13 +301,13 @@ function Axis1PacketPdfPreviewContent({
                       prefetch={false}
                       className="inline-flex w-full items-center justify-center rounded-full border border-black/10 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:w-auto"
                     >
-                      Open SEO Sample
+                      Open sample report
                     </Link>
                   </div>
 
                   <div className="rounded-[18px] border border-black/10 bg-[rgba(17,17,17,0.03)] px-4 py-3">
                     <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                        Why this works in cold email
+                        Why this works for customer handoff
                       </p>
                       <p className="mt-2 text-sm leading-5.5 text-foreground">
                         {data.vendor.previewBlurb} The first click should answer one
