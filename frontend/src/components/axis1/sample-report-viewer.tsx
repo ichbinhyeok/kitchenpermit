@@ -207,10 +207,10 @@ function EditedArtifactHero({
             </div>
             <div className="rounded-[20px] border border-white/12 bg-white/[0.055] px-4 py-3">
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#ffb27c]">
-                Inspection PDF
+                Service PDF
               </p>
               <p className="mt-2 text-sm font-bold leading-5 text-white/72">
-                Saves a copy with inspection records.
+                Saves a copy with service records.
               </p>
             </div>
           </div>
@@ -277,7 +277,7 @@ function EditedArtifactHero({
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04),rgba(0,0,0,0.64))]" />
                 <div className="absolute inset-x-0 bottom-0 p-5">
                   <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-[#ffb27c]">
-                    Photo evidence
+                    Field photos
                   </p>
                   <h3 className="mt-2 text-2xl font-black leading-[0.95] tracking-[-0.05em] text-white">
                     Photos support the record.
@@ -290,15 +290,15 @@ function EditedArtifactHero({
           <div className="absolute bottom-[2%] right-[1%] w-[56%] rotate-[-5deg] rounded-[28px] border border-black/10 bg-white p-4 text-[#111315] shadow-[0_32px_100px_rgba(0,0,0,0.38)]">
             <div className="flex items-center justify-between border-b border-black/10 pb-3">
               <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#c8581e]">
-                Inspection copy
+                Customer record copy
               </p>
               <FileText className="h-4 w-4 text-[#c8581e]" />
             </div>
             <h3 className="mt-4 text-2xl font-black leading-[0.92] tracking-[-0.06em]">
-              Inspection-ready PDF.
+              Service record PDF.
             </h3>
             <div className="mt-4 space-y-2">
-              {["Service date", "Customer action", "Photo evidence"].map((label) => (
+              {["Service date", "Customer action", "Photos"].map((label) => (
                 <div key={label} className="grid grid-cols-[0.48fr_0.52fr] gap-2 border-t border-black/10 pt-2 text-[10px]">
                   <span className="font-semibold text-[#75695f]">{label}</span>
                   <span className="font-black text-[#111315]">Included</span>
@@ -306,7 +306,7 @@ function EditedArtifactHero({
               ))}
             </div>
             <p className="mt-4 rounded-full bg-[#fff2e8] px-3 py-2 text-[11px] font-black text-[#a8461d]">
-              File it with inspection records.
+              Save it with service records.
             </p>
           </div>
         </div>
@@ -324,7 +324,7 @@ function ViewerChrome({
 }) {
   const displayUrl =
     mode === "pdf"
-      ? "kitchenpermit.com/p/summit/inspection-record.pdf"
+      ? "kitchenpermit.com/p/summit/service-record.pdf"
       : "kitchenpermit.com/p/summit/restaurant-view";
 
   return (
@@ -352,7 +352,7 @@ function ViewerChrome({
           Restaurant view
         </ViewerButton>
         <ViewerButton active={mode === "pdf"} onClick={() => onModeChange("pdf")}>
-          Inspection PDF
+          Service PDF
         </ViewerButton>
       </div>
     </div>
@@ -367,7 +367,7 @@ function PdfPreview({ data }: { data: Axis1PacketPreviewData }) {
           <div className="flex min-w-0 items-center gap-2">
             <FileText className="h-4 w-4 shrink-0 text-[#c8581e]" />
             <p className="truncate font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-[#665c53]">
-              Saved inspection copy
+              Saved service record
             </p>
           </div>
           <p className="hidden text-[11px] font-semibold text-[#665c53]/72 sm:block">
@@ -382,7 +382,7 @@ function PdfPreview({ data }: { data: Axis1PacketPreviewData }) {
           />
         </div>
         <p className="px-2 pt-3 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-[#7d7166]">
-          Formatted for manager files, inspection folders, and documentation requests
+          Formatted for manager files, service folders, and documentation requests
         </p>
       </div>
     </div>

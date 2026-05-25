@@ -336,7 +336,7 @@ function proofSummaryForSlots(
 function removeStaticPhotoProofCopy(note: string) {
   return note
     .replace(" Linked to field photos P-01 / P-02.", "")
-    .replace(" Photo evidence is tied to P-01 and P-02.", "")
+    .replace(" Photos are tied to P-01 and P-02.", "")
     .replace(" Proof is tied to P-01 and P-02.", "")
     .replace("Before and after photos attached to HD-01.", "Work recorded for this section.")
     .trim();

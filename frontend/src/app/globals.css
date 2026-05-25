@@ -506,7 +506,7 @@ body:has(.axis-tool-route) .site-footer {
 
 .axis-tool-route .axis-proof-actionbar {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) repeat(3, minmax(0, 0.82fr));
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 1.05fr) repeat(2, minmax(0, 0.78fr));
   gap: 0.6rem;
   margin-top: 1rem;
 }
@@ -554,6 +554,11 @@ body:has(.axis-tool-route) .site-footer {
     linear-gradient(135deg, rgba(242, 106, 33, 0.95), rgba(201, 73, 19, 0.9)),
     #f26a21;
   box-shadow: 0 16px 34px rgba(242, 106, 33, 0.22);
+}
+
+.axis-tool-route .axis-proof-action-secondary-main {
+  border-color: rgba(255, 180, 137, 0.26);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .axis-tool-route .axis-proof-action-muted {

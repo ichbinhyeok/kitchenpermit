@@ -372,7 +372,7 @@ const exceptionDefinitions: Record<Axis1BuilderExceptionKind, ExceptionDefinitio
     ownerAction:
       "Reply if you want a follow-up quote for the rooftop condition before the next cycle.",
     notice:
-      "Recorded from rooftop photo evidence. Follow-up work is not included in this cleaning closeout.",
+      "Recorded from rooftop photos. Follow-up work is not included in this cleaning closeout.",
     status: "Action",
     affectsAccess: false,
     location: "RF-01 Rooftop fan area",
@@ -389,7 +389,7 @@ const exceptionDefinitions: Record<Axis1BuilderExceptionKind, ExceptionDefinitio
     ownerAction:
       "Reply if you want a follow-up quote for the recorded belt or pulley condition.",
     notice:
-      "Recorded from rooftop photo evidence. Follow-up work is not included in this cleaning closeout.",
+      "Recorded from rooftop photos. Follow-up work is not included in this cleaning closeout.",
     status: "Action",
     affectsAccess: false,
     location: "RF-01 Rooftop fan area",
@@ -423,7 +423,7 @@ const exceptionDefinitions: Record<Axis1BuilderExceptionKind, ExceptionDefinitio
     ownerAction:
       "Reply if you want the containment condition reviewed for a follow-up quote.",
     notice:
-      "Condition was recorded as part of service evidence; follow-up work is not included today.",
+      "Condition was recorded as part of the service record; follow-up work is not included today.",
     status: "Action",
     affectsAccess: false,
     location: "GC-01 Grease containment",
@@ -976,7 +976,7 @@ export function buildAxis1NeutralPacketData(
         code: "HD-01",
         title: "Hood canopy",
         status: "Completed",
-        note: `${completedWorkLines[0]} Photo evidence is tied to P-01 and P-02.`,
+        note: `${completedWorkLines[0]} Photos are tied to P-01 and P-02.`,
       },
       {
         code: "FL-01",
@@ -1270,14 +1270,14 @@ export function buildAxis1FreeSharedPacketData(
       proof: "Service record",
       note: row.note
         .replace(" Linked to field photos P-01 / P-02.", "")
-        .replace(" Photo evidence is tied to P-01 and P-02.", "")
+        .replace(" Photos are tied to P-01 and P-02.", "")
         .replace(" Proof is tied to P-01 and P-02.", "")
         .replace("Before and after proof attached to HD-01.", "Work recorded for this section."),
     })),
     routeSegments: data.routeSegments.map((segment) => ({
       ...segment,
       note: segment.note
-        .replace(" Photo evidence is tied to P-01 and P-02.", " Work recorded for this section.")
+        .replace(" Photos are tied to P-01 and P-02.", " Work recorded for this section.")
         .replace(" Proof is tied to P-01 and P-02.", " Work recorded for this section.")
         .replace(" Exception remains tied to proof P-04.", " Exception remains tied to this service record."),
     })),
@@ -1291,7 +1291,7 @@ export function buildAxis1FreeSharedPacketData(
       status,
       note
         .replace(" Linked to field photos P-01 / P-02.", "")
-        .replace(" Photo evidence is tied to P-01 and P-02.", "")
+        .replace(" Photos are tied to P-01 and P-02.", "")
         .replace(" Proof is tied to P-01 and P-02.", ""),
     ] as const),
     closeoutRows: [

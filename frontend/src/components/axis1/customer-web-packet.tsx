@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import Image from "next/image";
 import {
@@ -503,6 +504,10 @@ function getLocalEvidencePdfHref() {
 
   currentUrl.searchParams.set("format", "pdf");
   return `${currentUrl.pathname}${currentUrl.search}`;
+}
+
+function subscribeLocalEvidencePdfHref() {
+  return () => {};
 }
 
 function PublicSampleBanner() {
@@ -2112,20 +2117,21 @@ export function CustomerWebPacket({
   const openItems = data.componentStatusRows.filter((row) => isPrimaryOpenStatus(row.status));
   const primaryOpenItem =
     data.deficiencyRows.find((row) => isOpenStatus(row.status)) ?? data.deficiencyRows[0];
+  const accessScopeNote = data.scopeRows.find(([area, status]) =>
+    /access|duct/i.test(`${area} ${status}`) &&
+    (isPrimaryOpenStatus(status) || isOpenStatus(status)),
+  )?.[2];
   const nextServiceWindow =
     findActionValue(data.customerClose.actionItems, [/next routine service/i, /next visit window/i]) ??
     getRowValue(data.frequencyRows, ["Next service window"]) ??
     "Next window recorded";
   const hasOpenAccessItem =
-    isBlockedAccessOutcome && openItems.length > 0 && Boolean(primaryOpenItem);
+    isBlockedAccessOutcome &&
+    Boolean(primaryOpenItem || accessScopeNote || openItems.length > 0);
   const previewResultEditValue = editConfig?.fields?.result?.value.trim() ?? "";
   const previewOpenItemEditValue = editConfig?.fields?.openItem?.value.trim() ?? "";
   const previewActionEditValue = editConfig?.fields?.action?.value.trim() ?? "";
   const previewRecordNoteEditValue = editConfig?.fields?.recordNote?.value.trim() ?? "";
-  const accessScopeNote = data.scopeRows.find(([area, status]) =>
-    /access|duct/i.test(`${area} ${status}`) &&
-    (isPrimaryOpenStatus(status) || isOpenStatus(status)),
-  )?.[2];
   const conditionScopeNote = data.scopeRows.find(([area, status, note]) =>
     /fan|rooftop|containment|condition/i.test(`${area} ${status} ${note}`) &&
     note.trim().length > 0 &&
@@ -2214,8 +2220,9 @@ export function CustomerWebPacket({
   );
   const customerNextStep = customerActionCopy;
   const mobileCustomerNextStep = customerActionCopy;
-  const actionAreaHeadline = `${openItems.length} area${openItems.length > 1 ? "s" : ""} ${
-    openItems.length > 1 ? "need" : "needs"
+  const openAccessAreaCount = Math.max(openItems.length, isBlockedAccessOutcome ? 1 : 0);
+  const actionAreaHeadline = `${openAccessAreaCount} area${openAccessAreaCount > 1 ? "s" : ""} ${
+    openAccessAreaCount > 1 ? "need" : "needs"
   } your action`;
   const conditionHeadline = `${Math.max(openItems.length, 1)} condition recorded`;
   const serviceOutcomeLabel =
@@ -2267,7 +2274,12 @@ export function CustomerWebPacket({
     ? "Service result"
     : `${shortDate(serviceDate)} service result`;
   const downloadPdfCta = data.closeout?.ctas.find((cta) => cta.kind === "download_pdf");
-  const pdfServiceRecordHref = downloadPdfCta?.href ?? getLocalEvidencePdfHref();
+  const localEvidencePdfHref = useSyncExternalStore(
+    subscribeLocalEvidencePdfHref,
+    getLocalEvidencePdfHref,
+    () => null,
+  );
+  const pdfServiceRecordHref = downloadPdfCta?.href ?? localEvidencePdfHref;
   const keyPhotoIds = [issuePhoto, beforePhoto, afterPhoto]
     .filter(Boolean)
     .map((photo) => photo?.proofId);

@@ -824,7 +824,7 @@ function buildScopeLedger(options: {
           : "This area needs a company status before the customer sees it."
         : status === "done-no-photo"
           ? suggestedCount > 0
-            ? "Assumed complete from the standard closeout. AI saved possible photo evidence, but customer copy will not claim it unless attached."
+            ? "Assumed complete from the standard closeout. AI suggested possible photos, but customer copy will not claim them unless attached."
             : "Assumed complete from the standard closeout; no field photo is attached for this area."
           : status === "could-not-access"
             ? "This area will be written as blocked or inaccessible, not as completed."
@@ -902,7 +902,7 @@ const scopeOutputMeta: Record<
     coveredCopy:
       "Hood body, baffle filters, tracks, and nearby grease collection points were included in this visit.",
     recordedCopy:
-      "Hood and filter condition stay visible in the record without implying missing photo proof.",
+      "Hood and filter condition stay visible in the record without implying missing photos.",
   },
   "duct-access": {
     code: "PL/DK",
@@ -1148,6 +1148,22 @@ function conditionScopeAreaForKinds(
   }
 
   return "service-label";
+}
+
+function accessScopeAreaForKinds(
+  kinds: readonly Axis1BuilderExceptionKind[],
+): ScopeAreaId {
+  if (
+    kinds.some((kind) =>
+      ["blocked-storage", "sealed-panel", "panel-signage", "unsafe-access", "not-cleaned"].includes(
+        kind,
+      ),
+    )
+  ) {
+    return "duct-access";
+  }
+
+  return "duct-access";
 }
 
 type QuickCloseoutNoteSignal = {
@@ -2129,24 +2145,24 @@ function PhotoPlacementReview({
 const builderSteps = [
   {
     value: "photos",
-    label: "Declare job",
-    navLabel: "Declare",
+    label: "Choose result",
+    navLabel: "Result",
     title: "Pick the result first.",
     copy: "Select a service result before adding photos and notes.",
   },
   {
     value: "review",
-    label: "Package report",
-    navLabel: "Package",
-    title: "Package the customer service record.",
+    label: "Check details",
+    navLabel: "Details",
+    title: "Check the customer wording.",
     copy: "Check the restaurant name, service date, open item, next action, and next service window.",
   },
   {
     value: "outputs",
-    label: "Send report",
-    navLabel: "Send",
-    title: "Send the customer link or save the PDF.",
-    copy: "Copy the customer text, email body, link, or PDF from the same service record.",
+    label: "Link / PDF",
+    navLabel: "Output",
+    title: "Copy the link or save the PDF.",
+    copy: "Use the customer link and PDF first. Text and email copy stay available from the same record.",
   },
 ] as const satisfies ReadonlyArray<{
   value: BuilderStep;
@@ -3286,6 +3302,21 @@ export function PacketBuilder({
   if (
     hasJobOutcomeSelected &&
     values.scenario === "exception" &&
+    selectedAccessCount > 0
+  ) {
+    const accessArea = accessScopeAreaForKinds(values.exceptionKinds);
+    const accessStatus: ScopeStatus = values.exceptionKinds.includes("not-cleaned")
+      ? "not-done"
+      : "could-not-access";
+
+    if (!inferredScopeOverrides[accessArea]) {
+      inferredScopeOverrides[accessArea] = accessStatus;
+    }
+  }
+
+  if (
+    hasJobOutcomeSelected &&
+    values.scenario === "exception" &&
     selectedConditionCount > 0
   ) {
     const conditionArea = conditionScopeAreaForKinds(values.exceptionKinds);
@@ -3484,7 +3515,7 @@ export function PacketBuilder({
       : sendReadinessBlockers.length > 0
       ? {
           tone: "review",
-          title: "Confirm before outputs",
+          title: "Review before sending",
           copy: sendReadinessBlockers[0] ?? "Review the remaining assumption.",
         }
       : reportNeedsPhotoReview
@@ -3630,7 +3661,7 @@ export function PacketBuilder({
             ? "Clean service report PDF from this job"
             : "Watermarked service report PDF from this job",
           copy: isCompanyPlan
-            ? "Company mode removes the free watermark for the retained customer and inspection copy."
+            ? "Company mode removes the free watermark for the retained customer record copy."
             : "Free mode keeps a visible watermark so companies can evaluate the output before using it under their company name.",
           badge: productPolicy.outputLabel,
         };
@@ -3806,6 +3837,8 @@ export function PacketBuilder({
   const generatedOutputReviewCount = closeoutEngine.generatedOutputs.filter(
     (output) => output.readiness === "needs_review",
   ).length;
+  const outputConsoleNeedsReview =
+    sendReadinessBlockers.length > 0 || generatedOutputReviewCount > 0;
   const nextActionRows = [
     {
       label: "Schedule next cleaning",
@@ -3889,7 +3922,7 @@ export function PacketBuilder({
       : hasJobOutcomeSelected && !jobBasicsReady
       ? "Add customer and service details."
       : sendReadinessBlockers.length > 0
-      ? "Confirm before outputs."
+      ? "Review before sending."
       : "Confirm a result before outputs are generated.";
   function selectCustomerLineEditor(
     editor: CustomerLineEditor,
@@ -4786,7 +4819,7 @@ export function PacketBuilder({
       actionLine,
       `Next service: ${nextWindow}.`,
       "",
-      "Please keep the link or PDF with your service records for manager review, landlord, insurance, or inspection documentation.",
+      "Please keep the link or PDF with your service records for manager review, landlord, insurance, or service documentation.",
       "",
       `-${companyName}`,
     ].join("\n");
@@ -7623,7 +7656,7 @@ export function PacketBuilder({
                 <div className="flex items-start justify-between gap-5">
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ffb489]">
-                      Declare job
+                      Choose result
                     </p>
                     {builderStep === "photos" ? (
                       <h1
@@ -7638,7 +7671,7 @@ export function PacketBuilder({
                       </h2>
                     )}
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-white/54 md:text-[14px] md:leading-6">
-                      Pick the result first. Add photos and notes after. The builder packages the service record once the result is selected.
+                      Pick the result first. Add customer details next. Photos stay optional.
                     </p>
                   </div>
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] md:h-11 md:w-11">
@@ -7899,10 +7932,10 @@ export function PacketBuilder({
                           No photos?
                         </span>
                         <span className="mt-1 block text-xl font-black tracking-[-0.045em]">
-                          Review written record
+                          Check customer wording
                         </span>
                         <span className="mt-1 block text-xs font-semibold leading-5 text-[#111315]/58">
-                          Create the written service record first, then fix only wrong or uncertain parts.
+                          Create the service record first, then fix only wrong or uncertain customer lines.
                         </span>
                       </span>
                       <IconArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-0.5" />
@@ -8595,7 +8628,7 @@ export function PacketBuilder({
                           onClick={proceedFromPhotoStep}
                           className="hidden rounded-full bg-white px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#111315] hover:bg-white/90 md:inline-flex"
                         >
-                          Review written record
+                          Check customer wording
                         </Button>
                       ) : null}
                       {hasProofWorkStarted ? (
@@ -9174,21 +9207,27 @@ export function PacketBuilder({
                     <span className="min-w-0">
                       <span className="axis-proof-eyebrow">
                         {closeoutEngine.canGeneratePacket && jobBasicsReady
-                          ? "Generated from selected result"
+                          ? outputConsoleNeedsReview
+                            ? "Review selected result"
+                            : "Built from selected result"
                           : !jobBasicsReady
                             ? "Waiting on customer details"
                           : "Waiting on result confirmation"}
                       </span>
                       <span className="axis-proof-title">
                         {closeoutEngine.canGeneratePacket && jobBasicsReady
-                          ? "Customer report, PDF, and follow-up outputs generated"
+                          ? outputConsoleNeedsReview
+                            ? "Review the customer record before sending"
+                            : "Customer link, PDF, and follow-up outputs are ready"
                           : !jobBasicsReady
                             ? "Add job basics to create the report"
                           : "Select the job result to build the report"}
                       </span>
                       <span className="axis-proof-subtitle">
                         {closeoutEngine.canGeneratePacket && jobBasicsReady
-                          ? "Service report link, PDF copy, revisit or quote copy, and next-service text are derived from this same company-confirmed service record."
+                          ? outputConsoleNeedsReview
+                            ? "The link and PDF are prepared from the selected result. Confirm notes-only areas and private checks before using customer copy."
+                            : "Service report link, PDF copy, revisit or quote copy, and next-service text are derived from this same company-confirmed service record."
                           : !jobBasicsReady
                             ? "Customer, site, date, reviewer, and system details must be real before a link or PDF is generated."
                           : "Outputs stay locked until your company confirms what happened. Photos can organize the record, but they do not decide the final claim."}
@@ -9242,6 +9281,29 @@ export function PacketBuilder({
                     type="button"
                     disabled={!canPreviewProofLink}
                     onClick={() => {
+                      setReportOutputMode("pdf");
+                      requestFreeReportOutput("print-pdf");
+                    }}
+                    className={`axis-proof-action axis-proof-action-secondary-main ${
+                      reportOutputMode === "pdf" ? "is-active" : ""
+                    }`}
+                  >
+                    <span className="axis-proof-action-icon">
+                      <FileDown className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="axis-proof-action-label">
+                        Save PDF
+                      </span>
+                      <span className="axis-proof-action-copy">
+                        Retained copy from the same service record.
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!canPreviewProofLink}
+                    onClick={() => {
                       setReportOutputMode("link");
                       requestFreeReportOutput("copy-text");
                     }}
@@ -9252,7 +9314,7 @@ export function PacketBuilder({
                     </span>
                     <span className="min-w-0">
                       <span className="axis-proof-action-label">
-                        Copy customer text
+                        Copy text
                       </span>
                       <span className="axis-proof-action-copy">
                         Text message with the report link.
@@ -9273,33 +9335,10 @@ export function PacketBuilder({
                     </span>
                     <span className="min-w-0">
                       <span className="axis-proof-action-label">
-                        Copy customer email
+                        Copy email
                       </span>
                       <span className="axis-proof-action-copy">
                         Email body with the report link.
-                      </span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!canPreviewProofLink}
-                    onClick={() => {
-                      setReportOutputMode("pdf");
-                      requestFreeReportOutput("print-pdf");
-                    }}
-                    className={`axis-proof-action ${
-                      reportOutputMode === "pdf" ? "is-active" : ""
-                    }`}
-                  >
-                    <span className="axis-proof-action-icon">
-                      <FileDown className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="axis-proof-action-label">
-                        Save service report PDF
-                      </span>
-                      <span className="axis-proof-action-copy">
-                        PDF record from the same service record.
                       </span>
                     </span>
                   </button>
@@ -10914,7 +10953,7 @@ export function PacketBuilder({
                   <p className={labelClassName()}>Current output</p>
                   <p className="mt-2 text-sm font-semibold leading-6 text-foreground">
                     {isCompanyPlan
-                      ? "This report link uses your company info and saves to account history. The PDF copy stays clean for restaurant inspection files."
+                      ? "This report link uses your company info and saves to account history. The PDF copy stays clean for restaurant service files."
                       : "Free builder output has no company logo/contact, stays watermarked, and saves as a 7-day test link when the API is available."}
                   </p>
                 </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Printer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
@@ -51,6 +52,10 @@ export function SampleAxis1ProofPageContent({
   const searchParams = new URLSearchParams(queryString);
   const isServiceRecord = searchParams.get("format") === "pdf";
   const reportData = buildAxis1SampleProofData(scenario);
+  const serviceDate =
+    reportData.packetHeader.quickFacts.find(([label]) => label === "Service date")?.[1] ??
+    reportData.serviceRecordRows.find(([label]) => label === "Service date")?.[1] ??
+    "Service date recorded";
   const nextRoutineService =
     reportData.customerClose.actionItems.find(
       ([label]) => label === "Next visit window" || label === "Next routine service",
@@ -59,6 +64,15 @@ export function SampleAxis1ProofPageContent({
       ([label]) => label === "Next routine service" || label === "Next visit window",
     )?.[1] ??
     "See service details below";
+  const beforePhoto = reportData.proofPhotos.find((photo) => photo.tone === "before");
+  const afterPhoto = reportData.proofPhotos.find((photo) => photo.tone === "after");
+  const issuePhoto = reportData.proofPhotos.find((photo) => photo.tone === "issue");
+  const firstViewportPhotos = (scenario === "blocked_access"
+    ? [issuePhoto, afterPhoto]
+    : [beforePhoto, afterPhoto])
+    .filter(Boolean)
+    .slice(0, 2) as typeof reportData.proofPhotos;
+  const hasBeforeAfterPair = Boolean(beforePhoto && afterPhoto);
 
   useEffect(() => {
     const marker = "kitchenpermit-format-robots";
@@ -149,6 +163,60 @@ export function SampleAxis1ProofPageContent({
                 PDF copy available
               </a>
             ) : null}
+          </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-[0.72fr_1.28fr]">
+            <div className="rounded-[18px] border border-black/10 bg-[#f8f4ec] px-4 py-4">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.13em] text-[#6f665d]">
+                Service date
+              </p>
+              <p className="mt-2 text-xl font-black leading-6 tracking-[-0.04em] text-[#151515]">
+                {serviceDate}
+              </p>
+              <p className="mt-3 text-sm font-semibold leading-6 text-[#574f47]">
+                Areas shown in this sample: hood interior, filters, duct access,
+                rooftop fan, and grease containment.
+              </p>
+            </div>
+            <div className="rounded-[18px] border border-black/10 bg-[#111315] p-3 text-white">
+              <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.13em] text-white/48">
+                    {hasBeforeAfterPair ? "Before / after photos" : "Service photos"}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold leading-5 text-white/72">
+                    Attached photos appear with the service record, not as a loose camera roll.
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {firstViewportPhotos.map((photo) => (
+                  <figure
+                    key={photo.proofId}
+                    className="overflow-hidden rounded-[14px] border border-white/12 bg-white/[0.04]"
+                  >
+                    <div className="relative aspect-[4/3] bg-black">
+                      <Image
+                        src={photo.src}
+                        alt={photo.title}
+                        fill
+                        sizes="(min-width: 768px) 280px, 100vw"
+                        className="object-cover"
+                        priority={!isServiceRecord}
+                        style={{ objectPosition: photo.position }}
+                      />
+                    </div>
+                    <figcaption className="px-3 py-2">
+                      <p className="text-xs font-black uppercase tracking-[0.12em] text-[#ffb27c]">
+                        {photo.label}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold leading-5 text-white">
+                        {photo.title}
+                      </p>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="mt-4 grid gap-2 md:grid-cols-4">
             {[

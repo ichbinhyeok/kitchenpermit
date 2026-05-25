@@ -178,16 +178,15 @@ function Axis1PacketPdfPreviewContent({
           <div className="grid gap-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(420px,1.2fr)] lg:items-start">
             <div className="min-w-0 space-y-3">
               <div className="inline-flex items-center rounded-full border border-black/10 bg-white px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              Cold-email preview // Service report link
+                Sample report preview // Service report link
               </div>
               <div className="space-y-3">
                 <h1 className="max-w-3xl font-display text-[1.9rem] font-bold leading-[0.92] tracking-[-0.07em] text-foreground sm:text-[2.2rem]">
               This is the service report link your customer receives after the job.
                 </h1>
                 <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
-                  First click should feel like a real delivery artifact, not a product
-                  tour. The point is simple: fewer explanation calls, clearer follow-up
-                notes, and a more premium service report after the visit.
+                  The preview shows the service result, attached photos, open
+                  items, and next step in the same customer-facing record.
                 </p>
               </div>
 
@@ -195,8 +194,8 @@ function Axis1PacketPdfPreviewContent({
                 <div className="grid gap-2">
                   {[
                     ["Customer clarity", "Result, open item, and next step are visible without a callback."],
-                    ["Defensible record", "Blocked access stays explicit instead of buried in technician notes."],
-  ["Premium report", "The report makes serious service look organized the moment it lands."],
+                    ["Clear exception record", "Blocked access stays explicit instead of buried in technician notes."],
+                    ["Organized report", "The report makes serious service easy to review after the visit."],
                   ].map(([label, copy]) => (
                     <div
                       key={label}

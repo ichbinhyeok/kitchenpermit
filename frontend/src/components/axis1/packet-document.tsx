@@ -1338,9 +1338,25 @@ function CustomerKeyProofPhotos({
   photos: Axis1PacketPreviewData["proofPhotos"];
   transform: (value: string) => string;
 }) {
+  const hasBeforePhoto = photos.some((photo) => photo.tone === "before");
+  const hasAfterPhoto = photos.some((photo) => photo.tone === "after");
+  const keyPhotoRank = (tone: Axis1PacketPreviewData["proofPhotos"][number]["tone"]) => {
+    if (hasBeforePhoto && hasAfterPhoto) {
+      return tone === "before" ? 0 : tone === "after" ? 1 : tone === "issue" ? 2 : 3;
+    }
+
+    return tone === "issue" ? 0 : tone === "after" ? 1 : tone === "before" ? 2 : 3;
+  };
   const keyPhotos = photos
     .filter((photo) => ["before", "after", "issue"].includes(photo.tone))
+    .sort((left, right) => keyPhotoRank(left.tone) - keyPhotoRank(right.tone))
     .slice(0, 3);
+  const keyPhotoTitle =
+    hasBeforePhoto && hasAfterPhoto
+      ? "The main before, after, and open-item photos."
+      : keyPhotos.some((photo) => photo.tone === "issue")
+        ? "The main service and open-item photos."
+        : "The main service photos.";
 
   if (keyPhotos.length === 0) {
     return null;
@@ -1352,7 +1368,7 @@ function CustomerKeyProofPhotos({
         <div className="max-w-2xl">
           <SectionKicker>Key field photos</SectionKicker>
           <h3 className="mt-3 font-display text-[1.75rem] font-bold leading-[0.95] tracking-[-0.055em] text-[#151515] sm:text-[2.2rem]">
-            The main before, after, and open-item photos.
+            {keyPhotoTitle}
           </h3>
         </div>
         <p className="max-w-md text-sm leading-6 text-[#746b62]">

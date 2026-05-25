@@ -42,7 +42,7 @@ const offerTracks = [
     title: "Company version",
     price: AXIS1_COMPANY_MONTHLY_PRICE,
     copy:
-      "For repeated customer reports under your company name, with saved records and retained report links.",
+      "Send branded service records customers can save alongside invoices, photos, and internal files.",
     href: "/company-version?pilot=1",
     cta: "Request 30-day pilot",
     icon: Repeat2,

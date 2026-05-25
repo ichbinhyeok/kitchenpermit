@@ -25,7 +25,7 @@ const reportRows = [
   ["Work result", "Reachable hood, filters, and duct path cleaned"],
   ["Photos", "Before/after photos grouped by hood area"],
   ["Open item", "Blocked access kept separate from completed work"],
-  ["Saved copy", "Link/PDF for inspection records"],
+  ["Saved copy", "Link/PDF for service records"],
 ] as const;
 
 const valueRows = [
@@ -165,9 +165,9 @@ export default function HomePage() {
               Send hood cleaning reports your customers can actually save.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/72 md:text-xl md:leading-9">
-              KitchenPermit helps hood cleaning companies turn service notes,
-              photos, blocked access, and next actions into a restaurant-ready
-              report link and PDF.
+              Create a simple hood cleaning service record with before/after
+              photos, service date, blocked access, and next actions, ready for
+              customers to save with their job files.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <ActionLink href="/axis-1/tool?account=free" tone="accent">
