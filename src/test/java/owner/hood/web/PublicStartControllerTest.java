@@ -31,9 +31,9 @@ class PublicStartControllerTest {
 
         assertStaticResourceContains(
                 "static/start.html",
-                "Request optional design help.",
+                "Optional setup help.",
                 "No payment is taken on this request.",
-                "Vendor request"
+                "Open email request"
         );
     }
 

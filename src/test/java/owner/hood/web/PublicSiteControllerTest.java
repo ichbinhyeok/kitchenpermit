@@ -32,9 +32,9 @@ class PublicSiteControllerTest {
 
         assertStaticResourceContains(
                 "static/index.html",
-                "Send a restaurant-ready service report after every hood cleaning job.",
-                "Turn job photos, blocked access notes, and next actions into one",
-                "A report they can save, not another login."
+                "Send hood cleaning reports your customers can actually save.",
+                "Create a simple hood cleaning service record with before/after",
+                "View quick sample"
         );
     }
 
@@ -56,8 +56,8 @@ class PublicSiteControllerTest {
 
         assertStaticResourceContains(
                 "static/company-version.html",
-                "Save your company info once. Send every report under your name.",
-                "Request 30-day pilot access"
+                "Send reports under your company name.",
+                "Request 30-day pilot"
         );
     }
 
@@ -65,6 +65,8 @@ class PublicSiteControllerTest {
     void axis1NestedLaunchPagesServeExportedFrontend() throws Exception {
         expectFrontendPage("/samples/axis-1");
         expectFrontendPage("/samples/axis-1.html");
+        expectFrontendPage("/samples/quick-closeout");
+        expectFrontendPage("/samples/quick-closeout.html");
         expectFrontendPage("/axis-1/tool");
         expectFrontendPage("/axis-1/tool.html");
         expectFrontendPage("/p/sample-blocked-access");
@@ -79,13 +81,21 @@ class PublicSiteControllerTest {
 
         assertStaticResourceContains(
                 "static/samples/axis-1.html",
-                "See the branded service report a restaurant receives.",
-                "Below is the sample report a restaurant would receive"
+                "See the report your customer opens.",
+                "A quick preview before opening the full sample."
+        );
+        assertStaticResourceContains(
+                "static/samples/quick-closeout.html",
+                "Hood Cleaning Closeout Record",
+                "Service date",
+                "Hood interior before service",
+                "Hood interior after service",
+                "save with the invoice"
         );
         assertStaticResourceContains(
                 "static/axis-1/tool.html",
-                "Tell Axis 1 what happened.",
-                "Free builder: no login, neutral test link, no company logo/contact"
+                "What happened on this hood cleaning job?",
+                "Free builder: no login required, creates a 7-day test link, watermarked PDF, and no saved report history."
         );
     }
 
@@ -114,26 +124,33 @@ class PublicSiteControllerTest {
                 "static/hood-cleaning-service-report-template.html",
                 "Hood cleaning service report template",
                 "Minimum fields",
-                "Build a free report",
+                "Build a free test report",
                 "FAQPage",
                 "HowTo",
-                "Cold-email bridge",
                 "og:image"
         );
+        assertStaticResourceDoesNotContain("static/hood-cleaning-service-report-template.html", "Cold-email bridge");
         assertStaticResourceContains(
                 "static/restaurant-hood-cleaning-report.html",
                 "Restaurant hood cleaning report",
-                "restaurant hood cleaning report",
+                "Make the result visible first",
+                "Keep service records easy to save"
+        );
+        assertStaticResourceDoesNotContain(
+                "static/restaurant-hood-cleaning-report.html",
                 "Questions this page should answer before the vendor clicks."
         );
         assertStaticResourceContains(
                 "static/send-hood-cleaning-report-after-service.html",
                 "Send a hood cleaning report after service",
-                "Use this page in cold email",
-                "utm_source=cold_email"
+                "After the job, send one report the restaurant can save",
+                "Build a free after-service report"
         );
+        assertStaticResourceDoesNotContain("static/send-hood-cleaning-report-after-service.html", "Use this page in cold email");
+        assertStaticResourceDoesNotContain("static/send-hood-cleaning-report-after-service.html", "utm_source=cold_email");
         assertStaticResourceContains(
                 "static/sitemap.xml",
+                "https://kitchenpermit.com/samples/quick-closeout",
                 "https://kitchenpermit.com/hood-cleaning-service-report-template",
                 "https://kitchenpermit.com/restaurant-hood-cleaning-report",
                 "https://kitchenpermit.com/send-hood-cleaning-report-after-service",
@@ -170,9 +187,9 @@ class PublicSiteControllerTest {
 
         assertStaticResourceContains(
                 "static/samples/axis-2.html",
-                "3 masked rows from a 10-opportunity batch",
-                "Protected fields in the paid version include direct contact paths",
-                "The list is the hook. The packet sharpens the motion.",
+                "Sample Service Report",
+                "KitchenPermit sample service report for hood cleaning companies.",
+                "NEXT_REDIRECT;replace;/samples/axis-1;307;",
                 "noindex, nofollow"
         );
     }
