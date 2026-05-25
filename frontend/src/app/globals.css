@@ -1874,6 +1874,21 @@ body:has(.axis-tool-route) .site-footer {
     border-radius: 16px;
   }
 
+  .customer-web-packet .packet-photo-set-scroll {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    overflow: visible;
+    padding: 0;
+    scroll-snap-type: none;
+  }
+
+  .customer-web-packet .packet-photo-set-thumb {
+    width: 100%;
+    min-width: 0;
+    flex: initial;
+  }
+
   .customer-web-packet .packet-proof-section {
     padding-top: 3rem;
     padding-bottom: calc(3rem + env(safe-area-inset-bottom));
@@ -1892,6 +1907,27 @@ body:has(.axis-tool-route) .site-footer {
 
   .customer-web-packet .packet-spine-section {
     display: none;
+  }
+
+  .customer-web-packet .packet-record-section {
+    grid-template-columns: minmax(0, 1fr);
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .customer-web-packet .packet-record-section > *,
+  .customer-web-packet .packet-record-card,
+  .customer-web-packet .packet-next-card,
+  .customer-web-packet .packet-record-card > *,
+  .customer-web-packet .packet-next-card > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .customer-web-packet .packet-record-card,
+  .customer-web-packet .packet-next-card {
+    width: 100%;
+    overflow: hidden;
   }
 
   .customer-web-packet .packet-scope-section p,

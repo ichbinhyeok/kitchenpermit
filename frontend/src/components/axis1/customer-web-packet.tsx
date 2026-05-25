@@ -3213,7 +3213,7 @@ export function CustomerWebPacket({
               asChild={Boolean(pdfServiceRecordHref)}
               type={pdfServiceRecordHref ? undefined : "button"}
               onClick={pdfServiceRecordHref ? undefined : handleEvidencePdfAction}
-              className="packet-service-record-link mt-5 min-h-11 rounded-full bg-white px-5 text-sm font-semibold text-[#111315] hover:bg-[#f4eee6]"
+              className="packet-service-record-link mt-5 min-h-11 w-full min-w-0 rounded-full bg-white px-5 text-center text-sm font-semibold leading-5 whitespace-normal text-[#111315] hover:bg-[#f4eee6] sm:w-auto sm:whitespace-nowrap"
             >
               {pdfServiceRecordHref ? (
                 <a href={pdfServiceRecordHref}>
@@ -3265,7 +3265,7 @@ export function CustomerWebPacket({
                 {primaryCtaHref && primaryCtaEnabled ? (
                   <Button
                     asChild
-                    className="min-h-11 rounded-full bg-[#111315] px-5 text-sm font-semibold text-white"
+                    className="min-h-11 w-full min-w-0 rounded-full bg-[#111315] px-5 text-center text-sm font-semibold leading-5 whitespace-normal text-white sm:w-auto sm:whitespace-nowrap"
                   >
                     <a href={primaryCtaHref}>{primaryCtaLabel}</a>
                   </Button>
@@ -3274,7 +3274,7 @@ export function CustomerWebPacket({
                   <Button
                     asChild
                     variant="outline"
-                    className="min-h-11 rounded-full border-[#d9d0c5] bg-white px-5 text-sm font-semibold text-[#111315]"
+                    className="min-h-11 w-full min-w-0 rounded-full border-[#d9d0c5] bg-white px-5 text-center text-sm font-semibold leading-5 whitespace-normal text-[#111315] sm:w-auto sm:whitespace-nowrap"
                   >
                     <a href={`tel:${data.vendor.directLine.replace(/[^+\d]/g, "")}`}>
                       Contact {data.vendor.name}
