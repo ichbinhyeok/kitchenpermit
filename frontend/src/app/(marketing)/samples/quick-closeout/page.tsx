@@ -64,39 +64,63 @@ const fileCards = [
 
 export default function QuickCloseoutSamplePage() {
   return (
-    <main className="-mt-[82px] bg-[#0b0d0f] px-4 pb-16 pt-[104px] text-white sm:px-5 md:pt-[118px]">
+    <main className="-mt-[82px] bg-[#0b0d0f] px-4 pb-16 pt-[94px] text-white sm:px-5 sm:pt-[104px] md:pt-[118px]">
       <section className="mx-auto grid w-[min(1180px,100%)] gap-5 lg:grid-cols-[0.88fr_1.12fr] lg:items-start">
-        <div className="rounded-[34px] border border-white/12 bg-[#14181d] p-5 shadow-[0_34px_120px_rgba(0,0,0,0.36)] sm:p-7">
+        <div className="rounded-[28px] border border-white/12 bg-[#14181d] p-4 shadow-[0_34px_120px_rgba(0,0,0,0.36)] sm:rounded-[34px] sm:p-7">
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-[#ffb27c]">
             Generic sample
           </p>
-          <h1 className="mt-4 max-w-3xl font-display text-[clamp(2.8rem,9vw,5.7rem)] font-bold leading-[0.88] tracking-[-0.078em]">
+          <h1 className="mt-3 max-w-3xl font-display text-[clamp(2.3rem,11vw,3.2rem)] font-bold leading-[0.9] tracking-[-0.06em] sm:mt-4 sm:text-[clamp(2.8rem,9vw,5.7rem)] sm:leading-[0.88] sm:tracking-[-0.078em]">
             Hood Cleaning Closeout Record
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-white/70">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70 sm:mt-5 sm:text-base sm:leading-8">
             A simple customer-ready record with the service date, before/after
             photos, blocked access, and next action in one link/PDF the
             restaurant can save with the invoice or job files.
           </p>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:hidden">
+            {photoCards.slice(0, 2).map((photo) => (
+              <figure key={photo.label} className="overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.06]">
+                <div className="relative aspect-[4/3] bg-[#111315]">
+                  <Image
+                    src={photo.src}
+                    alt={photo.title}
+                    fill
+                    sizes="50vw"
+                    className="object-cover"
+                  />
+                </div>
+                <figcaption className="px-2.5 py-2">
+                  <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#ffb27c]">
+                    {photo.label}
+                  </p>
+                  <p className="mt-1 text-xs font-black leading-tight text-white">
+                    {photo.title}
+                  </p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3">
             {summaryRows.map(([label, value]) => (
-              <div key={label} className="rounded-[20px] border border-white/10 bg-white/[0.055] px-4 py-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/42">
+              <div key={label} className="rounded-[18px] border border-white/10 bg-white/[0.055] px-3 py-3 sm:rounded-[20px] sm:px-4 sm:py-4">
+                <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/42 sm:text-[10px] sm:tracking-[0.22em]">
                   {label}
                 </p>
-                <p className="mt-2 text-lg font-black leading-tight tracking-[-0.035em]">
+                <p className="mt-1.5 text-sm font-black leading-tight tracking-[-0.025em] sm:mt-2 sm:text-lg sm:tracking-[-0.035em]">
                   {value}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 rounded-[24px] border border-[#ffb27c]/24 bg-[#20140e] px-5 py-5">
+          <div className="mt-4 rounded-[22px] border border-[#ffb27c]/24 bg-[#20140e] px-4 py-4 sm:mt-6 sm:rounded-[24px] sm:px-5 sm:py-5">
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#ffb27c]">
               Customer action
             </p>
-            <h2 className="mt-3 text-2xl font-black leading-tight tracking-[-0.045em]">
+            <h2 className="mt-3 text-xl font-black leading-tight tracking-[-0.04em] sm:text-2xl sm:tracking-[-0.045em]">
               Clear rear duct access before follow-up service.
             </h2>
             <p className="mt-3 text-sm font-semibold leading-7 text-white/70">
@@ -121,7 +145,7 @@ export default function QuickCloseoutSamplePage() {
           </div>
 
           <div className="grid gap-3 p-3">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="hidden gap-3 sm:grid sm:grid-cols-2">
               {photoCards.slice(0, 2).map((photo) => (
                 <figure key={photo.label} className="overflow-hidden rounded-[24px] border border-black/10 bg-white">
                   <div className="relative aspect-[4/3] bg-[#111315]">
