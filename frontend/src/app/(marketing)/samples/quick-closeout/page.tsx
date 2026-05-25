@@ -87,7 +87,7 @@ export default function QuickCloseoutSamplePage() {
           </div>
 
           <div className="border-t border-[#ded6cc] bg-white px-4 py-4 sm:px-5 lg:border-l lg:border-t-0">
-            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
               <article className="rounded-[18px] border border-[#d6cec4] bg-[#fbfaf7] p-3 sm:rounded-[24px] sm:p-4">
                 <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#83786d]">
                   Output 1
@@ -150,7 +150,7 @@ export default function QuickCloseoutSamplePage() {
               </div>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {photos.map((photo) => (
                 <figure
                   key={photo.label}
@@ -185,7 +185,7 @@ export default function QuickCloseoutSamplePage() {
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#83786d]">
               Sample job details
             </p>
-            <dl className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+            <dl className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {facts.map(([label, value]) => (
                 <div
                   key={label}

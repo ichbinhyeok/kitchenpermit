@@ -520,34 +520,34 @@ function PublicSampleBanner({
   return (
     <div
       id="public-sample-note"
-      className="pdf-print-hide scroll-mt-20 border-b border-[#eadfd4] bg-[#fbfaf7] px-5 py-3 text-[#5f2b14] sm:px-8 lg:px-10"
+      className="pdf-print-hide scroll-mt-20 overflow-hidden border-b border-[#eadfd4] bg-[#fbfaf7] px-4 py-3 text-[#5f2b14] sm:px-8 lg:px-10"
     >
       <div className="mx-auto flex max-w-[1180px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#9b3f13]">
             KitchenPermit vendor preview
           </p>
-          <p className="mt-1 max-w-3xl break-words text-sm font-semibold leading-6 text-[#5f574f]">
+          <p className="mt-1 max-w-full break-words text-sm font-semibold leading-6 text-[#5f574f] sm:max-w-3xl">
             This is the customer link your restaurant opens. The retained PDF
             copy opens as a separate document for customer files.
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
           <a
             href={retainedPdfHref}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#111315] px-5 text-xs font-black uppercase tracking-[0.1em] text-white transition hover:bg-[#2a2d30]"
+            className="inline-flex min-h-11 w-full min-w-0 items-center justify-center rounded-full bg-[#111315] px-4 text-center text-[11px] font-black uppercase tracking-[0.06em] text-white transition hover:bg-[#2a2d30] sm:w-auto sm:shrink-0 sm:px-5 sm:text-xs sm:tracking-[0.1em]"
           >
             Open retained PDF copy
           </a>
           <a
             href="/axis-1/tool?account=free"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-[#ded6cc] bg-white px-5 text-xs font-black uppercase tracking-[0.1em] text-[#151515] transition hover:bg-[#f4eee6]"
+            className="inline-flex min-h-11 w-full min-w-0 items-center justify-center rounded-full border border-[#ded6cc] bg-white px-4 text-center text-[11px] font-black uppercase tracking-[0.06em] text-[#151515] transition hover:bg-[#f4eee6] sm:w-auto sm:shrink-0 sm:px-5 sm:text-xs sm:tracking-[0.1em]"
           >
             Build free test
           </a>
           <a
             href="/company-version"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-[#ded6cc] bg-white/70 px-5 text-xs font-black uppercase tracking-[0.1em] text-[#5f574f] transition hover:bg-white"
+            className="inline-flex min-h-11 w-full min-w-0 items-center justify-center rounded-full border border-[#ded6cc] bg-white/70 px-4 text-center text-[11px] font-black uppercase tracking-[0.06em] text-[#5f574f] transition hover:bg-white sm:w-auto sm:shrink-0 sm:px-5 sm:text-xs sm:tracking-[0.1em]"
           >
             Company version
           </a>
@@ -2454,7 +2454,7 @@ export function CustomerWebPacket({
       id="report-top"
       style={vendorAccentStyle}
       className={cx(
-        "customer-web-packet packet-shell overflow-hidden bg-[#f7f1e9] text-[#111315] shadow-[0_36px_110px_rgba(17,17,17,0.1)] print:rounded-none print:border-0 print:shadow-none",
+        "customer-web-packet packet-shell max-w-full overflow-hidden bg-[#f7f1e9] text-[#111315] shadow-[0_36px_110px_rgba(17,17,17,0.1)] print:rounded-none print:border-0 print:shadow-none",
         isCompactReport && "customer-web-packet-short",
         className,
       )}
@@ -2599,7 +2599,7 @@ export function CustomerWebPacket({
                 </span>
               ))}
             </div>
-            <HeroHeading className="font-display mt-5 max-w-4xl text-[2.35rem] font-semibold leading-[0.92] tracking-[-0.07em] text-white min-[390px]:text-[2.5rem] sm:text-[4.15rem] sm:leading-[0.9] sm:tracking-[-0.075em] lg:text-[6rem]">
+            <HeroHeading className="font-display mt-5 max-w-full break-words text-[2.12rem] font-semibold leading-[0.96] tracking-normal text-white min-[390px]:text-[2.2rem] sm:max-w-4xl sm:text-[4.15rem] sm:leading-[0.9] sm:tracking-[-0.075em] lg:text-[6rem]">
               {isBlockedAccessOutcome && openItems.length > 0 ? (
                 <>
                   Reachable work completed.{" "}
