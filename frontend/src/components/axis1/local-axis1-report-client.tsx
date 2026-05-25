@@ -55,10 +55,9 @@ export function LocalAxis1ReportClient({
     };
 
     window.addEventListener("afterprint", clearPrintUiLock, { once: true });
-    window.setTimeout(() => {
-      window.print();
-      window.setTimeout(clearPrintUiLock, 900);
-    }, 120);
+    window.setTimeout(clearPrintUiLock, 2500);
+    void document.documentElement.offsetHeight;
+    window.print();
   }
 
   async function copyCurrentLink() {
@@ -225,7 +224,7 @@ export function LocalAxis1ReportClient({
             }`}
           >
             <Printer className="h-3.5 w-3.5" />
-            Save as PDF
+            Print / save PDF
           </Button>
         </div>
       </div>

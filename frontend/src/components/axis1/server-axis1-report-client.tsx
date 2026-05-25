@@ -296,10 +296,9 @@ export function ServerAxis1ReportClient({
     };
 
     window.addEventListener("afterprint", clearPrintUiLock, { once: true });
-    window.setTimeout(() => {
-      window.print();
-      window.setTimeout(clearPrintUiLock, 900);
-    }, 120);
+    window.setTimeout(clearPrintUiLock, 2500);
+    void document.documentElement.offsetHeight;
+    window.print();
   }
 
   async function confirmReceived() {
@@ -417,7 +416,7 @@ export function ServerAxis1ReportClient({
               className="rounded-[6px] bg-[#111315] px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-white hover:bg-[#111315]/90"
             >
               <Printer className="h-3.5 w-3.5" />
-              Save as PDF
+              Print / save PDF
             </Button>
           </div>
         </div>

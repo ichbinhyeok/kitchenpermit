@@ -45,6 +45,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { flushSync } from "react-dom";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -4886,41 +4887,45 @@ export function PacketBuilder({
       activeElement.blur();
     }
 
-    document.documentElement.classList.add("app-printing");
-    setReportOutputMode("pdf");
-    setMobileSheet(null);
+    flushSync(() => {
+      setReportOutputMode("pdf");
+      setMobileSheet(null);
+    });
     toast.dismiss();
+
+    document.documentElement.classList.add("app-printing");
 
     const clearPrintUiLock = () => {
       document.documentElement.classList.remove("app-printing");
     };
 
     window.addEventListener("afterprint", clearPrintUiLock, { once: true });
-    window.setTimeout(() => {
-      window.print();
-      window.setTimeout(clearPrintUiLock, 900);
-    }, 420);
+    window.setTimeout(clearPrintUiLock, 2500);
+    void document.documentElement.offsetHeight;
+    window.print();
   }
 
   useEffect(() => {
     const handleEvidencePdfRequest = (event: Event) => {
       event.preventDefault();
       toast.dismiss();
-      setBuilderStep("outputs");
-      setReportOutputMode("pdf");
-      setMobileSheet(null);
 
-      window.setTimeout(() => {
-        document.documentElement.classList.add("app-printing");
+      flushSync(() => {
+        setBuilderStep("outputs");
+        setReportOutputMode("pdf");
+        setMobileSheet(null);
+      });
 
-        const clearPrintUiLock = () => {
-          document.documentElement.classList.remove("app-printing");
-        };
+      document.documentElement.classList.add("app-printing");
 
-        window.addEventListener("afterprint", clearPrintUiLock, { once: true });
-        window.print();
-        window.setTimeout(clearPrintUiLock, 900);
-      }, 160);
+      const clearPrintUiLock = () => {
+        document.documentElement.classList.remove("app-printing");
+      };
+
+      window.addEventListener("afterprint", clearPrintUiLock, { once: true });
+      window.setTimeout(clearPrintUiLock, 2500);
+      void document.documentElement.offsetHeight;
+      window.print();
     };
 
     window.addEventListener("axis1:save-evidence-pdf", handleEvidencePdfRequest);

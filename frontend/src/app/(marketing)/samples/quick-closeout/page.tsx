@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "@/components/navigation/static-link";
 import { AlertTriangle, ArrowRight, CheckCircle2, FileText } from "lucide-react";
+import { AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF } from "@/lib/axis1-sample-packets";
 import { publicPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = publicPageMetadata({
@@ -37,6 +38,12 @@ const areas = [
   "Duct access",
   "Rooftop fan",
   "Grease containment",
+] as const;
+
+const inputSteps = [
+  ["1", "Pick result"],
+  ["2", "Add service date + photos"],
+  ["3", "Confirm blocked access + next action"],
 ] as const;
 
 export default function QuickCloseoutSamplePage() {
@@ -114,7 +121,7 @@ export default function QuickCloseoutSamplePage() {
                   manager records, or outside record requests.
                 </p>
                 <Link
-                  href="/p/sample-blocked-access?format=pdf"
+                  href={AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF}
                   className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-white px-3 text-xs font-black text-[#111315] transition hover:bg-[#f4eee6] sm:mt-5 sm:min-h-11 sm:px-4 sm:text-sm"
                 >
                   <FileText className="h-4 w-4" />
@@ -122,6 +129,25 @@ export default function QuickCloseoutSamplePage() {
                   <span className="hidden sm:inline">View retained PDF copy</span>
                 </Link>
               </article>
+            </div>
+
+            <div className="mt-3 rounded-[18px] border border-[#ded6cc] bg-[#fbfaf7] px-3 py-3">
+              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#83786d]">
+                What the crew enters
+              </p>
+              <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                {inputSteps.map(([step, label]) => (
+                  <div
+                    key={step}
+                    className="flex items-center gap-2 rounded-[14px] bg-white px-3 py-2 text-xs font-black text-[#423c36]"
+                  >
+                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#111315] text-[10px] text-white">
+                      {step}
+                    </span>
+                    {label}
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-2">

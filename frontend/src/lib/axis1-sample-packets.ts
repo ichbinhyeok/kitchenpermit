@@ -37,6 +37,9 @@ type Axis1SampleProofConfig = {
   links: Axis1CloseoutLinks;
 };
 
+export const AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF =
+  "/downloads/kitchenpermit-sample-blocked-access-retained-pdf-copy.pdf";
+
 const sampleVendor: Axis1PacketPreviewData["vendor"] = {
   name: "Sample Hood Cleaning Company",
   initials: "SH",
@@ -126,7 +129,9 @@ export const axis1SampleProofVariants: readonly Axis1SampleProofConfig[] = [
       "grease-containment": "not-captured",
       "service-label": "not-captured",
     },
-    links: {},
+    links: {
+      pdfHref: AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF,
+    },
   },
   {
     variant: "condition_review",

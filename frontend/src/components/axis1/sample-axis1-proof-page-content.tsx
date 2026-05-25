@@ -1,10 +1,11 @@
 "use client";
 
-import { Printer } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Axis1PacketDocument } from "@/components/axis1/packet-document";
 import { Button } from "@/components/ui/button";
 import {
+  AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF,
   buildAxis1SampleProofData,
   type Axis1SampleProofVariant,
 } from "@/lib/axis1-sample-packets";
@@ -28,10 +29,9 @@ function printReport() {
   };
 
   window.addEventListener("afterprint", clearPrintUiLock, { once: true });
-  window.setTimeout(() => {
-    window.print();
-    window.setTimeout(clearPrintUiLock, 900);
-  }, 120);
+  window.setTimeout(clearPrintUiLock, 2500);
+  void document.documentElement.offsetHeight;
+  window.print();
 }
 
 export function SampleAxis1ProofPageContent({
@@ -89,20 +89,32 @@ export function SampleAxis1ProofPageContent({
         <div className="pdf-preview-toolbar pdf-print-hide mx-auto mb-3 flex w-[min(816px,100%)] flex-col gap-3 border border-[#b8b0a7] bg-white px-3 py-2 shadow-[0_10px_28px_rgba(24,20,17,0.12)] md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#6f665d]">
-              Retained PDF copy
+              PDF print preview
             </p>
             <p className="mt-1 text-xs font-semibold leading-5 text-[#423c36]">
-              Document-style copy for customer files.
+              Open the PDF file, or print/save this preview from your browser.
             </p>
           </div>
-          <Button
-            type="button"
-            onClick={printReport}
-            className="rounded-[6px] bg-[#111315] px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-white hover:bg-[#111315]/90"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            Save PDF copy
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Button
+              asChild
+              className="rounded-[6px] bg-[#111315] px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-white hover:bg-[#111315]/90"
+            >
+              <a href={AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF}>
+                <Download className="h-3.5 w-3.5" />
+                Open PDF file
+              </a>
+            </Button>
+            <Button
+              type="button"
+              onClick={printReport}
+              variant="outline"
+              className="rounded-[6px] border-[#b8b0a7] bg-white px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-[#151515] hover:bg-[#f4eee6]"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Print / save
+            </Button>
+          </div>
         </div>
       ) : null}
       <div

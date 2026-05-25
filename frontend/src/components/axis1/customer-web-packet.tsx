@@ -510,28 +510,48 @@ function subscribeLocalEvidencePdfHref() {
   return () => {};
 }
 
-function PublicSampleBanner() {
+function PublicSampleBanner({
+  pdfServiceRecordHref,
+}: {
+  pdfServiceRecordHref: string | null;
+}) {
+  const retainedPdfHref = pdfServiceRecordHref ?? "?format=pdf";
+
   return (
     <div
       id="public-sample-note"
       className="pdf-print-hide scroll-mt-20 border-b border-[#eadfd4] bg-[#fbfaf7] px-5 py-3 text-[#5f2b14] sm:px-8 lg:px-10"
     >
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="mx-auto flex max-w-[1180px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#9b3f13]">
-            Customer receives two outputs
+            KitchenPermit vendor preview
           </p>
           <p className="mt-1 max-w-3xl break-words text-sm font-semibold leading-6 text-[#5f574f]">
-            This is the customer link. The retained PDF copy is the document
-            version for customer files.
+            This is the customer link your restaurant opens. The retained PDF
+            copy opens as a separate document for customer files.
           </p>
         </div>
-        <a
-          href="?format=pdf"
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#111315] px-5 text-xs font-black uppercase tracking-[0.1em] text-white transition hover:bg-[#2a2d30]"
-        >
-          View retained PDF copy
-        </a>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
+          <a
+            href={retainedPdfHref}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#111315] px-5 text-xs font-black uppercase tracking-[0.1em] text-white transition hover:bg-[#2a2d30]"
+          >
+            Open retained PDF copy
+          </a>
+          <a
+            href="/axis-1/tool?account=free"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-[#ded6cc] bg-white px-5 text-xs font-black uppercase tracking-[0.1em] text-[#151515] transition hover:bg-[#f4eee6]"
+          >
+            Build free test
+          </a>
+          <a
+            href="/company-version"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-[#ded6cc] bg-white/70 px-5 text-xs font-black uppercase tracking-[0.1em] text-[#5f574f] transition hover:bg-white"
+          >
+            Company version
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -2450,7 +2470,9 @@ export function CustomerWebPacket({
         hasVendorPhone={canUseVendorPhone}
         compactReport={isCompactReport}
       />
-      {isPublicSample ? <PublicSampleBanner /> : null}
+      {isPublicSample ? (
+        <PublicSampleBanner pdfServiceRecordHref={pdfServiceRecordHref} />
+      ) : null}
       <div className="h-1.5 w-full" style={{ backgroundColor: vendorBrandColor }} />
       <section
         className={cx(
