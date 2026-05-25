@@ -90,7 +90,7 @@ class PublicSiteControllerTest {
                 "Service date",
                 "Hood interior before service",
                 "Hood interior after service",
-                "retained PDF copy the restaurant can save with job files"
+                "Link for review. PDF for files. Result-first builder."
         );
         assertStaticResourceContains(
                 "static/axis-1/tool.html",
