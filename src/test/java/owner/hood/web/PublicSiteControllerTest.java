@@ -86,11 +86,11 @@ class PublicSiteControllerTest {
         );
         assertStaticResourceContains(
                 "static/samples/quick-closeout.html",
-                "Hood Cleaning Closeout Record",
+                "One job record, two customer outputs.",
                 "Service date",
                 "Hood interior before service",
                 "Hood interior after service",
-                "save with the invoice"
+                "retained PDF copy the restaurant can save with job files"
         );
         assertStaticResourceContains(
                 "static/axis-1/tool.html",
