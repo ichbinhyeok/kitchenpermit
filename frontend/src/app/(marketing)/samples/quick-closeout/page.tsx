@@ -46,6 +46,12 @@ const inputSteps = [
   ["3", "Confirm blocked access + next action"],
 ] as const;
 
+const valuePoints = [
+  "One crew entry creates both the customer link and the retained PDF copy.",
+  "The link is for the restaurant to review on a phone after the job.",
+  "The PDF is a separate document the customer can save with invoices or job files.",
+] as const;
+
 export default function QuickCloseoutSamplePage() {
   return (
     <main className="-mt-[82px] bg-[#e7ded3] px-4 pb-12 pt-[96px] text-[#151515] sm:px-5 sm:pt-[108px] md:pt-[122px]">
@@ -76,14 +82,28 @@ export default function QuickCloseoutSamplePage() {
               One job record, two customer outputs.
             </h1>
             <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-[#5f574f] sm:mt-4 sm:leading-7">
-              A phone-friendly customer link for review, plus a retained PDF
-              copy the restaurant can save with job files.
+              A simple hood cleaning closeout record: service date,
+              before/after photos, blocked access, and next action in a
+              customer link plus a retained PDF copy.
             </p>
 
             <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#b8d7c7] bg-[#f1f8f4] px-3 py-2 text-sm font-black text-[#1f6248] sm:mt-5">
               <CheckCircle2 className="h-4 w-4" />
               Same sample data in both outputs
             </div>
+
+            <p className="mt-3 text-sm font-black leading-5 text-[#423c36] sm:hidden">
+              Link for review. PDF for files. Result-first builder.
+            </p>
+
+            <ul className="mt-4 hidden gap-2 text-sm font-semibold leading-5 text-[#423c36] sm:grid">
+              {valuePoints.map((point) => (
+                <li key={point} className="flex gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2e7a58]" />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="border-t border-[#ded6cc] bg-white px-4 py-4 sm:px-5 lg:border-l lg:border-t-0">
@@ -95,9 +115,9 @@ export default function QuickCloseoutSamplePage() {
                 <h2 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] sm:mt-3 sm:text-2xl sm:tracking-[-0.045em]">
                   Customer link
                 </h2>
-                <p className="mt-2 hidden text-sm font-semibold leading-6 text-[#5f574f] sm:mt-3 sm:block">
-                  Opens on a phone or desktop so the restaurant can review the
-                  service date, photos, blocked access, and next action.
+                <p className="mt-2 text-sm font-semibold leading-6 text-[#5f574f] sm:mt-3">
+                  For restaurant review from text or email: date, photos,
+                  blocked access, and next action.
                 </p>
                 <Link
                   href="/p/sample-blocked-access"
@@ -116,9 +136,9 @@ export default function QuickCloseoutSamplePage() {
                 <h2 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] sm:mt-3 sm:text-2xl sm:tracking-[-0.045em]">
                   Retained PDF copy
                 </h2>
-                <p className="mt-2 hidden text-sm font-semibold leading-6 text-white/68 sm:mt-3 sm:block">
-                  A document-style copy for customer files, invoice attachments,
-                  manager records, or outside record requests.
+                <p className="mt-2 text-sm font-semibold leading-6 text-white/68 sm:mt-3">
+                  For files: a separate document-style copy customers can save
+                  alongside invoices, manager records, or job files.
                 </p>
                 <Link
                   href={AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF}
@@ -133,7 +153,11 @@ export default function QuickCloseoutSamplePage() {
 
             <div className="mt-3 rounded-[18px] border border-[#ded6cc] bg-[#fbfaf7] px-3 py-3">
               <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#83786d]">
-                What the crew enters
+                Fast to make
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-[#6f665d]">
+                The builder starts with the result, then adds only the record
+                details needed for the customer output.
               </p>
               <div className="mt-2 grid gap-2 sm:grid-cols-3">
                 {inputSteps.map(([step, label]) => (
