@@ -4,7 +4,7 @@ import { siteConfig } from "@/lib/site";
 
 const footerLinks = [
   { href: "/axis-1", label: "Service Report" },
-  { href: "/samples/axis-1", label: "Sample" },
+  { href: "/samples/quick-closeout", label: "Sample" },
   { href: "/resources", label: "Resources" },
   { href: "/hood-cleaning-service-report-template", label: "Report Template" },
   { href: "/send-hood-cleaning-report-after-service", label: "After Service" },

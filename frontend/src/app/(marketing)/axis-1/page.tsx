@@ -523,8 +523,8 @@ export default function Axis1Page() {
                 each report.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
-                <ButtonLink href="/samples/axis-1" variant="outline" withIcon>
-                  View sample report
+                <ButtonLink href="/samples/quick-closeout" variant="outline" withIcon>
+                  View output sample
                 </ButtonLink>
                 <ButtonLink href="/company-version" withIcon>
                   See company version

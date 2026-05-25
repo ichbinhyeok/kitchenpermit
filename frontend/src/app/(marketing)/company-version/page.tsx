@@ -90,8 +90,8 @@ export default function CompanyVersionPage() {
               <CtaLink href="/dashboard" tone="light">
                 View account
               </CtaLink>
-              <CtaLink href="/samples/axis-1" tone="light">
-                View sample report
+              <CtaLink href="/samples/quick-closeout" tone="light">
+                View output sample
               </CtaLink>
               <CtaLink href="/pricing" tone="light">
                 View pricing

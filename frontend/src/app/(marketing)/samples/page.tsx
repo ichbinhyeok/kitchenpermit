@@ -15,14 +15,14 @@ export const metadata: Metadata = publicPageMetadata({
 const samples = [
   {
     href: "/samples/quick-closeout",
-    label: "Quick Closeout Sample",
-    title: "10-second hood cleaning closeout record",
+    label: "Output Overview",
+    title: "One sample, two customer outputs",
     description:
-      "A short generic sample for vendors who want to see the customer link before opening the full report.",
+      "Start here to see the customer link and the retained PDF copy side by side.",
     visible: [
       "Service date, before/after photos, blocked access, and next action",
       "Hood-specific areas like filters, duct access, fan, and grease containment",
-      "Save-with-invoice language without compliance claims",
+      "Direct paths to the live customer link and PDF copy",
     ],
     hidden: [
       "Company-specific branding and contact details",
@@ -31,10 +31,10 @@ const samples = [
   },
   {
     href: "/samples/axis-1",
-    label: "Customer Service Report Sample",
-    title: "Hood closeout service report preview",
+    label: "Detailed Customer Link",
+    title: "Open the restaurant-facing report",
     description:
-      "A public sample that shows what the restaurant receives after service.",
+      "The full customer link shows the same sample data in the report view the restaurant opens.",
     visible: [
       "Service summary, work scope, and next-step structure",
       "Photo organization and customer-facing language",
@@ -52,8 +52,8 @@ export default function SamplesPage() {
     <>
       <PageHeader
         label="SAMPLES // SERVICE REPORT"
-        title="Preview the customer service report."
-        description="The public sample shows the service result, blocked access, photos, PDF copy, and next action in one customer-readable record."
+        title="Preview the customer outputs."
+        description="Start with the overview, then open the same sample as either a customer link or a retained PDF copy."
       />
       <section className="container-shell grid gap-6 pb-10 md:grid-cols-[minmax(0,1fr)_minmax(280px,0.42fr)]">
         {samples.map((sample) => (
@@ -101,7 +101,9 @@ export default function SamplesPage() {
               href={sample.href}
               className="mt-8 inline-flex min-h-10 items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-accent"
             >
-              View sample report
+              {sample.href === "/samples/quick-closeout"
+                ? "View output overview"
+                : "Open customer link"}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Panel>
@@ -136,8 +138,8 @@ export default function SamplesPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              "The quick sample is the short version for a first look.",
-              "The full sample shows the restaurant-facing report in more detail.",
+              "The overview is the best first link because it explains both outputs.",
+              "The detailed sample is the restaurant-facing customer link.",
               "Sample company details are generic and do not represent a real customer account.",
               "KitchenPermit is service report software, not a permit, certificate, inspection, or compliance approval.",
             ].map((rule) => (

@@ -16,7 +16,7 @@ import { siteConfig } from "@/lib/site";
 const navigation = [
   { href: "/", label: "Home" },
   { href: "/axis-1", label: "Service Report" },
-  { href: "/samples/axis-1", label: "Sample" },
+  { href: "/samples/quick-closeout", label: "Sample" },
   { href: "/resources", label: "Resources" },
   { href: "/pricing", label: "Pricing" },
   { href: "/dashboard", label: "Account" },

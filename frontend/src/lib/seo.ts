@@ -227,7 +227,7 @@ export const seoResourcePages = [
     copyBlock:
       "Reachable hood, filter, and duct-path areas were serviced during this visit. The report below shows the completed work, grouped photos, and the one access issue that should be corrected before the next standard cycle.",
     related: [
-      { href: "/samples/axis-1", label: "Live sample" },
+      { href: "/samples/quick-closeout", label: "Output sample" },
       { href: "/hood-cleaning-service-report-template", label: "Template" },
       { href: "/nfpa-96-hood-cleaning-photo-checklist", label: "Photo checklist" },
     ],
@@ -394,7 +394,7 @@ export const seoResourcePages = [
       "Today's hood cleaning service report is ready: [report link]\n\nThe report shows the completed work, grouped photos, and PDF copy for your records. One item remains open: [blocked access or condition note]. Please reply to confirm the next service window or the access correction plan.",
     related: [
       { href: "/axis-1/tool", label: "Free builder" },
-      { href: "/samples/axis-1", label: "Sample report" },
+      { href: "/samples/quick-closeout", label: "Output sample" },
       { href: "/blocked-access-service-report-template", label: "Blocked access template" },
     ],
   },
@@ -665,7 +665,7 @@ export const seoResourcePages = [
     copyBlock:
       "After the crew finishes, send one customer-ready service report link. It should summarize the job, group the photos, call out any blocked access, and give the restaurant a PDF copy to save.",
     related: [
-      { href: "/samples/axis-1", label: "Sample report" },
+      { href: "/samples/quick-closeout", label: "Output sample" },
       { href: "/hood-cleaning-service-report-template", label: "Template" },
       { href: "/company-version", label: "Company version" },
     ],

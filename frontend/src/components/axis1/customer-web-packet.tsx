@@ -514,25 +514,23 @@ function PublicSampleBanner() {
   return (
     <div
       id="public-sample-note"
-      className="pdf-print-hide scroll-mt-20 border-b border-[#f2d3bd] bg-[#fff4ea] px-5 py-3 text-[#5f2b14] sm:px-8 lg:px-10"
+      className="pdf-print-hide scroll-mt-20 border-b border-[#eadfd4] bg-[#fbfaf7] px-5 py-3 text-[#5f2b14] sm:px-8 lg:px-10"
     >
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-[#c8581e]">
-          Public sample
-        </p>
-        <p className="min-w-0 max-w-3xl break-words text-sm font-semibold leading-6">
-          <span className="sm:hidden">
-            Sample details. PDF copy is the file version.
-          </span>
-          <span className="hidden sm:inline">
-            Example company details. Open the PDF copy to see the restaurant file version.
-          </span>
-        </p>
+      <div className="mx-auto flex max-w-[1180px] flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#9b3f13]">
+            Customer receives two outputs
+          </p>
+          <p className="mt-1 max-w-3xl break-words text-sm font-semibold leading-6 text-[#5f574f]">
+            This is the customer link. The retained PDF copy is the document
+            version for customer files.
+          </p>
+        </div>
         <a
           href="?format=pdf"
-          className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full border border-[#e5a075] bg-white px-3 text-xs font-black uppercase tracking-[0.12em] text-[#9b3f13] transition hover:bg-[#fffaf5]"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#111315] px-5 text-xs font-black uppercase tracking-[0.1em] text-white transition hover:bg-[#2a2d30]"
         >
-          Open PDF copy
+          View retained PDF copy
         </a>
       </div>
     </div>

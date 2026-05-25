@@ -153,7 +153,7 @@ export function SeoResourcePage({ page }: SeoResourcePageProps) {
                 {page.primaryAction}
               </ButtonLink>
               <Link
-                href="/samples/axis-1"
+                href="/samples/quick-closeout"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-white px-5 text-sm font-bold text-foreground transition hover:border-border-strong"
               >
                 See sample

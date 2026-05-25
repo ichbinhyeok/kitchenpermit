@@ -278,8 +278,8 @@ export default function HomePage() {
                 <ActionLink href="/axis-1/tool?account=free" tone="accent">
                   Build a free test report
                 </ActionLink>
-                <ActionLink href="/samples/axis-1" tone="light">
-                  View sample report
+                <ActionLink href="/samples/quick-closeout" tone="light">
+                  View output sample
                 </ActionLink>
                 <ActionLink href="/company-version" tone="light">
                   See company version

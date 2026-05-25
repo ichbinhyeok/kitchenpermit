@@ -143,7 +143,7 @@ export function Axis1BuilderHeader<TStep extends string>({
               className="absolute right-0 top-12 z-[160] w-44 overflow-hidden rounded-[18px] border border-white/10 bg-[#202326] p-1 shadow-[0_22px_70px_rgba(0,0,0,0.38)]"
             >
               {[
-                ["/samples/axis-1", "Sample"],
+                ["/samples/quick-closeout", "Sample"],
                 ["/axis-1", "Product"],
                 ["/pricing", "Pricing"],
                 ["/dashboard", "Dashboard"],

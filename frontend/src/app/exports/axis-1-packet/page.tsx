@@ -296,11 +296,11 @@ function Axis1PacketPdfPreviewContent({
                       </Link>
                     )}
                     <Link
-                      href="/samples/axis-1"
+                      href="/samples/quick-closeout"
                       prefetch={false}
                       className="inline-flex w-full items-center justify-center rounded-full border border-black/10 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:w-auto"
                     >
-                      Open sample report
+                      Open output overview
                     </Link>
                   </div>
 
