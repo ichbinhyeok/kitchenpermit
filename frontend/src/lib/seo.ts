@@ -681,6 +681,7 @@ export const indexedSiteRoutes = [
   { path: "/axis-1", changeFrequency: "weekly", priority: 0.9 },
   { path: "/axis-1/tool", changeFrequency: "weekly", priority: 0.85 },
   { path: "/samples", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/samples/quick-closeout", changeFrequency: "monthly", priority: 0.82 },
   { path: "/samples/axis-1", changeFrequency: "monthly", priority: 0.8 },
   { path: "/pricing", changeFrequency: "monthly", priority: 0.75 },
   { path: "/company-version", changeFrequency: "monthly", priority: 0.72 },

@@ -129,10 +129,10 @@ export default function PricingPage() {
             <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
           </Link>
           <Link
-            href="/samples/axis-1"
+            href="/samples/quick-closeout"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border-strong bg-white/60 px-5 text-sm font-black text-foreground transition hover:bg-white"
           >
-            View sample report
+            View quick sample
             <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
           </Link>
         </div>

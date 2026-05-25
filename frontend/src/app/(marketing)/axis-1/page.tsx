@@ -180,12 +180,12 @@ export default function Axis1Page() {
                   Build a free test report
                 </ButtonLink>
                 <ButtonLink
-                  href="/p/sample-blocked-access"
+                  href="/samples/quick-closeout"
                   variant="outline"
                   withIcon
                   className="w-full justify-between sm:w-auto sm:justify-center"
                 >
-                  View sample customer report
+                  View quick sample
                 </ButtonLink>
               </div>
               <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">

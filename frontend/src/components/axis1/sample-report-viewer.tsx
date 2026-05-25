@@ -437,7 +437,7 @@ function SampleActionNotice({
             onClick={onViewPdf}
             className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-black/10 bg-white px-4 text-sm font-black text-[#111315]"
           >
-            See inspection PDF
+            See PDF copy
           </button>
         </div>
       </div>
@@ -518,7 +518,7 @@ export function SampleReportViewer({ data }: SampleReportViewerProps) {
               Sample restaurant view
             </p>
             <p className="max-w-3xl text-sm font-semibold leading-7 text-white/64 lg:justify-self-end">
-              Below is the sample report a restaurant would receive: the view they open, plus the PDF they save for inspection.
+              Below is the sample report a restaurant would receive: the view they open, plus the PDF they save with customer files.
             </p>
           </div>
           <div
@@ -558,7 +558,7 @@ export function SampleReportViewer({ data }: SampleReportViewerProps) {
                   Open full restaurant view
                 </ActionLink>
                 <ActionButton onClick={() => openViewerMode("pdf")} tone="light">
-                  Show inspection PDF
+                  Show PDF copy
                 </ActionButton>
               </div>
             </div>
@@ -571,7 +571,7 @@ export function SampleReportViewer({ data }: SampleReportViewerProps) {
                 <FieldLine label="From" value="Summit Hood Service Co." />
                 <FieldLine label="To" value="Sample Restaurant Group" />
                 <FieldLine label="Opened for" value="Kitchen exhaust cleaning record" />
-                <FieldLine label="Keep" value="Restaurant view + inspection PDF" />
+                <FieldLine label="Keep" value="Restaurant view + PDF copy" />
               </div>
             </div>
           </div>

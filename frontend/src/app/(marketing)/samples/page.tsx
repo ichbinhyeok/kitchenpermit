@@ -14,6 +14,22 @@ export const metadata: Metadata = publicPageMetadata({
 
 const samples = [
   {
+    href: "/samples/quick-closeout",
+    label: "Quick Closeout Sample",
+    title: "10-second hood cleaning closeout record",
+    description:
+      "A short generic sample for vendors who want to see the customer link before opening the full report.",
+    visible: [
+      "Service date, before/after photos, blocked access, and next action",
+      "Hood-specific areas like filters, duct access, fan, and grease containment",
+      "Save-with-invoice language without compliance claims",
+    ],
+    hidden: [
+      "Company-specific branding and contact details",
+      "Saved report history and retained customer links",
+    ],
+  },
+  {
     href: "/samples/axis-1",
     label: "Customer Service Report Sample",
     title: "Hood closeout service report preview",
@@ -104,26 +120,26 @@ export default function SamplesPage() {
         </Panel>
       </section>
       <ResourceLinkStrip
-        label="Sample follow-up links"
-        title="Give companies a page for the exact question they ask next."
-        description="After the sample, link them to the template, restaurant-report, photo-report, or after-service handoff page instead of repeating the whole pitch."
+        label="More report resources"
+        title="Use the resource pages when a company wants a specific template."
+        description="Templates and examples cover blocked access wording, restaurant-facing reports, photo records, and after-service handoff language."
       />
       <section className="container-shell pb-20">
         <Panel className="grid gap-6 px-6 py-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-start">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-              Sample rules
+              How to read the samples
             </p>
             <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] text-foreground">
-              The sample should prove product quality while keeping back-office mechanics out of view.
+              The sample pages show the customer record, not a full back-office system.
             </h2>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              "The service report sample proves readability, findings clarity, and rebook posture.",
-              "This sample link is free and public so prospects can inspect the restaurant-facing report.",
-              "HTML and PDF previews are fine, but the public sample should not pretend every company detail is already configured.",
-              "A company owner or office manager should leave the page understanding the report artifact.",
+              "The quick sample is the short version for a first look.",
+              "The full sample shows the restaurant-facing report in more detail.",
+              "Sample company details are generic and do not represent a real customer account.",
+              "KitchenPermit is service report software, not a permit, certificate, inspection, or compliance approval.",
             ].map((rule) => (
               <div key={rule} className="border border-border bg-white px-4 py-4 text-sm leading-7 text-muted-foreground">
                 {rule}
