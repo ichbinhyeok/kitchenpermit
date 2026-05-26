@@ -68,51 +68,54 @@ const builderSteps = [
 
 export default function QuickCloseoutSamplePage() {
   return (
-    <main className="bg-[#f6f2eb] text-[#151515]">
+    <main className="bg-[#fbf7f0] text-[#151515]">
       <section className="px-4 pb-10 pt-6 sm:px-5 sm:pt-8 lg:pb-14">
         <div className="mx-auto grid max-w-[1180px] gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 border border-[#d8d0c4] bg-white px-3 py-2 text-[11px] font-black uppercase tracking-[0.13em] text-[#6d6257]">
-              <span className="h-2 w-2 bg-[#f26a21]" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#e3dbcf] bg-white/82 px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.13em] text-[#6d6257] shadow-[0_12px_34px_rgba(31,25,18,0.06)]">
+              <span className="h-2 w-2 rounded-full bg-[#f26a21]" />
               Generic sample output
             </div>
 
-            <h1 className="mt-4 font-display text-[2.25rem] font-black leading-[0.98] tracking-[-0.045em] text-[#121212] sm:text-[4rem] sm:tracking-[-0.065em] lg:text-[4.75rem]">
+            <h1 className="mt-4 font-display text-[2.1rem] font-black leading-[0.98] tracking-[-0.045em] text-[#121212] sm:text-[4rem] sm:tracking-[-0.065em] lg:text-[4.75rem]">
               Hood closeout record. Link + PDF.
             </h1>
 
-            <p className="mt-4 max-w-lg text-base font-semibold leading-7 text-[#665d54]">
+            <p className="mt-3 max-w-lg text-base font-semibold leading-7 text-[#665d54] sm:mt-4">
               Service date, before/after photos, blocked access, and next
               action in one customer-ready record.
             </p>
 
-            <div className="mt-6 grid max-w-md grid-cols-2 gap-2">
+            <div className="mt-5 grid max-w-md grid-cols-2 gap-2 sm:mt-6">
               <Link
                 href="/p/sample-blocked-access"
-                className="inline-flex min-h-12 items-center justify-center gap-2 bg-[#f26a21] px-4 text-center text-sm font-black text-white shadow-[0_16px_34px_rgba(242,106,33,0.24)] transition hover:bg-[#dd5b17]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-4 text-center text-sm font-black text-white shadow-[0_16px_34px_rgba(242,106,33,0.24)] transition hover:bg-[#dd5b17]"
               >
                 View link
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href={AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF}
-                className="inline-flex min-h-12 items-center justify-center gap-2 border border-[#151515] bg-[#151515] px-4 text-center text-sm font-black text-white transition hover:bg-[#2a2a2a]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#151515] bg-[#151515] px-4 text-center text-sm font-black text-white transition hover:bg-[#2a2a2a]"
               >
                 <FileText className="h-4 w-4" />
                 Open PDF
               </Link>
             </div>
 
-            <p className="mt-4 text-sm font-black leading-5 text-[#3f3932] lg:hidden">
+            <p className="mt-4 hidden text-sm font-black leading-5 text-[#3f3932] sm:block lg:hidden">
               The link is for review. The PDF is for customer files.
             </p>
 
-            <div className="mt-6 hidden gap-px overflow-hidden border border-[#ded6cc] bg-[#ded6cc] sm:grid-cols-2 lg:grid">
+            <div className="mt-6 hidden gap-3 sm:grid-cols-2 lg:grid">
               {outputRoles.map((role) => {
                 const Icon = role.icon;
 
                 return (
-                  <div key={role.title} className="bg-white p-4">
+                  <div
+                    key={role.title}
+                    className="rounded-[20px] border border-[#e7ded2] bg-white/86 p-4 shadow-[0_16px_44px_rgba(31,25,18,0.055)]"
+                  >
                     <div className="flex items-center gap-2">
                       <Icon className="h-4 w-4 text-[#f26a21]" />
                       <p className="text-sm font-black">{role.title}</p>
@@ -127,8 +130,8 @@ export default function QuickCloseoutSamplePage() {
           </div>
 
           <div className="relative">
-            <div className="absolute -right-3 top-6 hidden h-[86%] w-[34%] border border-[#d8d0c4] bg-white shadow-[0_24px_70px_rgba(27,22,16,0.12)] lg:block">
-              <div className="border-b border-[#e5ded4] px-4 py-4">
+            <div className="absolute -right-3 top-6 hidden h-[86%] w-[34%] overflow-hidden rounded-[28px] border border-white/82 bg-white/76 shadow-[0_28px_80px_rgba(27,22,16,0.10)] backdrop-blur lg:block">
+              <div className="border-b border-[#eee6dc] px-4 py-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8a7f72]">
                   PDF copy
                 </p>
@@ -137,18 +140,18 @@ export default function QuickCloseoutSamplePage() {
                 </p>
               </div>
               <div className="space-y-3 px-4 py-4">
-                <div className="h-2 w-3/4 bg-[#ded6cc]" />
-                <div className="h-2 w-full bg-[#ded6cc]" />
-                <div className="h-2 w-2/3 bg-[#ded6cc]" />
+                <div className="h-2 w-3/4 rounded-full bg-[#ded6cc]" />
+                <div className="h-2 w-full rounded-full bg-[#ded6cc]" />
+                <div className="h-2 w-2/3 rounded-full bg-[#ded6cc]" />
                 <div className="mt-5 grid grid-cols-2 gap-2">
-                  <div className="aspect-[3/4] bg-[#f1ebe3]" />
-                  <div className="aspect-[3/4] bg-[#f1ebe3]" />
+                  <div className="aspect-[3/4] rounded-[14px] bg-[#f1ebe3]" />
+                  <div className="aspect-[3/4] rounded-[14px] bg-[#f1ebe3]" />
                 </div>
               </div>
             </div>
 
-            <article className="relative border border-[#cfc6b9] bg-white shadow-[0_28px_80px_rgba(27,22,16,0.16)] lg:mr-[17%]">
-              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#e6ded3] px-4 py-4 sm:px-5">
+            <article className="relative overflow-hidden rounded-[30px] border border-white/90 bg-white shadow-[0_28px_90px_rgba(27,22,16,0.14)] ring-1 ring-[#ded4c8]/72 lg:mr-[17%]">
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#eee6dc] px-4 py-3.5 sm:px-5 sm:py-4">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.15em] text-[#85796d]">
                     Sample Hood Service Co.
@@ -157,15 +160,18 @@ export default function QuickCloseoutSamplePage() {
                     Hood Cleaning Closeout Record
                   </h2>
                 </div>
-                <div className="flex items-center gap-2 bg-[#eaf6ee] px-3 py-2 text-xs font-black text-[#146039]">
+                <div className="flex items-center gap-2 rounded-full bg-[#eaf6ee] px-3 py-2 text-xs font-black text-[#146039]">
                   <CheckCircle2 className="h-4 w-4" />
                   Reachable work completed
                 </div>
               </div>
 
-              <dl className="grid grid-cols-2 gap-px border-b border-[#e6ded3] bg-[#e6ded3] sm:grid-cols-4">
+              <dl className="grid grid-cols-2 gap-2 border-b border-[#eee6dc] bg-[#fbf8f3] p-3 sm:grid-cols-4">
                 {serviceFacts.map(([label, value]) => (
-                  <div key={label} className="bg-[#fbf8f3] px-3 py-3 sm:px-4">
+                  <div
+                    key={label}
+                    className="rounded-[18px] bg-white px-3 py-2.5 shadow-[0_8px_24px_rgba(31,25,18,0.04)] sm:px-4 sm:py-3"
+                  >
                     <dt className="text-[9px] font-black uppercase tracking-[0.14em] text-[#8a7f72]">
                       {label}
                     </dt>
@@ -189,7 +195,10 @@ export default function QuickCloseoutSamplePage() {
 
                 <div className="grid grid-cols-2 gap-2">
                   {photos.map((photo) => (
-                    <figure key={photo.label} className="overflow-hidden border border-[#ddd4c9] bg-[#111315]">
+                    <figure
+                      key={photo.label}
+                      className="overflow-hidden rounded-[22px] bg-[#111315] shadow-[0_14px_34px_rgba(14,12,10,0.13)]"
+                    >
                       <div className="relative aspect-[4/3]">
                         <Image
                           src={photo.src}
@@ -213,7 +222,7 @@ export default function QuickCloseoutSamplePage() {
                 </div>
 
                 <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_0.95fr]">
-                  <div className="border border-[#e1d8cd] bg-[#fbf8f3] p-4">
+                  <div className="rounded-[22px] border border-[#eee6dc] bg-[#fbf8f3] p-4">
                     <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#8a7f72]">
                       Areas shown
                     </p>
@@ -221,7 +230,7 @@ export default function QuickCloseoutSamplePage() {
                       {areas.map((area) => (
                         <span
                           key={area}
-                          className="border border-[#d8d0c4] bg-white px-2.5 py-1.5 text-xs font-black text-[#4d453e]"
+                          className="rounded-full border border-[#ded5ca] bg-white px-3 py-1.5 text-xs font-black text-[#4d453e]"
                         >
                           {area}
                         </span>
@@ -229,7 +238,7 @@ export default function QuickCloseoutSamplePage() {
                     </div>
                   </div>
 
-                  <div className="border border-[#efc0a4] bg-[#fff4ec] p-4">
+                  <div className="rounded-[22px] border border-[#f1c6ac] bg-[#fff4ec] p-4">
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#bc3d1f]" />
                       <div>
@@ -253,7 +262,7 @@ export default function QuickCloseoutSamplePage() {
         </div>
       </section>
 
-      <section className="border-y border-[#ddd4c9] bg-[#111315] px-4 py-8 text-white sm:px-5">
+      <section className="bg-[#111315] px-4 py-8 text-white sm:px-5">
         <div className="mx-auto grid max-w-[1180px] gap-5 md:grid-cols-[0.82fr_1.18fr] md:items-center">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff9b63]">
@@ -263,9 +272,12 @@ export default function QuickCloseoutSamplePage() {
               Not a new workflow for the crew.
             </h2>
           </div>
-          <div className="grid gap-px overflow-hidden border border-white/12 bg-white/12 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-3">
             {builderSteps.map((step, index) => (
-              <div key={step} className="bg-[#171a1d] p-4">
+              <div
+                key={step}
+                className="rounded-[20px] border border-white/10 bg-white/[0.055] p-4"
+              >
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/38">
                   Step {index + 1}
                 </p>
@@ -276,7 +288,7 @@ export default function QuickCloseoutSamplePage() {
         </div>
       </section>
 
-      <section className="bg-[#f6f2eb] px-4 py-6 text-[#655c53] sm:px-5">
+      <section className="bg-[#fbf7f0] px-4 py-6 text-[#655c53] sm:px-5">
         <p className="mx-auto max-w-[1180px] text-xs leading-6">
           KitchenPermit is service report software. This generic sample is for
           customer recordkeeping only. It does not issue permits, certificates,
