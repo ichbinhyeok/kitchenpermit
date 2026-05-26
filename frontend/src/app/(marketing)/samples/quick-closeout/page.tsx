@@ -69,7 +69,7 @@ export default function QuickCloseoutSamplePage() {
             </div>
           </div>
           <p className="rounded-full border border-[#ded6cc] bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-[#6f665d]">
-            Customer link + PDF copy
+            Sample customer output
           </p>
         </header>
 
@@ -78,13 +78,12 @@ export default function QuickCloseoutSamplePage() {
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#9b3f13]">
               Generic sample: what the customer receives
             </p>
-            <h1 className="mt-3 max-w-xl font-display text-[2.1rem] font-bold leading-[0.94] tracking-[-0.05em] sm:text-[3.45rem] sm:tracking-[-0.055em] lg:text-[3.9rem]">
-              One job record, two customer outputs.
+            <h1 className="mt-3 max-w-xl font-display text-[2.08rem] font-bold leading-[0.96] tracking-[-0.045em] sm:text-[3.45rem] sm:tracking-[-0.055em] lg:text-[3.9rem]">
+              One closeout record. Link + PDF.
             </h1>
             <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-[#5f574f] sm:mt-4 sm:leading-7">
-              A simple hood cleaning closeout record: service date,
-              before/after photos, blocked access, and next action in a
-              customer link plus a retained PDF copy.
+              Service date, before/after photos, blocked access, and next
+              action from one result-first entry.
             </p>
 
             <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#b8d7c7] bg-[#f1f8f4] px-3 py-2 text-sm font-black text-[#1f6248] sm:mt-5">
@@ -92,8 +91,24 @@ export default function QuickCloseoutSamplePage() {
               Same sample data in both outputs
             </div>
 
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
+              <Link
+                href="/p/sample-blocked-access"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f26a21] px-3 text-center text-xs font-black text-white"
+              >
+                Open link
+              </Link>
+              <Link
+                href={AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF}
+                className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#111315] px-3 text-center text-xs font-black text-white"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Open PDF
+              </Link>
+            </div>
+
             <p className="mt-3 text-sm font-black leading-5 text-[#423c36] sm:hidden">
-              Link for review. PDF for files. Result-first builder.
+              Link for review. PDF for files. Simple to make.
             </p>
 
             <ul className="mt-4 hidden gap-2 text-sm font-semibold leading-5 text-[#423c36] sm:grid">
