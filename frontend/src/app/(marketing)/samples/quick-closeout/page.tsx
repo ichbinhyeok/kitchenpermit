@@ -53,182 +53,142 @@ const valuePoints = [
 ] as const;
 
 export default function QuickCloseoutSamplePage() {
-  return (
-    <main className="-mt-[82px] bg-[#e7ded3] px-4 pb-12 pt-[96px] text-[#151515] sm:px-5 sm:pt-[108px] md:pt-[122px]">
-      <section className="mx-auto w-[min(1080px,100%)] overflow-hidden rounded-[28px] border border-black/10 bg-[#fbfaf7] shadow-[0_28px_90px_rgba(55,43,31,0.18)]">
-        <header className="flex flex-col gap-3 border-b border-[#ded6cc] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-[#111315] text-sm font-black text-[#ff9b63]">
-              HL
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-black">Sample Hood Service Co.</p>
-              <p className="mt-1 text-xs font-semibold text-[#6f665d]">
-                Generic sample outputs
-              </p>
-            </div>
-          </div>
-          <p className="rounded-full border border-[#ded6cc] bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-[#6f665d]">
-            Sample customer output
-          </p>
-        </header>
+  const afterPhoto = photos[1];
 
-        <div className="grid gap-0 lg:grid-cols-[0.82fr_1.18fr]">
-          <div className="px-4 py-5 sm:px-6 sm:py-6">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#9b3f13]">
+  return (
+    <main className="-mt-[82px] bg-[#111315] text-white">
+      <section className="relative overflow-hidden px-4 pb-8 pt-[96px] sm:px-5 sm:pt-[108px] md:pt-[122px] lg:pb-12">
+        <Image
+          src={afterPhoto.src}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="scale-105 object-cover opacity-18 blur-[1px]"
+          style={{ objectPosition: "center" }}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,19,21,0.82)_0%,rgba(17,19,21,0.96)_62%,#111315_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(242,106,33,0.28),transparent_32%)]" />
+
+        <div className="relative mx-auto grid max-w-[1180px] gap-7 lg:min-h-[760px] lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-10">
+          <div className="max-w-xl">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-white text-sm font-black text-[#f26a21]">
+                HL
+              </div>
+              <div>
+                <p className="text-sm font-black">Sample Hood Service Co.</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                  Sample customer output
+                </p>
+              </div>
+            </div>
+
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff9b63]">
               Generic sample: what the customer receives
             </p>
-            <h1 className="mt-3 max-w-xl font-display text-[2.08rem] font-bold leading-[0.96] tracking-[-0.045em] sm:text-[3.45rem] sm:tracking-[-0.055em] lg:text-[3.9rem]">
+            <h1 className="mt-3 font-display text-[2.35rem] font-bold leading-[0.92] tracking-[-0.045em] text-white sm:text-[4.7rem] sm:tracking-[-0.065em] lg:text-[5.4rem]">
               One closeout record. Link + PDF.
             </h1>
-            <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-[#5f574f] sm:mt-4 sm:leading-7">
+            <p className="mt-4 max-w-lg text-base font-semibold leading-7 text-white/72">
               Service date, before/after photos, blocked access, and next
               action from one result-first entry.
             </p>
 
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#b8d7c7] bg-[#f1f8f4] px-3 py-2 text-sm font-black text-[#1f6248] sm:mt-5">
-              <CheckCircle2 className="h-4 w-4" />
-              Same sample data in both outputs
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
+            <div className="mt-5 grid max-w-md grid-cols-2 gap-2">
               <Link
                 href="/p/sample-blocked-access"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f26a21] px-3 text-center text-xs font-black text-white"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-4 text-center text-sm font-black text-white shadow-[0_18px_44px_rgba(242,106,33,0.28)] transition hover:bg-[#ff7a2c]"
               >
                 Open link
+                <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href={AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF}
-                className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#111315] px-3 text-center text-xs font-black text-white"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/18 bg-white px-4 text-center text-sm font-black text-[#111315] transition hover:bg-[#f4eee6]"
               >
-                <FileText className="h-3.5 w-3.5" />
+                <FileText className="h-4 w-4" />
                 Open PDF
               </Link>
             </div>
 
-            <p className="mt-3 text-sm font-black leading-5 text-[#423c36] sm:hidden">
+            <p className="mt-4 text-sm font-black leading-5 text-white/88">
               Link for review. PDF for files. Simple to make.
             </p>
 
-            <ul className="mt-4 hidden gap-2 text-sm font-semibold leading-5 text-[#423c36] sm:grid">
+            <ul className="mt-5 hidden gap-2 text-sm font-semibold leading-5 text-white/64 sm:grid">
               {valuePoints.map((point) => (
                 <li key={point} className="flex gap-2">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2e7a58]" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#7bd8a9]" />
                   <span>{point}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="border-t border-[#ded6cc] bg-white px-4 py-4 sm:px-5 lg:border-l lg:border-t-0">
-            <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
-              <article className="rounded-[18px] border border-[#d6cec4] bg-[#fbfaf7] p-3 sm:rounded-[24px] sm:p-4">
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#83786d]">
-                  Output 1
-                </p>
-                <h2 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] sm:mt-3 sm:text-2xl sm:tracking-[-0.045em]">
-                  Customer link
-                </h2>
-                <p className="mt-2 text-sm font-semibold leading-6 text-[#5f574f] sm:mt-3">
-                  For restaurant review from text or email: date, photos,
-                  blocked access, and next action.
-                </p>
-                <Link
-                  href="/p/sample-blocked-access"
-                  className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-[#f26a21] px-3 text-xs font-black text-white transition hover:bg-[#dd5b17] sm:mt-5 sm:min-h-11 sm:px-4 sm:text-sm"
-                >
-                  <span className="sm:hidden">View link</span>
-                  <span className="hidden sm:inline">View customer link</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </article>
-
-              <article className="rounded-[18px] border border-[#111315] bg-[#111315] p-3 text-white sm:rounded-[24px] sm:p-4">
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-white/50">
-                  Output 2
-                </p>
-                <h2 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] sm:mt-3 sm:text-2xl sm:tracking-[-0.045em]">
-                  Retained PDF copy
-                </h2>
-                <p className="mt-2 text-sm font-semibold leading-6 text-white/68 sm:mt-3">
-                  For files: a separate document-style copy customers can save
-                  alongside invoices, manager records, or job files.
-                </p>
-                <Link
-                  href={AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF}
-                  className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-white px-3 text-xs font-black text-[#111315] transition hover:bg-[#f4eee6] sm:mt-5 sm:min-h-11 sm:px-4 sm:text-sm"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span className="sm:hidden">View PDF</span>
-                  <span className="hidden sm:inline">View retained PDF copy</span>
-                </Link>
-              </article>
-            </div>
-
-            <div className="mt-3 rounded-[18px] border border-[#ded6cc] bg-[#fbfaf7] px-3 py-3">
-              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#83786d]">
-                Fast to make
-              </p>
-              <p className="mt-1 text-xs font-semibold leading-5 text-[#6f665d]">
-                The builder starts with the result, then adds only the record
-                details needed for the customer output.
-              </p>
-              <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                {inputSteps.map(([step, label]) => (
-                  <div
-                    key={step}
-                    className="flex items-center gap-2 rounded-[14px] bg-white px-3 py-2 text-xs font-black text-[#423c36]"
-                  >
-                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#111315] text-[10px] text-white">
-                      {step}
-                    </span>
-                    {label}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className="rounded-[30px] border border-white/14 bg-white/[0.075] p-2 shadow-[0_34px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+            <div className="grid gap-2 sm:grid-cols-2">
               {photos.map((photo) => (
                 <figure
                   key={photo.label}
-                  className="overflow-hidden rounded-[18px] border border-[#ded6cc] bg-[#fbfaf7]"
+                  className="overflow-hidden rounded-[24px] bg-[#080a0c]"
                 >
-                  <div className="relative aspect-[4/3] bg-[#111315]">
+                  <div className="relative aspect-[4/3] bg-[#111315] sm:aspect-[3/4] lg:aspect-[4/5]">
                     <Image
                       src={photo.src}
                       alt={photo.title}
                       fill
                       priority
-                      sizes="(min-width: 1024px) 240px, 50vw"
+                      sizes="(min-width: 1024px) 420px, 100vw"
                       className="object-cover"
                     />
                   </div>
-                  <figcaption className="px-3 py-2">
-                    <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#9b3f13]">
+                  <figcaption className="px-4 py-3">
+                    <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#ff9b63]">
                       {photo.label}
                     </p>
-                    <p className="mt-1 text-xs font-black leading-tight">
+                    <p className="mt-1 text-sm font-black leading-tight text-white">
                       {photo.title}
                     </p>
                   </figcaption>
                 </figure>
               ))}
             </div>
+
+            <div className="mt-2 grid gap-2 rounded-[24px] border border-white/10 bg-[#0e1114]/88 p-4 sm:grid-cols-2">
+              <div>
+                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-white/38">
+                  Customer link
+                </p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-white/72">
+                  Review from text or email: date, photos, blocked access, and
+                  next action.
+                </p>
+              </div>
+              <div>
+                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-white/38">
+                  Retained PDF copy
+                </p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-white/72">
+                  Save alongside invoices, manager records, or job files.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
-        <section className="grid gap-0 border-t border-[#ded6cc] lg:grid-cols-[1fr_0.92fr]">
-          <div className="px-4 py-4 sm:px-6">
+      <section className="bg-[#f4ede4] px-4 py-8 text-[#151515] sm:px-5 sm:py-10">
+        <div className="mx-auto grid max-w-[1180px] gap-7 lg:grid-cols-[1fr_0.86fr]">
+          <div>
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#83786d]">
               Sample job details
             </p>
-            <dl className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <dl className="mt-3 grid gap-px overflow-hidden rounded-[22px] border border-[#ded6cc] bg-[#ded6cc] sm:grid-cols-2 lg:grid-cols-4">
               {facts.map(([label, value]) => (
                 <div
                   key={label}
-                  className="rounded-[16px] border border-[#ded6cc] bg-white px-3 py-3"
+                  className="bg-white px-4 py-4"
                 >
                   <dt className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#83786d]">
                     {label}
@@ -255,8 +215,31 @@ export default function QuickCloseoutSamplePage() {
             </div>
           </div>
 
-          <div className="border-t border-[#ded6cc] px-4 py-4 sm:px-6 lg:border-l lg:border-t-0">
-            <div className="flex items-start gap-3 rounded-[20px] border border-[#efc0a4] bg-[#fff4ec] px-4 py-4">
+          <div className="grid gap-4">
+            <div className="rounded-[24px] border border-[#ded6cc] bg-white px-4 py-4">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#83786d]">
+                Fast to make
+              </p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-[#6f665d]">
+                The builder starts with the result, then adds only the record
+                details needed for the customer output.
+              </p>
+              <div className="mt-4 grid gap-2">
+                {inputSteps.map(([step, label]) => (
+                  <div
+                    key={step}
+                    className="flex items-center gap-3 rounded-[16px] bg-[#f7f1e9] px-3 py-3 text-sm font-black text-[#423c36]"
+                  >
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#111315] text-[11px] text-white">
+                      {step}
+                    </span>
+                    {label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-[24px] border border-[#efc0a4] bg-[#fff4ec] px-4 py-4">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#bc3d1f]" />
               <div>
                 <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#9b3f13]">
@@ -271,14 +254,16 @@ export default function QuickCloseoutSamplePage() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
       </section>
 
-      <p className="mx-auto mt-5 max-w-[1080px] text-xs leading-6 text-[#6f665d]">
-        KitchenPermit is service report software. This generic sample is for
-        customer recordkeeping only. It does not issue permits, certificates,
-        inspections, insurance approvals, or compliance determinations.
-      </p>
+      <section className="bg-[#f4ede4] px-4 pb-10 text-[#6f665d] sm:px-5">
+        <p className="mx-auto max-w-[1180px] border-t border-[#ded6cc] pt-5 text-xs leading-6">
+          KitchenPermit is service report software. This generic sample is for
+          customer recordkeeping only. It does not issue permits, certificates,
+          inspections, insurance approvals, or compliance determinations.
+        </p>
+      </section>
     </main>
   );
 }
