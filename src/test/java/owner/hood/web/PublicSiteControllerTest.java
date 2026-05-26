@@ -86,11 +86,11 @@ class PublicSiteControllerTest {
         );
         assertStaticResourceContains(
                 "static/samples/quick-closeout.html",
-                "One closeout record. Link + PDF.",
+                "Hood closeout record. Link + PDF.",
                 "Service date",
                 "Hood interior before service",
                 "Hood interior after service",
-                "Link for review. PDF for files. Simple to make."
+                "The link is for review. The PDF is for customer files."
         );
         assertStaticResourceContains(
                 "static/axis-1/tool.html",
