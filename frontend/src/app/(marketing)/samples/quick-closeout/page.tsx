@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "@/components/navigation/static-link";
-import { AlertTriangle, ArrowRight, CheckCircle2, FileText } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  FileText,
+  Link2,
+} from "lucide-react";
 import { AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF } from "@/lib/axis1-sample-packets";
 import { publicPageMetadata } from "@/lib/seo";
 
@@ -12,7 +19,7 @@ export const metadata: Metadata = publicPageMetadata({
   path: "/samples/quick-closeout",
 });
 
-const facts = [
+const serviceFacts = [
   ["Service date", "Apr 24, 2026"],
   ["Customer", "Sample Restaurant Group"],
   ["Result", "Reachable work completed"],
@@ -40,225 +47,237 @@ const areas = [
   "Grease containment",
 ] as const;
 
-const inputSteps = [
-  ["1", "Pick result"],
-  ["2", "Add service date + photos"],
-  ["3", "Confirm blocked access + next action"],
+const outputRoles = [
+  {
+    icon: Link2,
+    title: "Customer link",
+    body: "Open on a phone after service so the restaurant can review the date, photos, blocked access, and next action.",
+  },
+  {
+    icon: FileText,
+    title: "PDF copy",
+    body: "A separate copy the customer can save alongside invoices, manager records, or job files.",
+  },
 ] as const;
 
-const valuePoints = [
-  "One crew entry creates both the customer link and the retained PDF copy.",
-  "The link is for the restaurant to review on a phone after the job.",
-  "The PDF is a separate document the customer can save with invoices or job files.",
+const builderSteps = [
+  "Pick the service result",
+  "Add date, photos, and notes",
+  "Send the link or PDF copy",
 ] as const;
 
 export default function QuickCloseoutSamplePage() {
-  const afterPhoto = photos[1];
-
   return (
-    <main className="-mt-[82px] bg-[#111315] text-white">
-      <section className="relative overflow-hidden px-4 pb-8 pt-[96px] sm:px-5 sm:pt-[108px] md:pt-[122px] lg:pb-12">
-        <Image
-          src={afterPhoto.src}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="scale-105 object-cover opacity-18 blur-[1px]"
-          style={{ objectPosition: "center" }}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,19,21,0.82)_0%,rgba(17,19,21,0.96)_62%,#111315_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(242,106,33,0.28),transparent_32%)]" />
-
-        <div className="relative mx-auto grid max-w-[1180px] gap-7 lg:min-h-[760px] lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-10">
+    <main className="bg-[#f6f2eb] text-[#151515]">
+      <section className="px-4 pb-10 pt-6 sm:px-5 sm:pt-8 lg:pb-14">
+        <div className="mx-auto grid max-w-[1180px] gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div className="max-w-xl">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-white text-sm font-black text-[#f26a21]">
-                HL
-              </div>
-              <div>
-                <p className="text-sm font-black">Sample Hood Service Co.</p>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
-                  Sample customer output
-                </p>
-              </div>
+            <div className="inline-flex items-center gap-2 border border-[#d8d0c4] bg-white px-3 py-2 text-[11px] font-black uppercase tracking-[0.13em] text-[#6d6257]">
+              <span className="h-2 w-2 bg-[#f26a21]" />
+              Generic sample output
             </div>
 
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff9b63]">
-              Generic sample: what the customer receives
-            </p>
-            <h1 className="mt-3 font-display text-[2.35rem] font-bold leading-[0.92] tracking-[-0.045em] text-white sm:text-[4.7rem] sm:tracking-[-0.065em] lg:text-[5.4rem]">
-              One closeout record. Link + PDF.
+            <h1 className="mt-4 font-display text-[2.25rem] font-black leading-[0.98] tracking-[-0.045em] text-[#121212] sm:text-[4rem] sm:tracking-[-0.065em] lg:text-[4.75rem]">
+              Hood closeout record. Link + PDF.
             </h1>
-            <p className="mt-4 max-w-lg text-base font-semibold leading-7 text-white/72">
+
+            <p className="mt-4 max-w-lg text-base font-semibold leading-7 text-[#665d54]">
               Service date, before/after photos, blocked access, and next
-              action from one result-first entry.
+              action in one customer-ready record.
             </p>
 
-            <div className="mt-5 grid max-w-md grid-cols-2 gap-2">
+            <div className="mt-6 grid max-w-md grid-cols-2 gap-2">
               <Link
                 href="/p/sample-blocked-access"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f26a21] px-4 text-center text-sm font-black text-white shadow-[0_18px_44px_rgba(242,106,33,0.28)] transition hover:bg-[#ff7a2c]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 bg-[#f26a21] px-4 text-center text-sm font-black text-white shadow-[0_16px_34px_rgba(242,106,33,0.24)] transition hover:bg-[#dd5b17]"
               >
-                Open link
+                View link
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href={AXIS1_BLOCKED_ACCESS_SAMPLE_PDF_HREF}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/18 bg-white px-4 text-center text-sm font-black text-[#111315] transition hover:bg-[#f4eee6]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 border border-[#151515] bg-[#151515] px-4 text-center text-sm font-black text-white transition hover:bg-[#2a2a2a]"
               >
                 <FileText className="h-4 w-4" />
                 Open PDF
               </Link>
             </div>
 
-            <p className="mt-4 text-sm font-black leading-5 text-white/88">
-              Link for review. PDF for files. Simple to make.
+            <p className="mt-4 text-sm font-black leading-5 text-[#3f3932] lg:hidden">
+              The link is for review. The PDF is for customer files.
             </p>
 
-            <ul className="mt-5 hidden gap-2 text-sm font-semibold leading-5 text-white/64 sm:grid">
-              {valuePoints.map((point) => (
-                <li key={point} className="flex gap-2">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#7bd8a9]" />
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+            <div className="mt-6 hidden gap-px overflow-hidden border border-[#ded6cc] bg-[#ded6cc] sm:grid-cols-2 lg:grid">
+              {outputRoles.map((role) => {
+                const Icon = role.icon;
 
-          <div className="rounded-[30px] border border-white/14 bg-white/[0.075] p-2 shadow-[0_34px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl">
-            <div className="grid gap-2 sm:grid-cols-2">
-              {photos.map((photo) => (
-                <figure
-                  key={photo.label}
-                  className="overflow-hidden rounded-[24px] bg-[#080a0c]"
-                >
-                  <div className="relative aspect-[4/3] bg-[#111315] sm:aspect-[3/4] lg:aspect-[4/5]">
-                    <Image
-                      src={photo.src}
-                      alt={photo.title}
-                      fill
-                      priority
-                      sizes="(min-width: 1024px) 420px, 100vw"
-                      className="object-cover"
-                    />
+                return (
+                  <div key={role.title} className="bg-white p-4">
+                    <div className="flex items-center gap-2">
+                      <Icon className="h-4 w-4 text-[#f26a21]" />
+                      <p className="text-sm font-black">{role.title}</p>
+                    </div>
+                    <p className="mt-2 text-xs font-semibold leading-5 text-[#665d54]">
+                      {role.body}
+                    </p>
                   </div>
-                  <figcaption className="px-4 py-3">
-                    <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#ff9b63]">
-                      {photo.label}
-                    </p>
-                    <p className="mt-1 text-sm font-black leading-tight text-white">
-                      {photo.title}
-                    </p>
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-
-            <div className="mt-2 grid gap-2 rounded-[24px] border border-white/10 bg-[#0e1114]/88 p-4 sm:grid-cols-2">
-              <div>
-                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-white/38">
-                  Customer link
-                </p>
-                <p className="mt-2 text-sm font-semibold leading-6 text-white/72">
-                  Review from text or email: date, photos, blocked access, and
-                  next action.
-                </p>
-              </div>
-              <div>
-                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-white/38">
-                  Retained PDF copy
-                </p>
-                <p className="mt-2 text-sm font-semibold leading-6 text-white/72">
-                  Save alongside invoices, manager records, or job files.
-                </p>
-              </div>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="bg-[#f4ede4] px-4 py-8 text-[#151515] sm:px-5 sm:py-10">
-        <div className="mx-auto grid max-w-[1180px] gap-7 lg:grid-cols-[1fr_0.86fr]">
-          <div>
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#83786d]">
-              Sample job details
-            </p>
-            <dl className="mt-3 grid gap-px overflow-hidden rounded-[22px] border border-[#ded6cc] bg-[#ded6cc] sm:grid-cols-2 lg:grid-cols-4">
-              {facts.map(([label, value]) => (
-                <div
-                  key={label}
-                  className="bg-white px-4 py-4"
-                >
-                  <dt className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#83786d]">
-                    {label}
-                  </dt>
-                  <dd className="mt-1.5 text-sm font-black leading-tight tracking-[-0.02em]">
-                    {value}
-                  </dd>
+          <div className="relative">
+            <div className="absolute -right-3 top-6 hidden h-[86%] w-[34%] border border-[#d8d0c4] bg-white shadow-[0_24px_70px_rgba(27,22,16,0.12)] lg:block">
+              <div className="border-b border-[#e5ded4] px-4 py-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8a7f72]">
+                  PDF copy
+                </p>
+                <p className="mt-2 text-lg font-black leading-tight">
+                  Hood Cleaning Closeout Record
+                </p>
+              </div>
+              <div className="space-y-3 px-4 py-4">
+                <div className="h-2 w-3/4 bg-[#ded6cc]" />
+                <div className="h-2 w-full bg-[#ded6cc]" />
+                <div className="h-2 w-2/3 bg-[#ded6cc]" />
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <div className="aspect-[3/4] bg-[#f1ebe3]" />
+                  <div className="aspect-[3/4] bg-[#f1ebe3]" />
                 </div>
-              ))}
-            </dl>
-
-            <p className="mt-5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#83786d]">
-              Hood-specific areas shown
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {areas.map((area) => (
-                <span
-                  key={area}
-                  className="rounded-full border border-[#ded6cc] bg-white px-3 py-2 text-xs font-black text-[#423c36]"
-                >
-                  {area}
-                </span>
-              ))}
+              </div>
             </div>
-          </div>
 
-          <div className="grid gap-4">
-            <div className="rounded-[24px] border border-[#ded6cc] bg-white px-4 py-4">
-              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#83786d]">
-                Fast to make
-              </p>
-              <p className="mt-2 text-sm font-semibold leading-6 text-[#6f665d]">
-                The builder starts with the result, then adds only the record
-                details needed for the customer output.
-              </p>
-              <div className="mt-4 grid gap-2">
-                {inputSteps.map(([step, label]) => (
-                  <div
-                    key={step}
-                    className="flex items-center gap-3 rounded-[16px] bg-[#f7f1e9] px-3 py-3 text-sm font-black text-[#423c36]"
-                  >
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#111315] text-[11px] text-white">
-                      {step}
-                    </span>
-                    {label}
+            <article className="relative border border-[#cfc6b9] bg-white shadow-[0_28px_80px_rgba(27,22,16,0.16)] lg:mr-[17%]">
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#e6ded3] px-4 py-4 sm:px-5">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.15em] text-[#85796d]">
+                    Sample Hood Service Co.
+                  </p>
+                  <h2 className="mt-1.5 text-xl font-black tracking-[-0.035em] text-[#111315] sm:text-3xl">
+                    Hood Cleaning Closeout Record
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2 bg-[#eaf6ee] px-3 py-2 text-xs font-black text-[#146039]">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Reachable work completed
+                </div>
+              </div>
+
+              <dl className="grid grid-cols-2 gap-px border-b border-[#e6ded3] bg-[#e6ded3] sm:grid-cols-4">
+                {serviceFacts.map(([label, value]) => (
+                  <div key={label} className="bg-[#fbf8f3] px-3 py-3 sm:px-4">
+                    <dt className="text-[9px] font-black uppercase tracking-[0.14em] text-[#8a7f72]">
+                      {label}
+                    </dt>
+                    <dd className="mt-1.5 text-sm font-black leading-tight text-[#191919]">
+                      {value}
+                    </dd>
                   </div>
                 ))}
-              </div>
-            </div>
+              </dl>
 
-            <div className="flex items-start gap-3 rounded-[24px] border border-[#efc0a4] bg-[#fff4ec] px-4 py-4">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#bc3d1f]" />
-              <div>
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#9b3f13]">
-                  Customer action
-                </p>
-                <p className="mt-2 text-sm font-black leading-5">
-                  Clear rear duct access before follow-up service.
-                </p>
-                <p className="mt-2 text-xs font-semibold leading-5 text-[#6f4d3d]">
-                  The blocked area stays separate and is not presented as cleaned.
-                </p>
+              <div className="p-3 sm:p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-sm font-black text-[#191919]">
+                    <CalendarDays className="h-4 w-4 text-[#f26a21]" />
+                    Before/after photos
+                  </div>
+                  <p className="hidden text-xs font-bold text-[#7a7066] sm:block">
+                    Customer-facing link preview
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {photos.map((photo) => (
+                    <figure key={photo.label} className="overflow-hidden border border-[#ddd4c9] bg-[#111315]">
+                      <div className="relative aspect-[4/3]">
+                        <Image
+                          src={photo.src}
+                          alt={photo.title}
+                          fill
+                          priority
+                          sizes="(min-width: 1024px) 360px, 50vw"
+                          className="object-cover"
+                        />
+                      </div>
+                      <figcaption className="bg-[#111315] px-3 py-2.5 text-white sm:py-3">
+                        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#ff9b63]">
+                          {photo.label}
+                        </p>
+                        <p className="mt-1 text-xs font-black leading-tight sm:text-sm">
+                          {photo.title}
+                        </p>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+
+                <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_0.95fr]">
+                  <div className="border border-[#e1d8cd] bg-[#fbf8f3] p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#8a7f72]">
+                      Areas shown
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {areas.map((area) => (
+                        <span
+                          key={area}
+                          className="border border-[#d8d0c4] bg-white px-2.5 py-1.5 text-xs font-black text-[#4d453e]"
+                        >
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border border-[#efc0a4] bg-[#fff4ec] p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#bc3d1f]" />
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#9b3f13]">
+                          Customer action
+                        </p>
+                        <p className="mt-2 text-sm font-black leading-5">
+                          Clear rear duct access before follow-up service.
+                        </p>
+                        <p className="mt-2 text-xs font-semibold leading-5 text-[#6f4d3d]">
+                          The blocked area stays separate and is not presented
+                          as cleaned.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </article>
           </div>
         </div>
       </section>
 
-      <section className="bg-[#f4ede4] px-4 pb-10 text-[#6f665d] sm:px-5">
-        <p className="mx-auto max-w-[1180px] border-t border-[#ded6cc] pt-5 text-xs leading-6">
+      <section className="border-y border-[#ddd4c9] bg-[#111315] px-4 py-8 text-white sm:px-5">
+        <div className="mx-auto grid max-w-[1180px] gap-5 md:grid-cols-[0.82fr_1.18fr] md:items-center">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff9b63]">
+              Fast to create
+            </p>
+            <h2 className="mt-2 text-3xl font-black tracking-[-0.05em]">
+              Not a new workflow for the crew.
+            </h2>
+          </div>
+          <div className="grid gap-px overflow-hidden border border-white/12 bg-white/12 sm:grid-cols-3">
+            {builderSteps.map((step, index) => (
+              <div key={step} className="bg-[#171a1d] p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/38">
+                  Step {index + 1}
+                </p>
+                <p className="mt-2 text-sm font-black leading-5">{step}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f6f2eb] px-4 py-6 text-[#655c53] sm:px-5">
+        <p className="mx-auto max-w-[1180px] text-xs leading-6">
           KitchenPermit is service report software. This generic sample is for
           customer recordkeeping only. It does not issue permits, certificates,
           inspections, insurance approvals, or compliance determinations.
