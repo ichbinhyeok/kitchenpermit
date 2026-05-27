@@ -13,7 +13,7 @@ import { publicPageMetadata } from "@/lib/seo";
 export const metadata: Metadata = publicPageMetadata({
   title: "Company Version",
   description:
-    "The paid KitchenPermit company version for saved company details, retained service report links, clean PDFs, and report history.",
+    "The paid KitchenPermit company version for branded service records, retained report links, clean PDFs, and report history.",
   path: "/company-version",
 });
 
@@ -26,7 +26,7 @@ const storedItems = [
 
 const flowItems = [
   ["1. Create or sign in to your account", "Use your account to request launch pilot access and manage company details."],
-  ["2. Request 30-day company access", "During launch, eligible company accounts can request company access with no card required."],
+  ["2. Request 30-day company access", "During launch, we review pilot requests manually and email you when company access is enabled. No card is required."],
   ["3. Add company details and send branded reports", "The restaurant receives a clean report link and PDF under your company name."],
 ] as const;
 
@@ -70,12 +70,13 @@ export default function CompanyVersionPage() {
               Company version // {AXIS1_COMPANY_MONTHLY_PRICE}
             </p>
             <h1 className="mt-5 max-w-[12ch] font-display text-[clamp(3.2rem,10vw,7.2rem)] font-bold leading-[0.86] tracking-[-0.085em]">
-              Send reports under your company name.
+              Send branded service records under your company name.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/68 md:text-xl md:leading-9">
-              The free builder is for testing. The company version adds your
-              logo, customer-facing contact, clean PDFs, retained report links,
-              report history, and follow-up reminders.
+              Branded service records help restaurants keep clearer files after
+              each job without making your crew learn a heavy system. Company
+              version adds your logo, customer-facing contact, clean PDFs,
+              retained report links, report history, and follow-up reminders.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <PaddleCheckoutButton
@@ -99,8 +100,9 @@ export default function CompanyVersionPage() {
             </div>
             <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-white/54">
               During launch, eligible company accounts can request 30 days of
-              company access with no card required. Paid billing starts only
-              after a paid subscription is activated.
+              company access with no card required. We review requests manually
+              and email you when company access is enabled. Paid billing starts
+              only after a paid subscription is activated.
             </p>
           </div>
 
@@ -161,8 +163,9 @@ export default function CompanyVersionPage() {
                 Free output is intentionally limited: no company logo/contact,
                 7-day links, watermarked PDFs, and no history. The company
                 version removes those limits and turns saved reports into a
-                simple follow-up workspace. No card is required for the launch
-                pilot.
+                simple follow-up workspace. Keeping one recurring customer can
+                cover far more than the cost of KitchenPermit. No card is
+                required for the launch pilot.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <PaddleCheckoutButton

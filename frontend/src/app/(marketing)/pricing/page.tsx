@@ -179,8 +179,8 @@ export default function PricingPage() {
             <p className="text-sm font-semibold leading-6 text-muted-foreground md:text-base md:leading-7">
               Create or sign into an account, verify the email, then request 30
               days of company access with no card. We review the account email,
-              enable the company version, and ask for product feedback after
-              you use it.
+              enable the company version, email you when access is ready, and
+              ask for product feedback after you use it.
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Link
@@ -271,6 +271,10 @@ export default function PricingPage() {
             <h2 className="mt-4 font-display text-[2.1rem] font-bold leading-[0.94] tracking-[-0.06em] text-foreground md:text-4xl">
               Paid is not more editing. Paid is trust, storage, and continuity.
             </h2>
+            <p className="mt-4 max-w-md text-sm font-semibold leading-6 text-muted-foreground">
+              Keeping one recurring customer can cover far more than the cost of
+              KitchenPermit.
+            </p>
           </div>
           <div className="divide-y divide-border border-y border-border">
             {freeVsPaid.map(([label, copy]) => (

@@ -11,7 +11,7 @@ import { publicPageMetadata } from "@/lib/seo";
 export const metadata: Metadata = publicPageMetadata({
   title: "KitchenPermit | Hood Cleaning Service Report Software",
   description:
-    "KitchenPermit helps hood cleaning companies send restaurant-ready service reports with photos, open items, next actions, and a PDF copy.",
+    "KitchenPermit helps hood cleaning companies send customer-ready service records with photos, open items, next actions, and a PDF copy.",
   path: "/",
 });
 
@@ -159,15 +159,16 @@ export default function HomePage() {
         <div className="relative mx-auto flex min-h-[calc(100svh-140px)] w-[min(1240px,100%)] flex-col justify-end gap-8">
           <Reveal className="max-w-5xl">
             <p className="font-mono text-[11px] uppercase tracking-[0.34em] text-[#ffb27c]">
-              For hood cleaning companies
+              Hood cleaning service report software
             </p>
             <h1 className="mt-5 max-w-[15ch] font-display text-[clamp(2.95rem,8.7vw,6.35rem)] font-bold leading-[0.88] tracking-[-0.075em] text-white">
               Send hood cleaning reports your customers can actually save.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/72 md:text-xl md:leading-9">
-              Create a simple hood cleaning service record with before/after
-              photos, service date, blocked access, and next actions, ready for
-              customers to save with their job files.
+              KitchenPermit helps hood cleaning companies create customer-ready
+              service records with service date, before/after photos, blocked
+              access, next actions, a link, and a PDF copy customers can save
+              with job files.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <ActionLink href="/axis-1/tool?account=free" tone="accent">

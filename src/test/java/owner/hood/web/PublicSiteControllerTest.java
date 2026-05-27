@@ -33,7 +33,7 @@ class PublicSiteControllerTest {
         assertStaticResourceContains(
                 "static/index.html",
                 "Send hood cleaning reports your customers can actually save.",
-                "Create a simple hood cleaning service record with before/after",
+                "customer-ready service records with service date",
                 "View quick sample"
         );
     }
@@ -56,7 +56,7 @@ class PublicSiteControllerTest {
 
         assertStaticResourceContains(
                 "static/company-version.html",
-                "Send reports under your company name.",
+                "Send branded service records under your company name.",
                 "Request 30-day pilot"
         );
     }
