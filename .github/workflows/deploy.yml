@@ -133,6 +133,7 @@ jobs:
                   - HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM=${HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM:-${{ secrets.HOOD_AUTH_EMAIL_VERIFICATION_MAIL_FROM || 'compliance@kitchenpermit.com' }}}
                   - HOOD_AXIS1_PILOT_MAIL_FROM=${HOOD_AXIS1_PILOT_MAIL_FROM:-${{ secrets.HOOD_AXIS1_PILOT_MAIL_FROM || 'compliance@kitchenpermit.com' }}}
                   - HOOD_AXIS1_PILOT_NOTIFY_TO=${HOOD_AXIS1_PILOT_NOTIFY_TO:-${{ secrets.HOOD_AXIS1_PILOT_NOTIFY_TO || 'compliance@kitchenpermit.com' }}}
+                  - HOOD_AXIS2_SOURCING_SCHEDULER_ENABLED=false
                   - SPRING_MAIL_HOST=${SPRING_MAIL_HOST:-${{ secrets.SPRING_MAIL_HOST }}}
                   - SPRING_MAIL_PORT=${SPRING_MAIL_PORT:-${{ secrets.SPRING_MAIL_PORT || '587' }}}
                   - SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME:-${{ secrets.SPRING_MAIL_USERNAME }}}
